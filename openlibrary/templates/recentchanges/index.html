@@ -44,7 +44,7 @@ $def subnav():
         $:render_template("recentchanges/render", limit=50, ip=ip, **query)</div>
     $else:
         $if "begin_date" not in query:
-            $ chart_i18n = {"perHour": _("Per hour"), "hourSoFar": _("This hour so far"), "perDay": _("Per day"), "perWeek": _("Per week"), "perMonth": _("Per 4 weeks"), "total": _("Total: %(count)s"), "humans": _("Humans"), "bots": _("Bots"), "todaySoFar": _("Today so far"), "periodSoFar": _("Still in progress"), "noData": _("No changes in this range."), "loadFailed": _("The chart couldn't load. Reload the page to try again."), "colorBy": _("Color by: %(choice)s")}
+            $ chart_i18n = {"hourSoFar": _("This hour so far"), "total": _("Total: %(count)s"), "humans": _("Humans"), "bots": _("Bots"), "todaySoFar": _("Today so far"), "periodSoFar": _("Still in progress"), "noData": _("No changes in this range."), "loadFailed": _("The chart couldn't load. Reload the page to try again."), "colorBy": _("Color by: %(choice)s")}
             $ chart_i18n["kinds"] = {"edit-book": _("Books Edited"), "add-book": _("Books Added"), "add-cover": _("Covers Added"), "merge-authors": _("Author Merges"), "merge-works": _("Work Merges"), "lists": _("Lists")}
             $ kind_option = {"value": "kind", "label": _("Edit kind")}
             $if query.get("kind"):
@@ -57,11 +57,11 @@ $def subnav():
             $ kind_filter_options = [{"value": k, "label": v} for k, v in chart_i18n["kinds"].items()]
             <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
                 <div class="tasks-stats__chart-head">
-                    <span class="tasks-stats__chart-unit">$_("Per day")</span>
                     <span class="tasks-stats__legend tasks-stats__parts"></span>
                 </div>
                 <div class="tasks-stats__controls">
                     <ol-segmented-control class="recentchanges-chart__range" size="small" value="28" accessible-label="$_('Date range')">
+                        <ol-segment value="7">$_("7 days")</ol-segment>
                         <ol-segment value="28">$_("28 days")</ol-segment>
                         <ol-segment value="90">$_("90 days")</ol-segment>
                         <ol-segment value="182">$_("6 months")</ol-segment>
@@ -89,7 +89,11 @@ $def subnav():
                             $else:
                                 <ol-button slot="trigger" size="small">$_("Kind: %(choice)s", choice=_("Any"))</ol-button>
                         </ol-select-popover>
-                        <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                        <span class="recentchanges-chart__search-box">
+                            <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                            <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__match-case" aria-pressed="false" title="$_('Match case')" aria-label="$_('Match case')">Aa</button>
+                            <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__regex" aria-pressed="false" title="$_('Use regular expression')" aria-label="$_('Use regular expression')">.*</button>
+                        </span>
                         <ol-button type="submit" size="small">$_("Search")</ol-button>
                     </form>
                 </div>

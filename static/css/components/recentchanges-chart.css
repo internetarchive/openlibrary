@@ -15,14 +15,57 @@
   display: none;
 }
 
-.recentchanges-chart__query input {
+/* The input and its match-case and regex toggles read as one field, as in VS Code's find box */
+.recentchanges-chart__search-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   height: var(--control-height-small);
-  min-width: 16em;
-  padding: 0 var(--spacing-inset-sm);
+  padding-inline-end: 2px;
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-sm);
+  background: var(--color-surface);
+}
+
+.recentchanges-chart__search-box:focus-within {
+  box-shadow: var(--box-shadow-focus);
+}
+
+.recentchanges-chart__search-box input {
+  /* Grows with what's typed where supported; elsewhere it keeps its minimum width */
+  field-sizing: content;
+  min-width: 16em;
+  max-width: 40em;
+  height: 100%;
+  padding: 0 var(--spacing-inset-sm);
+  border: 0;
+  background: none;
   font: inherit;
   font-size: var(--font-size-body-small);
+  outline: none;
+}
+
+.recentchanges-chart__search-toggle {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 3px;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  cursor: pointer;
+}
+
+.recentchanges-chart__search-toggle:hover {
+  background: var(--color-hover-overlay);
+}
+
+.recentchanges-chart__search-toggle[aria-pressed="true"] {
+  border-color: var(--color-control-selected-border);
+  background: var(--color-control-selected-bg);
+  color: var(--color-text);
 }
 
 /* Hovering a legend item fades the others, along with their bars */

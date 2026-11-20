@@ -20,7 +20,7 @@ const MAX_HOURLY_DAYS = 28;
 
 /**
  * @typedef {object} Walk a newest-first search through the changes for one query and filters, a page at a time
- * @property {{query: string, bot: string, kinds: string[]}} search what it looks for: `bot` is any, humans or bots, `kinds` empty for any
+ * @property {{query: string, regex: boolean, matchCase: boolean, bot: string, kinds: string[]}} search what it looks for: `bot` is any, humans or bots, `kinds` empty for any
  * @property {Record<string, number>} counts matching changes per ISO date
  * @property {Record<string, number>} checked changes checked per ISO date
  * @property {number | null} cursor `before` for the next page
@@ -56,7 +56,6 @@ export function init(root) {
     const strings = JSON.parse(root.dataset.i18n || '{}');
     const kind = root.dataset.kind || '';
     const canvas = /** @type {HTMLCanvasElement} */ (root.querySelector('canvas'));
-    const unitLabel = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const colorBy = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__color'));
     const colorTrigger = /** @type {HTMLElement} */ (colorBy.querySelector('[slot="trigger"]'));
@@ -115,13 +114,14 @@ export function init(root) {
         timeZoneName: 'short'
     });
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
-    const units = { hour: strings.perHour, day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
     const state = {
         days: 28,
         granularity: /** @type {keyof BUCKET_SLOTS} */ ('day'),
         colorBy: 'none',
         query: '',
+        regex: false,
+        matchCase: false,
         bot: 'any',
         kinds: /** @type {string[]} */ ([]),
         isolated: /** @type {string | null} */ (null)
@@ -144,7 +144,7 @@ export function init(root) {
     /** The walk for the current search, or null without one. */
     function currentWalk() {
         if (state.colorBy !== 'query' || !state.query) return null;
-        const search = { query: state.query, bot: state.bot, kinds: kind ? [kind] : [...state.kinds].sort() };
+        const search = { query: state.query, regex: state.regex, matchCase: state.matchCase, bot: state.bot, kinds: kind ? [kind] : [...state.kinds].sort() };
         const key = JSON.stringify(search);
         let walk = walks.get(key);
         if (!walk) {
@@ -190,6 +190,8 @@ export function init(root) {
             while (!walk.stopped && !covered(walk)) {
                 const params = new URLSearchParams({ q: walk.search.query, limit: String(pageSize) });
                 for (const name of walk.search.kinds) params.append('kind', name);
+                if (walk.search.regex) params.set('regex', 'true');
+                if (walk.search.matchCase) params.set('case', 'true');
                 if (walk.search.bot !== 'any') params.set('bot', String(walk.search.bot === 'bots'));
                 if (walk.cursor !== null) params.set('before', String(walk.cursor));
                 const started = performance.now();
@@ -335,7 +337,7 @@ export function init(root) {
             // The daily totals are cached, so a day's changes checked can run past its total
             const checked = data.dates.map((slot, i) => Math.min(checkedBySlot[slot] || 0, filtered[i]));
             parts = [
-                { label: fill(strings.matches, { text: state.query }), color: colors.match, daily: matching },
+                { label: fill(strings.matches, { text: state.regex ? `/${state.query}/` : state.query }), color: colors.match, daily: matching },
                 { label: strings.nonMatches, color: colors.muted, daily: checked.map((n, i) => Math.max(0, n - matching[i])) },
                 { label: strings.notSearched, color: colors.unsearched, daily: filtered.map((n, i) => n - checked[i]) }
             ];
@@ -450,7 +452,6 @@ export function init(root) {
         }
         if (hasData) empty?.remove();
 
-        unitLabel.textContent = units[state.granularity];
         /** @param {number | null} focused index of the hovered legend item, or null for none */
         const focus = focused => {
             const chart = Chart.getChart(canvas);
@@ -549,6 +550,16 @@ export function init(root) {
         // Tinted while filtering, as ol-select-popover's own trigger is
         trigger.toggleAttribute('selected', count > 0);
         restartWalk();
+    });
+    /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.recentchanges-chart__search-toggle')).forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const on = toggle.getAttribute('aria-pressed') !== 'true';
+            toggle.setAttribute('aria-pressed', String(on));
+            stopWalk();
+            if (toggle.classList.contains('recentchanges-chart__regex')) state.regex = on;
+            else state.matchCase = on;
+            restartWalk();
+        });
     });
     walkToggle.addEventListener('click', () => {
         const walk = currentWalk();

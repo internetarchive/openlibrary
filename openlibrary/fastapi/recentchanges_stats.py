@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
-from psycopg.errors import QueryCanceled
+from psycopg.errors import InvalidRegularExpression, QueryCanceled
 from pydantic import BaseModel
 
 from openlibrary.core import cache
@@ -105,7 +105,7 @@ def recentchanges_counts(
 # in the revision that change wrote. `transaction.changes` lists the (key, revision) pairs each change saved and `data`
 # holds every revision in full. The lookups are scalar subqueries so each is a single index probe per saved record: as
 # joins, the planner may hash or scan `thing` or `data`. The page is materialized first so only its rows are searched.
-_MATCH_PAGE_SQL = f"""
+_MATCH_PAGE_TEMPLATE = f"""
 WITH {_BOTS_CTE}, page AS MATERIALIZED (
     SELECT id, created, changes FROM transaction
     WHERE (%(before)s::int IS NULL OR id < %(before)s) AND (%(kinds)s::text[] IS NULL OR action = ANY(%(kinds)s))
@@ -115,14 +115,25 @@ WITH {_BOTS_CTE}, page AS MATERIALIZED (
 )
 SELECT page.id, page.created, EXISTS (
     SELECT 1 FROM jsonb_array_elements(page.changes::jsonb) AS change
-    WHERE strpos(lower((
-        SELECT data.data FROM data
-        WHERE data.thing_id = (SELECT thing.id FROM thing WHERE thing.key = change->>'key')
-        AND data.revision = (change->>'revision')::int
-    )), %(text)s) > 0
+    WHERE __MATCH__
 ) AS matched
 FROM page
 """
+_SAVED_RECORD = """(
+        SELECT data.data FROM data
+        WHERE data.thing_id = (SELECT thing.id FROM thing WHERE thing.key = change->>'key')
+        AND data.revision = (change->>'revision')::int
+    )"""
+# By (regex, match case). Case-insensitive substrings are lowercased in Python, so only the record needs lower().
+_MATCH_PAGE_SQL = {
+    (regex, match_case): _MATCH_PAGE_TEMPLATE.replace("__MATCH__", predicate.replace("__RECORD__", _SAVED_RECORD))
+    for (regex, match_case), predicate in {
+        (False, False): "strpos(lower(__RECORD__), %(text)s) > 0",
+        (False, True): "strpos(__RECORD__, %(text)s) > 0",
+        (True, False): "__RECORD__ ~* %(text)s",
+        (True, True): "__RECORD__ ~ %(text)s",
+    }.items()
+}
 # Per page, so one slow page fails fast and the walk can retry it smaller.
 MATCH_PAGE_TIMEOUT = "20s"
 MAX_PAGE_SIZE = 5000
@@ -142,10 +153,12 @@ class RecentChangesMatchPage(BaseModel):
     """When the oldest change on this page was made (ISO, UTC): the walk has covered everything since."""
 
 
-async def match_page(text: str, kinds: list[str] | None, bot: bool | None, before: int | None, limit: int) -> RecentChangesMatchPage:
+async def match_page(
+    text: str, regex: bool, match_case: bool, kinds: list[str] | None, bot: bool | None, before: int | None, limit: int
+) -> RecentChangesMatchPage:
     async with connection() as conn:
         await conn.execute(f"SET LOCAL statement_timeout = '{MATCH_PAGE_TIMEOUT}'")
-        cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kinds": kinds, "bot": bot, "before": before, "limit": limit})
+        cursor = await conn.execute(_MATCH_PAGE_SQL[regex, match_case], {"text": text, "kinds": kinds, "bot": bot, "before": before, "limit": limit})
         rows = await cursor.fetchall()
     counts: dict[str, int] = {}
     checked: dict[str, int] = {}
@@ -167,7 +180,9 @@ async def match_page(text: str, kinds: list[str] | None, bot: bool | None, befor
 @router.get("/stats/recentchanges/matches.json", response_model=RecentChangesMatchPage)
 async def recentchanges_matches(
     _: LibrarianDep,
-    q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for, case-insensitively, in each edited record as that change saved it.")],
+    q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for in each edited record, as that change saved it (its JSON).")],
+    regex: Annotated[bool, Query(description="Treat `q` as a PostgreSQL regular expression.")] = False,
+    case: Annotated[bool, Query(description="Match case.")] = False,
     kind: Annotated[list[str] | None, Query(max_length=MAX_KINDS, description="Change kinds, e.g. add-book; repeat for several, all kinds if omitted.")] = None,
     bot: Annotated[bool | None, Query(description="Only bots' changes, or only people's; both if omitted.")] = None,
     before: Annotated[int | None, Query(gt=0, description="Only changes with an id below this: the previous page's `next`.")] = None,
@@ -175,6 +190,9 @@ async def recentchanges_matches(
 ) -> RecentChangesMatchPage:
     """One page of a newest-first walk through the changes, counting those whose saved records contain `q`."""
     try:
-        return await match_page(q.strip().lower(), kind or None, bot, before, limit)
+        text = q if regex else q.strip()
+        return await match_page(text if case or regex else text.lower(), regex, case, kind or None, bot, before, limit)
+    except InvalidRegularExpression as error:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error).splitlines()[0])
     except QueryCanceled:
         raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=f"This page took longer than {MATCH_PAGE_TIMEOUT}; try a smaller one.")

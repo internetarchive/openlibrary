@@ -5857,23 +5857,7 @@ msgid "Books Added"
 msgstr ""
 
 #: recentchanges/index.html
-msgid "Per hour"
-msgstr ""
-
-#: recentchanges/index.html
 msgid "This hour so far"
-msgstr ""
-
-#: openlibrary/views/loanstats.py recentchanges/index.html stats/tasks.html.jinja
-msgid "Per day"
-msgstr ""
-
-#: openlibrary/views/loanstats.py recentchanges/index.html
-msgid "Per week"
-msgstr ""
-
-#: openlibrary/views/loanstats.py recentchanges/index.html
-msgid "Per 4 weeks"
 msgstr ""
 
 #: openlibrary/views/loanstats.py recentchanges/index.html
@@ -5998,6 +5982,10 @@ msgstr ""
 msgid "Date range"
 msgstr ""
 
+#: recentchanges/index.html
+msgid "7 days"
+msgstr ""
+
 #: recentchanges/index.html stats/tasks.html.jinja
 msgid "28 days"
 msgstr ""
@@ -6056,6 +6044,14 @@ msgstr ""
 
 #: recentchanges/index.html
 msgid "Text to search edited records for"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Match case"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Use regular expression"
 msgstr ""
 
 #: recentchanges/index.html
@@ -6836,6 +6832,10 @@ msgstr ""
 
 #: stats/tasks.html.jinja
 msgid "Period"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+msgid "Per day"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -11197,6 +11197,14 @@ msgid "<b>%(count)s</b> person has helped"
 msgid_plural "<b>%(count)s</b> people have helped"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/views/loanstats.py
+msgid "Per week"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Per 4 weeks"
+msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "Today so far, updated hourly"
