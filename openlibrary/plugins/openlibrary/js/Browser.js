@@ -23,9 +23,9 @@ export function getJsonFromUrl(urlSearch) {
  * @returns {String}
  */
 export function removeURLParameter(url, parameter) {
-    var urlparts = url.split('?');
-    var prefix = urlparts[0];
-    var query, paramPrefix, params, i;
+    const urlparts = url.split('?');
+    const prefix = urlparts[0];
+    let query, paramPrefix, params, i;
     if (urlparts.length >= 2) {
         query = urlparts[1];
         paramPrefix = `${encodeURIComponent(parameter)}=`;
