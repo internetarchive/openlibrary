@@ -300,7 +300,17 @@ export function init(root) {
         const size = BUCKET_SLOTS[state.granularity];
         // Rounded down, so the chart never reaches back further than the chosen range.
         const count = Math.max(1, Math.floor(dates.length / size));
-        const total = data.humans.map((n, i) => n + data.bots[i]);
+        const allChanges = data.humans.map((n, i) => n + data.bots[i]);
+        // In custom-query mode the bot and kind filters narrow the chart too, whether or not a search has run
+        let total = allChanges;
+        if (state.colorBy === 'query') {
+            const zeros = data.dates.map(() => 0);
+            const kinds = kind ? [kind] : state.kinds;
+            const sumOf = (/** @type {Record<string, number[]>} */ byKind) => zeros.map((_, i) => kinds.reduce((n, name) => n + (byKind[name]?.[i] || 0), 0));
+            const all = kinds.length ? sumOf(data.kinds) : allChanges;
+            const bots = kinds.length ? sumOf(data.bot_kinds) : data.bots;
+            total = state.bot === 'bots' ? bots : state.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
+        }
         /** @type {{label: string, color: string, daily: number[]}[]} */
         let parts;
         if (state.colorBy === 'bot') {
@@ -316,13 +326,8 @@ export function init(root) {
         } else if (currentWalk()) {
             const walk = /** @type {Walk} */ (currentWalk());
             if (!walk.stopped && !walk.error && !covered(walk)) runWalk(walk);
-            // Only the changes the filters let through, so those it skips don't read as not searched yet
-            const zeros = data.dates.map(() => 0);
-            const kinds = walk.search.kinds;
-            const sumOf = (/** @type {Record<string, number[]>} */ byKind) => zeros.map((_, i) => kinds.reduce((n, name) => n + (byKind[name]?.[i] || 0), 0));
-            const all = kinds.length ? sumOf(data.kinds) : total;
-            const bots = kinds.length ? sumOf(data.bot_kinds) : data.bots;
-            const filtered = walk.search.bot === 'bots' ? bots : walk.search.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
+            // `total` is already only the changes the filters let through, so those the walk skips don't read as not searched yet
+            const filtered = total;
             // The walk counts per hour; per day, sum each day's hours
             const perSlot = (/** @type {Record<string, number>} */ byHour) => {
                 if (unit === 'hour') return byHour;
