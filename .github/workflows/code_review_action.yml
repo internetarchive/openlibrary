@@ -14,7 +14,8 @@ name: Code Review Action
 #   status   posts the `code-review` commit status.
 #   decline  replies to an @openlibrary-bot comment from someone who can't ask for a review.
 #   skipped  replies to an @openlibrary-bot comment when there's nothing to review.
-#   decline and skipped post fixed text with a PAT and run no model.
+#   stacked  replies to a review request on a PR stacked on another branch, which starts no review.
+#   decline, skipped and stacked post fixed text with a PAT and run no model.
 # A prompt injection in a PR can change what the review says, but the job that read it has nothing
 # to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
 #
