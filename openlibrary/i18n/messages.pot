@@ -2073,7 +2073,15 @@ msgid "Stats"
 msgstr ""
 
 #: admin/index.html
-msgid "Tasks stats: who is editing, and how Tasks edits hold up"
+msgid "Related stats pages"
+msgstr ""
+
+#: admin/index.html contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
+msgid "Tasks"
+msgstr ""
+
+#: admin/index.html admin/menu.html
+msgid "New accounts"
 msgstr ""
 
 #: admin/index.html
@@ -2268,10 +2276,6 @@ msgstr ""
 
 #: RelatedSubjects.html.jinja SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html contribute/admin/index.html.jinja openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "People"
-msgstr ""
-
-#: admin/menu.html
-msgid "New accounts"
 msgstr ""
 
 #: admin/menu.html
@@ -4174,10 +4178,6 @@ msgstr ""
 
 #: contribute/admin/parts.html.jinja contribute/dashboard.html.jinja
 msgid "Getting the list ready…"
-msgstr ""
-
-#: contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
-msgid "Tasks"
 msgstr ""
 
 #: contribute/dashboard.html.jinja

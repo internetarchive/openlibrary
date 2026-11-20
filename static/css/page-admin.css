@@ -16,6 +16,7 @@
 /* Import all common components */
 @import "legacy.css";
 @import "components/stats-bar-chart.css";
+@import "components/stats-head.css";
 @import "components/tasks-stats.css";
 /* Import styles specific to the BorrowTable for user pages */
 @import "legacy-borrowTable-adminUser.css";
