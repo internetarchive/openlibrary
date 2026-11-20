@@ -80,8 +80,12 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
     return None, failure_reason
 
 
-def do_import(item, servername=None, require_marc=True):
+def do_import(item, servername=None, require_marc=True, only_pending=False):
     logger.info(f"do_import START (pid:{os.getpid()})")
+    # import-all fetches items in bulk before importing them, so their batch may have been paused since.
+    if only_pending and not item.is_pending():
+        logger.info(f"skipping item {item.id}: no longer pending")
+        return
     try:
         response, failure_reason = ol_import_request(item, servername=servername, require_marc=require_marc)
         try:
@@ -216,7 +220,7 @@ def import_all(args, **kwargs):
                 continue
 
             logger.info("starmap START")
-            pool.starmap(do_import, ((item, servername, require_marc) for item in items))
+            pool.starmap(do_import, ((item, servername, require_marc, True) for item in items))
             logger.info("starmap END")
 
 

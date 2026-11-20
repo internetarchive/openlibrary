@@ -5,6 +5,38 @@
 
 const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
 
+// The paths to review once files identical to the base branch's tip are left out, or null to
+// change nothing: when no file matches, or GitHub's lists are cut short (300 files in a compare, a
+// truncated tree). `files` is the re-review's list, or null for the whole PR. A file matches when
+// its blob in the PR equals the base branch's, or the PR deletes a file the base branch lacks.
+async function withoutFilesOnBase({ github, owner, repo, baseRef, base, head, files, core }) {
+    try {
+        const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${base}...${head}` });
+        const changed = (cmp && cmp.files) || [];
+        if (!changed.length || changed.length >= 300) return null;
+        const { data: tree } = await github.rest.git.getTree({ owner, repo, tree_sha: baseRef, recursive: 'true' });
+        if (!tree || tree.truncated || !Array.isArray(tree.tree)) return null;
+        const onBase = new Map(tree.tree.map(e => [e.path, e.sha]));
+        const same = f => (f.status === 'removed' ? !onBase.has(f.filename) : onBase.get(f.filename) === f.sha);
+        const kept = new Set();
+        for (const f of changed) {
+            if (same(f)) continue;
+            kept.add(f.filename);
+            if (f.previous_filename) kept.add(f.previous_filename);
+        }
+        const all = new Set(changed.flatMap(f => [f.filename, f.previous_filename].filter(Boolean)));
+        // A path outside the compare's list (shouldn't happen) is kept rather than dropped.
+        const out = (files || [...all]).filter(p => kept.has(p) || !all.has(p)).sort();
+        const dropped = changed.length - changed.filter(f => !same(f)).length;
+        if (!dropped) return null;
+        core.info(`Leaving out ${dropped} file(s) that already match ${baseRef}.`);
+        return out;
+    } catch (e) {
+        core.info(`Could not compare the PR's files with ${baseRef} (${e.message}) -- reviewing them all.`);
+        return null;
+    }
+}
+
 async function resolveRange({ github, context, core, require, process }) {
     const fs = require('fs');
     const owner = context.repo.owner,
@@ -188,6 +220,23 @@ async function resolveRange({ github, context, core, require, process }) {
         core.setOutput('repost', 'true');
         return;
     }
+
+    // A file the PR leaves exactly as it is on the base branch adds nothing to review, however the
+    // history got it there: master's changes committed by hand instead of merged, or a stacked PR
+    // whose parent was squash-merged. #14495 was reviewed with 169 such files. Leave them out,
+    // through the same file list a re-review uses. Best effort: on any doubt, review as before.
+    const narrowed = await withoutFilesOnBase({ github, owner, repo, baseRef: pr.base.ref, base, head, files, core });
+    if (narrowed && !narrowed.length && prior) {
+        // Nothing the PR changes differs from the base branch any more: carry the last verdict.
+        core.info('Every file the PR changes already matches the base branch -- reposting the last verdict.');
+        core.setOutput('pr', String(prNumber));
+        core.setOutput('head_sha', head);
+        core.setOutput('verdict_sha', prior.commit_id);
+        core.setOutput('skip', 'false');
+        core.setOutput('repost', 'true');
+        return;
+    }
+    if (narrowed && narrowed.length) files = narrowed;
 
     const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
         owner,

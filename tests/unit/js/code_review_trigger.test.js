@@ -396,9 +396,13 @@ test('requestReviewTeam: an unexpected/empty author_association fails SAFE -> sk
 
 // #14485 lets a PR's author re-run the review by commenting, but claude-code-action rejects anyone
 // without write access unless they're allowed (a fork author on #14495 hit this).
-test('the Review step allows only the vetted commenter, and only on comment triggers', () => {
+// A fork author re-requesting the bot from the Reviewers sidebar hit the same error (#14597).
+test('the Review step allows only the vetted commenter, or the PR author re-requesting the bot', () => {
     const step = reviewWf.jobs.analyze.steps.find(s => s.name === 'Review');
-    assert.equal(step.with.allowed_non_write_users, "${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}");
+    assert.equal(
+        step.with.allowed_non_write_users,
+        "${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}"
+    );
     assert.match(
         reviewIf,
         /github\.event\.comment\.user\.login == github\.event\.issue\.user\.login/,

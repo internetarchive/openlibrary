@@ -316,6 +316,18 @@ class Batch(web.storage):
             ol_key=None,
         )
 
+    def pause(self) -> int:
+        """Move this batch's pending items to ``needs_review``, returning how many.
+
+        Approving the batch puts them back to ``pending``.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='pending'",
+            vars={"batch_id": self.id},
+            status="needs_review",
+        )
+
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
@@ -385,6 +397,11 @@ class ImportItem(web.storage):
             return map(ImportItem, result)
 
         return None
+
+    def is_pending(self) -> bool:
+        """Whether this item is still ``pending`` in the database, e.g. its batch wasn't paused."""
+        rows = db.select("import_item", what="status", where="id=$id", vars={"id": self.id})
+        return bool(rows) and rows[0].status == "pending"
 
     @staticmethod
     def find_staged_or_pending(identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:

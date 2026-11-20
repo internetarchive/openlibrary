@@ -227,6 +227,10 @@ msgid "Approve"
 msgstr ""
 
 #: batch_import_view.html
+msgid "Pause"
+msgstr ""
+
+#: batch_import_view.html
 msgid "Retry failed"
 msgstr ""
 
@@ -947,19 +951,19 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py search/inside.html.jinja type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: account/reading_log.html search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html search/inside.html.jinja type/author/view.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/contribute/field_guides.py openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html.jinja type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py search/inside.html work_search.html
+#: openlibrary/core/shell/search_modal.py search/inside.html.jinja work_search.html
 msgid "Search languages…"
 msgstr ""
 
@@ -967,11 +971,11 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py search/inside.html work_search.html
+#: openlibrary/core/shell/search_modal.py search/inside.html.jinja work_search.html
 msgid "Loading…"
 msgstr ""
 
-#: search/inside.html work_search.html
+#: search/inside.html.jinja work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -1469,11 +1473,12 @@ msgid "My notes for this work"
 msgstr ""
 
 #: account/notes.html
-msgid "My notes for an edition of "
+msgid "Title Missing"
 msgstr ""
 
 #: account/notes.html
-msgid "Title Missing"
+#, python-format
+msgid "My notes for an edition of %(title)s"
 msgstr ""
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
@@ -3185,6 +3190,10 @@ msgid "Rather than creating a duplicate record, please click through the result 
 msgstr ""
 
 #: books/check.html
+msgid "Please complete the reCAPTCHA above before choosing a book."
+msgstr ""
+
+#: books/check.html
 msgid "Select this book"
 msgstr ""
 
@@ -3267,7 +3276,8 @@ msgid "Open Library Home"
 msgstr ""
 
 #: books/daisy.html
-msgid "There isn't a DAISY file available for "
+#, python-format
+msgid "There isn't a DAISY file available for <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
 
 #: books/daisy.html
@@ -3280,7 +3290,7 @@ msgid "Books for people who don't read print?"
 msgstr ""
 
 #: books/daisy.html
-msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
+msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media."
 msgstr ""
 
 #: books/daisy.html
@@ -3332,7 +3342,7 @@ msgid "Need help?"
 msgstr ""
 
 #: books/daisy.html
-msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
+msgid "Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
 msgstr ""
 
 #: books/edit.html
@@ -3444,7 +3454,7 @@ msgstr ""
 
 #: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
 #, python-format
-msgid " by %(name)s"
+msgid "%(title)s by %(name)s"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -6016,57 +6026,52 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
-#: search/inside.html
-#, python-format
-msgid "Search Open Library for %s"
-msgstr ""
-
-#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html.jinja
 msgid "Search Inside"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "Choose one language"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "About %(total)s result"
 msgid_plural "About %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "%(start)s - %(end)s of about %(total)s result"
 msgid_plural "%(start)s - %(end)s of about %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "No exact matches for \"%(query)s\". Showing books containing all of these words."
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "Showing exact matches for \"%(query)s\". %(link_start)sSearch for all of these words instead.%(link_end)s"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "Showing all of these words, in any order. %(link_start)sSearch for the exact phrase instead.%(link_end)s"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "No results found. Try a different word or phrase."
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "None of the matches on this page can be shown with these filters. Try another page or remove a filter."
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "No more results. Try an earlier page."
 msgstr ""
 
@@ -7093,10 +7098,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
-msgid "Genre"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -10035,6 +10036,15 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 #, python-format
+msgid "%(query)s - Full-text search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "Full-text search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+#, python-format
 msgid "%(query)s - Subject search"
 msgstr ""
 
@@ -10130,6 +10140,13 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/code.py
+#, python-format
+msgid "Paused %(count)d pending item."
+msgid_plural "Paused %(count)d pending items."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
 msgstr ""
 
@@ -10203,6 +10220,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Fiction or nonfiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Genre"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -10289,7 +10310,7 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(percent)s%% done, goal %(goal)s%%"
+msgid "%(percent)s%% done, goal %(goal)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -10787,6 +10808,10 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/addbook.py
 msgid "You are not allowed to add an Internet Archive ID."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "You are not allowed to add a Book URL."
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py

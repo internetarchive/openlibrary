@@ -36,7 +36,9 @@ class Recaptcha(web.form.Input):
         i = web.input()
         return self.validate_response(i.get("g-recaptcha-response"), web.ctx.ip)
 
-    def validate_response(self, response=None, remoteip=None):
+    def validate_response(self, response=None, remoteip=None, fail_open=True):
+        """`fail_open` decides the answer when Google can't be reached or replies with garbage."""
+
         def accept_error(error_codes: list[str]) -> bool:
             return not any(error in INVALIDATING_ERRORS for error in error_codes)
 
@@ -49,13 +51,14 @@ class Recaptcha(web.form.Input):
 
         try:
             r = requests.get(url, params=params, timeout=3)
-        except requests.exceptions.RequestException:
-            logger.exception("Recaptcha call failed: letting user through")
-            return True
+            r.raise_for_status()
+            data = r.json()
+        except requests.exceptions.RequestException, ValueError:
+            logger.exception("Recaptcha call failed: %s", "letting user through" if fail_open else "refusing")
+            return fail_open
 
-        data = r.json()
         if not data.get("success", False) and "error-codes" in data:
             logger.error(f"Recaptcha Error: {data['error-codes']}")
-            return accept_error(data["error-codes"])
+            return fail_open and accept_error(data["error-codes"])
 
         return data.get("success", "")
