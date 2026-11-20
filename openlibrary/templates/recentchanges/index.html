@@ -50,6 +50,9 @@ $def subnav():
             $if query.get("kind"):
                 $ kind_option.update(disabled=True, description=_("Every change here is the same kind"))
             $ color_options = [{"value": "none", "label": _("None")}, {"value": "bot", "label": _("Bots v. Humans")}, kind_option]
+            $if ctx.user and ctx.user.is_librarian_or_higher():
+                $ color_options.append({"value": "query", "label": _("Custom query…"), "description": _("Edits whose saved record contains some text. Slow.")})
+            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), searching=_("Searching edited records… this can take up to a minute."), searchFailed=_("The search failed: %(reason)s"))
             <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
                 <div class="tasks-stats__chart-head">
                     <span class="tasks-stats__chart-unit">$_("Per day")</span>
@@ -70,7 +73,12 @@ $def subnav():
                     <ol-options-popover class="recentchanges-chart__color" label="$_('Color by')" selected="none" items="$json_encode(color_options)">
                         <ol-button slot="trigger" size="small">$_("Color by: %(choice)s", choice=_("None"))</ol-button>
                     </ol-options-popover>
+                    <form class="recentchanges-chart__query" hidden>
+                        <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                        <ol-button type="submit" size="small">$_("Search")</ol-button>
+                    </form>
                 </div>
+                <p class="tasks-stats__note recentchanges-chart__status" hidden></p>
                 <div class="tasks-stats__canvas tasks-stats__canvas--main">
                     <canvas role="img" aria-label="$_('Changes over the chosen range')"></canvas>
                 </div>

@@ -1,0 +1,20 @@
+/* openlibrary/templates/recentchanges/index.html: the custom-query search beside the chart's controls */
+.recentchanges-chart__query {
+  display: inline-flex;
+  gap: var(--spacing-2xs);
+  align-items: center;
+}
+
+.recentchanges-chart__query[hidden] {
+  display: none;
+}
+
+.recentchanges-chart__query input {
+  height: var(--control-height-small);
+  min-width: 16em;
+  padding: 0 var(--spacing-inset-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  font: inherit;
+  font-size: var(--font-size-body-small);
+}

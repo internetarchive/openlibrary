@@ -5,11 +5,13 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, status
+from psycopg.errors import QueryCanceled
 from pydantic import BaseModel
 
 from openlibrary.core import cache
-from openlibrary.core.async_db import fetch_all
+from openlibrary.core.async_db import connection, fetch_all
+from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import HALF_HOUR_SECS
 
@@ -72,3 +74,61 @@ def recentchanges_counts(
 ) -> RecentChangesCounts:
     """Changes per day, split into human and bot edits."""
     return RecentChangesCounts(**_cached_daily_change_counts(kind or None, days))
+
+
+# Edits where any record they saved contains the text, in the revision that edit wrote. `transaction.changes` lists
+# the (key, revision) pairs each edit saved and `data` holds every revision in full. The lookups are scalar subqueries
+# so each one is a single index probe per saved record: as joins, the planner may hash or scan `thing` or `data`.
+# Still reads the full JSON of every record edited in the range.
+_MATCH_COUNTS_SQL = """
+SELECT t.created::date AS day, count(*) AS n
+FROM transaction t
+WHERE t.created >= %(since)s AND (%(kind)s::text IS NULL OR t.action = %(kind)s)
+AND EXISTS (
+    SELECT 1 FROM jsonb_array_elements(t.changes::jsonb) AS change
+    WHERE strpos(lower((
+        SELECT data.data FROM data
+        WHERE data.thing_id = (SELECT thing.id FROM thing WHERE thing.key = change->>'key')
+        AND data.revision = (change->>'revision')::int
+    )), %(text)s) > 0
+)
+GROUP BY day
+"""
+MATCH_TIMEOUT = "60s"
+
+
+class RecentChangesMatches(BaseModel):
+    dates: list[str]
+    """One ISO date (UTC) per calendar day, oldest first, ending today."""
+    matches: list[int]
+    """Changes per day that saved a record containing the text."""
+
+
+async def daily_match_counts(text: str, kind: str | None, days: int) -> dict[str, Any]:
+    today = date.today()
+    dates = [today - timedelta(days=i) for i in reversed(range(days))]
+    async with connection() as conn:
+        await conn.execute(f"SET LOCAL statement_timeout = '{MATCH_TIMEOUT}'")
+        cursor = await conn.execute(_MATCH_COUNTS_SQL, {"since": dates[0], "kind": kind, "text": text.lower()})
+        counts = {row["day"]: row["n"] for row in await cursor.fetchall()}
+    return {"dates": [d.isoformat() for d in dates], "matches": [counts.get(d, 0) for d in dates]}
+
+
+@cache.memoize(engine="memcache", key="recentchanges.daily_match_counts", expires=HALF_HOUR_SECS)
+def _cached_daily_match_counts(text: str, kind: str | None, days: int) -> dict[str, Any]:
+    return async_bridge.run(daily_match_counts(text, kind, days))
+
+
+# Librarians only: each uncached search reads every record edited in the range.
+@router.get("/stats/recentchanges/matches.json", response_model=RecentChangesMatches)
+def recentchanges_matches(
+    _: LibrarianDep,
+    q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for, case-insensitively, in each edited record as that edit saved it.")],
+    kind: Annotated[str | None, Query(max_length=64, description="Change kind, e.g. add-book; all kinds if omitted.")] = None,
+    days: Annotated[int, Query(gt=0, le=MAX_DAYS, description="How many days up to today.")] = 28,
+) -> RecentChangesMatches:
+    """Changes per day whose saved records contain `q`."""
+    try:
+        return RecentChangesMatches(**_cached_daily_match_counts(q.strip().lower(), kind or None, days))
+    except QueryCanceled:
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=f"Search took longer than {MATCH_TIMEOUT}; try a shorter range.")

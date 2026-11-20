@@ -15,6 +15,12 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
  */
 
 /**
+ * @typedef {object} Matches
+ * @property {string[]} dates
+ * @property {number[]} matches changes whose saved record contains the searched text
+ */
+
+/**
  * @param {string} template
  * @param {Record<string, string>} values
  */
@@ -35,12 +41,17 @@ export function init(root) {
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const colorBy = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__color'));
     const colorTrigger = /** @type {HTMLElement} */ (colorBy.querySelector('[slot="trigger"]'));
+    const queryForm = /** @type {HTMLFormElement} */ (root.querySelector('.recentchanges-chart__query'));
+    const queryInput = /** @type {HTMLInputElement} */ (queryForm.querySelector('input'));
+    const status = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__status'));
 
     const style = getComputedStyle(root);
     const token = (/** @type {string} */ name) => style.getPropertyValue(name).trim();
     const colors = {
         bar: resolveColor(root, 'var(--color-stats-chart-bar)'),
         accent: resolveColor(root, 'var(--color-stats-chart-accent)'),
+        muted: resolveColor(root, 'var(--color-stats-chart-muted)'),
+        match: resolveColor(root, 'var(--color-chart-4)'),
         // One hue per kind, in order of size; reused from the top past the last
         kinds: [
             '--color-stats-chart-bar',
@@ -70,9 +81,42 @@ export function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
     const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
-    const state = { days: 28, granularity: /** @type {keyof BUCKET_DAYS} */ ('day'), colorBy: 'none' };
+    const state = { days: 28, granularity: /** @type {keyof BUCKET_DAYS} */ ('day'), colorBy: 'none', query: '' };
     /** @type {Map<number, Promise<Counts>>} fetched once per range */
     const fetched = new Map();
+    /** @type {Map<string, Promise<Matches>>} fetched once per range and query */
+    const fetchedMatches = new Map();
+    // Draws await fetches, so a slow one can finish after a newer one; only the newest may paint.
+    let drawId = 0;
+
+    /**
+     * @param {number} days
+     * @param {string} query
+     */
+    function loadMatches(days, query) {
+        const key = `${days}\n${query}`;
+        if (!fetchedMatches.has(key)) {
+            const params = new URLSearchParams({ days: String(days), q: query });
+            if (kind) params.set('kind', kind);
+            const request = fetch(`/stats/recentchanges/matches.json?${params}`).then(async response => {
+                if (response.ok) return response.json();
+                const detail = await response.json().then(
+                    body => body.detail,
+                    () => null
+                );
+                throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
+            });
+            request.catch(() => fetchedMatches.delete(key));
+            fetchedMatches.set(key, request);
+        }
+        return /** @type {Promise<Matches>} */ (fetchedMatches.get(key));
+    }
+
+    /** @param {string} [text] */
+    function showStatus(text) {
+        status.textContent = text || '';
+        status.hidden = !text;
+    }
 
     /** @param {number} days */
     function load(days) {
@@ -91,10 +135,25 @@ export function init(root) {
     }
 
     async function draw() {
+        const id = ++drawId;
         /** @type {Counts} */
         let data;
+        /** @type {Matches | null} */
+        let matches = null;
         try {
             data = await load(state.days);
+            if (state.colorBy === 'query' && state.query) {
+                showStatus(strings.searching);
+                try {
+                    matches = await loadMatches(state.days, state.query);
+                    if (id === drawId) showStatus();
+                } catch (error) {
+                    if (id === drawId) showStatus(fill(strings.searchFailed, { reason: /** @type {Error} */ (error).message }));
+                }
+            } else {
+                showStatus();
+            }
+            if (id !== drawId) return;
         } catch {
             fetched.delete(state.days);
             const error = document.createElement('p');
@@ -121,6 +180,12 @@ export function init(root) {
             const ranked = Object.entries(data.kinds).sort(([, a], [, b]) => sum(b) - sum(a));
             const kindLabels = strings.kinds || {};
             parts = ranked.map(([name, daily], i) => ({ label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
+        } else if (matches) {
+            const matching = matches.matches;
+            parts = [
+                { label: fill(strings.matches, { text: state.query }), color: colors.match, daily: matching },
+                { label: strings.nonMatches, color: colors.muted, daily: total.map((n, i) => Math.max(0, n - matching[i])) }
+            ];
         } else {
             parts = [{ label: '', color: colors.bar, daily: total }];
         }
@@ -230,6 +295,12 @@ export function init(root) {
         state.colorBy = /** @type {CustomEvent} */ (event).detail.selected || 'none';
         const choice = colorBy.items.find(item => item.value === state.colorBy);
         colorTrigger.textContent = fill(strings.colorBy, { choice: choice?.label || '' });
+        queryForm.hidden = state.colorBy !== 'query';
+        draw();
+    });
+    queryForm.addEventListener('submit', event => {
+        event.preventDefault();
+        state.query = queryInput.value.trim();
         draw();
     });
 

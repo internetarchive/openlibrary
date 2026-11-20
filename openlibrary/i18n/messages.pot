@@ -2754,7 +2754,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html publishers/notfound.html publishers/view.html recentchanges/index.html search/advancedsearch.html.jinja search/publishers.html search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -5918,6 +5918,32 @@ msgstr ""
 msgid "Bots v. Humans"
 msgstr ""
 
+#: recentchanges/index.html
+msgid "Custom query…"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Edits whose saved record contains some text. Slow."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "Matches “%(text)s”"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Other changes"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Searching edited records… this can take up to a minute."
+msgstr ""
+
+#: recentchanges/index.html
+#, python-format
+msgid "The search failed: %(reason)s"
+msgstr ""
+
 #: recentchanges/index.html stats/tasks.html.jinja
 msgid "Date range"
 msgstr ""
@@ -5956,6 +5982,14 @@ msgstr ""
 
 #: recentchanges/index.html
 msgid "Color by"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Text in the edited record, e.g. airlines"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Text to search edited records for"
 msgstr ""
 
 #: recentchanges/index.html
