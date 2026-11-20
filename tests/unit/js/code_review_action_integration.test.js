@@ -1311,7 +1311,7 @@ test('threadKind: line, file, or none', () => {
 
 // A mock for the pending-review flow: createReview without an event makes a pending review,
 // addPullRequestReviewThread adds threads, submitReview submits it.
-function threadGitHub({ fileThread = () => ({ id: 'PRRT_f' }), lineThread = () => ({ id: 'PRRT_l' }), submit, pendingLeft = false } = {}) {
+function threadGitHub({ fileThread = () => ({ id: 'PRRT_f' }), lineThread = () => ({ id: 'PRRT_l' }), submit, pendingLeft = false, deleteFails = false } = {}) {
     const calls = { createReview: [], threads: [], submit: [], deleted: [] };
     const listed = () => [
         ...(pendingLeft ? [{ id: 7, user: { login: 'openlibrary-bot' }, state: 'PENDING' }] : []),
@@ -1332,6 +1332,7 @@ function threadGitHub({ fileThread = () => ({ id: 'PRRT_f' }), lineThread = () =
                     return { data: { id: 50 } };
                 },
                 deletePendingReview: async p => {
+                    if (deleteFails) throw Object.assign(new Error('Not Found'), { status: 404 });
                     calls.deleted.push(p.review_id);
                     return { data: {} };
                 }
@@ -1415,6 +1416,16 @@ test('post: a pending review left by an earlier run is deleted first (GitHub all
     const gh = threadGitHub({ pendingLeft: true });
     await threadPost([{ path: 'mid.py' }], gh);
     assert.deepEqual(gh.calls.deleted, [7]);
+    assert.equal(gh.calls.submit.length, 1);
+});
+test('post: a failed delete of a leftover pending review is a warning, and the review is still posted', async () => {
+    const gh = threadGitHub({ pendingLeft: true, deleteFails: true });
+    const res = await threadPost([{ path: 'mid.py' }], gh);
+    assert.equal(res.failed, null);
+    assert.ok(
+        res.warnings.some(w => /Could not delete pending review 7/.test(w)),
+        res.warnings.join('\n')
+    );
     assert.equal(gh.calls.submit.length, 1);
 });
 test('post: if submitting fails, the pending review is deleted and the review is posted without file threads', async () => {

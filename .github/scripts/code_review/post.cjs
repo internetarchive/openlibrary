@@ -4,7 +4,17 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackReview, heldBackBlocking, diffAnchors, threadKind } = require('./shared.cjs');
+const {
+    filterDiff,
+    headIsCurrent,
+    supersededMarker,
+    supersededCommit,
+    reviewMarker,
+    heldBackReview,
+    heldBackBlocking,
+    diffAnchors,
+    threadKind
+} = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -552,7 +562,13 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         const existing = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
         for (const r of existing.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.state === 'PENDING')) {
             core.warning(`Deleting pending review ${r.id} left by an earlier run.`);
-            await deletePending(r.id);
+            // A failed delete must not stop the review. If the pending review is still there, the
+            // createReview below gets a 422, and the retry loop posts the review in one call.
+            try {
+                await deletePending(r.id);
+            } catch (e) {
+                core.warning(`Could not delete pending review ${r.id} (${e.message}).`);
+            }
         }
         const { data: pending } = await github.rest.pulls.createReview({
             owner,
