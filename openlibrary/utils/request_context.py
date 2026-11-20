@@ -12,7 +12,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
-from urllib.parse import unquote
+from urllib.parse import parse_qsl, unquote
 
 import web
 
@@ -52,9 +52,22 @@ site: ContextVar[Site] = ContextVar("site")
 # Each request owns a fresh set; copied worker/task contexts share that set.
 rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
 
-# The FastAPI request being served, for legacy helpers that only know web.ctx.
-# Set by set_context_from_fastapi() and lent to web.ctx by templetor_web_ctx().
-fastapi_request: ContextVar[Request | None] = ContextVar("fastapi_request", default=None)
+
+@dataclass(frozen=True)
+class RequestURL:
+    """The path and query string of the request being served, for helpers that build links from it (``changequery``)."""
+
+    path: str
+    query_string: str  # without the leading "?"
+
+    @property
+    def params(self) -> dict[str, str]:
+        """GET params; a repeated key keeps its last value, like ``web.input``."""
+        return dict(parse_qsl(self.query_string, keep_blank_values=True))
+
+
+# Set by both set_context_from_* functions; None outside a request (scripts, tests).
+request_url: ContextVar[RequestURL | None] = ContextVar("request_url", default=None)
 
 
 @dataclass
@@ -173,6 +186,9 @@ def set_context_from_legacy_web_py() -> None:
 
     site.set(web.ctx.site)
     rendered_keys.set(set())
+    # setup_contextvars runs before ReadableUrlProcessor, which redirects a GET whose path isn't
+    # the readable one, so web.ctx.path is still the readable path the visitor asked for.
+    request_url.set(RequestURL(path=web.ctx.get("path") or "/", query_string=(web.ctx.get("env") or {}).get("QUERY_STRING", "")))
     visitor.set(_visitor(web.cookies().get(config.get("login_cookie_name", "session")), is_bot))
     req_context.set(
         RequestContextVars(
@@ -242,7 +258,7 @@ def set_context_from_fastapi(request: Request) -> None:
 
     site.set(s)
     rendered_keys.set(set())
-    fastapi_request.set(request)
+    request_url.set(RequestURL(path=request.url.path, query_string=request.url.query))
     visitor.set(_visitor(cookie_value, is_bot))
     req_context.set(
         RequestContextVars(
@@ -300,72 +316,6 @@ def web_ctx_ip(ip: str = "127.0.0.1"):
         yield
     finally:
         web.ctx.ip = original_ip
-
-
-_MISSING = object()
-
-
-@contextmanager
-def templetor_web_ctx():
-    """Lend ``web.ctx`` the current FastAPI request while Templetor renders.
-
-    Templetor subtemplates rendered from Jinja (``render_templetor_template``)
-    call legacy helpers like ``changequery()``, which build links from
-    ``web.ctx.path`` and read params through ``web.input()``. FastAPI never
-    loads ``web.ctx``, so it keeps ``delegate.fakeload()``'s startup placeholder
-    (``PATH_INFO="/install"``, no query string) and links came out as
-    ``/install?sort=name``.
-
-    The swap covers only the synchronous render, so no other request on the
-    thread can observe it. It is a no-op on web.py, where ``web.ctx`` already
-    describes the request.
-    """
-    request = fastapi_request.get()
-    if request is None:
-        yield
-        return
-
-    path = request.url.path
-    query = f"?{request.url.query}" if request.url.query else ""
-    values = {
-        "path": path,
-        "readable_path": path,
-        "query": query,
-        "fullpath": path + query,
-        "host": request.headers.get("host", ""),
-    }
-    saved = {key: web.ctx.get(key, _MISSING) for key in values}
-    web.ctx.update(values)
-
-    # web.input() parses the query string out of the WSGI environ it copies from web.ctx.env.
-    env = web.ctx.get("env")
-    env_existed = env is not None
-    env = env if env_existed else {}
-    env_values = {
-        "REQUEST_METHOD": "GET",
-        "PATH_INFO": path,
-        "QUERY_STRING": request.url.query,
-        "HTTP_HOST": values["host"],
-    }
-    saved_env = {key: env.get(key, _MISSING) for key in env_values}
-    env.update(env_values)
-    web.ctx.env = env
-    try:
-        yield
-    finally:
-        for key, value in saved.items():
-            if value is _MISSING:
-                web.ctx.pop(key, None)
-            else:
-                web.ctx[key] = value
-        if env_existed:
-            for key, value in saved_env.items():
-                if value is _MISSING:
-                    env.pop(key, None)
-                else:
-                    env[key] = value
-        else:
-            web.ctx.pop("env", None)
 
 
 def get_provider_pref() -> str | None:

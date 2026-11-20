@@ -7,6 +7,7 @@ around the page is tested in `test_site_page.py` and the JSON API in
 """
 
 from contextlib import ExitStack
+from html import unescape
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -231,3 +232,19 @@ def test_authors_page_does_not_offer_merge_to_visitors(client):
 
     assert response.status_code == 200
     assert "/authors/merge?records=" not in response.text
+
+
+def test_concurrent_requests_each_get_their_own_sort_links(site_page_app, webpy_leftovers, fetch_concurrently):
+    """Sort links come from this request: never another request's, or web.py's leftovers in web.ctx."""
+    macro.diskmacros.load_templates("openlibrary/macros")
+    n = 12
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(_author("OL1A"), _author("OL2A"), num_found=2))
+        responses = fetch_concurrently(site_page_app(pages), [(f"/search/authors?q=query-{i}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        assert response.status_code == 200
+        # The sort items are JSON in an attribute, so "&" is \u0026 once the attribute is unescaped
+        text = unescape(response.text)
+        assert webpy_leftovers not in text
+        assert f'"url": "/search/authors?q=query-{i}\\u0026sort=name"' in text
+        assert not any(f"q=query-{j}\\u0026" in text for j in range(n) if j != i)

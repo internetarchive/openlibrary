@@ -103,15 +103,8 @@ def get_jinja_env() -> Environment:
         ``Markup`` because a rendered template is HTML by construction and
         the env autoescapes — without it every call site would need
         ``|safe`` (see ``icon`` below for the same rationale).
-
-        Under FastAPI, ``web.ctx`` is still the startup placeholder, so the
-        render is lent the current request's path and query; without that,
-        legacy helpers like ``changequery()`` link to ``/install``.
         """
-        from openlibrary.utils.request_context import templetor_web_ctx
-
-        with templetor_web_ctx():
-            return Markup(str(render_template(name, *args, **kwargs)))
+        return Markup(str(render_template(name, *args, **kwargs)))
 
     env.globals["render_templetor_template"] = _render_templetor_template
 
@@ -132,16 +125,13 @@ def get_jinja_env() -> Environment:
 
     # Request-scoped helpers a Jinja partial needs but no caller can supply: the
     # sort menu (search/sort_options.html.jinja) builds links with changequery()
-    # and hides the shuffle control from bots. Wrapped because changequery reads
-    # web.ctx, which FastAPI leaves at its startup placeholder; the lend is the
-    # same one render_templetor_template uses. Imports are deferred so importing
-    # this module stays safe at plugin load time.
+    # and hides the shuffle control from bots. All three read ContextVars set on
+    # both web.py and FastAPI. Imports are deferred so importing this module stays
+    # safe at plugin load time.
     def _changequery(*args: Any, **kwargs: Any) -> str:
         from openlibrary.plugins.openlibrary.code import changequery
-        from openlibrary.utils.request_context import templetor_web_ctx
 
-        with templetor_web_ctx():
-            return changequery(*args, **kwargs)
+        return changequery(*args, **kwargs)
 
     def _is_bot() -> bool:
         from openlibrary.plugins.openlibrary.code import is_bot
