@@ -4,7 +4,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackOpen } = require('./shared.cjs');
+const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackOpen, heldBackBlocking } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -32,6 +32,41 @@ const threadsToResolve = ({ threads, resolvedIds, botLogin }) => {
         const c = t.comments && t.comments.nodes && t.comments.nodes[0];
         if (!c || !c.author || c.author.login !== botLogin) continue;
         out.push(t.id);
+    }
+    return out;
+};
+
+// Once every finding a review raised is fixed or dismissed, `post` edits that review to say so, as
+// cubic does, so scrolling back through a PR shows no stale problems. Only the visible opening line
+// changes: it is struck through under a new first line. The hidden markers that range, status and
+// the weekly report read stay as they are, and this marker keeps a review from being edited twice.
+const ADDRESSED_MARKER = '<!-- ol-pr-review-bot addressed -->';
+const addressedBody = (body, { held = false } = {}) => {
+    const text = String(body || '');
+    if (text.includes(ADDRESSED_MARKER)) return null;
+    const [first, ...rest] = text.split('\n');
+    if (!first.trim() || first.startsWith('<!--')) return null;
+    const note = held
+        ? '✅ **Every finding in this review was fixed or dismissed.** The held-back part still needs a maintainer.'
+        : '✅ **Every finding in this review was fixed or dismissed.**';
+    return [note, '', `~~${first}~~`, ...rest, ADDRESSED_MARKER].join('\n');
+};
+// The bot's earlier reviews to mark: each blocking finding has a thread (so the marker's f= count
+// matches its threads), every one of those threads is resolved or being closed by this run, and this
+// run closed at least one of them, so reviews from before this change aren't edited in bulk.
+// `threads` carry the id of the review their first comment belongs to.
+const reviewsToMark = ({ reviews, threads, closing, botLogin, exclude }) => {
+    const closingSet = new Set(closing || []);
+    const out = [];
+    for (const r of reviews || []) {
+        if (!r || !r.user || r.user.login !== botLogin || r.id === exclude || r.state === 'PENDING') continue;
+        const m = /<!-- ol-pr-review-bot f=(\d+)/.exec(String(r.body || ''));
+        if (!m || !Number(m[1]) || String(r.body).includes(ADDRESSED_MARKER)) continue;
+        const own = (threads || []).filter(t => t && t.reviewId === r.id);
+        if (own.length < Number(m[1])) continue;
+        if (!own.every(t => t.isResolved || closingSet.has(t.id))) continue;
+        if (!own.some(t => closingSet.has(t.id))) continue;
+        out.push(r);
     }
     return out;
 };
@@ -367,6 +402,8 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     let unresolvedOwnThreads = null;
     const toResolveIds = [];
     const noteEdits = [];
+    // The bot's threads with the review each came from, for marking earlier reviews addressed.
+    let ownThreads = null;
     if (!superseded) {
         try {
             let allThreads = [],
@@ -377,7 +414,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
              repository(owner:$owner,name:$repo){
                pullRequest(number:$pr){
                  reviewThreads(first:100, after:$cursor){
-                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { id author { login } body } } }
+                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { id author { login } body pullRequestReview { databaseId } } } }
                    pageInfo { hasNextPage endCursor }
                  }
                }
@@ -390,6 +427,15 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 if (!rt.pageInfo.hasNextPage) break;
                 tCursor = rt.pageInfo.endCursor;
             }
+            ownThreads = allThreads
+                .filter(t => {
+                    const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
+                    return c && c.author && c.author.login === 'openlibrary-bot';
+                })
+                .map(t => {
+                    const r = t.comments.nodes[0].pullRequestReview;
+                    return { id: t.id, isResolved: t.isResolved, reviewId: r ? r.databaseId : null };
+                });
             const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
             // A thread listed as both counts as fixed.
             const toDismiss = threadsToResolve({ threads: allThreads, resolvedIds: review.dismissed, botLogin: 'openlibrary-bot' }).filter(
@@ -556,6 +602,28 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     }
     core.setOutput('resolve_thread_ids', JSON.stringify(toResolveIds));
 
+    // Earlier reviews whose findings this run closed the last of: say so at the top of each, as if
+    // the resolve job succeeds (as unresolvedOwnThreads does). Never fails the job, and never edits
+    // anything but the review's text: its verdict can't be edited, and the bot never dismisses a
+    // review, since a dismissal is how a maintainer lifts a held-back part.
+    if (ownThreads && toResolveIds.length) {
+        try {
+            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+            for (const r of reviewsToMark({ reviews, threads: ownThreads, closing: toResolveIds, botLogin: 'openlibrary-bot', exclude: posted.id })) {
+                const body = addressedBody(r.body, { held: r.state !== 'DISMISSED' && heldBackBlocking(r.body) });
+                if (!body) continue;
+                try {
+                    await github.rest.pulls.updateReview({ owner, repo, pull_number: prNumber, review_id: r.id, body });
+                    core.info(`Marked review ${r.id} as addressed.`);
+                } catch (e) {
+                    core.warning(`Could not mark review ${r.id} as addressed: ${e.message}`);
+                }
+            }
+        } catch (e) {
+            core.warning(`Could not list reviews to mark as addressed: ${e.message}`);
+        }
+    }
+
     // See shouldDismissTeamRequest. Never fails the job. A superseded review leaves the request for the new head.
     if (!superseded && shouldDismissTeamRequest({ selfAuthored, event })) {
         try {
@@ -582,5 +650,8 @@ module.exports = {
     fixedInSha,
     renderTicketCompliance,
     agentPrompt,
-    threadStateLine
+    threadStateLine,
+    addressedBody,
+    reviewsToMark,
+    ADDRESSED_MARKER
 };
