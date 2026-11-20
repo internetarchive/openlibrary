@@ -1,9 +1,14 @@
 /* openlibrary/templates/recentchanges/index.html: the custom-query search and its filters, under the chart's controls */
+/* A panel, so the search reads as one control set apart from the chart's own */
 .recentchanges-chart__query {
   display: inline-flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
+  padding: var(--spacing-inset-sm);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
 }
 
 .recentchanges-chart__query-row[hidden] {

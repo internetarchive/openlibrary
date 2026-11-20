@@ -6021,16 +6021,16 @@ msgstr ""
 msgid "Color by"
 msgstr ""
 
+#: recentchanges/index.html type/type/view.html
+msgid "Kind"
+msgstr ""
+
 #: recentchanges/index.html
 msgid "Text in the edited record, e.g. airlines"
 msgstr ""
 
 #: recentchanges/index.html
 msgid "Text to search edited records for"
-msgstr ""
-
-#: recentchanges/index.html type/type/view.html
-msgid "Kind"
 msgstr ""
 
 #: recentchanges/index.html
