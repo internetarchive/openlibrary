@@ -5,8 +5,15 @@
     <h1>{{ _("New accounts writing fast") }}</h1>
 </div>
 <div id="contentBody" class="new-accounts">
+    {%- set base_url = "?days=%s&hours=%s" % (report.days, report.hours) -%}
     <p class="new-accounts__lede">
-        {{ _("Accounts under %(age)s old, ordered by the edits they made in the last %(window)s. Times are in UTC.", age=report.age_label, window=report.window_label) }}
+        {% if report.flagged_only %}
+            {{ _("Accounts under %(age)s old that edited in the last %(window)s and show a sign of spam: links in what they wrote, words from the spam list, books a librarian already deleted, or many books or lists right after signup. Times are in UTC.", age=report.age_label, window=report.window_label) }}
+            <a href="{{ base_url }}&all=1">{{ _("Show all %(count)s accounts", count=report.matching_accounts) }}</a>
+        {% else %}
+            {{ _("All accounts under %(age)s old that edited in the last %(window)s, those with a sign of spam first. Adding books to a list doesn't count towards the order. Times are in UTC.", age=report.age_label, window=report.window_label) }}
+            <a href="{{ base_url }}">{{ _("Show only the %(count)s with a sign of spam", count=report.flagged_accounts) }}</a>
+        {% endif %}
     </p>
     {% if report.scan_capped %}
         <p class="new-accounts__notice">
@@ -14,9 +21,10 @@
         </p>
     {% endif %}
     {% if report.rows %}
-        {% if report.matching_accounts > report.max_accounts %}
+        {%- set listed = report.flagged_accounts if report.flagged_only else report.matching_accounts -%}
+        {% if listed > report.max_accounts %}
             <p class="new-accounts__notice">
-                {{ _("Showing the %(shown)s busiest of %(total)s accounts.", shown=report.max_accounts, total=report.matching_accounts) }}
+                {{ _("Showing the %(shown)s busiest of %(total)s accounts.", shown=report.max_accounts, total=listed) }}
             </p>
         {% endif %}
         <div class="new-accounts__scroll">
@@ -24,6 +32,7 @@
                 <thead>
                     <tr>
                         <th scope="col">{{ _("Account") }}</th>
+                        <th scope="col">{{ _("Signs of spam") }}</th>
                         <th scope="col">{{ _("Signed up") }}</th>
                         <th scope="col" class="new-accounts__num">{{ _("Signup to first edit") }}</th>
                         <th scope="col" class="new-accounts__num">{{ _("Edits, last %(window)s", window=report.window_label) }}</th>
@@ -44,6 +53,17 @@
                                 </span>
                             </th>
                             <td>
+                                {% if row.signals %}
+                                    <ul class="new-accounts__signals">
+                                        {% for signal in row.signals %}
+                                            <li class="new-accounts__signal new-accounts__signal--{{ signal.code }}">{{ signal.label }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="new-accounts__minor">{{ _("None") }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {{ _("%(duration)s ago", duration=row.age) }}
                                 <span class="new-accounts__minor">{{ row.created_label }}</span>
                             </td>
@@ -52,9 +72,15 @@
                             </td>
                             <td class="new-accounts__num">
                                 <span class="new-accounts__figure">{{ row.edits_in_window_label }}</span>
-                                <span class="new-accounts__minor">
-                                    {{ _("%(books)s books added · %(lists)s lists · %(other)s other", books=row.books_added, lists=row.lists_created, other=row.other_edits) }}
-                                </span>
+                                {#- Only the kinds the account did, one per line. -#}
+                                {% for count, label in [
+                                    (row.books_added, ngettext("%(count)s book added", "%(count)s books added", row.books_added, count=row.books_added)),
+                                    (row.lists_created, ngettext("%(count)s list created", "%(count)s lists created", row.lists_created, count=row.lists_created)),
+                                    (row.list_additions, ngettext("%(count)s list addition", "%(count)s list additions", row.list_additions, count=row.list_additions)),
+                                    (row.other_edits, ngettext("%(count)s other edit", "%(count)s other edits", row.other_edits, count=row.other_edits)),
+                                ] if count %}
+                                    <span class="new-accounts__minor">{{ label }}</span>
+                                {% endfor %}
                                 <a class="new-accounts__minor"
                                    href="/admin/people/{{ row.username }}/edits">{{ _("%(count)s in total", count=row.total_edits_label) }}</a>
                             </td>
@@ -93,6 +119,10 @@
                 </tbody>
             </table>
         </div>
+    {% elif report.flagged_only and report.matching_accounts %}
+        <p class="new-accounts__empty">
+            {{ _("None of the %(count)s accounts under %(age)s old that edited in the last %(window)s shows a sign of spam.", count=report.matching_accounts, age=report.age_label, window=report.window_label) }}
+        </p>
     {% else %}
         <p class="new-accounts__empty">
             {{ _("No accounts under %(age)s old have made edits in the last %(window)s.", age=report.age_label, window=report.window_label) }}

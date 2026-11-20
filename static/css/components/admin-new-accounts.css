@@ -125,3 +125,30 @@
   align-items: flex-start;
   gap: var(--spacing-stack-sm);
 }
+
+.new-accounts__signals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.new-accounts__signal {
+  padding-inline: var(--spacing-inset-xs);
+  border-radius: var(--border-radius-badge);
+  background-color: var(--color-warning-bg);
+  font-size: var(--font-size-body-small);
+  color: var(--color-warning-fg);
+  white-space: nowrap;
+}
+
+/* Links and spam words are the strongest signs; a burst alone is often an eager new librarian. */
+.new-accounts__signal--links,
+.new-accounts__signal--spam-words,
+.new-accounts__signal--deleted {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-fg);
+}

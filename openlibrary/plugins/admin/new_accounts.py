@@ -2,8 +2,10 @@
 
 Spam waves come from accounts that are days old at most and start writing within minutes of signing up.
 `build_report` finds them from one bounded scan of recent changes and returns plain values for the template.
+Most young accounts are not spam, so each one is checked for signs of it (`Signal`) and the page shows those first.
 """
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -31,6 +33,36 @@ LIST_CREATE_KINDS = ("lists", "create-list", "create-series")
 # Which record of a changeset to show, e.g. the work of an add-book rather than its edition or author.
 RECORD_PRIORITY = ("/works/", "/books/", "/lists/", "/series/", "/authors/")
 BLOCKABLE_STATUSES = ("active", "verified")
+# Adding catalog books to one's own list is what new readers do most; it never counts towards the ranking.
+LIST_SEED_KINDS = ("edit-list-seeds",)
+
+# Signals. Only the records an account created are read, newest first, up to this many per account, plus its profile.
+MAX_RECORDS_CHECKED = 20
+BURST_RECORDS = 10  # this many new books or lists ...
+BURST_MINUTES = 60  # ... this soon after signup
+# Fields of works, editions, authors, lists and profiles that hold text the account wrote.
+TEXT_FIELDS = ("title", "subtitle", "name", "description", "bio", "notes", "first_sentence", "website", "links")
+LINK_RE = re.compile(
+    r"https?://\S+|www\.\S+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|info|biz|xyz|top|shop|site|online|club|vip|co|me|ru|cn)\b", re.IGNORECASE
+)
+# Links to these are references, not promotion.
+TRUSTED_LINK_DOMAINS = (
+    "openlibrary.org",
+    "archive.org",
+    "wikipedia.org",
+    "wikidata.org",
+    "wikisource.org",
+    "viaf.org",
+    "isni.org",
+    "orcid.org",
+    "loc.gov",
+    "worldcat.org",
+    "goodreads.com",
+    "librarything.com",
+    "gutenberg.org",
+)
+# Ordinary users can't delete these; when one an account created is gone, a librarian removed it.
+CATALOG_PREFIXES = ("/works/", "/books/", "/authors/")
 
 
 @dataclass(frozen=True)
@@ -42,6 +74,12 @@ class RecentEdit:
     timestamp: datetime
     ago: str  # "3.5 h"
     comment: str
+
+
+@dataclass(frozen=True)
+class Signal:
+    code: str  # "links", "spam-words", "deleted" or "burst"; the CSS hook
+    label: str
 
 
 @dataclass
@@ -59,6 +97,7 @@ class AccountRow:
     edits_in_window_label: str
     books_added: int
     lists_created: int
+    list_additions: int  # edits that put books on the account's lists
     other_edits: int
     total_edits: int
     total_edits_label: str
@@ -68,6 +107,7 @@ class AccountRow:
     first_write_label: str
     first_write_is_fast: bool
     recent_edits: list[RecentEdit] = field(default_factory=list)
+    signals: list[Signal] = field(default_factory=list)
 
 
 @dataclass
@@ -78,6 +118,8 @@ class Report:
     window_label: str  # "24 hours"
     rows: list[AccountRow]
     matching_accounts: int  # before the cut to `max_accounts`
+    flagged_accounts: int  # of those, the ones with a signal
+    flagged_only: bool
     max_accounts: int
     changes_scanned: int
     scan_capped: bool
@@ -160,6 +202,80 @@ def _primary_key(change) -> str | None:
     return keys[0] if keys else None
 
 
+def _ranked_writes(writes) -> int:
+    return sum(c.kind not in LIST_SEED_KINDS for c in writes)
+
+
+def _created_keys(writes) -> list[str]:
+    """Records the account created, newest first: the first revision of each record in its changesets."""
+    keys: list[str] = []
+    for change in writes:
+        keys.extend(c["key"] for c in change.changes if c.get("revision") == 1 and c["key"] not in keys)
+    return keys
+
+
+def _record_text(doc) -> str:
+    parts: list[str] = []
+    for name in TEXT_FIELDS:
+        value = doc.get(name)
+        if isinstance(value, list):
+            parts.extend(str(v.get("url") or "") + " " + str(v.get("title") or "") if hasattr(v, "get") else str(v) for v in value)
+        elif value:
+            parts.append(str(value))
+    return " ".join(parts)
+
+
+def _has_promo_link(text: str) -> bool:
+    for match in LINK_RE.finditer(text):
+        host = re.sub(r"^(https?://)?(www\.)?", "", match.group(0).lower()).split("/")[0]
+        if not any(host == d or host.endswith("." + d) for d in TRUSTED_LINK_DOMAINS):
+            return True
+    return False
+
+
+def _matches_spam_words(text: str, spam_words: list[str]) -> bool:
+    text = text.lower()
+    for word in spam_words:
+        try:
+            if re.search(word.lower(), text):
+                return True
+        except re.error:
+            if word.lower() in text:
+                return True
+    return False
+
+
+def find_signals(site, accounts: dict[str, tuple[datetime, list]], spam_words: list[str]) -> dict[str, list[Signal]]:
+    """Signs of spam for each account, from what it wrote: `accounts` maps a profile key to (signup time, writes newest first).
+
+    Not signals, though spam has them too: a first write within minutes of signup, and many list additions.
+    Most new readers do both, so neither separates spam from them.
+    """
+    created = {key: _created_keys(writes)[:MAX_RECORDS_CHECKED] for key, (_, writes) in accounts.items()}
+    wanted = sorted({k for keys in created.values() for k in keys} | set(accounts))
+    docs: dict = {}
+    for start in range(0, len(wanted), 100):
+        docs.update((doc.key, doc) for doc in site.get_many(wanted[start : start + 100]))
+
+    signals = {}
+    for key, (signup, writes) in accounts.items():
+        found = []
+        live = [docs[k] for k in [key, *created[key]] if k in docs and docs[k].type.key != "/type/delete"]
+        if with_links := sum(_has_promo_link(_record_text(doc)) for doc in live):
+            found.append(Signal("links", ungettext("Links in %(count)s record", "Links in %(count)s records", with_links, count=with_links)))
+        if spam_words and (with_words := sum(_matches_spam_words(_record_text(doc), spam_words) for doc in live)):
+            found.append(Signal("spam-words", ungettext("Spam words in %(count)s record", "Spam words in %(count)s records", with_words, count=with_words)))
+        deleted = sum(k.startswith(CATALOG_PREFIXES) and k in docs and docs[k].type.key == "/type/delete" for k in created[key])
+        if deleted:
+            found.append(Signal("deleted", ungettext("%(count)s record already deleted", "%(count)s records already deleted", deleted, count=deleted)))
+        burst_end = signup + timedelta(minutes=BURST_MINUTES)
+        burst = sum(c.kind in BOOK_ADD_KINDS + LIST_CREATE_KINDS and c.timestamp <= burst_end for c in writes)
+        if burst >= BURST_RECORDS:
+            found.append(Signal("burst", _("%(count)s added in the first %(minutes)s min", count=burst, minutes=BURST_MINUTES)))
+        signals[key] = found
+    return signals
+
+
 def _recent_edits(site, writes_by_author: dict[str, list], now: datetime) -> dict[str, list[RecentEdit]]:
     """The newest few writes of every account, their records' titles fetched in one batch."""
     newest = {author: writes[:RECENT_EDITS_SHOWN] for author, writes in writes_by_author.items()}
@@ -193,12 +309,15 @@ def build_report(
     max_changes: int = MAX_CHANGES_SCANNED,
     page_size: int = SCAN_PAGE_SIZE,
     history_limit: int = ACCOUNT_HISTORY_LIMIT,
+    flagged_only: bool = False,
+    spam_words: list[str] | None = None,
 ) -> Report:
-    """Accounts under `days` days old that wrote in the last `hours` hours, most writes first.
+    """Accounts under `days` days old that wrote in the last `hours` hours: those with a signal first, then most writes.
 
     Cost, in Infobase calls: the scan (at most max_changes / page_size), one `get_many` per 100 authors seen in it,
     and then for the `max_accounts` rows shown: one store read each for status and email, one `recentchanges` for
     each account that signed up before the scan's reach, and one `get_many` for the titles of the last edits.
+    The signals add one `get_many` per 100 records read: at most MAX_RECORDS_CHECKED + 1 per young account.
     """
     now = now or utcnow()
     since = now - timedelta(hours=hours)
@@ -222,7 +341,13 @@ def build_report(
     def first_delay(key: str) -> timedelta:
         return scanned_by_author[key][-1].timestamp - young[key][1]
 
-    ranked = sorted(young, key=lambda key: (-len(scanned_by_author[key]), first_delay(key)))
+    signals = find_signals(site, {key: (young[key][1], scanned_by_author[key]) for key in young}, spam_words or [])
+    flagged = [key for key in young if signals[key]]
+
+    def rank(key: str):
+        return (-len(signals[key]), -_ranked_writes(scanned_by_author[key]), first_delay(key))
+
+    ranked = sorted(flagged if flagged_only else young, key=rank)
     shown = ranked[:max_accounts]
 
     # The scan holds an account's whole history only if it signed up within the scan's reach.
@@ -255,6 +380,7 @@ def build_report(
         in_window = [c for c in writes if c.timestamp >= since]
         books_added = sum(c.kind in BOOK_ADD_KINDS for c in in_window)
         lists_created = sum(c.kind in LIST_CREATE_KINDS for c in in_window)
+        list_additions = sum(c.kind in LIST_SEED_KINDS for c in in_window)
         # The loaded history may stop inside the window only if the scan did too.
         window_is_minimum = not exact and scan_capped and writes[-1].timestamp >= since
         delay = max(writes[-1].timestamp - created, timedelta(0))
@@ -275,7 +401,8 @@ def build_report(
                 edits_in_window_label=f"{len(in_window)}+" if window_is_minimum else str(len(in_window)),
                 books_added=books_added,
                 lists_created=lists_created,
-                other_edits=len(in_window) - books_added - lists_created,
+                list_additions=list_additions,
+                other_edits=len(in_window) - books_added - lists_created - list_additions,
                 total_edits=len(writes),
                 total_edits_label=str(len(writes)) if exact else f"{len(writes)}+",
                 exact=exact,
@@ -283,10 +410,11 @@ def build_report(
                 first_write_label=delay_label if exact else _("at most %(duration)s", duration=delay_label),
                 first_write_is_fast=delay < timedelta(minutes=FAST_FIRST_WRITE_MINUTES),
                 recent_edits=recent_edits[key],
+                signals=signals[key],
             )
         )
 
-    rows.sort(key=lambda row: (-row.edits_in_window, row.first_write_delay))
+    rows.sort(key=lambda row: (-len(row.signals), -(row.edits_in_window - row.list_additions), row.first_write_delay))
     return Report(
         days=days,
         hours=hours,
@@ -294,6 +422,8 @@ def build_report(
         window_label=ungettext("%(count)s hour", "%(count)s hours", hours, count=hours),
         rows=rows,
         matching_accounts=len(young),
+        flagged_accounts=len(flagged),
+        flagged_only=flagged_only,
         max_accounts=max_accounts,
         changes_scanned=len(changes),
         scan_capped=scan_capped,

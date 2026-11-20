@@ -231,9 +231,87 @@ class TestBuildReport:
 
         assert len(build_report(site, now=NOW).rows) == 3
 
-        # One page of the scan, then one batch of profiles and one batch of titles.
+        # One page of the scan, then one batch each of profiles, records checked for signals, and titles.
         assert recentchanges.call_count == 1
-        assert get_many.call_count == 2
+        assert get_many.call_count == 3
+
+
+class TestSignals:
+    def save(self, site, username: str, doc: dict, minutes_ago: int, kind: str = "add-book"):
+        site.save(doc, timestamp=NOW - timedelta(minutes=minutes_ago), action=kind, author=web.storage(key=f"/people/{username}"))
+
+    def signals(self, site, **kwargs) -> dict[str, list[str]]:
+        return {row.username: [s.code for s in row.signals] for row in build_report(site, now=NOW, **kwargs).rows}
+
+    def test_a_reader_filling_lists_has_none(self, site):
+        signup(site, "reader", NOW - timedelta(hours=2))
+        self.save(site, "reader", {"key": "/people/reader/lists/OL1L", "type": {"key": "/type/list"}, "name": "To read"}, 110, kind="create-list")
+        for n in range(30):
+            self.save(site, "reader", {"key": "/people/reader/lists/OL1L", "type": {"key": "/type/list"}, "name": "To read"}, 100 - n, kind="edit-list-seeds")
+
+        assert self.signals(site) == {"reader": []}
+        assert build_report(site, now=NOW, flagged_only=True).rows == []
+
+    def test_links_in_created_records_and_the_profile(self, site):
+        signup(site, "promo", NOW - timedelta(hours=2))
+        signup(site, "profile", NOW - timedelta(hours=2))
+        work = {"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Win big", "description": "Visit bestcasino.vip today"}
+        self.save(site, "promo", work, 100)
+        site.docs["/people/profile"]["links"] = [{"title": "Shop", "url": "https://cheap-pills.example.shop/x"}]
+        self.save(site, "profile", {"key": "/works/OL2W", "type": {"key": "/type/work"}, "title": "Plain"}, 100)
+
+        assert self.signals(site) == {"promo": ["links"], "profile": ["links"]}
+
+    def test_reference_links_are_not_promotion(self, site):
+        signup(site, "librarian", NOW - timedelta(hours=2))
+        work = {"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "A book", "description": "See https://en.wikipedia.org/wiki/Book"}
+        self.save(site, "librarian", work, 100)
+
+        assert self.signals(site) == {"librarian": []}
+
+    def test_edits_to_other_records_are_not_read(self, site):
+        site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Old"}, timestamp=NOW - timedelta(days=30))
+        signup(site, "editor", NOW - timedelta(hours=2))
+        self.save(site, "editor", {"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Old", "description": "www.example.com"}, 100, kind="edit-book")
+
+        assert self.signals(site) == {"editor": []}
+
+    def test_spam_words(self, site):
+        signup(site, "spammer", NOW - timedelta(hours=2))
+        self.save(site, "spammer", {"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Best Referral Code"}, 100)
+
+        assert self.signals(site, spam_words=["referral code"]) == {"spammer": ["spam-words"]}
+        assert self.signals(site, spam_words=["unrelated"]) == {"spammer": []}
+
+    def test_deleted_catalog_records(self, site):
+        signup(site, "spammer", NOW - timedelta(hours=2))
+        self.save(site, "spammer", {"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Junk"}, 100)
+        site.save({"key": "/works/OL1W", "type": {"key": "/type/delete"}}, timestamp=NOW - timedelta(minutes=10))
+
+        assert self.signals(site) == {"spammer": ["deleted"]}
+
+    def test_burst_after_signup(self, site):
+        signup(site, "fast", NOW - timedelta(hours=3))
+        signup(site, "steady", NOW - timedelta(hours=3))
+        for n in range(new_accounts.BURST_RECORDS):
+            self.save(site, "fast", {"key": f"/works/OL1{n}W", "type": {"key": "/type/work"}, "title": "T"}, 170 - n)
+            self.save(site, "steady", {"key": f"/works/OL2{n}W", "type": {"key": "/type/work"}, "title": "T"}, 100 - n)
+
+        assert self.signals(site) == {"fast": ["burst"], "steady": []}
+
+    def test_flagged_accounts_come_first_and_list_additions_dont_rank(self, site):
+        signup(site, "reader", NOW - timedelta(hours=2))
+        signup(site, "spammer", NOW - timedelta(hours=2))
+        for n in range(5):
+            self.save(site, "reader", {"key": "/people/reader/lists/OL1L", "type": {"key": "/type/list"}, "name": "L"}, 100 - n, kind="edit-list-seeds")
+        self.save(site, "spammer", {"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Go to spam.example.com"}, 100)
+
+        report = build_report(site, now=NOW)
+
+        assert [row.username for row in report.rows] == ["spammer", "reader"]
+        assert (report.rows[1].list_additions, report.rows[1].other_edits) == (5, 0)
+        assert (report.matching_accounts, report.flagged_accounts) == (2, 1)
+        assert [row.username for row in build_report(site, now=NOW, flagged_only=True).rows] == ["spammer"]
 
 
 class TestScanRecentChanges:
@@ -399,8 +477,10 @@ class TestNewAccountsView:
         write(site, "veteran", "/works/OL1W", NOW - timedelta(hours=1))
 
         page = request_as("/people/admin")
-        assert "veteran" in page["__body__"]
         assert page["title"] == "[Admin Center] New accounts"
+        # By default only accounts with a sign of spam are listed; ?all=1 lists the rest.
+        assert "None of the 1 accounts under 7 days old" in page["__body__"]
+        assert "veteran" in request_as("/people/admin", all="1")["__body__"]
 
         assert "No accounts under 3 days old" in request_as("/people/admin", days="3")["__body__"]
         # An override that can't be used falls back to the default.

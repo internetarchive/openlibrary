@@ -2312,7 +2312,22 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "Accounts under %(age)s old, ordered by the edits they made in the last %(window)s. Times are in UTC."
+msgid "Accounts under %(age)s old that edited in the last %(window)s and show a sign of spam: links in what they wrote, words from the spam list, books a librarian already deleted, or many books or lists right after signup. Times are in UTC."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Show all %(count)s accounts"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "All accounts under %(age)s old that edited in the last %(window)s, those with a sign of spam first. Adding books to a list doesn't count towards the order. Times are in UTC."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Show only the %(count)s with a sign of spam"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2327,6 +2342,10 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 msgid "Account"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Signs of spam"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2351,14 +2370,41 @@ msgid "Admin page"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
+msgid "None"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
 #, python-format
 msgid "%(duration)s ago"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "%(books)s books added · %(lists)s lists · %(other)s other"
-msgstr ""
+msgid "%(count)s book added"
+msgid_plural "%(count)s books added"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(count)s list created"
+msgid_plural "%(count)s lists created"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(count)s list addition"
+msgid_plural "%(count)s list additions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(count)s other edit"
+msgid_plural "%(count)s other edits"
+msgstr[0] ""
+msgstr[1] ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
@@ -2375,6 +2421,11 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 msgid "Block and revert"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "None of the %(count)s accounts under %(age)s old that edited in the last %(window)s shows a sign of spam."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -10200,6 +10251,32 @@ msgstr ""
 #: openlibrary/plugins/admin/new_accounts.py
 #, python-format
 msgid "%(n)s d"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "Links in %(count)s record"
+msgid_plural "Links in %(count)s records"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "Spam words in %(count)s record"
+msgid_plural "Spam words in %(count)s records"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(count)s record already deleted"
+msgid_plural "%(count)s records already deleted"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "%(count)s added in the first %(minutes)s min"
 msgstr ""
 
 #: openlibrary/plugins/admin/new_accounts.py
