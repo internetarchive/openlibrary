@@ -43,6 +43,7 @@ When requesting assignment:
 
 [Browse Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) — ideal for first-time contributors.
 
+- Wait for a `Priority: *` label and for `Needs: Triage` to be removed before starting work
 - Only work on issues that are not assigned to anyone
 - Check the issue's comments and linked pull requests first. If there's already an open PR for the issue, please pick a different one
 - If someone else has commented that they're working on it, give them a day to work on it first. If there's still no PR after that, it's fine for you to take it on too

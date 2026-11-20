@@ -170,11 +170,18 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
+#: batch_import_card.html openlibrary/core/shell/shelf_labels.py
+#, python-format
+msgid "%(count)s item"
+msgid_plural "%(count)s items"
+msgstr[0] ""
+msgstr[1] ""
+
 #: batch_import_list.html
 msgid "Status:"
 msgstr ""
 
-#: about/index.html batch_import_list.html type/tag/index.html
+#: about/index.html batch_import_list.html batch_import_view.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -182,28 +189,20 @@ msgstr ""
 msgid "Default sort: date added, newest first."
 msgstr ""
 
-#: batch_import_list.html
-msgid "batch_id"
-msgstr ""
-
 #: admin/inspect/store.html admin/people/index.html batch_import_list.html search/sort_options.html status.html type/author/edit.html type/language/view.html
 msgid "Name"
-msgstr ""
-
-#: admin/imports.html admin/imports_by_date.html batch_import_list.html batch_import_view.html
-msgid "Added Time"
-msgstr ""
-
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
-msgid "Status"
 msgstr ""
 
 #: batch_import_list.html batch_import_view.html merge_request_table/table_header.html
 msgid "Submitter"
 msgstr ""
 
-#: batch_import_list.html batch_import_view.html
-msgid "Comments"
+#: admin/imports.html admin/imports_by_date.html batch_import_list.html batch_import_view.html
+msgid "Added Time"
+msgstr ""
+
+#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_progress.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
+msgid "Status"
 msgstr ""
 
 #: batch_import_view.html
@@ -216,15 +215,7 @@ msgid "All Batches"
 msgstr ""
 
 #: batch_import_view.html
-msgid "Batch Name:"
-msgstr ""
-
-#: batch_import_view.html
-msgid "Submitter:"
-msgstr ""
-
-#: batch_import_view.html
-msgid "Submit Time:"
+msgid "(no error)"
 msgstr ""
 
 #: batch_import_view.html
@@ -233,6 +224,10 @@ msgstr ""
 
 #: batch_import_view.html
 msgid "Approve"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Pause"
 msgstr ""
 
 #: batch_import_view.html
@@ -261,6 +256,10 @@ msgstr ""
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
+msgstr ""
+
+#: batch_import_view.html
+msgid "Comments"
 msgstr ""
 
 #: batch_import_view.html
@@ -952,19 +951,19 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py search/inside.html.jinja type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: account/reading_log.html search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html search/inside.html.jinja type/author/view.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/contribute/field_guides.py openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html.jinja type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py search/inside.html work_search.html
+#: openlibrary/core/shell/search_modal.py search/inside.html.jinja work_search.html
 msgid "Search languages…"
 msgstr ""
 
@@ -972,11 +971,11 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py search/inside.html work_search.html
+#: openlibrary/core/shell/search_modal.py search/inside.html.jinja work_search.html
 msgid "Loading…"
 msgstr ""
 
-#: search/inside.html work_search.html
+#: search/inside.html.jinja work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -1474,11 +1473,12 @@ msgid "My notes for this work"
 msgstr ""
 
 #: account/notes.html
-msgid "My notes for an edition of "
+msgid "Title Missing"
 msgstr ""
 
 #: account/notes.html
-msgid "Title Missing"
+#, python-format
+msgid "My notes for an edition of %(title)s"
 msgstr ""
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
@@ -1779,7 +1779,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py openlibrary/views/loanstats.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html.jinja account/sidebar.html lists/home.html openlibrary/core/shell/nav.py recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -3190,6 +3190,10 @@ msgid "Rather than creating a duplicate record, please click through the result 
 msgstr ""
 
 #: books/check.html
+msgid "Please complete the reCAPTCHA above before choosing a book."
+msgstr ""
+
+#: books/check.html
 msgid "Select this book"
 msgstr ""
 
@@ -3272,7 +3276,8 @@ msgid "Open Library Home"
 msgstr ""
 
 #: books/daisy.html
-msgid "There isn't a DAISY file available for "
+#, python-format
+msgid "There isn't a DAISY file available for <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
 
 #: books/daisy.html
@@ -3285,7 +3290,7 @@ msgid "Books for people who don't read print?"
 msgstr ""
 
 #: books/daisy.html
-msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
+msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media."
 msgstr ""
 
 #: books/daisy.html
@@ -3337,7 +3342,7 @@ msgid "Need help?"
 msgstr ""
 
 #: books/daisy.html
-msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
+msgid "Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
 msgstr ""
 
 #: books/edit.html
@@ -3449,7 +3454,7 @@ msgstr ""
 
 #: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
 #, python-format
-msgid " by %(name)s"
+msgid "%(title)s by %(name)s"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -4504,7 +4509,7 @@ msgstr ""
 msgid "%(percent)s%%"
 msgstr ""
 
-#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+#: contribute/admin/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py stats/tasks.html.jinja
 msgid "Goal reached"
 msgstr ""
 
@@ -6021,57 +6026,52 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
-#: search/inside.html
-#, python-format
-msgid "Search Open Library for %s"
-msgstr ""
-
-#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html
+#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html.jinja
 msgid "Search Inside"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "Choose one language"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "About %(total)s result"
 msgid_plural "About %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "%(start)s - %(end)s of about %(total)s result"
 msgid_plural "%(start)s - %(end)s of about %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "No exact matches for \"%(query)s\". Showing books containing all of these words."
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "Showing exact matches for \"%(query)s\". %(link_start)sSearch for all of these words instead.%(link_end)s"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 #, python-format
 msgid "Showing all of these words, in any order. %(link_start)sSearch for the exact phrase instead.%(link_end)s"
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "No results found. Try a different word or phrase."
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "None of the matches on this page can be shown with these filters. Try another page or remove a filter."
 msgstr ""
 
-#: search/inside.html
+#: search/inside.html.jinja
 msgid "No more results. Try an earlier page."
 msgstr ""
 
@@ -6620,11 +6620,6 @@ msgstr ""
 msgid "%(returning)s returning · %(first_time)s first-time"
 msgstr ""
 
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-#, python-format
-msgid "%(change)s vs previous 28 days"
-msgstr ""
-
 #: stats/tasks.html.jinja
 msgid "Scope"
 msgstr ""
@@ -6641,16 +6636,8 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
-#: stats/tasks.html.jinja
-msgid "Compare to previous period"
-msgstr ""
-
 #: openlibrary/views/loanstats.py stats/tasks.html.jinja
 msgid "Per day"
-msgstr ""
-
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
-msgid "4 weeks earlier"
 msgstr ""
 
 #: stats/tasks.html.jinja
@@ -6789,8 +6776,7 @@ msgid "Community project progress is counted nightly."
 msgstr ""
 
 #: stats/tasks.html.jinja
-#, python-format
-msgid "Edit totals start on %(date)s, so longer ranges begin partway through."
+msgid "Edit and editor totals start on the day they were first counted, so longer ranges may begin partway through."
 msgstr ""
 
 #: subjects/notfound.html
@@ -7112,10 +7098,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
-msgid "Genre"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -9122,7 +9104,7 @@ msgstr ""
 msgid "%(start)s to %(end)s"
 msgstr ""
 
-#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py
+#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 #, python-format
 msgid "Goal: %(percent)s%%"
 msgstr ""
@@ -9656,13 +9638,6 @@ msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py
 #, python-format
-msgid "%(count)s item"
-msgid_plural "%(count)s items"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
 msgid "%(count)s other edition"
 msgid_plural "%(count)s other editions"
 msgstr[0] ""
@@ -10061,6 +10036,15 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 #, python-format
+msgid "%(query)s - Full-text search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "Full-text search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+#, python-format
 msgid "%(query)s - Subject search"
 msgstr ""
 
@@ -10156,6 +10140,13 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/code.py
+#, python-format
+msgid "Paused %(count)d pending item."
+msgid_plural "Paused %(count)d pending items."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
 msgstr ""
 
@@ -10229,6 +10220,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Fiction or nonfiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Genre"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -10315,7 +10310,7 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(percent)s%% done, goal %(goal)s%%"
+msgid "%(percent)s%% done, goal %(goal)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -10815,6 +10810,10 @@ msgstr ""
 msgid "You are not allowed to add an Internet Archive ID."
 msgstr ""
 
+#: openlibrary/plugins/upstream/addbook.py
+msgid "You are not allowed to add a Book URL."
+msgstr ""
+
 #: openlibrary/plugins/upstream/borrow.py
 msgid "this book"
 msgstr ""
@@ -10953,20 +10952,33 @@ msgid "%(title)s - search"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Editors"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "People who changed a book, work or author record, and those whose first edit ever it was. Week and month views count each person once."
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Edits saved by people, not bots: to books, works, authors and other pages, to lists, and from the Tasks page."
+msgid "Changes people, not bots, saved to editions and works, from the Tasks page or anywhere else."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
 #, python-format
 msgid "≈ %(count)s per editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "Editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People who changed an edition or work, and those whose first such change ever it was. Week and month views count each person once."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "New editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+msgid "People whose first change ever to an edition or work falls in the period, wherever they made it."
+msgstr ""
+
+#: openlibrary/views/loanstats.py
+#, python-format
+msgid "%(share)s of editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -11037,35 +11049,6 @@ msgid "Per 4 weeks"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "A week earlier"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "A week earlier: %(count)s"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "4 weeks earlier: %(count)s"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(change)s vs a week earlier"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(change)s vs 4 weeks earlier"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(change)s vs previous 7 days"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "Today so far, updated hourly"
 msgstr ""
 
@@ -11101,7 +11084,7 @@ msgid "First edit ever"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-msgid "Records and other pages"
+msgid "Outside Tasks"
 msgstr ""
 
 #: openlibrary/views/loanstats.py

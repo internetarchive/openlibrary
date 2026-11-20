@@ -19,14 +19,13 @@ MAX_DAYS = 400
 # The keys the page may ask for. `_1d` keys are per day; 7d and 28d are rolling windows ending that day; the
 # initiatives' snapshots come separately. All written by scripts/store_counts.py from openlibrary/admin/numbers.py.
 SERIES_KEYS = (
-    "catalog_edits",
-    "list_edits",
-    "catalog_editors_1d",
-    "catalog_editors_7d",
-    "catalog_editors_28d",
-    "new_catalog_editors_1d",
-    "new_catalog_editors_7d",
-    "new_catalog_editors_28d",
+    "book_edits",
+    "book_editors_1d",
+    "book_editors_7d",
+    "book_editors_28d",
+    "new_book_editors_1d",
+    "new_book_editors_7d",
+    "new_book_editors_28d",
     "tasks_saves_1d",
     "tasks_saves_28d",
     "tasks_saves_undone_28d",

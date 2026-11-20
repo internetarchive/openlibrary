@@ -1042,3 +1042,147 @@ test('post: never approves while a blocking part is held back', async () => {
     await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
 });
+
+// ===================== GitHub 5xx when posting =====================
+// #14292: createReview returned a 500 and the PR was left with no review.
+const serverErrorPost = async ({ failures, createdAnyway = false, checkFailures = 0 }) => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    let created = null;
+    let errored = false;
+    let checksLeft = checkFailures;
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => {
+            // After a failed post, the "was it posted anyway?" check can fail too.
+            if (errored && checksLeft-- > 0) throw Object.assign(new Error('Server Error'), { status: 502 });
+            return listed();
+        }
+    });
+    const listed = () => ({
+        data: created
+            ? [{ id: created.id, user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: new Date().toISOString(), body: created.body }]
+            : []
+    });
+    let left = failures;
+    const create = github.rest.pulls.createReview;
+    github.rest.pulls.createReview = async p => {
+        if (left-- > 0) {
+            calls.createReview.push(p);
+            errored = true;
+            if (createdAnyway) created = { id: 555, body: p.body };
+            throw Object.assign(new Error('Server Error'), { status: 500 });
+        }
+        const res = await create(p);
+        created = { id: res.data.id, body: p.body };
+        return res;
+    };
+    const sleeps = [];
+    const res = await runScript(args => post.validateAndPost({ ...args, sleep: async ms => sleeps.push(ms) }), {
+        github,
+        context,
+        env: { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir },
+        cwd: dir
+    }).catch(e => ({ thrown: e }));
+    return { res, calls, sleeps };
+};
+test('post: a 5xx from createReview is retried, and the review still posts', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 1 });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null);
+    assert.equal(calls.createReview.length, 2);
+    assert.deepEqual(sleeps, [10000]);
+    assert.match(res.warnings.join('\n'), /GitHub returned 500 posting the review; trying again \(1 of 2\)/);
+});
+test('post: a 5xx after GitHub created the review does not post it twice', async () => {
+    const { res, calls } = await serverErrorPost({ failures: 1, createdAnyway: true });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null, 'the review GitHub created counts as posted');
+    assert.equal(calls.createReview.length, 1);
+});
+test('post: a failed "was it posted?" check does not stop the retry', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 1, checkFailures: 1 });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null);
+    assert.equal(calls.createReview.length, 2);
+    assert.deepEqual(sleeps, [10000]);
+    assert.match(res.warnings.join('\n'), /Could not check whether the review was posted \(Server Error\); trying again anyway/);
+});
+test('post: after two retries a 5xx still fails the job', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 3 });
+    assert.equal(res.thrown.status, 500);
+    assert.equal(calls.createReview.length, 3);
+    assert.deepEqual(sleeps, [10000, 20000]);
+});
+
+// ===================== Files that already match the base branch =====================
+// #14495: master's changes committed into the branch by hand made them part of the PR's diff.
+function baseTreeGitHub({ changed, tree, truncated = false, prior = false }) {
+    const github = {
+        rest: {
+            pulls: {
+                get: async () => ({ data: { number: 1, draft: false, state: 'open', head: { sha: A }, base: { sha: MB, ref: 'master' } } }),
+                listReviews: async () => ({
+                    data: prior
+                        ? [{ user: { login: 'openlibrary-bot' }, commit_id: P, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' }]
+                        : []
+                })
+            },
+            repos: {
+                compareCommitsWithBasehead: async ({ basehead, headers }) => {
+                    if (headers) return { data: PR_DIFF };
+                    // The prior review is not an ancestor, so a full review (keeps this test to the filter).
+                    if (basehead === `${P}...${A}`) return { data: { status: 'diverged' } };
+                    return { data: { files: changed } };
+                }
+            },
+            git: { getTree: async ({ tree_sha }) => ({ data: { truncated, tree: tree_sha === 'master' ? tree : [] } }) }
+        },
+        paginate: async (method, params) => (await method(params)).data,
+        graphql: async () => ({ repository: { pullRequest: { reviewThreads: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } } })
+    };
+    return github;
+}
+const blob = (path, sha) => ({ path, sha, type: 'blob' });
+test('range: a file the PR leaves exactly as it is on master is not reviewed', async () => {
+    const github = baseTreeGitHub({
+        changed: [
+            { filename: 'a.py', sha: 'same', status: 'modified' },
+            { filename: 'b.py', sha: 'new', status: 'modified' }
+        ],
+        tree: [blob('a.py', 'same'), blob('b.py', 'old')]
+    });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'false');
+    assert.equal(res.outputs.files, JSON.stringify(['b.py']));
+    assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+});
+test('range: a rename keeps both names, and a deletion master also made is left out', async () => {
+    const github = baseTreeGitHub({
+        changed: [
+            { filename: 'b.py', previous_filename: 'old_b.py', sha: 'new', status: 'renamed' },
+            { filename: 'gone.py', sha: 'x', status: 'removed' },
+            { filename: 'kept_gone.py', sha: 'x', status: 'removed' }
+        ],
+        tree: [blob('kept_gone.py', 'x')]
+    });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.files, JSON.stringify(['b.py', 'kept_gone.py', 'old_b.py']));
+});
+test('range: when every changed file already matches master, the last verdict is carried', async () => {
+    const github = baseTreeGitHub({ changed: [{ filename: 'a.py', sha: 'same', status: 'modified' }], tree: [blob('a.py', 'same')], prior: true });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'true');
+    assert.equal(res.outputs.verdict_sha, P);
+});
+test('range: a truncated tree, or nothing matching, changes nothing', async () => {
+    for (const opts of [
+        { changed: [{ filename: 'a.py', sha: 'same', status: 'modified' }], tree: [blob('a.py', 'same')], truncated: true },
+        { changed: [{ filename: 'a.py', sha: 'new', status: 'modified' }], tree: [blob('a.py', 'old')] }
+    ]) {
+        const res = await runScript(range.resolveRange, { github: baseTreeGitHub(opts), context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+        assert.equal(res.outputs.files || '', '', 'a full review of the whole PR diff');
+        assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), PR_DIFF);
+    }
+});

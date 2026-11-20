@@ -69,7 +69,7 @@ jobs:
     #   - a non-draft PR's review request for the team or the bot. A PR can't request its own author
     #     but can request a team, so the team path also reviews the bot's own PRs.
     #   - an @openlibrary-bot comment on a PR, from staff or the PR's author. The author is allowed
-    #     because a fork contributor can't re-request a review but can comment.
+    #     because a fork contributor may not see the re-request button but can always comment.
     #   - workflow_dispatch, which needs write access and also reviews drafts.
     if: >
       github.event_name == 'workflow_dispatch' ||
@@ -201,8 +201,11 @@ jobs:
           # are not -- they reach outside it. Spell the write scope `Edit(...)`: at this pin
           # `Write(./review.json)` silently denies every write, including review.json, which
           # would withhold every review while looking like the gate working.
+          # --max-turns only stops a review that is stuck. review.json is written at the end, so a
+          # review that hits the limit posts nothing. Keep it well above what real reviews use:
+          # in Nov 2026 the median was 24 turns, the 90th percentile 39, and the most 47.
           claude_args: >-
-            --max-turns 40
+            --max-turns 75
             --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
             --disallowedTools "Bash WebFetch WebSearch"
           claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
@@ -212,12 +215,14 @@ jobs:
           # public run log or step summary, past the gate.
           show_full_output: false
           display_report: false
-          # The action rejects anyone without write access, but the `if` above also lets a PR's author
-          # re-run the review by commenting, and fork authors only have read access. So on a comment
-          # trigger, allow exactly the commenter, whom the `if` already vetted; other triggers are
-          # unchanged. This job has no write access either way. Setting it turns on the action's
-          # subprocess sandbox for that run (see the pin note above); the review step has no shell.
-          allowed_non_write_users: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}
+          # The action rejects anyone without write access, but a PR's author can re-run the review in
+          # two ways, and fork authors only have read access: by commenting (the `if` above vets the
+          # commenter), or with GitHub's re-request button next to openlibrary-bot, which GitHub lets
+          # a PR's author use. So allow exactly the commenter on a comment, and on a re-request of the
+          # bot, the requester only when they wrote the PR; other triggers are unchanged. This job has
+          # no write access either way. Setting it turns on the action's subprocess sandbox for that
+          # run (see the pin note above); the review step has no shell.
+          allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
 
       - name: Gate the analysis before upload
         id: analyze-gate
