@@ -52,9 +52,9 @@ $def subnav():
             $ color_options = [{"value": "none", "label": _("None")}, {"value": "bot", "label": _("Bots v. Humans")}, kind_option]
             $if ctx.user and ctx.user.is_librarian_or_higher():
                 $ color_options.append({"value": "query", "label": _("Custom query…"), "description": _("Edits whose saved record contains some text, searched newest first.")})
-            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), notSearched=_("Not searched yet"), walking=_("Searching back through the changes: %(count)s checked so far, back to %(date)s…"), walkStopped=_("Stopped after checking %(count)s changes, back to %(date)s."), walkDone=_("Checked %(count)s changes, back to %(date)s."), stop=_("Stop"), resume=_("Resume"), searchFailed=_("The search failed: %(reason)s"), any=_("Any"), botFilter=_("Bot: %(choice)s"), kindFilter=_("Kind: %(choice)s"))
+            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), notSearched=_("Not searched yet"), walking=_("Searching back through the changes: %(count)s checked so far, back to %(date)s…"), walkStopped=_("Stopped after checking %(count)s changes, back to %(date)s."), walkDone=_("Checked %(count)s changes, back to %(date)s."), stop=_("Stop"), resume=_("Resume"), searchFailed=_("The search failed: %(reason)s"), any=_("Any"), botFilter=_("Bot: %(choice)s"), kindFilter=_("Kind: %(choice)s"), kindCount=_("%(count)s kinds"))
             $ bot_options = [{"value": "any", "label": _("Any")}, {"value": "humans", "label": _("Humans")}, {"value": "bots", "label": _("Bots")}]
-            $ kind_filter_options = [{"value": "any", "label": _("Any")}] + [{"value": k, "label": v} for k, v in chart_i18n["kinds"].items()]
+            $ kind_filter_options = [{"value": k, "label": v} for k, v in chart_i18n["kinds"].items()]
             <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
                 <div class="tasks-stats__chart-head">
                     <span class="tasks-stats__chart-unit">$_("Per day")</span>
@@ -82,12 +82,12 @@ $def subnav():
                         <ol-options-popover class="recentchanges-chart__bot-filter" label="$_('Bot')" selected="any" items="$json_encode(bot_options)">
                             <ol-button slot="trigger" size="small">$_("Bot: %(choice)s", choice=_("Any"))</ol-button>
                         </ol-options-popover>
-                        <ol-options-popover class="recentchanges-chart__kind-filter" label="$_('Kind')" selected="any" items="$json_encode(kind_filter_options)">
+                        <ol-select-popover class="recentchanges-chart__kind-filter" label="$_('Kind')" unselected-heading="$_('Kinds')" placeholder="$_('Filter kinds…')" items="$json_encode(kind_filter_options)">
                             $if query.get("kind"):
                                 <ol-button slot="trigger" size="small" disabled>$_("Kind: %(choice)s", choice=chart_i18n["kinds"].get(query["kind"], query["kind"]))</ol-button>
                             $else:
                                 <ol-button slot="trigger" size="small">$_("Kind: %(choice)s", choice=_("Any"))</ol-button>
-                        </ol-options-popover>
+                        </ol-select-popover>
                         <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
                         <ol-button type="submit" size="small">$_("Search")</ol-button>
                     </form>

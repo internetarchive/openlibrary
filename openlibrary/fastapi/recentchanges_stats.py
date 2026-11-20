@@ -89,7 +89,7 @@ def recentchanges_counts(
 _MATCH_PAGE_SQL = f"""
 WITH {_BOTS_CTE}, page AS MATERIALIZED (
     SELECT id, created, changes FROM transaction
-    WHERE (%(before)s::int IS NULL OR id < %(before)s) AND (%(kind)s::text IS NULL OR action = %(kind)s)
+    WHERE (%(before)s::int IS NULL OR id < %(before)s) AND (%(kinds)s::text[] IS NULL OR action = ANY(%(kinds)s))
     AND (%(bot)s::boolean IS NULL OR COALESCE(author_id IN (SELECT id FROM bots), false) = %(bot)s)
     ORDER BY id DESC
     LIMIT %(limit)s
@@ -107,6 +107,7 @@ FROM page
 # Per page, so one slow page fails fast and the walk can retry it smaller.
 MATCH_PAGE_TIMEOUT = "20s"
 MAX_PAGE_SIZE = 5000
+MAX_KINDS = 30
 
 
 class RecentChangesMatchPage(BaseModel):
@@ -122,10 +123,10 @@ class RecentChangesMatchPage(BaseModel):
     """When the oldest change on this page was made (ISO, UTC): the walk has covered everything since."""
 
 
-async def match_page(text: str, kind: str | None, bot: bool | None, before: int | None, limit: int) -> RecentChangesMatchPage:
+async def match_page(text: str, kinds: list[str] | None, bot: bool | None, before: int | None, limit: int) -> RecentChangesMatchPage:
     async with connection() as conn:
         await conn.execute(f"SET LOCAL statement_timeout = '{MATCH_PAGE_TIMEOUT}'")
-        cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kind": kind, "bot": bot, "before": before, "limit": limit})
+        cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kinds": kinds, "bot": bot, "before": before, "limit": limit})
         rows = await cursor.fetchall()
     counts: dict[str, int] = {}
     checked: dict[str, int] = {}
@@ -148,7 +149,7 @@ async def match_page(text: str, kind: str | None, bot: bool | None, before: int 
 async def recentchanges_matches(
     _: LibrarianDep,
     q: Annotated[str, Query(min_length=3, max_length=100, description="Text to look for, case-insensitively, in each edited record as that change saved it.")],
-    kind: Annotated[str | None, Query(max_length=64, description="Change kind, e.g. add-book; all kinds if omitted.")] = None,
+    kind: Annotated[list[str] | None, Query(max_length=MAX_KINDS, description="Change kinds, e.g. add-book; repeat for several, all kinds if omitted.")] = None,
     bot: Annotated[bool | None, Query(description="Only bots' changes, or only people's; both if omitted.")] = None,
     before: Annotated[int | None, Query(gt=0, description="Only changes with an id below this: the previous page's `next`.")] = None,
     limit: Annotated[int, Query(gt=0, le=MAX_PAGE_SIZE, description="How many changes to check.")] = 200,

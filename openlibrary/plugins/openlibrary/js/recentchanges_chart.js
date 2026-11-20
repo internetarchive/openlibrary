@@ -17,7 +17,7 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
 
 /**
  * @typedef {object} Walk a newest-first search through the changes for one query and filters, a page at a time
- * @property {{query: string, bot: string, kind: string}} search what it looks for: `bot` is any, humans or bots, `kind` empty for any
+ * @property {{query: string, bot: string, kinds: string[]}} search what it looks for: `bot` is any, humans or bots, `kinds` empty for any
  * @property {Record<string, number>} counts matching changes per ISO date
  * @property {Record<string, number>} checked changes checked per ISO date
  * @property {number | null} cursor `before` for the next page
@@ -109,7 +109,7 @@ export function init(root) {
         colorBy: 'none',
         query: '',
         bot: 'any',
-        kind: '',
+        kinds: /** @type {string[]} */ ([]),
         isolated: /** @type {string | null} */ (null)
     };
     /** @type {Map<number, Promise<Counts>>} fetched once per range */
@@ -130,7 +130,7 @@ export function init(root) {
     /** The walk for the current search, or null without one. */
     function currentWalk() {
         if (state.colorBy !== 'query' || !state.query) return null;
-        const search = { query: state.query, bot: state.bot, kind: kind || state.kind };
+        const search = { query: state.query, bot: state.bot, kinds: kind ? [kind] : [...state.kinds].sort() };
         const key = JSON.stringify(search);
         let walk = walks.get(key);
         if (!walk) {
@@ -157,7 +157,7 @@ export function init(root) {
         const names = [...new Set([...Object.keys(data.kinds), ...Object.keys(kindLabels)])].sort(
             (a, b) => sum(data.kinds[b] || []) - sum(data.kinds[a] || [])
         );
-        const items = [{ value: 'any', label: strings.any }, ...names.map(name => ({ value: name, label: kindLabels[name] || name }))];
+        const items = names.map(name => ({ value: name, label: kindLabels[name] || name }));
         if (JSON.stringify(items) !== JSON.stringify(kindFilter.items)) kindFilter.items = items;
     }
 
@@ -175,7 +175,7 @@ export function init(root) {
         try {
             while (!walk.stopped && !covered(walk)) {
                 const params = new URLSearchParams({ q: walk.search.query, limit: String(pageSize) });
-                if (walk.search.kind) params.set('kind', walk.search.kind);
+                for (const name of walk.search.kinds) params.append('kind', name);
                 if (walk.search.bot !== 'any') params.set('bot', String(walk.search.bot === 'bots'));
                 if (walk.cursor !== null) params.set('before', String(walk.cursor));
                 const started = performance.now();
@@ -296,8 +296,10 @@ export function init(root) {
             if (!walk.stopped && !walk.error && !covered(walk)) runWalk(walk);
             // Only the changes the filters let through, so those it skips don't read as not searched yet
             const zeros = data.dates.map(() => 0);
-            const all = walk.search.kind ? data.kinds[walk.search.kind] || zeros : total;
-            const bots = walk.search.kind ? data.bot_kinds[walk.search.kind] || zeros : data.bots;
+            const kinds = walk.search.kinds;
+            const sumOf = (/** @type {Record<string, number[]>} */ byKind) => zeros.map((_, i) => kinds.reduce((n, name) => n + (byKind[name]?.[i] || 0), 0));
+            const all = kinds.length ? sumOf(data.kinds) : total;
+            const bots = kinds.length ? sumOf(data.bot_kinds) : data.bots;
             const filtered = walk.search.bot === 'bots' ? bots : walk.search.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
             const matching = data.dates.map(day => walk.counts[day] || 0);
             // The daily totals are cached, so a day's changes checked can run past its total
@@ -472,26 +474,32 @@ export function init(root) {
         if (walk) walk.stopped = false;
         draw();
     });
-    /**
-     * A filter beside the search: keep its value and show it on its trigger.
-     * @param {HTMLElement & {items?: {value: string, label: string}[]}} filter
-     * @param {'bot' | 'kind'} name
-     * @param {string} template
-     */
-    function onFilterChange(filter, name, template) {
-        filter.addEventListener('ol-options-popover-change', event => {
-            const value = /** @type {CustomEvent} */ (event).detail.selected;
-            stopWalk();
-            state[name] = value === 'any' ? (name === 'bot' ? 'any' : '') : value;
-            const choice = (filter.items || []).find(item => item.value === value);
-            /** @type {HTMLElement} */ (filter.querySelector('[slot="trigger"]')).textContent = fill(template, { choice: choice?.label || '' });
-            const walk = currentWalk();
-            if (walk) walk.stopped = false;
-            draw();
-        });
+    /** Start the walk for the search as it now stands, after a filter changed. */
+    function restartWalk() {
+        const walk = currentWalk();
+        if (walk) walk.stopped = false;
+        draw();
     }
-    onFilterChange(botFilter, 'bot', strings.botFilter);
-    onFilterChange(kindFilter, 'kind', strings.kindFilter);
+    botFilter.addEventListener('ol-options-popover-change', event => {
+        const value = /** @type {CustomEvent} */ (event).detail.selected || 'any';
+        stopWalk();
+        state.bot = value;
+        const choice = /** @type {{value: string, label: string}[]} */ (/** @type {any} */ (botFilter).items || []).find(item => item.value === value);
+        /** @type {HTMLElement} */ (botFilter.querySelector('[slot="trigger"]')).textContent = fill(strings.botFilter, { choice: choice?.label || '' });
+        restartWalk();
+    });
+    kindFilter.addEventListener('ol-select-popover-change', event => {
+        stopWalk();
+        state.kinds = [.../** @type {CustomEvent} */ (event).detail.selected];
+        const labelFor = (/** @type {string} */ value) => kindFilter.items.find(item => item.value === value)?.label || value;
+        const count = state.kinds.length;
+        const choice = count === 0 ? strings.any : count === 1 ? labelFor(state.kinds[0]) : fill(strings.kindCount, { count: String(count) });
+        const trigger = /** @type {HTMLElement} */ (kindFilter.querySelector('[slot="trigger"]'));
+        trigger.textContent = fill(strings.kindFilter, { choice });
+        // Tinted while filtering, as ol-select-popover's own trigger is
+        trigger.toggleAttribute('selected', count > 0);
+        restartWalk();
+    });
     walkToggle.addEventListener('click', () => {
         const walk = currentWalk();
         if (!walk) return;

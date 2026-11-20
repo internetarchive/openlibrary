@@ -5981,6 +5981,11 @@ msgstr ""
 msgid "Kind: %(choice)s"
 msgstr ""
 
+#: recentchanges/index.html
+#, python-format
+msgid "%(count)s kinds"
+msgstr ""
+
 #: recentchanges/index.html stats/tasks.html.jinja
 msgid "Date range"
 msgstr ""
@@ -6023,6 +6028,14 @@ msgstr ""
 
 #: recentchanges/index.html type/type/view.html
 msgid "Kind"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Kinds"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "Filter kinds…"
 msgstr ""
 
 #: recentchanges/index.html
