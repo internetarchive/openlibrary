@@ -191,7 +191,6 @@ For every label below, make an active decision: **add**, **remove**, or **leave 
 | `Needs: Staff Decision` | A specific decision from a maintainer is required before work can begin | Decision made and documented |
 | `Needs: Designs` | UI/UX change proposed with no mockups or design direction | Design direction established |
 | `Needs: Investigation` | Root cause or approach genuinely unknown; research required before coding | Root cause or approach is clear |
-| `Good First Issue` | Well-scoped, clear acceptance criteria, ≤1 day of work, no deep knowledge required, NOT blocked | — |
 | `State: Blocked` | Hard external dependency: unavailable credential/service, incomplete external work | Dependency resolved |
 | *(no label — flag in comment body)* | The proposal introduces a security or privacy risk. No label exists for this; do not invent one. Instead add a `> [!WARNING]` block to the comment stating the risk plainly, and tag the relevant lead. | Risk resolved |
 
@@ -231,6 +230,8 @@ Leave it unset when unsure. Never change a type that is already set.
 
 **CRITICAL**: Never add `Priority:` labels. Never remove `Needs: Triage`. Only staff can set priority.
 
+Never add or remove `Good First Issue`. Maintainers apply this label manually after triage.
+
 ```bash
 gh issue edit {ISSUE_NUMBER} --repo internetarchive/openlibrary --add-label "Needs: Lead"
 ```
@@ -247,7 +248,7 @@ Always end every comment with `<!-- ol-issue-bot -->`.
 
 ### Comment structure
 
-**For an unassigned `Good First Issue`**, include this guidance when applying or retaining the label:
+**For an unassigned Good First Issue ready for community work**, include the guidance below. Require the existing `Good First Issue` and `Priority: *` labels with `Needs: Triage` cleared. Skip the guidance when the readiness checklist or the staff-only warning below applies.
 
 > No assignment is needed for this Good First Issue. Before you start, read [how to pick up a Good First Issue](https://docs.openlibrary.org/developers/CONTRIBUTING.html#good-first-issues), and leave a comment here before you open your PR.
 
@@ -351,6 +352,8 @@ Mark each item `[x]` if it is actually satisfied for **this specific issue**, `[
 
 **Footer** *(always include)*
 
+If you gave the Good First Issue pickup guidance, omit the final sentence about needing lead review.
+
 ```markdown
 ---
 > [!NOTE]
@@ -419,5 +422,5 @@ No label exists for this (`Close: Not an Issue` does not exist as a real label) 
 - Never modify production data
 - Never create branches or PRs
 - Use read-only operations unless adding labels, posting comments, or closing spam
-- Be conservative with `Good First Issue` — only apply if ALL criteria are met
+- Leave the `Good First Issue` label to maintainers
 - Check for `<!-- ol-issue-bot -->` before acting — never double-post
