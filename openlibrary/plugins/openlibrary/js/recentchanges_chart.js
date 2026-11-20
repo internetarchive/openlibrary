@@ -155,7 +155,8 @@ export function init(root) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: { mode: /** @type {const} */ ('index'), intersect: false },
+                // A stacked bar's tooltip describes just the segment under the pointer; a plain bar's, the whole column
+                interaction: stacked ? { mode: /** @type {const} */ ('nearest'), intersect: true } : { mode: /** @type {const} */ ('index'), intersect: false },
                 scales: {
                     x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
                     y: { stacked, beginAtZero: true, border: { display: false }, grid: { color: colors.grid }, ticks: { precision: 0 } }
@@ -170,8 +171,6 @@ export function init(root) {
                         borderWidth: 1,
                         padding: 10,
                         displayColors: false,
-                        // A stack of many kinds lists only those present
-                        filter: (/** @type {any} */ item) => !stacked || item.raw > 0,
                         callbacks: {
                             title: (/** @type {any[]} */ items) => (items.length ? fullLabel(totals[items[0].dataIndex]) : ''),
                             label: (/** @type {any} */ item) =>
