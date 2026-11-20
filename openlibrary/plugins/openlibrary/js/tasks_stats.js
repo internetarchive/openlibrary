@@ -160,7 +160,7 @@ export async function init(root) {
         surface: token('--color-surface')
     };
     Chart.defaults.font.family = token('--font-family-body');
-    Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
+    Chart.defaults.font.size = parseInt(token('--font-size-body-small'), 10);
     Chart.defaults.color = colors.previous;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
 
@@ -201,11 +201,11 @@ export async function init(root) {
      * @param {number} n
      */
     function buildMetrics(n) {
-        const series = (/** @type {string} */ key) => fullSeries(key).slice(0, n);
+        const trimmedSeries = (/** @type {string} */ key) => fullSeries(key).slice(0, n);
         // Edits to editions and works, split by where they were saved. A day with edits but no Tasks count had none.
-        const edits = series('book_edits');
+        const edits = trimmedSeries('book_edits');
         const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (edits[i] === null ? null : (v ?? 0)));
-        const tasksSaves = orZero(series('tasks_saves_1d'));
+        const tasksSaves = orZero(trimmedSeries('tasks_saves_1d'));
 
         /**
          * People can't be added up across days, so week and month views of them take the stored 7- or 28-day window ending on
@@ -213,7 +213,8 @@ export async function init(root) {
          * @param {string} prefix e.g. `book_editors`, with `_1d`, `_7d` and `_28d` keys
          * @param {number} size
          */
-        const people = (prefix, size) => bucketize(series(`${prefix}_1d`), size, size === 1 ? undefined : series(`${prefix}_${size === 7 ? 7 : 28}d`));
+        const people = (prefix, size) =>
+            bucketize(trimmedSeries(`${prefix}_1d`), size, size === 1 ? undefined : trimmedSeries(`${prefix}_${size === 7 ? 7 : 28}d`));
         const sum = (/** @type {(number | null)[]} */ daily, /** @type {number} */ size) => bucketize(daily, size);
         /** @param {Part[]} parts */
         const stackTotal = parts =>
@@ -249,9 +250,9 @@ export async function init(root) {
             },
             new_editors: size => single(people('new_book_editors', size), 'count', colors.accent),
             tasks_share: size => ({ ...single(ratio(sum(tasksSaves, size), sum(edits, size), 100), 'percent'), complete: [edits] }),
-            saves: size => single(sum(series('tasks_saves_1d'), size), 'count'),
+            saves: size => single(sum(trimmedSeries('tasks_saves_1d'), size), 'count'),
             tasks_editors: size => single(people('tasks_editors', size), 'count'),
-            saves_per_editor: size => single(ratio(sum(series('tasks_saves_1d'), size), people('tasks_editors', size), 1), 'decimal')
+            saves_per_editor: size => single(ratio(sum(trimmedSeries('tasks_saves_1d'), size), people('tasks_editors', size), 1), 'decimal')
         };
         return { METRICS, edits, tasksSaves };
     }

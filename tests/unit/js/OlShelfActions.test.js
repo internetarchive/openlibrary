@@ -709,7 +709,7 @@ describe('ol-shelf-actions recent lists', () => {
 
         shortcut.click();
         await tick(next);
-        const post = calls.filter(c => c.url === '/people/tester/lists/OL1L/seeds.json').pop();
+        const post = calls.findLast(c => c.url === '/people/tester/lists/OL1L/seeds.json');
         expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/books/OL8M' }] });
         expect(q(next, '.row.shortcut').getAttribute('aria-pressed')).toBe('true');
     });

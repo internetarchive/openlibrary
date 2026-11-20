@@ -47,7 +47,7 @@ function limitChars(textid, limit) {
     const text = $(`#${textid}`).val();
     const textlength = text.length;
     if (textlength > limit) {
-        $(`#${textid}`).val(text.substr(0, limit));
+        $(`#${textid}`).val(text.slice(0, limit));
         return false;
     }
     return true;

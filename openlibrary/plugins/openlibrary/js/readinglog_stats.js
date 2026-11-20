@@ -64,7 +64,7 @@ export function init(config) {
     const barColor = token('--color-chart-bar');
     const selectedBarColor = token('--color-chart-bar-selected');
     Chart.defaults.font.family = token('--font-family-body');
-    Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
+    Chart.defaults.font.size = parseInt(token('--font-size-body-small'), 10);
     Chart.defaults.color = token('--color-text-secondary');
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
     /** @type {Chart[]} */
@@ -106,18 +106,18 @@ export function init(config) {
 
     /**
      *
-     * @param {Config} config
+     * @param {Config} pageConfig
      * @param {ChartConfig} chartConfig
      * @param {Element} container
      * @param {HTMLCanvasElement} canvas
      */
-    function createWorkChart(config, chartConfig, container, canvas) {
+    function createWorkChart(pageConfig, chartConfig, container, canvas) {
         /** @type {{[key: string]: Work[]}} */
         const grouped = {};
         /** @type {Work[]} */
         const excluded = [];
 
-        for (const work of config.works) {
+        for (const work of pageConfig.works) {
             const result = getPath(work, chartConfig.key);
             const allKeys = Array.isArray(result) ? result : result ? [result] : [];
             const validKeys = [...new Set(allKeys.filter(key => key !== undefined && !chartConfig.exclude?.includes(key)))];
@@ -203,7 +203,7 @@ export function init(config) {
         });
         charts.push(chart);
 
-        container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, config.works.length));
+        container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, pageConfig.works.length));
     }
 
     const defaultFieldRender = field => `OPTIONAL { ?x ${field.relation} ?${field.name}. }`;
@@ -259,21 +259,21 @@ export function init(config) {
                 const qid = binding.x.value.split('/')[4];
                 (grouped[qid] = grouped[qid] || []).push(binding);
             }
-            const records = Object.entries(grouped).map(([qid, bindings]) => {
-                const record = { qid, olids: [...new Set(bindings.map(x => x.olid.value))] };
+            const records = Object.entries(grouped).map(([qid, group]) => {
+                const record = { qid, olids: [...new Set(group.map(x => x.olid.value))] };
                 // { qid: Q123, olids: [ { value: }, {value: }], blah: [ {value:}, {value:} ], blahLabel: [{value:}, {value:},
                 for (const { name, type } of SPARQL_FIELDS) {
                     if (type === 'uri') {
                         // need to dedupe whilst keeping labels in mind
                         const deduped = uniqBy(
-                            bindings.filter(x => x[name]).map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
+                            group.filter(x => x[name]).map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
                             x => x[name].value
                         );
                         record[name] = deduped.map(x => x[name]);
                         record[`${name}Label`] = deduped.map(x => x[`${name}Label`]);
                     } else {
                         record[name] = uniqBy(
-                            bindings.map(x => x[name]),
+                            group.map(x => x[name]),
                             x => x?.value
                         );
                     }
@@ -321,15 +321,15 @@ export function init(config) {
  */
 function getPath(obj, key) {
     /**
-     * @param {object} obj
+     * @param {object} node
      * @param {string[]} param1
      * @return {any}
      */
-    function main(obj, [head, ...rest]) {
-        if (obj === undefined) return undefined;
-        if (!head) return obj;
-        if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
-        return main(obj[head], rest);
+    function main(node, [head, ...rest]) {
+        if (node === undefined) return undefined;
+        if (!head) return node;
+        if (head.endsWith('[]')) return node[head.slice(0, -2)].flatMap(x => main(x, rest));
+        return main(node[head], rest);
     }
     return main(obj, key.split('.'));
 }

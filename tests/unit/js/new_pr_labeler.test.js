@@ -452,7 +452,7 @@ describe('linkify', () => {
 describe('syncNeedsLead', () => {
     // graphql() returns one page of open issues per call (an Error value is
     // thrown); request() records each write, or throws the Error in `errors`.
-    function fakeOctokit(pages, errors = {}) {
+    function fakeSyncOctokit(pages, errors = {}) {
         const writes = [];
         let page = 0;
         return {
@@ -473,7 +473,7 @@ describe('syncNeedsLead', () => {
     const page = (nodes, endCursor = null) => ({ pageInfo: { hasNextPage: Boolean(endCursor), endCursor }, nodes });
 
     test('adds Needs: Lead where there is no lead and removes it where there is one, across pages', async () => {
-        const octokit = fakeOctokit([
+        const octokit = fakeSyncOctokit([
             page([issue(1, 'Good First Issue'), issue(2, 'Lead: @foo', 'Needs: Lead')], 'c1'),
             page([issue(3, 'Needs: Lead'), issue(4, 'Lead: @foo')])
         ]);
@@ -493,7 +493,7 @@ describe('syncNeedsLead', () => {
 
     test('a failed write is recorded without stopping the rest; a 404 on remove counts as done', async () => {
         const gone = Object.assign(new Error('Label does not exist'), { status: 404 });
-        const octokit = fakeOctokit([page([issue(1), issue(2, 'Lead: @foo', 'Needs: Lead'), issue(3)])], { 1: new Error('403'), 2: gone });
+        const octokit = fakeSyncOctokit([page([issue(1), issue(2, 'Lead: @foo', 'Needs: Lead'), issue(3)])], { 1: new Error('403'), 2: gone });
         const { changes } = await syncNeedsLead(octokit, REPO);
         expect(changes).toEqual([
             { number: 1, change: 'add', error: '403' },
@@ -503,7 +503,7 @@ describe('syncNeedsLead', () => {
     });
 
     test('a listing failure keeps the changes made so far, and the summary says so', async () => {
-        const result = await syncNeedsLead(fakeOctokit([page([issue(1)], 'c1'), new Error('502')]), REPO);
+        const result = await syncNeedsLead(fakeSyncOctokit([page([issue(1)], 'c1'), new Error('502')]), REPO);
         expect(result.changes).toHaveLength(1);
         const summary = formatNeedsLeadSummary(result, REPO);
         expect(summary).toContain('Added to issues with no lead (1): [#1](https://github.com/internetarchive/openlibrary/issues/1)');

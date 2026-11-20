@@ -396,7 +396,7 @@ const withFailures = () => {
     s.bot_prs = [{ number: 14527, url: 'pr14527', merged_at: '2026-11-17T09:31:00Z' }];
     return s;
 };
-const fix = (failure_id, pr = 14527, status = 'fixed') => ({ failure_id, pr, status, why: 'Handles @RayBB the rejected line.' });
+const fix = (failure_id, prNumber = 14527, status = 'fixed') => ({ failure_id, pr: prNumber, status, why: 'Handles @RayBB the rejected line.' });
 test('verifyFixes: only a candidate PR for a real failure counts, once per failure', () => {
     const v = post.verifyFixes(withFailures(), [fix(0), fix(0, 14527, 'probably_fixed'), fix(1, 999), fix(7)]);
     assert.deepEqual([...v.keys()], [0]);

@@ -220,7 +220,7 @@ export function initTeamFilter() {
     };
 
     const createCards = array => {
-        array.map(member => {
+        array.forEach(member => {
             // create
             const teamCardContainer = document.createElement('div');
             const teamCard = document.createElement('div');
