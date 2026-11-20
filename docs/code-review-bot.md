@@ -113,6 +113,18 @@ rewrites the history it reviewed, the bot reviews the whole PR again.
 On each re-review the bot also re-checks its own open comments, as described in
 [Responding to a finding](#responding-to-a-finding).
 
+### Stacked PRs
+
+A PR can target another PR's branch instead of master, so it can be reviewed while the first one
+is still open. The bot reviews such a PR against the branch it targets, so the review covers only
+that PR's own changes, and merging the other branch into it counts as a base-branch merge.
+
+When the PR it's stacked on merges, GitHub retargets this one to master, but its branch still has
+the other PR's original commits. If that PR was squash-merged, those commits now differ from what's
+on master, and the PR's diff mixes in the other PR's changes in any file both PRs touched. That
+affects the Files tab and the bot alike. **Rebase onto master after the PR below yours merges.**
+The next review is then a full review of your changes against master.
+
 ### If a review gets stuck or fails
 
 If GitHub returns a server error (5xx) while the bot posts its review, the bot retries up to twice,
