@@ -162,7 +162,7 @@ class search_inside(delegate.page):
         )
 
         # Local imports: openlibrary.fastapi.search imports this module, and this handler is temporary.
-        from openlibrary.fastapi.search import InsideNav, SearchNav, inside_search_title
+        from openlibrary.fastapi.search import InsideNav, SearchNav, inside_search_title  # noqa: PLC0415
 
         body = render_inside_body(
             nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
