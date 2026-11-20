@@ -64,7 +64,8 @@
     "import/no-duplicates": "error",
     "unicorn/escape-case": "error",
     "unicorn/no-instanceof-array": "error",
-    "unicorn/no-useless-promise-resolve-reject": "error"
+    "unicorn/no-useless-promise-resolve-reject": "error",
+    "no-var": "error"
   },
   "overrides": [
     {

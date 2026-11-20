@@ -1,9 +1,9 @@
 import $ from 'jquery';
 export function initGoodreadsImport() {
-    var count, prevPromise;
+    let count, prevPromise;
 
     $(document).on('click', 'th.toggle-all input', function () {
-        var checked = $(this).prop('checked');
+        const checked = $(this).prop('checked');
         $('input.add-book').each(function () {
             $(this).prop('checked', checked);
             if (checked) {
@@ -49,11 +49,11 @@ export function initGoodreadsImport() {
         count = 0;
         prevPromise = Promise.resolve();
         $('input.add-book').each(function () {
-            var input = $(this),
+            const input = $(this),
                 checked = input.prop('checked');
-            var value = JSON.parse(input.val().replace(/'/g, '"'));
-            var shelf = value['Exclusive Shelf'];
-            var shelf_id = 0;
+            const value = JSON.parse(input.val().replace(/'/g, '"'));
+            const shelf = value['Exclusive Shelf'];
+            let shelf_id = 0;
             const hasFailure = function () {
                 return $(`[isbn=${value['ISBN']}]`).hasClass('import-failure');
             };
@@ -89,7 +89,7 @@ export function initGoodreadsImport() {
                     return getWork(value['ISBN']); // return a new Promise
                 })
                 .then(function (data) {
-                    var obj = JSON.parse(data);
+                    const obj = JSON.parse(data);
                     $.ajax({
                         url: `${obj['works'][0].key}/bookshelves.json`,
                         type: 'POST',
@@ -164,7 +164,7 @@ export function initGoodreadsImport() {
 
     function getWork(isbn) {
         return new Promise(function (resolve, reject) {
-            var request = new XMLHttpRequest();
+            const request = new XMLHttpRequest();
 
             request.open('GET', `/isbn/${isbn}.json`);
             request.onload = function () {
