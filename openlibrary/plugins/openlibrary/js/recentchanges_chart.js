@@ -17,6 +17,7 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
 /**
  * @typedef {object} Walk a newest-first search through the changes for one query, a page at a time
  * @property {Record<string, number>} counts matching changes per ISO date
+ * @property {Record<string, number>} checked changes checked per ISO date
  * @property {number | null} cursor `before` for the next page
  * @property {string | null} oldest ISO date of the oldest change checked so far; every day after it is fully covered
  * @property {number} scanned changes checked
@@ -25,6 +26,9 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
  * @property {boolean} stopped stopped by the patron
  * @property {string} error why the last page failed
  */
+
+// More legend items than this and the tooltip shows only the hovered segment.
+const MAX_TOOLTIP_PARTS = 5;
 
 // Page sizes for the walk, in changes; it aims for pages of a second or two.
 const MIN_PAGE = 10;
@@ -114,7 +118,7 @@ export function init(root) {
     function walkFor(query) {
         let walk = walks.get(query);
         if (!walk) {
-            walk = { counts: {}, cursor: null, oldest: null, scanned: 0, done: false, running: false, stopped: false, error: '' };
+            walk = { counts: {}, checked: {}, cursor: null, oldest: null, scanned: 0, done: false, running: false, stopped: false, error: '' };
             walks.set(query, walk);
         }
         return walk;
@@ -151,12 +155,13 @@ export function init(root) {
                     );
                     throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
                 }
-                /** @type {{counts: Record<string, number>, scanned: number, next: number | null, oldest: string | null}} */
+                /** @type {{counts: Record<string, number>, checked: Record<string, number>, scanned: number, next: number | null, oldest: string | null}} */
                 const page = await response.json();
                 const elapsed = performance.now() - started;
                 if (elapsed < 1000) pageSize = Math.min(MAX_PAGE, pageSize * 2);
                 else if (elapsed > 4000) pageSize = Math.max(MIN_PAGE, Math.floor(pageSize / 2));
                 for (const [day, n] of Object.entries(page.counts)) walk.counts[day] = (walk.counts[day] || 0) + n;
+                for (const [day, n] of Object.entries(page.checked)) walk.checked[day] = (walk.checked[day] || 0) + n;
                 walk.scanned += page.scanned;
                 walk.cursor = page.next;
                 walk.done = page.next === null;
@@ -252,13 +257,13 @@ export function init(root) {
         } else if (state.colorBy === 'query' && state.query) {
             const walk = walkFor(state.query);
             if (!walk.stopped && !walk.error && !covered(walk)) runWalk(state.query);
-            // A day counts as searched once the walk has reached it; the day it's on is partly searched.
-            const searched = data.dates.map(day => walk.done || (walk.oldest !== null && day >= walk.oldest));
             const matching = data.dates.map(day => walk.counts[day] || 0);
+            // The daily totals are cached, so a day's changes checked can run past its total
+            const checked = data.dates.map((day, i) => Math.min(walk.checked[day] || 0, total[i]));
             parts = [
                 { label: fill(strings.matches, { text: state.query }), color: colors.match, daily: matching },
-                { label: strings.nonMatches, color: colors.muted, daily: total.map((n, i) => (searched[i] ? Math.max(0, n - matching[i]) : 0)) },
-                { label: strings.notSearched, color: colors.unsearched, daily: total.map((n, i) => (searched[i] ? 0 : n)) }
+                { label: strings.nonMatches, color: colors.muted, daily: checked.map((n, i) => Math.max(0, n - matching[i])) },
+                { label: strings.notSearched, color: colors.unsearched, daily: total.map((n, i) => n - checked[i]) }
             ];
         } else {
             parts = [{ label: '', color: colors.bar, daily: total }];
@@ -303,8 +308,11 @@ export function init(root) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                // A stacked bar's tooltip describes just the segment under the pointer; a plain bar's, the whole column
-                interaction: stacked ? { mode: /** @type {const} */ ('nearest'), intersect: true } : { mode: /** @type {const} */ ('index'), intersect: false },
+                // With many parts, a tooltip listing them all is hard to read, so it describes just the segment under the pointer
+                interaction:
+                    parts.length > MAX_TOOLTIP_PARTS
+                        ? { mode: /** @type {const} */ ('nearest'), intersect: true }
+                        : { mode: /** @type {const} */ ('index'), intersect: false },
                 scales: {
                     x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
                     y: { stacked, beginAtZero: true, border: { display: false }, grid: { color: colors.grid }, ticks: { precision: 0 } }
@@ -319,6 +327,7 @@ export function init(root) {
                         borderWidth: 1,
                         padding: 10,
                         displayColors: false,
+                        filter: (/** @type {any} */ item) => !stacked || item.raw > 0,
                         callbacks: {
                             title: (/** @type {any[]} */ items) => (items.length ? fullLabel(totals[items[0].dataIndex]) : ''),
                             label: (/** @type {any} */ item) =>

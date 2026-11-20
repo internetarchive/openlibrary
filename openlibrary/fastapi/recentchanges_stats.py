@@ -105,6 +105,8 @@ MAX_PAGE_SIZE = 5000
 class RecentChangesMatchPage(BaseModel):
     counts: dict[str, int]
     """Matching changes per ISO date (UTC), for the days this page reached; days without a match are left out."""
+    checked: dict[str, int]
+    """Changes this page checked per ISO date (UTC)."""
     scanned: int
     """How many changes this page checked."""
     next: int | None
@@ -119,12 +121,15 @@ async def match_page(text: str, kind: str | None, before: int | None, limit: int
         cursor = await conn.execute(_MATCH_PAGE_SQL, {"text": text, "kind": kind, "before": before, "limit": limit})
         rows = await cursor.fetchall()
     counts: dict[str, int] = {}
+    checked: dict[str, int] = {}
     for row in rows:
+        day = row["created"].date().isoformat()
+        checked[day] = checked.get(day, 0) + 1
         if row["matched"]:
-            day = row["created"].date().isoformat()
             counts[day] = counts.get(day, 0) + 1
     return RecentChangesMatchPage(
         counts=counts,
+        checked=checked,
         scanned=len(rows),
         next=min(row["id"] for row in rows) if len(rows) == limit else None,
         oldest=min(row["created"] for row in rows).isoformat() if rows else None,
