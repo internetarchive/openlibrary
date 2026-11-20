@@ -16,7 +16,7 @@ $ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
 
     $if not page.ocaid:
         <ul class="link">
-            <li>$:_('There isn\'t a DAISY file available for <a href="%(url)s">%(title)s</a>', url=page.key, title=websafe(page.title))</li>
+            <li>$:_('There isn\'t a DAISY file available for <a href="%(url)s">%(title)s</a>', url=websafe(page.key), title=websafe(page.title))</li>
         </ul>
     $else:
         <ul class="link">
