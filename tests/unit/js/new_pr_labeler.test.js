@@ -513,7 +513,7 @@ describe('syncNeedsLead', () => {
 
 describe('Good First Issue assignment', () => {
     const pr = () => ({ state: 'open', draft: false, user: { login: 'newcomer' }, labels: [], author_association: 'NONE' });
-    const issue = () => ({ state: 'open', labels: [{ name: 'Good First Issue' }, { name: 'Lead: @mentor' }], assignees: [] });
+    const issue = () => ({ state: 'open', labels: [{ name: 'Good First Issue' }, { name: 'Priority: 2' }, { name: 'Lead: @mentor' }], assignees: [] });
     const comment = (login, body = '') => ({ user: { login }, body });
 
     test.each([
@@ -664,7 +664,7 @@ describe('Good First Issue assignment', () => {
         const api = fakeGfi();
         await run(api);
         api.pull.state = 'open';
-        api.ticket.labels = [{ name: 'Good First Issue' }, { name: 'Lead: @new-mentor' }];
+        api.ticket.labels = [{ name: 'Good First Issue' }, { name: 'Priority: 2' }, { name: 'Lead: @new-mentor' }];
         await run(api);
         expect(api.writes.filter(write => write.route.endsWith('/comments'))).toHaveLength(1);
     });
@@ -682,7 +682,7 @@ describe('Good First Issue assignment', () => {
     });
 
     test('omits the lead mention when the issue has no lead', async () => {
-        const api = fakeGfi({ ticket: { ...issue(), labels: [{ name: 'Good First Issue' }] } });
+        const api = fakeGfi({ ticket: { ...issue(), labels: [{ name: 'Good First Issue' }, { name: 'Priority: 2' }] } });
         await run(api);
         expect(api.writes[0].body).not.toContain('@undefined');
         expect(api.writes[0].body).toContain('reply here and');
