@@ -322,11 +322,21 @@ Field rules:
 - `path`, `start_line`, `line` — the anchor. `line` is the **last** line of the range;
   `start_line` the first. **Both must be lines that appear as added or context lines on the
   RIGHT side of `pr.diff`.** On a re-review, `pr.diff` also has the files outside `review.diff`,
-  so a finding about code the PR changed before your last pass can still go inline. If a
-  finding's real evidence is in a file `pr.diff` does not touch, **omit `path`/`start_line`/`line`**
-  (or set them to `null`) and write it into the finding `body` —
-  the posting step will fold it into the summary. Do not invent a nearby anchor to make a
-  finding postable; a misplaced comment is worse than a summarised one.
+  so a finding about code the PR changed before your last pass can still go inline.
+
+  A finding blocks only if it gets a thread, because the thread is where the author replies and
+  where your next review marks it fixed. Anchor each finding at the first of these that fits:
+  1. The lines the finding is about.
+  2. If the problem is in code `pr.diff` doesn't touch, the line in `pr.diff` that introduces it
+     or relies on it: the call, the import, the changed signature. Say in the `body` where the
+     problem itself is.
+  3. If it's about a changed file as a whole (it needs a docstring, no test covers it), give its
+     `path` and leave out `start_line`/`line`. It's posted on the whole file.
+  4. Only if nothing in `pr.diff` relates to it, omit `path`, `start_line` and `line` (or set
+     them to `null`). It's posted in the summary as a note that doesn't block.
+
+  Never anchor on an unrelated nearby line just to get a thread. A comment in the wrong place is
+  worse than a note.
 - `resolved` — the `id`s from `prior-threads.json` that the PR head fixes (Step 4), copied
   exactly. Any other id is ignored; a value that is not an id string makes the review
   unpublishable.

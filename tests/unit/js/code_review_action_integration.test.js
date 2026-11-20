@@ -753,13 +753,35 @@ test('analyze-gate: LOW findings do not count toward the public findings count',
     const review = cleanReview();
     review.dimensions.correctness = { status: 'findings' };
     review.findings = [
-        { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'a', body: 'b' },
-        { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd' }
+        { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'a', body: 'b', path: 'x', line: 1 },
+        { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd', path: 'x', line: 1 }
     ];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const { github } = mockGitHub();
     const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
     assert.equal(res.outputs.public_findings_count, '1');
+});
+// Counted the way `post` sorts them: a finding blocks only if it gets a thread (#14471).
+const countFor = async (findings, env = {}) => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = findings.map(f => ({ dimension: 'correctness', severity: 'medium', confidence: 8, title: 't', body: 'b', ...f }));
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    writeFileSync(join(dir, 'pr.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\ndiff --git a/y b/y\n--- a/y\n+++ b/y\n@@ -5 +5 @@\n+y\n');
+    const { github } = mockGitHub();
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir, ...env } });
+    return res.outputs.public_findings_count;
+};
+test('analyze-gate: a finding with a line or a file in the PR counts; one about no file in the PR is a note', async () => {
+    assert.equal(await countFor([{ path: 'x', line: 1 }]), '1', 'a line comment');
+    assert.equal(await countFor([{ path: 'y', line: 5 }]), '1', 'a line in pr.diff outside review.diff');
+    assert.equal(await countFor([{ path: 'y' }]), '1', 'a file-level comment');
+    assert.equal(await countFor([{ path: 'y', line: 99 }]), '1', 'a line outside the diff falls back to the file');
+    assert.equal(await countFor([{ path: 'elsewhere.py', line: 1 }]), '0', 'a file outside the PR: a note');
+    assert.equal(await countFor([{}]), '0', 'no path: a note');
+    assert.equal(await countFor([{}], { INLINE_KEY_ISSUES: 'false' }), '1', 'inline comments off: every finding is in the summary and blocks');
 });
 test('post: a LOW finding becomes a suggestion in the summary, not a blocking inline thread', async () => {
     const review = cleanReview();
@@ -1107,10 +1129,11 @@ test('post: a re-review finding on a file outside review.diff but in the PR gets
     assert.equal(posted.comments[0].path, 'a.py');
     assert.doesNotMatch(posted.body, /Findings without an in-diff anchor/);
 });
-test('post: without pr.diff, anchors fall back to review.diff (a finding outside it goes in the summary)', async () => {
+test('post: without pr.diff, anchors fall back to review.diff (a finding outside it is a note)', async () => {
     const posted = await anchorPost({ withPrDiff: false });
     assert.equal(posted.comments.length, 0);
-    assert.match(posted.body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Caller breaks\*\* · `a\.py:1`/);
+    assert.match(posted.body, /### Notes \(won't block\)\n\n.*\n\n- \*\*Correctness — Caller breaks\*\* · `a\.py:1`/);
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/, 'a note does not count');
 });
 
 // ===================== GitHub 5xx when posting =====================
@@ -1255,4 +1278,174 @@ test('range: a truncated tree, or nothing matching, changes nothing', async () =
         assert.equal(res.outputs.files || '', '', 'a full review of the whole PR diff');
         assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), PR_DIFF);
     }
+});
+
+// ===================== Every blocking finding gets a thread =====================
+const shared = load(join(SCRIPTS, 'shared.cjs'));
+const DIFF3 = [
+    'diff --git a/mid.py b/mid.py\n--- a/mid.py\n+++ b/mid.py\n@@ -17,7 +17,7 @@\n C17\n C18\n C19\n-C20\n+C20b\n C21\n C22\n C23\n',
+    'diff --git a/del.py b/del.py\n--- a/del.py\n+++ b/del.py\n@@ -9,7 +9,6 @@\n D9\n D10\n D11\n-D12\n D13\n D14\n D15\n',
+    'diff --git a/gone.py b/gone.py\ndeleted file mode 100644\n--- a/gone.py\n+++ /dev/null\n@@ -1 +0,0 @@\n-GONE\n',
+    'diff --git a/img.png b/img.png\nBinary files a/img.png and b/img.png differ\n'
+].join('');
+test('diffAnchors: right-side lines per file, and the first hunk line as the fallback (never line 1)', () => {
+    const a = shared.diffAnchors(DIFF3);
+    assert.deepEqual([...a.lines.get('mid.py').keys()], [17, 18, 19, 20, 21, 22, 23]);
+    assert.equal(a.lines.get('mid.py').get(20), 'C20b');
+    assert.deepEqual(a.firstHunk.get('mid.py'), { line: 17, side: 'RIGHT' });
+    assert.deepEqual(a.firstHunk.get('del.py'), { line: 9, side: 'RIGHT' }, 'deletions only: its context lines');
+    assert.deepEqual(a.firstHunk.get('gone.py'), { line: 1, side: 'LEFT' }, 'a deleted file has only an old side');
+    assert.equal(a.lines.get('gone.py').size, 0);
+    assert.ok(a.lines.has('img.png') && !a.firstHunk.has('img.png'), 'a binary file can take a file-level thread, with no fallback');
+});
+test('threadKind: line, file, or none', () => {
+    const a = shared.diffAnchors(DIFF3);
+    assert.equal(shared.threadKind({ path: 'mid.py', line: 20 }, a), 'line');
+    assert.equal(shared.threadKind({ path: 'mid.py', start_line: 18, line: 20 }, a), 'line');
+    assert.equal(shared.threadKind({ path: 'mid.py', line: 1 }, a), 'file', 'a line outside the diff: the whole file');
+    assert.equal(shared.threadKind({ path: 'mid.py', start_line: 1, line: 20 }, a), 'file', 'a range starting outside the diff');
+    assert.equal(shared.threadKind({ path: 'gone.py' }, a), 'file');
+    assert.equal(shared.threadKind({ path: 'other.py', line: 1 }, a), null);
+    assert.equal(shared.threadKind({ line: 20 }, a), null);
+});
+
+// A mock for the pending-review flow: createReview without an event makes a pending review,
+// addPullRequestReviewThread adds threads, submitReview submits it.
+function threadGitHub({ fileThread = () => ({ id: 'PRRT_f' }), lineThread = () => ({ id: 'PRRT_l' }), submit, pendingLeft = false, deleteFails = false } = {}) {
+    const calls = { createReview: [], threads: [], submit: [], deleted: [] };
+    const listed = () => [
+        ...(pendingLeft ? [{ id: 7, user: { login: 'openlibrary-bot' }, state: 'PENDING' }] : []),
+        ...(calls.submit.length ? [{ id: 50, user: { login: 'openlibrary-bot' }, commit_id: SHA('a'), state: 'CHANGES_REQUESTED' }] : [])
+    ];
+    const github = {
+        rest: {
+            pulls: {
+                get: async () => ({ data: { head: { sha: SHA('a') }, user: { login: 'contributor' } } }),
+                listReviews: async () => ({ data: listed() }),
+                createReview: async p => {
+                    calls.createReview.push(p);
+                    return { data: p.event ? { id: 49 } : { id: 50, node_id: 'PRR_50' } };
+                },
+                submitReview: async p => {
+                    if (submit) await submit(p);
+                    calls.submit.push(p);
+                    return { data: { id: 50 } };
+                },
+                deletePendingReview: async p => {
+                    if (deleteFails) throw Object.assign(new Error('Not Found'), { status: 404 });
+                    calls.deleted.push(p.review_id);
+                    return { data: {} };
+                }
+            },
+            repos: { compareCommitsWithBasehead: async () => ({ data: { status: 'ahead', files: [{}] } }) }
+        },
+        paginate: async (method, params) => (await method(params)).data,
+        graphql: async (query, vars) => {
+            if (!/addPullRequestReviewThread/.test(query))
+                return { repository: { pullRequest: { reviewThreads: { nodes: [], pageInfo: { hasNextPage: false } } } } };
+            calls.threads.push(vars.input);
+            const thread = vars.input.subjectType === 'FILE' ? fileThread(vars.input) : lineThread(vars.input);
+            return { addPullRequestReviewThread: { thread } };
+        }
+    };
+    return { github, calls };
+}
+const threadPost = async (findings, gh) => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = findings.map(f => ({ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'T', body: 'B', ...f }));
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), DIFF3);
+    writeFileSync(join(dir, 'pr.diff'), DIFF3);
+    const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+    return runScript(post.validateAndPost, { github: gh.github, context, env, cwd: dir });
+};
+test('post: a file-level finding goes on the whole file through a pending review, then submits with the verdict', async () => {
+    const gh = threadGitHub();
+    const res = await threadPost(
+        [
+            { title: 'Line', path: 'mid.py', line: 20 },
+            { title: 'Whole file', path: 'mid.py' }
+        ],
+        gh
+    );
+    assert.equal(res.failed, null);
+    assert.equal(gh.calls.createReview.length, 1);
+    assert.equal(gh.calls.createReview[0].event, undefined, 'created pending');
+    assert.equal(gh.calls.createReview[0].comments.length, 1, 'the line comment goes in with it');
+    assert.deepEqual(
+        gh.calls.threads.map(t => [t.pullRequestReviewId, t.path, t.subjectType]),
+        [['PRR_50', 'mid.py', 'FILE']]
+    );
+    assert.match(gh.calls.threads[0].body, /^\*\*MEDIUM · Correctness — Whole file\*\*/);
+    assert.doesNotMatch(gh.calls.threads[0].body, /line `/, "the agent prompt names no line it doesn't have");
+    assert.equal(gh.calls.submit[0].event, 'REQUEST_CHANGES');
+    assert.match(gh.calls.submit[0].body, /<!-- ol-pr-review-bot f=2 -->/, 'both threads count');
+    assert.deepEqual(gh.calls.deleted, []);
+});
+test('post: a file-level thread GitHub returns null for falls back to the first hunk line, not line 1', async () => {
+    const gh = threadGitHub({ fileThread: () => null });
+    await threadPost([{ path: 'mid.py' }, { path: 'gone.py' }], gh);
+    const lines = gh.calls.threads.filter(t => !t.subjectType).map(t => [t.path, t.line, t.side]);
+    assert.deepEqual(lines, [
+        ['mid.py', 17, 'RIGHT'],
+        ['gone.py', 1, 'LEFT']
+    ]);
+    assert.match(gh.calls.submit[0].body, /<!-- ol-pr-review-bot f=2 -->/);
+});
+test('post: a finding that gets no thread at all goes in the summary and still blocks', async () => {
+    const gh = threadGitHub({
+        fileThread: () => null,
+        lineThread: () => {
+            throw new Error('Line could not be resolved');
+        }
+    });
+    await threadPost([{ title: 'Stuck', path: 'mid.py' }], gh);
+    const body = gh.calls.submit[0].body;
+    assert.match(body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Stuck\*\* · `mid\.py`/);
+    assert.match(body, /<!-- ol-pr-review-bot f=1 -->/);
+    assert.equal(gh.calls.submit[0].event, 'REQUEST_CHANGES');
+});
+test('post: a binary file whose file-level thread fails has no fallback line, so the finding goes in the summary', async () => {
+    const gh = threadGitHub({ fileThread: () => null });
+    await threadPost([{ title: 'Image', path: 'img.png' }], gh);
+    assert.equal(gh.calls.threads.length, 1, 'no line fallback tried');
+    assert.match(gh.calls.submit[0].body, /— Image\*\* · `img\.png`/);
+});
+test('post: a pending review left by an earlier run is deleted first (GitHub allows one per user per PR)', async () => {
+    const gh = threadGitHub({ pendingLeft: true });
+    await threadPost([{ path: 'mid.py' }], gh);
+    assert.deepEqual(gh.calls.deleted, [7]);
+    assert.equal(gh.calls.submit.length, 1);
+});
+test('post: a failed delete of a leftover pending review is a warning, and the review is still posted', async () => {
+    const gh = threadGitHub({ pendingLeft: true, deleteFails: true });
+    const res = await threadPost([{ path: 'mid.py' }], gh);
+    assert.equal(res.failed, null);
+    assert.ok(
+        res.warnings.some(w => /Could not delete pending review 7/.test(w)),
+        res.warnings.join('\n')
+    );
+    assert.equal(gh.calls.submit.length, 1);
+});
+test('post: if submitting fails, the pending review is deleted and the review is posted without file threads', async () => {
+    let failures = 1;
+    const gh = threadGitHub({
+        submit: async () => {
+            if (failures-- > 0) throw Object.assign(new Error('Unprocessable'), { status: 422 });
+        }
+    });
+    await threadPost([{ title: 'Whole file', path: 'mid.py' }], gh);
+    assert.deepEqual(gh.calls.deleted, [50]);
+    const retry = gh.calls.createReview[1];
+    assert.equal(retry.event, 'REQUEST_CHANGES', 'posted again in one call');
+    assert.match(retry.body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Whole file\*\*/);
+    assert.match(retry.body, /<!-- ol-pr-review-bot f=1 -->/);
+});
+test('post: with no file-level findings, the review is posted in one call as before', async () => {
+    const gh = threadGitHub();
+    await threadPost([{ path: 'mid.py', line: 20 }], gh);
+    assert.equal(gh.calls.createReview[0].event, 'REQUEST_CHANGES');
+    assert.equal(gh.calls.threads.length, 0);
+    assert.equal(gh.calls.submit.length, 0);
 });

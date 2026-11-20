@@ -235,6 +235,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           OFF_DIMENSIONS: ${{ steps.range.outputs.off_dimensions }}
+          INLINE_KEY_ISSUES: ${{ steps.range.outputs.inline_key_issues }}
         with:
           script: |
             const { gateAnalysis } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/analyze_gate.cjs`);
