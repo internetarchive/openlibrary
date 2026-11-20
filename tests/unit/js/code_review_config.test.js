@@ -93,9 +93,10 @@ afterEach(() => {
 });
 
 // ================================= parsing and validation =================================
-test('the committed .pr_agent.toml equals the defaults, except that push reviews are on', () => {
+test('the committed .pr_agent.toml equals the defaults, except that push reviews are on, base-branch updates included', () => {
     const expected = config.defaults();
     expected.github_action_config.handle_push_trigger = true;
+    expected.github_action_config.push_trigger_ignore_merge_commits = false;
     assert.deepEqual(config.load(ROOT), expected);
 });
 
