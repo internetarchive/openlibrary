@@ -48,7 +48,9 @@ A review starts in one of these ways:
   [`.pr_agent.toml`](../.pr_agent.toml)). See [What happens when you push](#what-happens-when-you-push).
 - **When someone asks.** Request a review from the `openlibrary-agentic-code-reviewer` team, use
   the re-request button next to `openlibrary-bot`, or comment `@openlibrary-bot` on the PR. The bot
-  adds 👀 to your comment when the review starts.
+  adds 👀 to your comment when the review starts. A maintainer can also comment
+  `@openlibrary-bot full review` to review the whole PR again, even a commit already reviewed. See
+  [What a re-review covers](#what-a-re-review-covers).
 
 It never reviews a draft or a closed PR. If you ask for a review and there's nothing to review (a
 draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
@@ -95,7 +97,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     who{"Who is asking?"}
-    who -- "A maintainer" --> anyway["Any of the three ways works"]
+    who -- "A maintainer" --> anyway["Any of the three ways works, and @openlibrary-bot full review reviews the whole PR again"]
     who -- "The PR's author" --> author["Re-request openlibrary-bot, or comment @openlibrary-bot on your PR"]
     who -- "Anyone else" --> other["The bot replies once to say who can ask; ask a maintainer"]
 ```
