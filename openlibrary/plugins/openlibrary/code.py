@@ -660,6 +660,23 @@ class BatchImportRetryFailed(delegate.page):
         return web.seeother(f"/import/batch/{batch_id}")
 
 
+class BatchImportPause(delegate.page):
+    """Move the pending items of `batch_id` to `needs_review`; approving resumes them. Admins only."""
+
+    path = r"/import/batch/pause/(\d+)"
+
+    def POST(self, batch_id):
+        _require_admin()
+
+        batch = db.select("import_batch", where="id=$batch_id", vars={"batch_id": int(batch_id)})
+        if not batch:
+            raise web.notfound()
+
+        count = Batch(batch[0]).pause()
+        add_flash_message("success", ungettext("Paused %(count)d pending item.", "Paused %(count)d pending items.", count, count=count))
+        return web.seeother(f"/import/batch/{batch_id}")
+
+
 class BatchImportPendingView(delegate.page):
     """
     Old URL for the list of batches awaiting review.

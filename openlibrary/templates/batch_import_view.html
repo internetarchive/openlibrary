@@ -39,6 +39,13 @@ $putctx("cssfile", "admin")
                 <li>$:status_count_label(status_count.status, status_count.count) (<form method="post" action="/import/batch/approve/$batch.id" class="batch-approve-form" style="display: inline;"><button type="submit">$_('Approve')</button></form>)</li>
               $else:
                 <li>$:status_count_label(status_count.status, status_count.count)</li>
+            $elif status_count.status == "pending" and ctx.user and ctx.user.is_admin():
+              <li>
+                $:status_count_label(status_count.status, status_count.count)
+                <form method="POST" action="/import/batch/pause/$batch.id" style="display: inline;">
+                  <button type="submit">$_('Pause')</button>
+                </form>
+              </li>
             $elif status_count.status == "failed":
               <li>
                 $:status_count_label(status_count.status, status_count.count)
