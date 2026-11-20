@@ -82,3 +82,8 @@
 .recentchanges-chart__part--hidden {
   opacity: 0.35;
 }
+
+/* openlibrary/templates/recentchanges/index.html: more of a search's matches, under the change list */
+.recentchanges-list__more {
+  margin-top: var(--spacing-sm);
+}

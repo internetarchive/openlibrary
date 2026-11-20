@@ -1,4 +1,4 @@
-$def with (limit=25, hash="", paginate=True, **query)
+$def with (limit=25, hash="", paginate=True, kinds=None, ids=None, **query)
 
 $if paginate:
     $ page = safeint(query_param('page', '1'))
@@ -10,7 +10,7 @@ $def call_template(name, change):
     $ t = get_template("recentchanges/" + kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
 
-$ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
+$ changes = get_recentchanges_list(query, kinds=kinds, ids=ids, limit=limit, offset=(page-1) * limit)
 $var length = len(changes)
 
 $if "ip" in query and ctx.user and ctx.user.is_admin():

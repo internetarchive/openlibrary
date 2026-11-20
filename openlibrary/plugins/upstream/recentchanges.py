@@ -3,6 +3,7 @@
 This should go into infogami.
 """
 
+import datetime as dt
 import json
 import logging
 import math
@@ -24,6 +25,51 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_changes
 from openlibrary.utils import dateutil
 from openlibrary.utils.request_context import site
+
+# The chart's range choices, in days (see recentchanges_chart.js), which the list below it also follows.
+LIST_RANGES = {7, 28, 90, 182, 365}
+MAX_LIST_KINDS = 30
+MAX_LIST_IDS = 500
+
+
+@public
+def get_recentchanges_list_filters(page_kind: str | None = None) -> web.storage:
+    """The chart's settings from the URL that also narrow the change list under it.
+
+    `changes` lists ids of changes to show instead, which the chart sends for a text search's matches.
+    """
+    i = web.input(range="", bot="", kinds="", changes=None)
+    query = {}
+    if (days := safeint(i.range, 0)) in LIST_RANGES:
+        query["begin_date"] = (dt.datetime.now(dt.UTC).date() - dt.timedelta(days=days - 1)).isoformat()
+    ids = None
+    if i.changes is not None:
+        ids = [int(id) for id in i.changes.split(",") if id.isdigit()][:MAX_LIST_IDS]
+    return web.storage(
+        query=query,
+        bot={"humans": False, "bots": True}.get(i.bot),
+        kinds=[] if page_kind else [kind for kind in i.kinds.split(",") if kind][:MAX_LIST_KINDS],
+        ids=ids,
+    )
+
+
+@public
+def get_recentchanges_list(query: dict, kinds: list[str] | None = None, ids: list[int] | None = None, limit: int = 25, offset: int = 0) -> list:
+    """The changes for a recentchanges list: those with `ids`, in that order, or else those matching `query` and any of `kinds`, newest first."""
+    if ids is not None:
+        changes = []
+        for id in ids[offset : offset + limit]:
+            try:
+                changes.append(site.get().get_change(id))
+            except client.ClientException:
+                continue
+        return changes
+    if not kinds or len(kinds) == 1:
+        return recentchanges(dict(query, limit=limit, offset=offset, **({"kind": kinds[0]} if kinds else {})))
+    # Infobase filters on one kind at a time, so take enough of each kind's newest to fill this page, then merge
+    merged = [change for kind in kinds for change in recentchanges(dict(query, kind=kind, limit=offset + limit, offset=0))]
+    merged.sort(key=lambda change: change.timestamp, reverse=True)
+    return merged[offset : offset + limit]
 
 
 @public

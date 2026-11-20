@@ -52,7 +52,7 @@ $def subnav():
             $ color_options = [{"value": "none", "label": _("None")}, {"value": "bot", "label": _("Bots v. Humans")}, kind_option]
             $if ctx.user and ctx.user.is_librarian_or_higher():
                 $ color_options.append({"value": "query", "label": _("Custom query…"), "description": _("Edits whose saved record contains some text, searched newest first.")})
-            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), notSearched=_("Not searched yet"), walking=_("Searching back through the changes: %(count)s checked so far, back to %(date)s…"), walkStopped=_("Stopped after checking %(count)s changes, back to %(date)s."), walkDone=_("Checked %(count)s changes, back to %(date)s."), stop=_("Stop"), resume=_("Resume"), searchFailed=_("The search failed: %(reason)s"), any=_("Any"), botFilter=_("Bot: %(choice)s"), kindFilter=_("Kind: %(choice)s"), kindCount=_("%(count)s kinds"))
+            $ chart_i18n.update(matches=_("Matches “%(text)s”"), nonMatches=_("Other changes"), notSearched=_("Not searched yet"), walking=_("Searching back through the changes: %(count)s checked so far, back to %(date)s…"), walkStopped=_("Stopped after checking %(count)s changes, back to %(date)s."), walkDone=_("Checked %(count)s changes, back to %(date)s."), stop=_("Stop"), resume=_("Resume"), searchFailed=_("The search failed: %(reason)s"), showMore=_("Show more"), noMatchesYet=_("No matching changes found yet."), noMatches=_("No matching changes in this range."), any=_("Any"), botFilter=_("Bot: %(choice)s"), kindFilter=_("Kind: %(choice)s"), kindCount=_("%(count)s kinds"))
             $ bot_options = [{"value": "any", "label": _("Any")}, {"value": "humans", "label": _("Humans")}, {"value": "bots", "label": _("Bots")}]
             $ kind_filter_options = [{"value": k, "label": v} for k, v in chart_i18n["kinds"].items()]
             <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
@@ -108,12 +108,22 @@ $def subnav():
                     <canvas role="img" aria-label="$_('Changes over the chosen range')"></canvas>
                 </div>
             </section>
-        <ol-tabs sync-hash>
-            <a slot="tab" href="#humans">$_('By Humans')</a>
-            <a slot="tab" href="#bots">$_('By Bots')</a>
-            <a slot="tab" href="#all">$_('Everything')</a>
-            <div id="humans">$:render_template("recentchanges/render", limit=50, bot=False, hash="#humans", **query)</div>
-            <div id="bots">$:render_template("recentchanges/render", limit=50, bot=True, hash="#bots", **query)</div>
-            <div id="all">$:render_template("recentchanges/render", limit=50, bot=None, hash="#all", **query)</div>
-        </ol-tabs>
+        $# Follows the chart's filters from the URL; the chart swaps it out as they change
+        $ list_filters = get_recentchanges_list_filters(query.get("kind"))
+        $ list_query = dict(query, **list_filters.query)
+        <div class="recentchanges-list">
+            $if list_filters.ids is not None:
+                $:render_template("recentchanges/render", limit=len(list_filters.ids) or 1, paginate=False, ids=list_filters.ids, **query)
+            $elif list_filters.bot is not None:
+                $:render_template("recentchanges/render", limit=50, bot=list_filters.bot, kinds=list_filters.kinds, **list_query)
+            $else:
+                <ol-tabs sync-hash>
+                    <a slot="tab" href="#humans">$_('By Humans')</a>
+                    <a slot="tab" href="#bots">$_('By Bots')</a>
+                    <a slot="tab" href="#all">$_('Everything')</a>
+                    <div id="humans">$:render_template("recentchanges/render", limit=50, bot=False, hash="#humans", kinds=list_filters.kinds, **list_query)</div>
+                    <div id="bots">$:render_template("recentchanges/render", limit=50, bot=True, hash="#bots", kinds=list_filters.kinds, **list_query)</div>
+                    <div id="all">$:render_template("recentchanges/render", limit=50, bot=None, hash="#all", kinds=list_filters.kinds, **list_query)</div>
+                </ol-tabs>
+        </div>
 </div>

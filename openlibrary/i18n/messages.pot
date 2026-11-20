@@ -5959,6 +5959,18 @@ msgstr ""
 msgid "The search failed: %(reason)s"
 msgstr ""
 
+#: SearchResultsWork.html recentchanges/index.html
+msgid "Show more"
+msgstr ""
+
+#: recentchanges/index.html
+msgid "No matching changes found yet."
+msgstr ""
+
+#: recentchanges/index.html
+msgid "No matching changes in this range."
+msgstr ""
+
 #: recentchanges/index.html search/sort_options.html
 msgid "Any"
 msgstr ""
@@ -8149,10 +8161,6 @@ msgstr ""
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Show more"
 msgstr ""
 
 #: SearchResultsWork.html

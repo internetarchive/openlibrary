@@ -145,6 +145,8 @@ class RecentChangesMatchPage(BaseModel):
     """Matching changes per hour (`YYYY-MM-DDTHH`, UTC), for the hours this page reached; hours without a match are left out."""
     checked: dict[str, int]
     """Changes this page checked per hour (`YYYY-MM-DDTHH`, UTC)."""
+    matched: list[tuple[int, str]]
+    """The matching changes' ids with their hour, newest first."""
     scanned: int
     """How many changes this page checked."""
     next: int | None
@@ -162,14 +164,17 @@ async def match_page(
         rows = await cursor.fetchall()
     counts: dict[str, int] = {}
     checked: dict[str, int] = {}
-    for row in rows:
+    matched: list[tuple[int, str]] = []
+    for row in sorted(rows, key=lambda row: row["id"], reverse=True):
         hour = slot_label(row["created"], "hour")
         checked[hour] = checked.get(hour, 0) + 1
         if row["matched"]:
             counts[hour] = counts.get(hour, 0) + 1
+            matched.append((row["id"], hour))
     return RecentChangesMatchPage(
         counts=counts,
         checked=checked,
+        matched=matched,
         scanned=len(rows),
         next=min(row["id"] for row in rows) if len(rows) == limit else None,
         oldest=min(row["created"] for row in rows).isoformat() if rows else None,

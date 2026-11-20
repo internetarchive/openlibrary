@@ -11,6 +11,10 @@ const MAX_HOURLY_DAYS = 28;
 // The range control's choices, in days, and the one it starts on.
 const RANGES = [7, 28, 90, 182, 365];
 const DEFAULT_DAYS = 28;
+// How many of a search's matches the list shows at first and per "Show more"; the page renders at most 500 by id.
+const LIST_PAGE = 50;
+// Settle time before refetching the list, so a burst of changes (a search's pages arriving) fetches it once.
+const LIST_DELAY_MS = 400;
 // The URL parameters the chart's settings are kept in.
 const URL_PARAMS = ['range', 'group', 'color', 'q', 'regex', 'case', 'bot', 'kinds', 'only'];
 
@@ -28,6 +32,7 @@ const URL_PARAMS = ['range', 'group', 'color', 'q', 'regex', 'case', 'bot', 'kin
  * @property {{query: string, regex: boolean, matchCase: boolean, bot: string, kinds: string[]}} search what it looks for: `bot` is any, humans or bots, `kinds` empty for any
  * @property {Record<string, number>} counts matching changes per ISO date
  * @property {Record<string, number>} checked changes checked per ISO date
+ * @property {[number, string][]} matched ids of the matching changes with their hour, newest first
  * @property {number | null} cursor `before` for the next page
  * @property {string | null} oldest ISO date of the oldest change checked so far; every day after it is fully covered
  * @property {number} scanned changes checked
@@ -131,6 +136,13 @@ export function init(root) {
         kinds: /** @type {string[]} */ ([]),
         isolated: /** @type {string | null} */ (null)
     };
+    // The change list under the chart, which follows its settings
+    const listEl = /** @type {HTMLElement | null} */ (document.querySelector('.recentchanges-list'));
+    let listShown = LIST_PAGE;
+    let listKey = '';
+    /** @type {string | null} */
+    let listFilters = null;
+    let listTimer = 0;
     /** @type {Map<string, Promise<Counts>>} fetched once per range and unit */
     const fetched = new Map();
     // Draws await fetches, so a slow one can finish after a newer one; only the newest may paint.
@@ -153,7 +165,19 @@ export function init(root) {
         const key = JSON.stringify(search);
         let walk = walks.get(key);
         if (!walk) {
-            walk = { search, counts: {}, checked: {}, cursor: null, oldest: null, scanned: 0, done: false, running: false, stopped: false, error: '' };
+            walk = {
+                search,
+                counts: {},
+                checked: {},
+                matched: [],
+                cursor: null,
+                oldest: null,
+                scanned: 0,
+                done: false,
+                running: false,
+                stopped: false,
+                error: ''
+            };
             walks.set(key, walk);
         }
         return walk;
@@ -213,13 +237,14 @@ export function init(root) {
                     );
                     throw new Error(typeof detail === 'string' ? detail : `HTTP ${response.status}`);
                 }
-                /** @type {{counts: Record<string, number>, checked: Record<string, number>, scanned: number, next: number | null, oldest: string | null}} */
+                /** @type {{counts: Record<string, number>, checked: Record<string, number>, matched: [number, string][], scanned: number, next: number | null, oldest: string | null}} */
                 const page = await response.json();
                 const elapsed = performance.now() - started;
                 if (elapsed < 1000) pageSize = Math.min(MAX_PAGE, pageSize * 2);
                 else if (elapsed > 4000) pageSize = Math.max(MIN_PAGE, Math.floor(pageSize / 2));
                 for (const [day, n] of Object.entries(page.counts)) walk.counts[day] = (walk.counts[day] || 0) + n;
                 for (const [day, n] of Object.entries(page.checked)) walk.checked[day] = (walk.checked[day] || 0) + n;
+                walk.matched.push(...page.matched);
                 walk.scanned += page.scanned;
                 walk.cursor = page.next;
                 walk.done = page.next === null;
@@ -366,6 +391,7 @@ export function init(root) {
             parts = [{ key: 'all', label: '', color: colors.bar, daily: total }];
         }
         showWalkStatus(currentWalk());
+        refreshList();
         updateKindFilter(data);
         const stacked = parts.length > 1;
         // The legend item clicked to show only its series; kept across redraws while that series is still charted
@@ -634,7 +660,65 @@ export function init(root) {
             ['only', state.isolated]
         ];
         for (const [name, value] of settings) if (value) url.searchParams.set(name, String(value));
+        // The list's page number belongs to the filters it was paged under
+        const filters = JSON.stringify([state.days, state.bot, state.kinds, state.colorBy === 'query' && [state.query, state.regex, state.matchCase]]);
+        if (listFilters !== null && filters !== listFilters) {
+            url.searchParams.delete('page');
+            listShown = LIST_PAGE;
+        }
+        listFilters = filters;
         if (url.href !== window.location.href) history.replaceState(history.state, '', url);
+    }
+
+    /**
+     * Swap in the change list under the chart for the current settings, fetched as the page itself renders it.
+     * During a text search it lists the matches found so far instead, newest first.
+     */
+    function refreshList() {
+        if (!listEl) return;
+        clearTimeout(listTimer);
+        listTimer = window.setTimeout(async () => {
+            const url = new URL(window.location.href);
+            url.hash = '';
+            const walk = currentWalk();
+            /** @type {number[] | null} */
+            let ids = null;
+            if (walk) {
+                const since = rangeStart();
+                ids = walk.matched.filter(([, hour]) => hour.slice(0, 10) >= since).map(([id]) => id);
+                url.searchParams.set('changes', ids.slice(0, listShown).join(','));
+            }
+            const more = ids !== null && ids.length > listShown;
+            const key = `${url.href}|${more}|${walk !== null && covered(walk)}`;
+            if (key === listKey) return;
+            // The page arrived with the list for its URL's settings
+            const first = !listKey;
+            listKey = key;
+            if (first && !walk) return;
+            if (ids !== null && !ids.length) {
+                const note = document.createElement('p');
+                note.className = 'tasks-stats__note';
+                note.textContent = walk && covered(walk) ? strings.noMatches : strings.noMatchesYet;
+                listEl.replaceChildren(note);
+                return;
+            }
+            const response = await fetch(url);
+            if (key !== listKey || !response.ok) return;
+            const fresh = new DOMParser().parseFromString(await response.text(), 'text/html').querySelector('.recentchanges-list');
+            if (key !== listKey || !fresh) return;
+            listEl.replaceChildren(...fresh.childNodes);
+            if (more) {
+                const button = document.createElement('ol-button');
+                button.setAttribute('size', 'small');
+                button.className = 'recentchanges-list__more';
+                button.textContent = strings.showMore;
+                button.addEventListener('click', () => {
+                    listShown += LIST_PAGE;
+                    refreshList();
+                });
+                listEl.append(button);
+            }
+        }, LIST_DELAY_MS);
     }
 
     /** Set the chart up from a shared link's settings; anything unknown or not offered here is ignored. */
