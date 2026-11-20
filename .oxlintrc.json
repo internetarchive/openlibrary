@@ -52,7 +52,8 @@
     "no-fallthrough": "error",
     "no-prototype-builtins": "error",
     "no-regex-spaces": "error",
-    "no-unexpected-multiline": "error"
+    "no-unexpected-multiline": "error",
+    "unicorn/prefer-node-protocol": "error"
   },
   "overrides": [
     {

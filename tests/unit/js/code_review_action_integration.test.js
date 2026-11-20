@@ -64,7 +64,7 @@ async function runScript(stepFn, { github, context, env, cwd }) {
         : realFs;
     // GITHUB_WORKSPACE is a temp dir here; the base checkout's scripts come from this repo.
     const wrappedRequire = id =>
-        id === 'fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
+        id === 'node:fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
     await stepFn({ github, context, core, require: wrappedRequire, process: fakeProcess });
     return { ...recorded, core };
 }

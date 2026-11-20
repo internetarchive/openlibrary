@@ -37,13 +37,13 @@ async function runScript(job, name, env, github = {}) {
         warning: () => {},
         debug: () => {}
     };
-    const fs = require('fs');
+    const fs = require('node:fs');
     const at = p => (typeof p === 'string' && !p.startsWith('/') ? join(dir, p) : p);
     const wrappedFs = { ...fs, readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), writeFileSync: (p, ...a) => fs.writeFileSync(at(p), ...a) };
     const context = { repo: { owner: 'internetarchive', repo: 'openlibrary' }, eventName: 'pull_request_target', payload: { pull_request: { number: 1 } } };
     const [file, fn] = STEPS[`${job}/${name}`];
     const processEnv = { env: { GITHUB_WORKSPACE: dir, ...env } };
-    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'fs' ? wrappedFs : require(id)), process: processEnv });
+    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'node:fs' ? wrappedFs : require(id)), process: processEnv });
     return recorded;
 }
 

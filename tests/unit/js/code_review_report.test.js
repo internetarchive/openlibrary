@@ -290,7 +290,7 @@ async function runPublish({ statsObj, report, env, existing = [] }) {
         const fs = load('fs');
         const at = p => join(dir, p);
         const wrappedFs = { readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), existsSync: p => fs.existsSync(at(p)) };
-        const require = id => (id === 'fs' ? wrappedFs : load(id));
+        const require = id => (id === 'node:fs' ? wrappedFs : load(id));
         await post.publish({ github, context: { repo: { owner: 'o', repo: 'r' } }, core, require, process: { env: { RUN_URL: 'RUN', ...env } } });
     } finally {
         rmSync(dir, { recursive: true, force: true });

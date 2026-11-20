@@ -169,7 +169,7 @@ function render({ stats, report, runUrl }) {
 }
 
 async function publish({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const stats = JSON.parse(fs.readFileSync('stats.json', 'utf8'));
     const report = fs.existsSync('report.json') ? parseReport(fs.readFileSync('report.json', 'utf8')) : null;
     const { open, issue, summary, title } = render({ stats, report, runUrl: process.env.RUN_URL });

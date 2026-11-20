@@ -38,7 +38,7 @@ async function withoutFilesOnBase({ github, owner, repo, baseRef, base, head, fi
 }
 
 async function resolveRange({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber =
