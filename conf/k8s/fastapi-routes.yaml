@@ -96,6 +96,7 @@ fastapiRoutes:
   - GET /series/{olid}/editions.json
   - GET POST /series/{olid}/seeds.json
   - GET /series/{olid}/subjects.json
+  - GET /stats/recentchanges.json
   - GET /stats/tasks.json
   - GET /subjects/{key:path}.json
   - GET /subjects/{subject_key:path}/lists.json
