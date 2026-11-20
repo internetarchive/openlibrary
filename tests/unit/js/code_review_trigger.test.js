@@ -58,7 +58,8 @@ function ctx(overrides = {}) {
         event_name: overrides.event_name ?? '',
         event: {
             action: e.action ?? '',
-            pull_request: { draft: e.pull_request?.draft ?? false },
+            pull_request: { draft: e.pull_request?.draft ?? false, base: { ref: e.pull_request?.base?.ref ?? 'master' } },
+            repository: { default_branch: 'master' },
             requested_team: { slug: e.requested_team?.slug ?? null },
             requested_reviewer: { login: e.requested_reviewer?.login ?? null },
             // Defaults to a value that matches nobody, so the author clause can't fire via '' == ''.
@@ -127,6 +128,46 @@ test('a DRAFT PR does not fire even with the right team requested', () => {
         event: { action: 'review_requested', requested_team: { slug: TEAM_SLUG }, pull_request: { draft: true } }
     });
     assert.equal(evalIf(reviewIf, ev), false);
+});
+
+// pull_request_target runs the base branch's copy of the workflow, so on a PR stacked on another PR's
+// branch an automatic review would run that branch's unmerged bot. Only `stacked` runs, to say how to ask.
+test('a review request on a PR stacked on another branch starts no review; `stacked` replies instead', () => {
+    const stackedIf = reviewWf.jobs.stacked.if;
+    const pendingIf = reviewWf.jobs.pending.if;
+    for (const requested of [{ requested_team: { slug: TEAM_SLUG } }, { requested_reviewer: { login: 'openlibrary-bot' }, requested_team: { slug: null } }]) {
+        const onBranch = ctx({
+            event_name: 'pull_request_target',
+            event: { action: 'review_requested', ...requested, pull_request: { base: { ref: 'feature-x' } } }
+        });
+        const onMaster = ctx({ event_name: 'pull_request_target', event: { action: 'review_requested', ...requested } });
+        assert.equal(evalIf(reviewIf, onBranch), false, 'no model run');
+        assert.equal(evalIf(pendingIf, onBranch), false, 'no pending status nothing would replace');
+        assert.equal(evalIf(stackedIf, onBranch), true);
+        assert.equal(evalIf(reviewIf, onMaster), true);
+        assert.equal(evalIf(stackedIf, onMaster), false);
+    }
+    const draft = ctx({
+        event_name: 'pull_request_target',
+        event: { action: 'review_requested', requested_team: { slug: TEAM_SLUG }, pull_request: { draft: true, base: { ref: 'x' } } }
+    });
+    assert.equal(evalIf(stackedIf, draft), false, 'a draft gets no reply');
+    const otherTeam = ctx({
+        event_name: 'pull_request_target',
+        event: { action: 'review_requested', requested_team: { slug: 'other' }, pull_request: { base: { ref: 'x' } } }
+    });
+    assert.equal(evalIf(stackedIf, otherTeam), false);
+});
+test('a stacked PR can still be reviewed by an @openlibrary-bot comment, which runs the default branch copy', () => {
+    const ev = ctx({
+        event_name: 'issue_comment',
+        event: {
+            issue: { pull_request: {}, user: { login: 'someone' } },
+            comment: { body: '@openlibrary-bot review', user: { login: 'RayBB' } },
+            pull_request: { base: { ref: 'x' } }
+        }
+    });
+    assert.equal(evalIf(reviewIf, ev), true);
 });
 
 test('opened / ready_for_review no longer trigger the model directly (routed via auto_assign -> team request)', () => {

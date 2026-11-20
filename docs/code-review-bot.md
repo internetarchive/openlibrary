@@ -53,6 +53,11 @@ A review starts in one of these ways:
 It never reviews a draft or a closed PR. If you ask for a review and there's nothing to review (a
 draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
 
+A PR stacked on another PR's branch, rather than master, isn't reviewed on its own: for those,
+GitHub would run the other branch's copy of the bot, which may not be merged yet. A review request
+there gets a one-time reply saying to comment `@openlibrary-bot review` instead, which runs
+master's copy.
+
 ### What happens when you push
 
 - **Another push within the 10 minutes** cancels the wait and starts it over, so the review starts
@@ -205,6 +210,7 @@ The full instructions the bot follows are in
 | ⏳ pending | New commits. A review starts after 10 minutes with no more pushes. | A re-review starts when the pushes stop. |
 | ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
+| ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
 | ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit gets its own review. |
 | ❌ failure | N findings to address. | The review found problems that block. |
 | ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |

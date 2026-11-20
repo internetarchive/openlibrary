@@ -14,7 +14,8 @@ name: Code Review Action
 #   status   posts the `code-review` commit status.
 #   decline  replies to an @openlibrary-bot comment from someone who can't ask for a review.
 #   skipped  replies to an @openlibrary-bot comment when there's nothing to review.
-#   decline and skipped post fixed text with a PAT and run no model.
+#   stacked  replies to a review request on a PR stacked on another branch, which starts no review.
+#   decline, skipped and stacked post fixed text with a PAT and run no model.
 # A prompt injection in a PR can change what the review says, but the job that read it has nothing
 # to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
 #
@@ -67,7 +68,10 @@ jobs:
     runs-on: ubuntu-latest
     # Runs on:
     #   - a non-draft PR's review request for the team or the bot. A PR can't request its own author
-    #     but can request a team, so the team path also reviews the bot's own PRs.
+    #     but can request a team, so the team path also reviews the bot's own PRs. Only for PRs into
+    #     the default branch: pull_request_target runs this file and its scripts as they are on the
+    #     PR's base branch, so for a PR stacked on another PR's branch it would run that branch's
+    #     unmerged copy of the bot. `stacked` says how to ask instead.
     #   - an @openlibrary-bot comment on a PR, from staff or the PR's author. The author is allowed
     #     because a fork contributor may not see the re-request button but can always comment.
     #   - workflow_dispatch, which needs write access and also reviews drafts.
@@ -77,6 +81,7 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
+        github.event.pull_request.base.ref == github.event.repository.default_branch &&
         (
           github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
           github.event.requested_reviewer.login == 'openlibrary-bot'
@@ -400,6 +405,43 @@ jobs:
             const { replySkipped } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
             await replySkipped({ github, context, core, require, process });
 
+  # A review requested on a PR stacked on another branch starts nothing (see analyze), so say how to
+  # get one: an @openlibrary-bot comment runs the default branch's copy of this workflow. Replies
+  # once per PR, with fixed text and a PAT, and runs no model.
+  stacked:
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'review_requested' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.base.ref != github.event.repository.default_branch &&
+      (
+        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+        github.event.requested_reviewer.login == 'openlibrary-bot'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say how to review a stacked PR
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        with:
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replyStacked } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replyStacked({ github, context, core, process });
+
   # Marks the head code-review=pending, unless it already has a status: analyze may then skip, and
   # nothing would replace the pending. Same `if` as analyze.
   pending:
@@ -409,6 +451,7 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
+        github.event.pull_request.base.ref == github.event.repository.default_branch &&
         (
           github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
           github.event.requested_reviewer.login == 'openlibrary-bot'

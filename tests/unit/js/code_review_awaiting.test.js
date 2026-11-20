@@ -165,3 +165,14 @@ test('a PR with the no-automation label is not reviewed on push', async () => {
     assert.equal(minutes, undefined);
     assert.match(posted[0].description, /Re-request review from openlibrary-bot/);
 });
+
+test('a push to a PR stacked on another branch starts no review and says how to ask', async () => {
+    const ctx = context();
+    ctx.payload.repository = { default_branch: 'master' };
+    ctx.payload.pull_request.base = { ref: 'feature' };
+    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), ctx);
+    assert.equal(minutes, undefined);
+    assert.equal(posted[0].description, 'Stacked on another branch. Comment @openlibrary-bot review to review it.');
+    ctx.payload.pull_request.base = { ref: 'master' };
+    assert.equal((await mark(mockGitHub({ reviews: reviewed }), ctx)).minutes, '10', 'a PR into master is reviewed as before');
+});
