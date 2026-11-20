@@ -1469,11 +1469,12 @@ msgid "My notes for this work"
 msgstr ""
 
 #: account/notes.html
-msgid "My notes for an edition of "
+msgid "Title Missing"
 msgstr ""
 
 #: account/notes.html
-msgid "Title Missing"
+#, python-format
+msgid "My notes for an edition of %(title)s"
 msgstr ""
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
@@ -3267,7 +3268,8 @@ msgid "Open Library Home"
 msgstr ""
 
 #: books/daisy.html
-msgid "There isn't a DAISY file available for "
+#, python-format
+msgid "There isn't a DAISY file available for <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
 
 #: books/daisy.html
@@ -3280,7 +3282,7 @@ msgid "Books for people who don't read print?"
 msgstr ""
 
 #: books/daisy.html
-msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
+msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media."
 msgstr ""
 
 #: books/daisy.html
@@ -3332,7 +3334,7 @@ msgid "Need help?"
 msgstr ""
 
 #: books/daisy.html
-msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
+msgid "Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
 msgstr ""
 
 #: books/edit.html
@@ -3444,7 +3446,7 @@ msgstr ""
 
 #: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
 #, python-format
-msgid " by %(name)s"
+msgid "%(title)s by %(name)s"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
