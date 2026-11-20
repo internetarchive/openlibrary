@@ -69,7 +69,7 @@ test('a push to a reviewed PR says a review will start, and asks for one after t
     assert.equal(posted.length, 1);
     assert.equal(posted[0].state, 'pending');
     assert.equal(posted[0].sha, SHA('a'));
-    assert.match(posted[0].description, /A review starts after 10 minutes/);
+    assert.match(posted[0].description, /^Waiting for pushes to stop\. Review starts ~\d\d:\d\d UTC, or comment @openlibrary-bot review to start now\.$/);
     assert.equal(minutes, '10');
 });
 test('push reviews off: a reviewed PR asks for a re-request instead', async () => {
@@ -175,4 +175,28 @@ test('a push to a PR stacked on another branch starts no review and says how to 
     assert.equal(posted[0].description, 'Stacked on another branch. Comment @openlibrary-bot review to review it.');
     ctx.payload.pull_request.base = { ref: 'master' };
     assert.equal((await mark(mockGitHub({ reviews: reviewed }), ctx)).minutes, '10', 'a PR into master is reviewed as before');
+});
+
+test('the waiting status names the time the review starts, in UTC', async () => {
+    const gh = mockGitHub({ reviews: reviewed });
+    const c = core();
+    const now = Date.parse('2026-11-20T21:25:50Z');
+    await markAwaiting({ github: gh.github, context: context(), core: c, settings: settings(), runUrl: 'u', now });
+    assert.equal(gh.calls.statuses[0].description, 'Waiting for pushes to stop. Review starts ~21:35 UTC, or comment @openlibrary-bot review to start now.');
+    assert.ok(gh.calls.statuses[0].description.length <= 140);
+});
+test('after the wait, the new waiting text is recognised too; a hand-started review is not followed by another', async () => {
+    const fresh = [
+        {
+            context: 'code-review',
+            state: 'pending',
+            description: 'Waiting for pushes to stop. Review starts ~21:35 UTC, or comment @openlibrary-bot review to start now.'
+        }
+    ];
+    let gh = mockGitHub({ statuses: fresh });
+    await requestAfterQuiet({ github: gh.github, context: context(), core: core(), minutes: 10, sleep: async () => {} });
+    assert.equal(gh.calls.requested.length, 1);
+    gh = mockGitHub({ statuses: [{ context: 'code-review', state: 'pending', description: 'Review in progress.' }] });
+    await requestAfterQuiet({ github: gh.github, context: context(), core: core(), minutes: 10, sleep: async () => {} });
+    assert.equal(gh.calls.requested.length, 0, 'someone commented to start it already');
 });
