@@ -100,8 +100,8 @@ test('skipped: only for comments, after analyze skipped with a reason', () => {
     assert.match(j.if, /needs\.analyze\.outputs\.skip == 'true'/);
     assert.equal(workflow.jobs.analyze.outputs.skip_reason, '${{ steps.range.outputs.skip_reason }}');
 });
-test('decline and skipped: fixed text with the PR PAT, no model, nothing else', () => {
-    for (const name of ['decline', 'skipped']) {
+test('decline, skipped and stacked: fixed text with the PR PAT, no model, nothing else', () => {
+    for (const name of ['decline', 'skipped', 'stacked']) {
         const j = workflow.jobs[name];
         assert.deepEqual(j.permissions, { contents: 'read' }, name);
         const text = JSON.stringify(j);
@@ -109,4 +109,27 @@ test('decline and skipped: fixed text with the PR PAT, no model, nothing else', 
         assert.deepEqual(text.match(/secrets\.\w+/g), ['secrets.OL_BOT_PR_PAT'], name);
         assert.equal(j.steps[0].with['sparse-checkout'], '/.github/scripts/\n/.pr_agent.toml\n', name);
     }
+});
+
+// ========================= stacked PRs =========================
+test('stackedText: names a plain base branch, says how to ask, and to rebase after the parent merges', () => {
+    const t = reply.stackedText({ base: 'review-bot/explain-held-verdict' });
+    assert.match(t, /stacked on `review-bot\/explain-held-verdict`, not master/);
+    assert.match(t, /Comment `@openlibrary-bot review` to start one/);
+    assert.match(t, /rebase this one onto master/);
+    assert.match(t, /code-review-bot\.md/);
+    assert.match(reply.stackedText({ base: 'evil`](x) branch' }), /stacked on another branch/, 'an odd name is not echoed');
+    assert.match(reply.stackedText({}), /stacked on another branch/);
+});
+test('replyStacked: replies once on the PR', async () => {
+    const m = mockGitHub();
+    const info = [];
+    const context = { repo: { owner: 'o', repo: 'r' }, payload: { pull_request: { number: 7 } } };
+    await reply.replyStacked({ github: m.github, context, core: { info: x => info.push(x) }, process: { env: { BASE_REF: 'feature' } } });
+    assert.equal(m.created[0].issue_number, 7);
+    assert.match(m.created[0].body, /stacked on `feature`/);
+    assert.ok(m.created[0].body.endsWith(reply.marker('stacked', 'pr')));
+    const again = mockGitHub([{ user: { login: 'openlibrary-bot' }, body: m.created[0].body }]);
+    await reply.replyStacked({ github: again.github, context, core: { info: () => {} }, process: { env: { BASE_REF: 'feature' } } });
+    assert.equal(again.created.length, 0);
 });

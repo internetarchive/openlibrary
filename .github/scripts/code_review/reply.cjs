@@ -1,7 +1,7 @@
 // If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // Replies to an @openlibrary-bot comment that doesn't start a review, so nobody is left wondering.
 // `decline` answers someone who can't ask for a review; `skipped` answers someone who can, when
-// there's nothing to review. The text is fixed: only the commenter's login, a commit and the push
+// there's nothing to review; `stacked` answers a review request on a PR stacked on another branch. The text is fixed: only the commenter's login, a commit and the push
 // delay from .pr_agent.toml are filled in. Each reply is posted once (see `marker`), so repeated
 // comments can't make the bot repeat itself.
 'use strict';
@@ -40,6 +40,16 @@ const skippedText = ({ reason, sha, settings }) => {
     return null;
 };
 
+// A review requested on a PR whose base isn't the default branch starts nothing (see the analyze
+// job), so say how to get one. The base branch is named only when it's a plain branch name.
+const stackedText = ({ base }) => {
+    const on = /^[A-Za-z0-9._/-]{1,100}$/.test(String(base || '')) ? `\`${base}\`` : 'another branch';
+    return [
+        `This PR is stacked on ${on}, not master, so I didn't start a review on my own. Comment \`@openlibrary-bot review\` to start one: I'll review only this PR's changes on top of ${on}.`,
+        `Once the PR it's stacked on merges, rebase this one onto master, and the next review covers it against master. ${SEE_DOC}`
+    ].join('\n\n');
+};
+
 // Posts body + tag on the PR unless the bot already posted that tag there. Returns whether it posted.
 async function postOnce({ github, owner, repo, issue_number, body, tag }) {
     const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
@@ -69,4 +79,18 @@ async function replySkipped({ github, context, core, require, process }) {
     core.info(posted ? `Explained the skip (${reason}).` : `Already explained this skip (${reason}).`);
 }
 
-module.exports = { marker, declineText, skippedText, postOnce, replyDecline, replySkipped };
+async function replyStacked({ github, context, core, process }) {
+    const { owner, repo } = context.repo;
+    const pr = context.payload.pull_request;
+    const posted = await postOnce({
+        github,
+        owner,
+        repo,
+        issue_number: pr.number,
+        body: stackedText({ base: process.env.BASE_REF }),
+        tag: marker('stacked', 'pr')
+    });
+    core.info(posted ? 'Explained how to review a stacked PR.' : 'Already explained this on the PR.');
+}
+
+module.exports = { marker, declineText, skippedText, stackedText, postOnce, replyDecline, replySkipped, replyStacked };
