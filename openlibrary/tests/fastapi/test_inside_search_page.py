@@ -56,7 +56,7 @@ def test_inside_page_without_query(client):
 
     assert response.status_code == 200
     html = response.text
-    assert "<title>Search Open Library for" in html
+    assert "<title>Full-text search | Open Library</title>" in html
     assert 'action="/search/inside"' in html
     # The search tabs
     assert 'data-ol-link-track="SearchNav|SearchFulltext"' in html
@@ -74,7 +74,7 @@ def test_inside_page_title_and_searchbox_escape_the_query(client):
 
     assert response.status_code == 200
     html = response.text
-    assert "<title>Search Open Library for pokemon &lt;stuff&gt; | Open Library</title>" in html
+    assert "<title>pokemon &lt;stuff&gt; - Full-text search | Open Library</title>" in html
     assert 'value="pokemon &lt;stuff&gt;"' in html
 
 
@@ -350,7 +350,7 @@ def test_webpy_handler_renders_the_fastapi_body(monkeypatch, request_context_fix
         rows.return_value = [Markup('<li class="searchResultItem">row</li>')]
         result = inside_code.search_inside().GET()
 
-    assert result.title == "Search Open Library for rabbit"  # web.py's layout reads the title from here
+    assert result.title == "rabbit - Full-text search"  # web.py's layout reads the title from here
     webpy_body = str(result)
     # readable is a filter, so the total is shown bare rather than as a range
     assert "About 45 results" in webpy_body

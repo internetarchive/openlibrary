@@ -10056,7 +10056,11 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 #, python-format
-msgid "Search Open Library for %(query)s"
+msgid "%(query)s - Full-text search"
+msgstr ""
+
+#: openlibrary/fastapi/search.py
+msgid "Full-text search"
 msgstr ""
 
 #: openlibrary/fastapi/search.py

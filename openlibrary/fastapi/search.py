@@ -677,7 +677,8 @@ InsideNavDep = Annotated[InsideNav, Depends(InsideNav.from_request)]
 
 
 def inside_search_title(q: str) -> str:
-    return _("Search Open Library for %(query)s", query=q)
+    """Page title for /search/inside: led by the query, as on the other search pages."""
+    return _("%(query)s - Full-text search", query=q) if q else _("Full-text search")
 
 
 @pages.get("/search/inside")
