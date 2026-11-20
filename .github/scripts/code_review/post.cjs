@@ -195,12 +195,12 @@ async function refetchDiff({ github, context, core, require, process }) {
     });
     // A re-review covers only the files analyze listed, before the model ran. The gate checks
     // review.diff; anchors are checked against the whole PR's diff.
-    require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
-    require('fs').writeFileSync('pr.diff', diff);
+    require('node:fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
+    require('node:fs').writeFileSync('pr.diff', diff);
 }
 
 async function validateAndPost({ github, context, core, require, process, sleep = ms => new Promise(r => setTimeout(r, ms)) }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber = Number(process.env.PR);

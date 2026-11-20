@@ -44,7 +44,7 @@ const branchIssueNumbers = branch => {
 };
 
 async function fetchLinkedIssues({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber = Number(process.env.PR);

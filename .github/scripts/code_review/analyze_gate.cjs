@@ -7,7 +7,7 @@ const gate = require('./gate.cjs');
 const { diffAnchors, threadKind } = require('./shared.cjs');
 
 async function gateAnalysis({ core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const file = `${process.env.GITHUB_WORKSPACE}/review.json`;
     let review = null;
     try {
