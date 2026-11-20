@@ -64,11 +64,11 @@ export function init(root) {
     const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const colorBy = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__color'));
     const colorTrigger = /** @type {HTMLElement} */ (colorBy.querySelector('[slot="trigger"]'));
-    const queryRow = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__query-row'));
     const queryForm = /** @type {HTMLFormElement} */ (root.querySelector('.recentchanges-chart__query'));
     const botFilter = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__bot-filter'));
     const kindFilter = /** @type {HTMLElement & {items: {value: string, label: string}[]}} */ (root.querySelector('.recentchanges-chart__kind-filter'));
-    const queryInput = /** @type {HTMLInputElement} */ (queryForm.querySelector('input'));
+    // Only librarians get the search box; everyone gets the filters beside it
+    const queryInput = /** @type {HTMLInputElement | null} */ (queryForm.querySelector('input'));
     const status = /** @type {HTMLElement} */ (root.querySelector('.recentchanges-chart__status'));
     const statusText = /** @type {HTMLElement} */ (status.querySelector('.recentchanges-chart__status-text'));
     const walkToggle = /** @type {HTMLElement} */ (status.querySelector('.recentchanges-chart__walk-toggle'));
@@ -306,29 +306,34 @@ export function init(root) {
         const size = BUCKET_SLOTS[state.granularity];
         // Rounded down, so the chart never reaches back further than the chosen range.
         const count = Math.max(1, Math.floor(dates.length / size));
-        const allChanges = data.humans.map((n, i) => n + data.bots[i]);
-        // In custom-query mode the bot and kind filters narrow the chart too, whether or not a search has run
-        let total = allChanges;
-        if (state.colorBy === 'query') {
-            const zeros = data.dates.map(() => 0);
-            const kinds = kind ? [kind] : state.kinds;
-            const sumOf = (/** @type {Record<string, number[]>} */ byKind) => zeros.map((_, i) => kinds.reduce((n, name) => n + (byKind[name]?.[i] || 0), 0));
-            const all = kinds.length ? sumOf(data.kinds) : allChanges;
-            const bots = kinds.length ? sumOf(data.bot_kinds) : data.bots;
-            total = state.bot === 'bots' ? bots : state.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
-        }
+        // The bot and kind filters narrow every view of the chart, not only searches
+        const zeros = data.dates.map(() => 0);
+        const keepHumans = state.bot !== 'bots';
+        const keepBots = state.bot !== 'humans';
+        const shownKinds = Object.keys(data.kinds).filter(name => kind || !state.kinds.length || state.kinds.includes(name));
+        /** @param {string} name */
+        const botsOf = name => data.bot_kinds[name] || zeros;
+        /** @param {string} name */
+        const humansOf = name => (data.kinds[name] || zeros).map((n, i) => n - botsOf(name)[i]);
+        /** @param {(name: string) => number[]} daily */
+        const sumKinds = daily => zeros.map((_, i) => shownKinds.reduce((n, name) => n + daily(name)[i], 0));
+        const humans = keepHumans ? sumKinds(humansOf) : zeros;
+        const bots = keepBots ? sumKinds(botsOf) : zeros;
+        const total = humans.map((n, i) => n + bots[i]);
         /** @type {{key: string, label: string, color: string, daily: number[]}[]} key: the series' id in the URL, unlike its translated label */
         let parts;
         if (state.colorBy === 'bot') {
             parts = [
-                { key: 'humans', label: strings.humans, color: colors.bar, daily: data.humans },
-                { key: 'bots', label: strings.bots, color: colors.accent, daily: data.bots }
-            ];
+                { key: 'humans', label: strings.humans, color: colors.bar, daily: humans },
+                { key: 'bots', label: strings.bots, color: colors.accent, daily: bots }
+            ].filter(part => (part.key === 'bots' ? keepBots : keepHumans));
         } else if (state.colorBy === 'kind') {
             const sum = (/** @type {number[]} */ daily) => daily.reduce((a, b) => a + b, 0);
-            const ranked = Object.entries(data.kinds).sort(([, a], [, b]) => sum(b) - sum(a));
             const kindLabels = strings.kinds || {};
-            parts = ranked.map(([name, daily], i) => ({ key: name, label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
+            parts = shownKinds
+                .map(name => ({ name, daily: zeros.map((_, i) => (keepHumans ? humansOf(name)[i] : 0) + (keepBots ? botsOf(name)[i] : 0)) }))
+                .sort((a, b) => sum(b.daily) - sum(a.daily))
+                .map(({ name, daily }, i) => ({ key: name, label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
         } else if (currentWalk()) {
             const walk = /** @type {Walk} */ (currentWalk());
             if (!walk.stopped && !walk.error && !covered(walk)) runWalk(walk);
@@ -533,7 +538,6 @@ export function init(root) {
     /** @param {string} value */
     const showColorBy = value => {
         colorTrigger.textContent = fill(strings.colorBy, { choice: itemsOf(colorBy).find(item => item.value === value)?.label || '' });
-        queryRow.hidden = value !== 'query';
     };
     /** @param {string} value */
     const showBot = value => {
@@ -561,6 +565,13 @@ export function init(root) {
     queryForm.addEventListener('submit', event => {
         event.preventDefault();
         stopWalk();
+        if (!queryInput) return;
+        // Searching colors the chart by the search
+        if (state.colorBy !== 'query') {
+            state.colorBy = 'query';
+            colorBy.setAttribute('selected', 'query');
+            showColorBy('query');
+        }
         state.query = queryInput.value.trim();
         const walk = currentWalk();
         if (walk) walk.stopped = false;
@@ -618,8 +629,8 @@ export function init(root) {
             ['q', state.colorBy === 'query' && state.query],
             ['regex', state.colorBy === 'query' && state.regex && '1'],
             ['case', state.colorBy === 'query' && state.matchCase && '1'],
-            ['bot', state.colorBy === 'query' && state.bot !== 'any' && state.bot],
-            ['kinds', state.colorBy === 'query' && !kind && state.kinds.join(',')],
+            ['bot', state.bot !== 'any' && state.bot],
+            ['kinds', !kind && state.kinds.join(',')],
             ['only', state.isolated]
         ];
         for (const [name, value] of settings) if (value) url.searchParams.set(name, String(value));
@@ -640,10 +651,10 @@ export function init(root) {
             state.query = params.get('q') || '';
             state.regex = params.get('regex') === '1';
             state.matchCase = params.get('case') === '1';
-            const bot = params.get('bot');
-            if (bot === 'humans' || bot === 'bots') state.bot = bot;
-            if (!kind) state.kinds = (params.get('kinds') || '').split(',').filter(Boolean);
         }
+        const bot = params.get('bot');
+        if (bot === 'humans' || bot === 'bots') state.bot = bot;
+        if (!kind) state.kinds = (params.get('kinds') || '').split(',').filter(Boolean);
         state.isolated = params.get('only');
 
         // Attributes rather than properties, which works whether or not the elements are defined yet
@@ -651,7 +662,7 @@ export function init(root) {
         granularityControl.setAttribute('value', state.granularity);
         colorBy.setAttribute('selected', state.colorBy);
         showColorBy(state.colorBy);
-        queryInput.value = state.query;
+        if (queryInput) queryInput.value = state.query;
         root.querySelector('.recentchanges-chart__regex')?.setAttribute('aria-pressed', String(state.regex));
         root.querySelector('.recentchanges-chart__match-case')?.setAttribute('aria-pressed', String(state.matchCase));
         botFilter.setAttribute('selected', state.bot);

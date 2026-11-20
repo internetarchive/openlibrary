@@ -56,9 +56,6 @@ $def subnav():
             $ bot_options = [{"value": "any", "label": _("Any")}, {"value": "humans", "label": _("Humans")}, {"value": "bots", "label": _("Bots")}]
             $ kind_filter_options = [{"value": k, "label": v} for k, v in chart_i18n["kinds"].items()]
             <section class="tasks-stats__main recentchanges-chart" data-kind="$query.get('kind', '')" data-i18n="$json_encode(chart_i18n)">
-                <div class="tasks-stats__chart-head">
-                    <span class="tasks-stats__legend tasks-stats__parts"></span>
-                </div>
                 <div class="tasks-stats__controls">
                     <ol-segmented-control class="recentchanges-chart__range" size="small" value="28" accessible-label="$_('Date range')">
                         <ol-segment value="7">$_("7 days")</ol-segment>
@@ -77,9 +74,9 @@ $def subnav():
                         <ol-button slot="trigger" size="small">$_("Color by: %(choice)s", choice=_("None"))</ol-button>
                     </ol-options-popover>
                 </div>
-                <div class="tasks-stats__controls recentchanges-chart__query-row" hidden>
+                <div class="tasks-stats__controls recentchanges-chart__query-row">
                     <form class="recentchanges-chart__query">
-                        $# Searching only the changes these let through is faster: the others' records are never read
+                        $# Filter the chart in every mode; a search checks only the changes they let through, which is faster
                         <ol-options-popover class="recentchanges-chart__bot-filter" label="$_('Bot')" selected="any" items="$json_encode(bot_options)">
                             <ol-button slot="trigger" size="small">$_("Bot: %(choice)s", choice=_("Any"))</ol-button>
                         </ol-options-popover>
@@ -89,20 +86,24 @@ $def subnav():
                             $else:
                                 <ol-button slot="trigger" size="small">$_("Kind: %(choice)s", choice=_("Any"))</ol-button>
                         </ol-select-popover>
-                        <span class="recentchanges-chart__search-box">
-                            <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
-                            $# "Aa" is an icon, as in VS Code's find box; its title and label carry the text
-                            $# detect-missing-i18n-skip-line
-                            <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__match-case" aria-pressed="false" title="$_('Match case')" aria-label="$_('Match case')">Aa</button>
-                            <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__regex" aria-pressed="false" title="$_('Use regular expression')" aria-label="$_('Use regular expression')">.*</button>
-                        </span>
-                        <ol-button type="submit" size="small">$_("Search")</ol-button>
+                        $if ctx.user and ctx.user.is_librarian_or_higher():
+                            <span class="recentchanges-chart__search-box">
+                                <input type="search" name="q" required minlength="3" maxlength="100" placeholder="$_('Text in the edited record, e.g. airlines')" aria-label="$_('Text to search edited records for')">
+                                $# "Aa" is an icon, as in VS Code's find box; its title and label carry the text
+                                $# detect-missing-i18n-skip-line
+                                <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__match-case" aria-pressed="false" title="$_('Match case')" aria-label="$_('Match case')">Aa</button>
+                                <button type="button" class="recentchanges-chart__search-toggle recentchanges-chart__regex" aria-pressed="false" title="$_('Use regular expression')" aria-label="$_('Use regular expression')">.*</button>
+                            </span>
+                            <ol-button type="submit" size="small">$_("Search")</ol-button>
                     </form>
                 </div>
                 <p class="tasks-stats__note recentchanges-chart__status" hidden>
                     <span class="recentchanges-chart__status-text"></span>
                     <ol-button class="recentchanges-chart__walk-toggle" size="small" variant="ghost" hidden></ol-button>
                 </p>
+                <div class="tasks-stats__chart-head">
+                    <span class="tasks-stats__legend tasks-stats__parts"></span>
+                </div>
                 <div class="tasks-stats__canvas tasks-stats__canvas--main">
                     <canvas role="img" aria-label="$_('Changes over the chosen range')"></canvas>
                 </div>

@@ -11,10 +11,6 @@
   background: var(--color-surface-sunken);
 }
 
-.recentchanges-chart__query-row[hidden] {
-  display: none;
-}
-
 /* The input and its match-case and regex toggles read as one field, as in VS Code's find box */
 .recentchanges-chart__search-box {
   display: inline-flex;
