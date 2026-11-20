@@ -10289,7 +10289,7 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 #, python-format
-msgid "%(percent)s%% done, goal %(goal)s%%"
+msgid "%(percent)s%% done, goal %(goal)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
