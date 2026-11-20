@@ -41,12 +41,11 @@ export function compare(tagA, tagB) {
         return -1;
     } else if (lowerA.tagName > lowerB.tagName) {
         return 1;
-    } else {
-        if (lowerA.tagType < lowerB.tagType) {
-            return -1;
-        } else if (lowerA.tagType > lowerB.tagtype) {
-            return 1;
-        }
+    }
+    if (lowerA.tagType < lowerB.tagType) {
+        return -1;
+    } else if (lowerA.tagType > lowerB.tagtype) {
+        return 1;
     }
 
     return 0;

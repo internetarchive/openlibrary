@@ -122,9 +122,8 @@ export function websafe(value) {
     try {
         if (value === null || value === undefined) {
             return '';
-        } else {
-            return htmlquote(value.toString());
         }
+        return htmlquote(value.toString());
     } catch (e) {
         return '';
     }

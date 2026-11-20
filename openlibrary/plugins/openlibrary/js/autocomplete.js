@@ -329,10 +329,9 @@ export function init() {
                 const terms = splitField(subject_string);
                 if (terms.length !== dataConfig.data.length) {
                     return terms.pop();
-                } else {
-                    $('ul.ui-autocomplete').hide();
-                    return '';
                 }
+                $('ul.ui-autocomplete').hide();
+                return '';
             },
             select: function (event, ui) {
                 const terms = splitField(this.value);

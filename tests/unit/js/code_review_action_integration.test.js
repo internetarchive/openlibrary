@@ -171,7 +171,12 @@ test('D1 post: head MOVED by a force-push -> nothing is posted, since the review
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const pinned = SHA('a'),
         live = SHA('c');
-    for (const compare of [async () => ({ data: { status: 'diverged' } }), async () => Promise.reject(new Error('No common ancestor'))]) {
+    for (const compare of [
+        async () => ({ data: { status: 'diverged' } }),
+        async () => {
+            throw new Error('No common ancestor');
+        }
+    ]) {
         const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
         github.rest.repos.compareCommitsWithBasehead = compare;
         const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };

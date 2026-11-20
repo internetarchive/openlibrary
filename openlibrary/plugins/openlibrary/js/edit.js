@@ -49,9 +49,8 @@ function limitChars(textid, limit) {
     if (textlength > limit) {
         $(`#${textid}`).val(text.substr(0, limit));
         return false;
-    } else {
-        return true;
     }
+    return true;
 }
 
 /**

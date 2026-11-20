@@ -329,7 +329,7 @@ function getPath(obj, key) {
         if (typeof obj === 'undefined') return undefined;
         if (!head) return obj;
         if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
-        else return main(obj[head], rest);
+        return main(obj[head], rest);
     }
     return main(obj, key.split('.'));
 }
