@@ -201,8 +201,11 @@ jobs:
           # are not -- they reach outside it. Spell the write scope `Edit(...)`: at this pin
           # `Write(./review.json)` silently denies every write, including review.json, which
           # would withhold every review while looking like the gate working.
+          # --max-turns only stops a review that is stuck. review.json is written at the end, so a
+          # review that hits the limit posts nothing. Keep it well above what real reviews use:
+          # in Nov 2026 the median was 24 turns, the 90th percentile 39, and the most 47.
           claude_args: >-
-            --max-turns 40
+            --max-turns 75
             --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
             --disallowedTools "Bash WebFetch WebSearch"
           claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
