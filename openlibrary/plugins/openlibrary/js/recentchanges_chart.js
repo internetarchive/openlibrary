@@ -8,6 +8,11 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 const BUCKET_SLOTS = { hour: 1, day: 1, week: 7, month: 28 };
 // Longest range offered per hour; longer ranges switch back to days.
 const MAX_HOURLY_DAYS = 28;
+// The range control's choices, in days, and the one it starts on.
+const RANGES = [7, 28, 90, 182, 365];
+const DEFAULT_DAYS = 28;
+// The URL parameters the chart's settings are kept in.
+const URL_PARAMS = ['range', 'group', 'color', 'q', 'regex', 'case', 'bot', 'kinds', 'only'];
 
 /**
  * @typedef {object} Counts
@@ -116,7 +121,7 @@ export function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
 
     const state = {
-        days: 28,
+        days: DEFAULT_DAYS,
         granularity: /** @type {keyof BUCKET_SLOTS} */ ('day'),
         colorBy: 'none',
         query: '',
@@ -280,6 +285,7 @@ export function init(root) {
     /** @param {{animate?: boolean}} [options] animation off for redraws as a walk's pages arrive, which would otherwise restart it every page */
     async function draw({ animate = true } = {}) {
         const id = ++drawId;
+        syncUrl();
         const unit = state.granularity === 'hour' ? 'hour' : 'day';
         /** @type {Counts} */
         let data;
@@ -311,18 +317,18 @@ export function init(root) {
             const bots = kinds.length ? sumOf(data.bot_kinds) : data.bots;
             total = state.bot === 'bots' ? bots : state.bot === 'humans' ? all.map((n, i) => n - bots[i]) : all;
         }
-        /** @type {{label: string, color: string, daily: number[]}[]} */
+        /** @type {{key: string, label: string, color: string, daily: number[]}[]} key: the series' id in the URL, unlike its translated label */
         let parts;
         if (state.colorBy === 'bot') {
             parts = [
-                { label: strings.humans, color: colors.bar, daily: data.humans },
-                { label: strings.bots, color: colors.accent, daily: data.bots }
+                { key: 'humans', label: strings.humans, color: colors.bar, daily: data.humans },
+                { key: 'bots', label: strings.bots, color: colors.accent, daily: data.bots }
             ];
         } else if (state.colorBy === 'kind') {
             const sum = (/** @type {number[]} */ daily) => daily.reduce((a, b) => a + b, 0);
             const ranked = Object.entries(data.kinds).sort(([, a], [, b]) => sum(b) - sum(a));
             const kindLabels = strings.kinds || {};
-            parts = ranked.map(([name, daily], i) => ({ label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
+            parts = ranked.map(([name, daily], i) => ({ key: name, label: kindLabels[name] || name, color: colors.kinds[i % colors.kinds.length], daily }));
         } else if (currentWalk()) {
             const walk = /** @type {Walk} */ (currentWalk());
             if (!walk.stopped && !walk.error && !covered(walk)) runWalk(walk);
@@ -342,18 +348,23 @@ export function init(root) {
             // The daily totals are cached, so a day's changes checked can run past its total
             const checked = data.dates.map((slot, i) => Math.min(checkedBySlot[slot] || 0, filtered[i]));
             parts = [
-                { label: fill(strings.matches, { text: state.regex ? `/${state.query}/` : state.query }), color: colors.match, daily: matching },
-                { label: strings.nonMatches, color: colors.muted, daily: checked.map((n, i) => Math.max(0, n - matching[i])) },
-                { label: strings.notSearched, color: colors.unsearched, daily: filtered.map((n, i) => n - checked[i]) }
+                {
+                    key: 'matches',
+                    label: fill(strings.matches, { text: state.regex ? `/${state.query}/` : state.query }),
+                    color: colors.match,
+                    daily: matching
+                },
+                { key: 'other', label: strings.nonMatches, color: colors.muted, daily: checked.map((n, i) => Math.max(0, n - matching[i])) },
+                { key: 'unsearched', label: strings.notSearched, color: colors.unsearched, daily: filtered.map((n, i) => n - checked[i]) }
             ];
         } else {
-            parts = [{ label: '', color: colors.bar, daily: total }];
+            parts = [{ key: 'all', label: '', color: colors.bar, daily: total }];
         }
         showWalkStatus(currentWalk());
         updateKindFilter(data);
         const stacked = parts.length > 1;
         // The legend item clicked to show only its series; kept across redraws while that series is still charted
-        const isolated = stacked && parts.some(part => part.label === state.isolated) ? state.isolated : null;
+        const isolated = stacked && parts.some(part => part.key === state.isolated) ? state.isolated : null;
         const totals = bucketize(total, size).slice(-count);
 
         /** @param {import('./tasks_stats.js').Bucket} b */
@@ -393,7 +404,7 @@ export function init(root) {
                 barPercentage: buckets.length > 120 ? 1 : 0.8,
                 categoryPercentage: 0.9,
                 stack: 'parts',
-                hidden: isolated !== null && part.label !== isolated
+                hidden: isolated !== null && part.key !== isolated
             };
         });
         const config = {
@@ -474,8 +485,8 @@ export function init(root) {
                 const item = document.createElement('button');
                 item.type = 'button';
                 item.className = 'tasks-stats__part recentchanges-chart__part';
-                item.classList.toggle('recentchanges-chart__part--hidden', isolated !== null && part.label !== isolated);
-                item.setAttribute('aria-pressed', String(part.label === isolated));
+                item.classList.toggle('recentchanges-chart__part--hidden', isolated !== null && part.key !== isolated);
+                item.setAttribute('aria-pressed', String(part.key === isolated));
                 item.style.setProperty('--swatch', part.color);
                 item.textContent = part.label;
                 item.addEventListener('mouseenter', () => focus(i));
@@ -484,7 +495,7 @@ export function init(root) {
                 item.addEventListener('blur', () => focus(null));
                 // Show only this series; again to show them all
                 item.addEventListener('click', () => {
-                    state.isolated = part.label === isolated ? null : part.label;
+                    state.isolated = part.key === isolated ? null : part.key;
                     draw().then(() => /** @type {HTMLElement | undefined} */ (legend.children[i])?.focus());
                 });
                 return item;
@@ -511,13 +522,38 @@ export function init(root) {
         }
         draw();
     });
+    /**
+     * A dropdown's items, from the property once the element is defined, else from its attribute.
+     * @param {HTMLElement & {items?: {value: string, label: string, disabled?: boolean}[]}} el
+     * @returns {{value: string, label: string, disabled?: boolean}[]}
+     */
+    const itemsOf = el => el.items || JSON.parse(el.getAttribute('items') || '[]');
+    const botTrigger = /** @type {HTMLElement} */ (botFilter.querySelector('[slot="trigger"]'));
+    const kindTrigger = /** @type {HTMLElement} */ (kindFilter.querySelector('[slot="trigger"]'));
+    /** @param {string} value */
+    const showColorBy = value => {
+        colorTrigger.textContent = fill(strings.colorBy, { choice: itemsOf(colorBy).find(item => item.value === value)?.label || '' });
+        queryRow.hidden = value !== 'query';
+    };
+    /** @param {string} value */
+    const showBot = value => {
+        botTrigger.textContent = fill(strings.botFilter, { choice: itemsOf(botFilter).find(item => item.value === value)?.label || '' });
+    };
+    /** @param {string[]} kinds */
+    const showKinds = kinds => {
+        if (kind) return;
+        const labelFor = (/** @type {string} */ value) => itemsOf(kindFilter).find(item => item.value === value)?.label || strings.kinds?.[value] || value;
+        const choice = kinds.length === 0 ? strings.any : kinds.length === 1 ? labelFor(kinds[0]) : fill(strings.kindCount, { count: String(kinds.length) });
+        kindTrigger.textContent = fill(strings.kindFilter, { choice });
+        // Tinted while filtering, as ol-select-popover's own trigger is
+        kindTrigger.toggleAttribute('selected', kinds.length > 0);
+    };
+
     colorBy.addEventListener('ol-options-popover-change', event => {
         const selected = /** @type {CustomEvent} */ (event).detail.selected || 'none';
-        const choice = colorBy.items.find(item => item.value === selected);
-        colorTrigger.textContent = fill(strings.colorBy, { choice: choice?.label || '' });
+        showColorBy(selected);
         stopWalk();
         state.colorBy = selected;
-        queryRow.hidden = state.colorBy !== 'query';
         const walk = currentWalk();
         if (walk) walk.stopped = false;
         draw();
@@ -540,20 +576,13 @@ export function init(root) {
         const value = /** @type {CustomEvent} */ (event).detail.selected || 'any';
         stopWalk();
         state.bot = value;
-        const choice = /** @type {{value: string, label: string}[]} */ (/** @type {any} */ (botFilter).items || []).find(item => item.value === value);
-        /** @type {HTMLElement} */ (botFilter.querySelector('[slot="trigger"]')).textContent = fill(strings.botFilter, { choice: choice?.label || '' });
+        showBot(value);
         restartWalk();
     });
     kindFilter.addEventListener('ol-select-popover-change', event => {
         stopWalk();
         state.kinds = [.../** @type {CustomEvent} */ (event).detail.selected];
-        const labelFor = (/** @type {string} */ value) => kindFilter.items.find(item => item.value === value)?.label || value;
-        const count = state.kinds.length;
-        const choice = count === 0 ? strings.any : count === 1 ? labelFor(state.kinds[0]) : fill(strings.kindCount, { count: String(count) });
-        const trigger = /** @type {HTMLElement} */ (kindFilter.querySelector('[slot="trigger"]'));
-        trigger.textContent = fill(strings.kindFilter, { choice });
-        // Tinted while filtering, as ol-select-popover's own trigger is
-        trigger.toggleAttribute('selected', count > 0);
+        showKinds(state.kinds);
         restartWalk();
     });
     /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.recentchanges-chart__search-toggle')).forEach(toggle => {
@@ -574,6 +603,66 @@ export function init(root) {
         draw();
     });
 
+    /**
+     * Mirror the chart's settings into the URL, leaving defaults out, so the link reproduces it.
+     * Query parameters, since the change list's tabs use the hash.
+     */
+    function syncUrl() {
+        const url = new URL(window.location.href);
+        for (const name of URL_PARAMS) url.searchParams.delete(name);
+        /** @type {[string, string | boolean | null][]} */
+        const settings = [
+            ['range', state.days !== DEFAULT_DAYS && String(state.days)],
+            ['group', state.granularity !== 'day' && state.granularity],
+            ['color', state.colorBy !== 'none' && state.colorBy],
+            ['q', state.colorBy === 'query' && state.query],
+            ['regex', state.colorBy === 'query' && state.regex && '1'],
+            ['case', state.colorBy === 'query' && state.matchCase && '1'],
+            ['bot', state.colorBy === 'query' && state.bot !== 'any' && state.bot],
+            ['kinds', state.colorBy === 'query' && !kind && state.kinds.join(',')],
+            ['only', state.isolated]
+        ];
+        for (const [name, value] of settings) if (value) url.searchParams.set(name, String(value));
+        if (url.href !== window.location.href) history.replaceState(history.state, '', url);
+    }
+
+    /** Set the chart up from a shared link's settings; anything unknown or not offered here is ignored. */
+    function restoreFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const days = params.get('range');
+        if (days && RANGES.includes(Number(days))) state.days = Number(days);
+        const group = params.get('group');
+        if (group && group in BUCKET_SLOTS) state.granularity = /** @type {keyof BUCKET_SLOTS} */ (group);
+        if (state.granularity === 'hour' && state.days > MAX_HOURLY_DAYS) state.days = MAX_HOURLY_DAYS;
+        const color = params.get('color');
+        if (color && itemsOf(colorBy).some(item => item.value === color && !item.disabled)) state.colorBy = color;
+        if (state.colorBy === 'query') {
+            state.query = params.get('q') || '';
+            state.regex = params.get('regex') === '1';
+            state.matchCase = params.get('case') === '1';
+            const bot = params.get('bot');
+            if (bot === 'humans' || bot === 'bots') state.bot = bot;
+            if (!kind) state.kinds = (params.get('kinds') || '').split(',').filter(Boolean);
+        }
+        state.isolated = params.get('only');
+
+        // Attributes rather than properties, which works whether or not the elements are defined yet
+        rangeControl.setAttribute('value', String(state.days));
+        granularityControl.setAttribute('value', state.granularity);
+        colorBy.setAttribute('selected', state.colorBy);
+        showColorBy(state.colorBy);
+        queryInput.value = state.query;
+        root.querySelector('.recentchanges-chart__regex')?.setAttribute('aria-pressed', String(state.regex));
+        root.querySelector('.recentchanges-chart__match-case')?.setAttribute('aria-pressed', String(state.matchCase));
+        botFilter.setAttribute('selected', state.bot);
+        showBot(state.bot);
+        if (!kind) {
+            kindFilter.setAttribute('selected', JSON.stringify(state.kinds));
+            showKinds(state.kinds);
+        }
+    }
+
+    restoreFromUrl();
     draw();
 }
 
