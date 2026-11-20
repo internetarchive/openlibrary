@@ -365,7 +365,7 @@ function prepareStaffPullRequests(pullRequests, leads) {
     leads.forEach(lead => includeAuthors.push(lead.githubUsername));
 
     // Exclude PRs that have these labels:
-    const excludeLabels = ['Needs: Submitter Input', 'State: Blocked'];
+    const excludeLabels = new Set(['Needs: Submitter Input', 'State: Blocked']);
 
     const output = ['*Staff PRs*'];
     for (const pull of pullRequests) {
@@ -376,7 +376,7 @@ function prepareStaffPullRequests(pullRequests, leads) {
         }
         let skipItem = false;
         for (const label of pull.labels) {
-            if (excludeLabels.includes(label.name)) {
+            if (excludeLabels.has(label.name)) {
                 skipItem = true;
                 break;
             }

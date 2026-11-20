@@ -21,7 +21,7 @@ export function getLinkedIssueMetadata(issue) {
             if (!leadName && label.name.startsWith('Lead: @')) {
                 leadName = label.name.split('@')[1];
             }
-            if (!priority && label.name.match(/Priority: [012]/)) {
+            if (!priority && /Priority: [012]/.test(label.name)) {
                 priority = label.name;
             }
         }

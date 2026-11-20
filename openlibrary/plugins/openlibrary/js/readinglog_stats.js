@@ -326,7 +326,7 @@ function getPath(obj, key) {
      * @return {any}
      */
     function main(obj, [head, ...rest]) {
-        if (typeof obj === 'undefined') return undefined;
+        if (obj === undefined) return undefined;
         if (!head) return obj;
         if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
         return main(obj[head], rest);
