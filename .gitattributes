@@ -1,5 +1,6 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto detect text files, store them with LF, and check them out with LF on every OS
+# (Docker runs the scripts on Linux, so a Windows CRLF checkout breaks the containers)
+* text=auto eol=lf
 
 # Standard to msysgit
 *.doc	diff=astextplain
