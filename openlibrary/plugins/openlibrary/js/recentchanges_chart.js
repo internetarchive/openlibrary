@@ -103,7 +103,15 @@ export function init(root) {
     const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
     const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
-    const state = { days: 28, granularity: /** @type {keyof BUCKET_DAYS} */ ('day'), colorBy: 'none', query: '', bot: 'any', kind: '' };
+    const state = {
+        days: 28,
+        granularity: /** @type {keyof BUCKET_DAYS} */ ('day'),
+        colorBy: 'none',
+        query: '',
+        bot: 'any',
+        kind: '',
+        isolated: /** @type {string | null} */ (null)
+    };
     /** @type {Map<number, Promise<Counts>>} fetched once per range */
     const fetched = new Map();
     // Draws await fetches, so a slow one can finish after a newer one; only the newest may paint.
@@ -305,6 +313,8 @@ export function init(root) {
         showWalkStatus(currentWalk());
         updateKindFilter(data);
         const stacked = parts.length > 1;
+        // The legend item clicked to show only its series; kept across redraws while that series is still charted
+        const isolated = stacked && parts.some(part => part.label === state.isolated) ? state.isolated : null;
         const totals = bucketize(total, size).slice(-count);
 
         /** @param {import('./tasks_stats.js').Bucket} b */
@@ -334,7 +344,8 @@ export function init(root) {
                 borderRadius: stacked ? 0 : 2,
                 barPercentage: buckets.length > 120 ? 1 : 0.8,
                 categoryPercentage: 0.9,
-                stack: 'parts'
+                stack: 'parts',
+                hidden: isolated !== null && part.label !== isolated
             };
         });
         const config = {
@@ -370,7 +381,7 @@ export function init(root) {
                             footer: (/** @type {any[]} */ items) => {
                                 if (!items.length) return [];
                                 const bucket = totals[items[0].dataIndex];
-                                const lines = stacked ? [fill(strings.total, { count: numberFormat.format(bucket.value ?? 0) })] : [];
+                                const lines = stacked && isolated === null ? [fill(strings.total, { count: numberFormat.format(bucket.value ?? 0) })] : [];
                                 lines.push(inProgressNote(bucket));
                                 return lines.filter(Boolean);
                             }
@@ -413,12 +424,22 @@ export function init(root) {
         };
         legend.replaceChildren(
             ...(stacked ? parts : []).map((part, i) => {
-                const item = document.createElement('span');
-                item.className = 'tasks-stats__part';
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'tasks-stats__part recentchanges-chart__part';
+                item.classList.toggle('recentchanges-chart__part--hidden', isolated !== null && part.label !== isolated);
+                item.setAttribute('aria-pressed', String(part.label === isolated));
                 item.style.setProperty('--swatch', part.color);
                 item.textContent = part.label;
                 item.addEventListener('mouseenter', () => focus(i));
                 item.addEventListener('mouseleave', () => focus(null));
+                item.addEventListener('focus', () => focus(i));
+                item.addEventListener('blur', () => focus(null));
+                // Show only this series; again to show them all
+                item.addEventListener('click', () => {
+                    state.isolated = part.label === isolated ? null : part.label;
+                    draw().then(() => /** @type {HTMLElement | undefined} */ (legend.children[i])?.focus());
+                });
                 return item;
             })
         );

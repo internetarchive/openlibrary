@@ -29,3 +29,17 @@
 .recentchanges-chart__part--faded {
   opacity: 0.35;
 }
+
+/* Legend items are buttons: clicking one shows only its series */
+.recentchanges-chart__part {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.recentchanges-chart__part--hidden {
+  opacity: 0.35;
+}
