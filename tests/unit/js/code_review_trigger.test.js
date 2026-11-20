@@ -450,3 +450,45 @@ test('the Review step allows only the vetted commenter, or the PR author re-requ
         'the `if` still limits comment triggers to staff and the PR author'
     );
 });
+
+// ---- A full re-review: maintainers only, by comment or dispatch ----
+// FULL_REVIEW skips the "already reviewed this commit" check and the incremental range, so it costs
+// a full model run: only the maintainers in analyze's `if` can ask for one.
+const fullExpr = reviewWf.jobs.analyze.steps
+    .find(s => s.id === 'range')
+    .env.FULL_REVIEW.trim()
+    .replace(/^\$\{\{([\s\S]*)\}\}$/, '$1');
+function evalFull(github, inputs = {}) {
+    const contains = (a, b) => {
+        const needle = String(b ?? '').toLowerCase();
+        return Array.isArray(a)
+            ? a.some(x => String(x ?? '').toLowerCase() === needle)
+            : String(a ?? '')
+                  .toLowerCase()
+                  .includes(needle);
+    };
+    // eslint-disable-next-line no-new-func
+    return Boolean(new Function('github', 'inputs', 'contains', 'fromJSON', `return (${toJs(fullExpr)});`)(github, inputs, contains, JSON.parse));
+}
+const comment = (login, body) =>
+    ctx({ event_name: 'issue_comment', event: { issue: { pull_request: {}, user: { login: 'author' } }, comment: { body, user: { login } } } });
+test('FULL_REVIEW: a maintainer comment "@openlibrary-bot full review" asks for one', () => {
+    assert.equal(evalFull(comment('RayBB', '@openlibrary-bot full review')), true);
+    assert.equal(evalFull(comment('cdrini', 'please @OpenLibrary-Bot Full Review, the bot changed')), true, 'case-insensitive, like contains()');
+});
+test('FULL_REVIEW: not from the PR author, not from a plain review comment', () => {
+    assert.equal(evalFull(comment('author', '@openlibrary-bot full review')), false, "the author's comment starts an ordinary review");
+    assert.equal(evalFull(comment('someone', '@openlibrary-bot full review')), false);
+    assert.equal(evalFull(comment('RayBB', '@openlibrary-bot review')), false);
+});
+test('FULL_REVIEW: a dispatch with full_review checked; never on a review request', () => {
+    assert.equal(evalFull(ctx({ event_name: 'workflow_dispatch' }), { full_review: true }), true);
+    assert.equal(evalFull(ctx({ event_name: 'workflow_dispatch' }), { full_review: false }), false);
+    assert.equal(evalFull(ctx({ event_name: 'pull_request_target', event: { action: 'review_requested', requested_team: { slug: TEAM_SLUG } } })), false);
+    const input = (onBlock(reviewWf).workflow_dispatch.inputs || {}).full_review;
+    assert.deepEqual([input.type, input.default, input.required], ['boolean', false, false]);
+});
+test('FULL_REVIEW: the same maintainers as analyze', () => {
+    const list = cond => /fromJSON\('(\[[^\]]*\])'\)/.exec(cond)[1];
+    assert.equal(list(fullExpr), list(reviewIf));
+});

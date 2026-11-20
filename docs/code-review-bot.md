@@ -118,6 +118,13 @@ rewrites the history it reviewed, the bot reviews the whole PR again.
 On each re-review the bot also re-checks its own open comments, as described in
 [Responding to a finding](#responding-to-a-finding).
 
+**A full re-review.** The bot doesn't review a commit twice, and merging master in doesn't start a
+review either. So after a change to the bot itself, an open PR keeps its old review until its
+author pushes. To review the whole PR again now, a maintainer can comment
+`@openlibrary-bot full review`, or run the Code Review Action workflow by hand with **full_review**
+checked. Each full review is a complete run of the bot, so only the maintainers listed above can
+start one. From the PR's author, the same comment starts an ordinary review.
+
 ### Stacked PRs
 
 A PR can target another PR's branch instead of master, so it can be reviewed while the first one
