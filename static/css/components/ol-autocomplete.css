@@ -1,0 +1,5 @@
+/* <ol-autocomplete> before it upgrades: hold the field's height, so the form under it doesn't move when it renders. */
+ol-autocomplete:not(:defined) {
+  display: block;
+  min-height: var(--control-height-medium);
+}

@@ -301,6 +301,14 @@ COMPONENTS = (
         avoid="Multiple selections belong in a Select Popover.",
     ),
     Component(
+        "autocomplete",
+        "Autocomplete",
+        "design/components/autocomplete.html.jinja",
+        group="Actions",
+        tag="ol-autocomplete",
+        avoid="For a fixed list of choices use Options Popover; this is for free text that usually matches a value already in use.",
+    ),
+    Component(
         "menu-popover",
         "Menu Popover",
         "design/components/menu-popover.html.jinja",

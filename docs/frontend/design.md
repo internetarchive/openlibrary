@@ -136,6 +136,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Popover | `ol-popover` | An anchored panel with custom content | Use the composed variants (Select, Options, Menu) before a bare Popover; reserve it for custom panel content. |
 | Select Popover | `ol-select-popover` | Pick several values from a list | For a single choice use Options Popover; for four or fewer choices use Segmented Control. |
 | Options Popover | `ol-options-popover` | Pick one value from a list | Multiple selections belong in a Select Popover. |
+| Autocomplete | `ol-autocomplete` | A text field that suggests values already in use as you type, with counts, and still takes a new one | For a fixed list of choices use Options Popover; this is for free text that usually matches a value already in use. |
 | Menu Popover | `ol-menu-popover` | Pick one action from a list | A choice that is read or submitted later is a value, not an action — use Options Popover. |
 | Dialog | `ol-dialog` | A centered modal interruption | For a task with its own scrolling content, use Drawer. For a passive message, use Toast or Banner. |
 | Drawer | `ol-drawer` | A modal panel that slides in from a viewport edge | A centered interruption is a Dialog. A panel anchored to its trigger is a Popover. |

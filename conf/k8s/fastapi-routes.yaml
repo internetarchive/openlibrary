@@ -81,6 +81,7 @@ fastapiRoutes:
   - GET /people/{username}/lists/{olid}/subjects.json
   - GET POST /people/{username}/series/{olid}/seeds.json
   - GET /prices.json
+  - GET /publishers/_autocomplete
   - GET /publishers/{key:path}.json
   - GET /qrcode
   - GET POST /reading-goal.json
