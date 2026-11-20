@@ -30,8 +30,11 @@ Read `$GITHUB_WORKSPACE/review-range.json`, written for you by an earlier step:
 - `incremental: false` — first pass. Review the whole PR diff.
 
 The diff for your range is already on disk at `$GITHUB_WORKSPACE/review.diff`. Read that file
-rather than regenerating it — it is the exact diff the posting step validates anchors against,
-and generating your own risks a mismatch. Do not modify `review-range.json` or `review.diff`.
+rather than regenerating it. Next to it, `$GITHUB_WORKSPACE/pr.diff` is the whole PR's diff
+(`base_sha..head_sha`, every file). It is the exact diff the posting step validates anchors
+against. On a re-review it also covers files changed before your last pass. Don't read it in
+full: look up only the lines you need to anchor a finding (Step 6). Do not modify
+`review-range.json`, `review.diff` or `pr.diff`.
 
 ### Repository settings
 
@@ -313,13 +316,15 @@ Field rules:
 - `title` and `body` — required, non-empty strings. Keep the `body` to two or three short
   sentences: the problem and the fix. Skip what the reader can see in the diff. Keys not shown
   in the schema are discarded before anything is posted, so do not put content anywhere else.
-- `path` — repository-relative, exactly as it appears in `review.diff` (`openlibrary/core/models.py`),
+- `path` — repository-relative, exactly as it appears in `pr.diff` (`openlibrary/core/models.py`),
   never with a `pr-head/` prefix. A path containing spaces, markdown, `..` or a leading `/` makes
   the review unpublishable.
 - `path`, `start_line`, `line` — the anchor. `line` is the **last** line of the range;
   `start_line` the first. **Both must be lines that appear as added or context lines on the
-  RIGHT side of `review.diff`.** If a finding's real evidence is in a file the diff does not
-  touch, **omit `path`/`start_line`/`line`** (or set them to `null`) and write it into the finding `body` —
+  RIGHT side of `pr.diff`.** On a re-review, `pr.diff` also has the files outside `review.diff`,
+  so a finding about code the PR changed before your last pass can still go inline. If a
+  finding's real evidence is in a file `pr.diff` does not touch, **omit `path`/`start_line`/`line`**
+  (or set them to `null`) and write it into the finding `body` —
   the posting step will fold it into the summary. Do not invent a nearby anchor to make a
   finding postable; a misplaced comment is worse than a summarised one.
 - `resolved` — the `id`s from `prior-threads.json` that the PR head fixes (Step 4), copied

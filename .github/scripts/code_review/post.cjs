@@ -4,7 +4,7 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackOpen, heldBackBlocking } = require('./shared.cjs');
+const { filterDiff, headIsCurrent, supersededMarker, supersededCommit, reviewMarker, heldBackReview, heldBackBlocking } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -183,8 +183,10 @@ async function refetchDiff({ github, context, core, require, process }) {
         basehead: `${base}...${head}`,
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
-    // A re-review covers only the files analyze listed, before the model ran.
+    // A re-review covers only the files analyze listed, before the model ran. The gate checks
+    // review.diff; anchors are checked against the whole PR's diff.
     require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
+    require('fs').writeFileSync('pr.diff', diff);
 }
 
 async function validateAndPost({ github, context, core, require, process, sleep = ms => new Promise(r => setTimeout(r, ms)) }) {
@@ -221,14 +223,15 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     const heldBack = process.env.HELD_BACK === 'true';
     const heldBackBlocks = heldBack && process.env.WITHHELD_BLOCKING === 'true';
 
-    // Lines a comment can anchor to: the right side (added and context lines) of the diff.
-    // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
-    // go in the summary instead.
+    // Lines a comment can anchor to: the right side (added and context lines) of the whole PR's diff,
+    // so a re-review can still put a finding on a file changed before the last review. GitHub rejects
+    // an anchor outside the PR's diff, so findings with one go in the summary instead.
     const anchorable = new Map();
     {
         let file = null,
             newLn = 0;
-        for (const raw of fs.readFileSync('review.diff', 'utf8').split(/\r?\n/)) {
+        const anchorDiff = fs.existsSync('pr.diff') ? 'pr.diff' : 'review.diff';
+        for (const raw of fs.readFileSync(anchorDiff, 'utf8').split(/\r?\n/)) {
             if (raw.startsWith('+++ ')) {
                 const p = raw.slice(4).trim();
                 file = p === '/dev/null' ? null : p.replace(/^b\//, '');
@@ -305,6 +308,9 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     let stateLine = '';
     // Set when the PR moved on during the review; the summary opens with it.
     let supersededLine = '';
+    // An earlier review whose held-back part still blocks: it keeps this review's verdict at
+    // REQUEST_CHANGES, so the summary says why (#14495 got "No issues found" with changes requested).
+    let earlierHold = null;
     // A function, so a rejected post can render it again with every finding in the summary.
     const renderSummary = () => {
         // Short, like the other review bots: a status line, the findings that have no inline thread,
@@ -334,6 +340,14 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 ? '\n\n> [!IMPORTANT]\n> Part of this review was held back because it may be security-sensitive. A maintainer needs to look at this PR before it can merge.'
                 : '\n\n> [!NOTE]\n> Part of this review was held back because it may be security-sensitive. None of it blocks this PR.';
         }
+        // Fixed text and a link only, like the note above: nothing about what was held back.
+        if (earlierHold) {
+            const which = earlierHold.commit_id ? ` of \`${String(earlierHold.commit_id).slice(0, 7)}\`` : '';
+            const link = String(earlierHold.html_url || '').startsWith('https://github.com/')
+                ? `[earlier review${which}](${earlierHold.html_url})`
+                : `earlier review${which}`;
+            summary += `\n\n> [!IMPORTANT]\n> Changes are still requested because part of an ${link} was held back as possibly security-sensitive. A maintainer needs to look at it, then dismiss that review.`;
+        }
 
         if (orphaned.length) {
             summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
@@ -357,10 +371,12 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         // as feedback: we want it taken seriously, and the author can judge what applies.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
         const feedback = blocking || suggestions.length;
-        const footer = [
-            feedback ? 'Please address the feedback above before a maintainer reviews this PR' : 'A maintainer will review this PR next',
-            '[How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md)'
-        ];
+        const next = feedback
+            ? 'Please address the feedback above before a maintainer reviews this PR'
+            : earlierHold
+              ? 'Waiting for a maintainer to check the held-back review'
+              : 'A maintainer will review this PR next';
+        const footer = [next, '[How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md)'];
         if (feedback && /^\d+$/.test(minutes || '')) footer.push(`Reviews new pushes after ${minutes} minutes`);
         summary += `\n\n<sub>${footer.join(' · ')}</sub>\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
         if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
@@ -499,7 +515,8 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     let blocked = heldBackBlocks;
     if (!blocked && !superseded) {
         const earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
-        blocked = heldBackOpen(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
+        earlierHold = heldBackReview(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
+        blocked = earlierHold !== null;
     }
     let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount: findingCount + (blocked ? 1 : 0), unresolvedOwnThreads });
     let summary = renderSummary();

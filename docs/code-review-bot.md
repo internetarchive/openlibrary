@@ -171,8 +171,9 @@ When part of a review is held back, the rest is still posted, with a note saying
 held back. If the held-back part blocks, the bot requests changes and the `code-review` check fails
 with "Feedback withheld for maintainer review." It stays failed through later reviews, until a
 maintainer has looked at the PR, dismissed that review, and commented `@openlibrary-bot review` to
-refresh the check. The held-back text isn't sent anywhere: the bot keeps nothing that it can't post
-publicly.
+refresh the check. Until then, each later review also requests changes, even when it found nothing
+new, and says that it does so because of the held-back review, with a link to it. The held-back
+text isn't sent anywhere: the bot keeps nothing that it can't post publicly.
 
 The full instructions the bot follows are in
 [`.github/workflows/code_review.md`](../.github/workflows/code_review.md).
@@ -184,7 +185,8 @@ The full instructions the bot follows are in
 
 - **Inline comments** for findings that should be fixed before merging, each headed with its
   severity and area, for example **MEDIUM · Correctness — …**. Where the fix is small, the comment
-  includes a suggestion you can apply in one click.
+  includes a suggestion you can apply in one click. A re-review can comment on any line the PR
+  changes, not only the files changed since its last review.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
   sure about, and every test-coverage finding.
 - **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
@@ -192,7 +194,8 @@ The full instructions the bot follows are in
 - **🎫 Linked issues**, collapsed, when the PR links to issues: which of their requirements the PR
   meets.
 - **A last line with the next step:** address the feedback before a maintainer reviews the PR,
-  or, when the bot found nothing, that a maintainer will review it next. Treat suggestions as
+  or, when the bot found nothing, that a maintainer will review it next (or, while an earlier
+  held-back review is open, that it's waiting for a maintainer to check it). Treat suggestions as
   feedback too, and use your judgement on each.
 
 **The verdict.** The review is one of:

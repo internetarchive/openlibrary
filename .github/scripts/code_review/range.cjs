@@ -245,6 +245,8 @@ async function resolveRange({ github, context, core, require, process }) {
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
     fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, files ? filterDiff(diff, files) : diff);
+    // The whole PR's diff, which a finding may anchor to. `post` fetches the same diff again.
+    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr.diff`, diff);
     // Settings from the base checkout's .pr_agent.toml, so a PR can't change them. Later steps use
     // these outputs, which the model cannot change; the model reads review-config.json.
     const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
