@@ -836,6 +836,7 @@ test("range: a base merge plus one author commit reviews the PR diff for that co
     assert.equal(res.outputs.files, JSON.stringify(['b.py']));
     assert.deepEqual(calls.getCommit, [A, M], "master's own commits are never read; the merge only for conflict fixes");
     assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+    assert.equal(readFileSync(join(dir, 'pr.diff'), 'utf8'), PR_DIFF, 'the whole PR diff, for anchors');
     const rangeJson = JSON.parse(readFileSync(join(dir, 'review-range.json'), 'utf8'));
     assert.equal(rangeJson.prior_review_sha, P);
     assert.deepEqual(rangeJson.files, ['b.py']);
@@ -876,11 +877,12 @@ test('status repost: carries the verdict of the review on VERDICT_SHA, an earlie
         assert.equal(calls.createCommitStatus[0].state, state);
     }
 });
-test('post refetchDiff: cuts the PR diff to the files analyze listed', async () => {
+test('post refetchDiff: cuts the PR diff to the files analyze listed, and keeps the whole diff for anchors', async () => {
     const { github } = baseMergeGitHub({ sinceCommits: [] });
     const env = { BASE_SHA: MB, HEAD_SHA: A, FILES: JSON.stringify(['b.py']) };
     await runScript(post.refetchDiff, { github, context, env: { ...env, GITHUB_WORKSPACE: dir }, cwd: dir });
     assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+    assert.equal(readFileSync(join(dir, 'pr.diff'), 'utf8'), PR_DIFF);
     const bad = await runScript(post.refetchDiff, { github, context, env: { ...env, FILES: '{"x":1}', GITHUB_WORKSPACE: dir }, cwd: dir });
     assert.equal(bad.failed, 'Unexpected review range.');
 });
@@ -1041,6 +1043,74 @@ test('post: never approves while a blocking part is held back', async () => {
     const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir, HELD_BACK: 'true', WITHHELD_BLOCKING: 'true' };
     await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
+});
+// #14495: three later reviews said "No issues found" yet requested changes, with no reason given.
+const earlierHoldPost = async state => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const held = {
+        id: 5,
+        user: { login: 'openlibrary-bot' },
+        commit_id: SHA('c'),
+        state,
+        html_url: 'https://github.com/internetarchive/openlibrary/pull/1#pullrequestreview-5',
+        body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->'
+    };
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }), listReviews: async () => ({ data: [held] }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir, HELD_BACK: 'false', WITHHELD_BLOCKING: 'false' };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    return calls.createReview[0];
+};
+test('post: a clean review held at REQUEST_CHANGES by an earlier held-back review says why, with a link', async () => {
+    const posted = await earlierHoldPost('CHANGES_REQUESTED');
+    assert.equal(posted.event, 'REQUEST_CHANGES');
+    assert.ok(posted.body.startsWith('**No issues found** on `aaaaaaa`.'), posted.body);
+    assert.match(
+        posted.body,
+        /> \[!IMPORTANT\]\n> Changes are still requested because part of an \[earlier review of `ccccccc`\]\(https:\/\/github\.com\/internetarchive\/openlibrary\/pull\/1#pullrequestreview-5\) was held back as possibly security-sensitive\. A maintainer needs to look at it, then dismiss that review\./
+    );
+    assert.match(posted.body, /<sub>Waiting for a maintainer to check the held-back review · /);
+    assert.doesNotMatch(posted.body, /A maintainer will review this PR next/);
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/, "this review's own marker is unchanged");
+});
+test('post: once a maintainer dismissed the held-back review, a clean review approves with no note', async () => {
+    const posted = await earlierHoldPost('DISMISSED');
+    assert.equal(posted.event, 'APPROVE');
+    assert.doesNotMatch(posted.body, /held back|Changes are still requested/);
+    assert.match(posted.body, /<sub>A maintainer will review this PR next · /);
+});
+
+// ===================== Anchors on the whole PR diff =====================
+// A re-review's review.diff has only the files changed since the last review, but a finding can be
+// about a line the PR changed earlier. GitHub accepts any line in the PR's diff.
+const anchorPost = async ({ withPrDiff }) => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = [{ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Caller breaks', body: 'Update it.', path: 'a.py', line: 1 }];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1 @@\n+b\n');
+    if (withPrDiff)
+        writeFileSync(
+            join(dir, 'pr.diff'),
+            'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+a\ndiff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1 @@\n+b\n'
+        );
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'true', GITHUB_WORKSPACE: dir };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    return calls.createReview[0];
+};
+test('post: a re-review finding on a file outside review.diff but in the PR gets an inline comment', async () => {
+    const posted = await anchorPost({ withPrDiff: true });
+    assert.equal(posted.comments.length, 1);
+    assert.equal(posted.comments[0].path, 'a.py');
+    assert.doesNotMatch(posted.body, /Findings without an in-diff anchor/);
+});
+test('post: without pr.diff, anchors fall back to review.diff (a finding outside it goes in the summary)', async () => {
+    const posted = await anchorPost({ withPrDiff: false });
+    assert.equal(posted.comments.length, 0);
+    assert.match(posted.body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Caller breaks\*\* · `a\.py:1`/);
 });
 
 // ===================== GitHub 5xx when posting =====================

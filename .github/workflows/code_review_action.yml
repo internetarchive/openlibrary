@@ -240,8 +240,8 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: code-review-${{ steps.range.outputs.pr }}
-          # review.json only, as rewritten by the gate step. review.diff and review-range.json
-          # were on disk while the model ran; `post` re-derives both from job outputs.
+          # review.json only, as rewritten by the gate step. review.diff, pr.diff and review-range.json
+          # were on disk while the model ran; `post` re-derives them from job outputs.
           path: review.json
           if-no-files-found: error
           retention-days: 7

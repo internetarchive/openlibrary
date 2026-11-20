@@ -25,8 +25,10 @@ const heldBackBlocking = body => {
 };
 // A blocking held-back part keeps the PR blocked across later reviews, which may cover other files,
 // until a maintainer has looked and dismissed the review that held it back. These read that from the
-// bot's reviews (with superseded ones already left out).
-const heldBackOpen = reviews => reviews.some(r => r.state !== 'DISMISSED' && heldBackBlocking(r.body));
+// bot's reviews (with superseded ones already left out). heldBackReview returns the first such review,
+// so `post` can point at it.
+const heldBackReview = reviews => reviews.find(r => r.state !== 'DISMISSED' && heldBackBlocking(r.body)) || null;
+const heldBackOpen = reviews => heldBackReview(reviews) !== null;
 // The findings a review's marker counts toward the verdict: its own, plus the held-back part unless
 // a maintainer dismissed the review.
 const verdictFindings = review => {
@@ -49,8 +51,9 @@ const unresolvedThreadCount = threads => {
     return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated ? 1 : 0), 0);
 };
 
-// The parts of a unified diff for the given paths (old or new name). A re-review sees only these,
-// and `post` validates anchors against the same cut.
+// The parts of a unified diff for the given paths (old or new name). A re-review sees only these.
+// Anchors are checked against the whole PR's diff (pr.diff), so a finding can sit on any line the PR
+// changed, not only on the files changed since the last review.
 const filterDiff = (diff, paths) => {
     const want = new Set(paths);
     return String(diff)
@@ -68,6 +71,7 @@ module.exports = {
     parseReviewMarker,
     heldBackBlocking,
     heldBackOpen,
+    heldBackReview,
     verdictFindings,
     unresolvedThreadCount,
     filterDiff,
