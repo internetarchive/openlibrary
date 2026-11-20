@@ -41,7 +41,7 @@
                         {# Jinja has no generator expressions; collect the OLIDs by appending to a list. #}
                         {% set merge_keys = [] %}
                         {% for doc in search_response.docs %}
-                            {% set _ = merge_keys.append(doc['key'].split('/')[-1]) %}
+                            {% set unused = merge_keys.append(doc['key'].split('/')[-1]) %}
                         {% endfor %}
                         <div class="mergeThis">{{ _("Is the same author listed twice?") }} <a class="large sansserif"
     href="/authors/merge?records={{ merge_keys | join(',') }}">{{ _("Merge authors") }}</a></div>
