@@ -731,3 +731,101 @@ test('post: a suggestion with the wrong line count, or no change, is dropped', a
 test('post: a suggestion containing backticks gets a longer fence', async () => {
     assert.match(await postedBody('x = "```"'), /\n````suggestion\nx = "```"\n````/);
 });
+
+// ========================= Marking earlier reviews addressed =========================
+// Once every finding a review raised is fixed or dismissed, `post` edits that review to say so, as
+// cubic does, keeping the hidden markers the other jobs read.
+const shared = load(join(SCRIPTS, 'shared.cjs'));
+const stats = load(join(SCRIPTS, 'report_stats.cjs'));
+const { addressedBody, reviewsToMark, ADDRESSED_MARKER } = post;
+const OLD = '**2 findings** · 1 suggestion on `abc1234`\n\nEarlier findings: 1 addressed.\n\n<sub>footer</sub>\n\n<!-- ol-pr-review-bot f=2 -->';
+
+test('addressedBody: a new first line, the old status struck through, and every marker kept', () => {
+    const body = addressedBody(OLD);
+    assert.ok(body.startsWith('✅ **Every finding in this review was fixed or dismissed.**\n\n~~**2 findings** · 1 suggestion on `abc1234`~~\n\n'), body);
+    assert.ok(body.endsWith(`\n${ADDRESSED_MARKER}`));
+    assert.equal(shared.parseReviewMarker(body), shared.parseReviewMarker(OLD), 'status and range read the same count');
+    assert.equal(stats.suggestionCount(body), 1, 'the weekly report still reads the suggestion count');
+    assert.equal(addressedBody(body), null, 'never edited twice');
+});
+test('addressedBody: keeps h=1 and the superseded marker, and says a held-back part still needs a maintainer', () => {
+    const held = `**No blocking findings** on \`abc1234\`\n\n<!-- ol-pr-review-bot f=1 h=1 -->\n<!-- ol-pr-review-bot superseded reviewed=${SHA('c')} -->`;
+    const body = addressedBody(held, { held: true });
+    assert.match(body, /fixed or dismissed\.\*\* The held-back part still needs a maintainer\./);
+    assert.equal(shared.heldBackBlocking(body), true);
+    assert.equal(shared.supersededCommit(body), SHA('c'));
+    assert.equal(addressedBody(''), null);
+});
+
+const bot = { login: 'openlibrary-bot' };
+const rev = (id, f, extra = {}) => ({
+    id,
+    user: bot,
+    state: 'CHANGES_REQUESTED',
+    body: `**${f} findings** on \`abc1234\`\n\n<!-- ol-pr-review-bot f=${f} -->`,
+    ...extra
+});
+const th = (id, reviewId, isResolved = false) => ({ id, reviewId, isResolved });
+test('reviewsToMark: only reviews whose last open finding this run closes', () => {
+    const mark = (reviews, threads, closing) => reviewsToMark({ reviews, threads, closing, botLogin: 'openlibrary-bot', exclude: 99 }).map(r => r.id);
+    assert.deepEqual(mark([rev(1, 2)], [th('A', 1, true), th('B', 1)], ['B']), [1], 'one resolved earlier, the last one closed now');
+    assert.deepEqual(mark([rev(1, 2)], [th('A', 1), th('B', 1)], ['B']), [], 'one still open');
+    assert.deepEqual(mark([rev(1, 2)], [th('A', 1)], ['A']), [], 'a finding with no thread: unknown, so left alone');
+    assert.deepEqual(mark([rev(1, 1)], [th('A', 1, true)], []), [], 'nothing closed by this run: old reviews are not edited in bulk');
+    assert.deepEqual(mark([rev(1, 1, { body: `x\n<!-- ol-pr-review-bot f=1 -->\n${ADDRESSED_MARKER}` })], [th('A', 1)], ['A']), [], 'already marked');
+    assert.deepEqual(mark([rev(1, 0)], [], ['A']), [], 'a review with no findings');
+    assert.deepEqual(mark([rev(99, 1)], [th('A', 99)], ['A']), [], "this run's own review");
+    assert.deepEqual(mark([rev(1, 1, { user: { login: 'someone' } })], [th('A', 1)], ['A']), [], "someone else's review");
+});
+
+test("post: closing an earlier review's last finding edits that review, and only its text", async () => {
+    const d = setup(reviewWith([]));
+    const updates = [];
+    const earlier = { id: 5, user: bot, state: 'CHANGES_REQUESTED', commit_id: SHA('c'), body: OLD.replace('f=2', 'f=1') };
+    const t = thread('T1', 'a.py', 'correctness', 'Bug');
+    t.comments.nodes[0].pullRequestReview = { databaseId: 5 };
+    try {
+        const { github } = mockGitHub({ reviewThreads: [t] });
+        github.rest.pulls.listReviews = async () => ({ data: [earlier, { id: 999, user: bot, commit_id: SHA('a') }] });
+        github.rest.pulls.updateReview = async p => {
+            updates.push(p);
+            return { data: {} };
+        };
+        writeFileSync(join(d, 'review.json'), JSON.stringify({ ...reviewWith([]), resolved: ['T1'] }));
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(handedOff(res), ['T1']);
+        assert.equal(updates.length, 1);
+        assert.equal(updates[0].review_id, 5);
+        assert.ok(updates[0].body.startsWith('✅ **Every finding in this review was fixed or dismissed.**'), updates[0].body);
+        assert.match(updates[0].body, /<!-- ol-pr-review-bot f=1 -->/);
+        assert.deepEqual(Object.keys(updates[0]).sort(), ['body', 'owner', 'pull_number', 'repo', 'review_id'], 'no event or state');
+    } finally {
+        teardown();
+    }
+});
+test('post: a failed edit of an earlier review is a warning, not a failed job', async () => {
+    const d = setup(reviewWith([]));
+    const t = thread('T1', 'a.py', 'correctness', 'Bug');
+    t.comments.nodes[0].pullRequestReview = { databaseId: 5 };
+    try {
+        const { github } = mockGitHub({ reviewThreads: [t] });
+        github.rest.pulls.listReviews = async () => ({
+            data: [
+                { id: 5, user: bot, state: 'CHANGES_REQUESTED', body: OLD.replace('f=2', 'f=1') },
+                { id: 999, user: bot, commit_id: SHA('a') }
+            ]
+        });
+        github.rest.pulls.updateReview = async () => {
+            throw new Error('Server Error');
+        };
+        writeFileSync(join(d, 'review.json'), JSON.stringify({ ...reviewWith([]), resolved: ['T1'] }));
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.equal(res.failed, null);
+        assert.ok(
+            res.warnings.some(w => /Could not mark review 5 as addressed/.test(w)),
+            res.warnings.join('\n')
+        );
+    } finally {
+        teardown();
+    }
+});

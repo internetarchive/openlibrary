@@ -236,6 +236,13 @@ flowchart TD
 - **Resolve it yourself.** The PR's author and anyone with write access can resolve a thread. Use
   your judgment; the bot can be wrong.
 
+When the bot closes the last open finding of one of its earlier reviews, it edits that review to
+open with **✅ Every finding in this review was fixed or dismissed.** and strikes through its old
+status line. That way an old review never shows a problem that's already gone. Only the text
+changes: the review's verdict stays as it was, and the bot never dismisses its own reviews. A
+review with a finding that had no thread is left as it is, since the bot can't tell whether that
+finding was fixed.
+
 A few more things worth knowing:
 
 - **Suggestions (won't block)** are in the review summary, not threads. Nothing to resolve: use
