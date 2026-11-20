@@ -20,7 +20,7 @@ whether to approve and merge. Never phrase the review as "looks good" or "approv
 Read `$GITHUB_WORKSPACE/review-range.json`, written for you by an earlier step:
 
 ```json
-{ "pr": 13548, "base_sha": "...", "head_sha": "...", "incremental": true, "prior_review_sha": "...", "prior_review_at": "...", "files": ["..."] }
+{ "pr": 13548, "base_sha": "...", "head_sha": "...", "incremental": true, "full_review": false, "prior_review_sha": "...", "prior_review_at": "...", "files": ["..."] }
 ```
 
 - `incremental: true` — you are re-reviewing. `review.diff` is the PR's diff (`base_sha..head_sha`)
@@ -28,6 +28,9 @@ Read `$GITHUB_WORKSPACE/review-range.json`, written for you by an earlier step:
   Merges of the base branch are left out. Review what changed since that pass. Do not re-report
   findings on code you already reviewed; the author has seen them.
 - `incremental: false` — first pass. Review the whole PR diff.
+- `full_review: true` — a maintainer asked for a fresh review of the whole PR, usually because this
+  bot changed. Review the whole PR diff, as on a first pass, but you have reviewed it before: re-check
+  your earlier threads in Step 4 rather than reporting them again as new findings.
 
 The diff for your range is already on disk at `$GITHUB_WORKSPACE/review.diff`. Read that file
 rather than regenerating it. Next to it, `$GITHUB_WORKSPACE/pr.diff` is the whole PR's diff

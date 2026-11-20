@@ -54,6 +54,11 @@ on:
         description: "Debug: manually run the code reviewer on a specific existing PR"
         required: true
         type: string
+      full_review:
+        description: "Review the whole PR again, even a commit already reviewed (e.g. after a bot change)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   # One group per PR, and runs are never cancelled. A run cancelled after posting its review but
@@ -145,6 +150,19 @@ jobs:
       - name: Resolve review range (incremental since our last pass)
         id: range
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          # A full review of the whole PR, even of a commit already reviewed: for re-running the bot
+          # after a change to it. Maintainers only (the same list as analyze's `if`), since each one
+          # costs a full model run: a dispatch, or an "@openlibrary-bot full review" comment.
+          FULL_REVIEW: >-
+            ${{
+              (github.event_name == 'workflow_dispatch' && inputs.full_review) ||
+              (
+                github.event_name == 'issue_comment' &&
+                contains(github.event.comment.body, '@openlibrary-bot full review') &&
+                contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+              )
+            }}
         with:
           script: |
             const { resolveRange } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/range.cjs`);

@@ -1449,3 +1449,45 @@ test('post: with no file-level findings, the review is posted in one call as bef
     assert.equal(gh.calls.threads.length, 0);
     assert.equal(gh.calls.submit.length, 0);
 });
+
+// ===================== A full re-review =====================
+// After a change to the bot, a maintainer can ask for a review of a commit already reviewed.
+const fullReviewRange = async (env, priorSha = SHA('a')) => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({
+            data: { number: 1, head: { sha: head }, base: { sha: SHA('b'), ref: 'master' }, draft: false, state: 'open', user: { login: 'author' } }
+        }),
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: priorSha, submitted_at: '2026-01-01', body: 'ok\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }),
+        reviewThreads: []
+    });
+    // The whole PR's diff, as text when asked for a diff.
+    github.rest.repos.compareCommitsWithBasehead = async p =>
+        p.headers
+            ? { data: 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+x\n' }
+            : { data: { status: 'ahead', files: [], commits: [], total_commits: 0 } };
+    const ctx = { ...context, eventName: 'issue_comment', payload: { issue: { number: 1 } } };
+    const res = await runScript(range.resolveRange, { github, context: ctx, env: { GITHUB_WORKSPACE: dir, ...env }, cwd: dir });
+    return { res, json: () => JSON.parse(readFileSync(join(dir, 'review-range.json'), 'utf8')) };
+};
+test('range: a full review runs on a commit already reviewed, over the whole PR', async () => {
+    const { res, json } = await fullReviewRange({ FULL_REVIEW: 'true' });
+    assert.equal(res.outputs.skip, 'false');
+    assert.notEqual(res.outputs.repost, 'true', 'the model runs');
+    assert.equal(res.outputs.incremental, 'false');
+    assert.equal(res.outputs.files || '', '');
+    assert.equal(json().full_review, true);
+    assert.equal(json().prior_review_sha, null);
+});
+test('range: without it, the same commit is skipped as before', async () => {
+    const { res } = await fullReviewRange({ FULL_REVIEW: 'false' });
+    assert.equal(res.outputs.skip, 'true');
+});
+test('range: a full review on a newer commit is not incremental', async () => {
+    const { res, json } = await fullReviewRange({ FULL_REVIEW: 'true' }, SHA('c'));
+    assert.equal(res.outputs.incremental, 'false');
+    assert.equal(json().full_review, true);
+});
