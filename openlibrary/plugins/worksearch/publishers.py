@@ -53,8 +53,7 @@ class publisher_search(delegate.page):
     path = "/search/publishers"
 
     def GET(self):
-        # Local imports: openlibrary.fastapi.search imports this plugin, and this handler is temporary.
-        from openlibrary.core.jinja import render_jinja_template
+        # Local import: openlibrary.fastapi.search imports this plugin, and this handler is temporary.
         from openlibrary.fastapi.search import publisher_results, publisher_search_query, publisher_search_title
 
         i = web.input(q="")
