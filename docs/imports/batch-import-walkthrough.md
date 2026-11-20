@@ -35,5 +35,6 @@ Start the local web stack and ImportBot using the instructions in [Import Pipeli
 uv run --with-requirements requirements_test.txt pytest openlibrary/tests/core/test_imports_refresh.py openlibrary/plugins/openlibrary/tests/test_batch_import_retry_failed.py openlibrary/plugins/openlibrary/tests/test_batch_import_retry.py
 ```
 
-The tests cover the retry state transition, the admin-only POST endpoint, and
-whether the real batch status template shows the retry action only to admins.
+The tests cover the retry state transition, the flash message shown after
+requeueing, and whether the real batch status template shows the retry action
+only to admins.
