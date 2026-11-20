@@ -8,7 +8,8 @@ from openlibrary.plugins.openlibrary import code
 
 
 @pytest.mark.parametrize(("is_admin", "shows_retry"), [(True, True), (False, False)])
-def test_batch_status_get_renders_retry_action(render_template, monkeypatch, is_admin, shows_retry):
+def test_batch_status_get_renders_retry_action(render_template, request_context_fixture, monkeypatch, is_admin, shows_retry):
+    request_context_fixture(lang="en")
     username = "admin" if is_admin else "patron"
     user = SimpleNamespace(
         key=f"/people/{username}",
@@ -17,7 +18,7 @@ def test_batch_status_get_renders_retry_action(render_template, monkeypatch, is_
     )
     monkeypatch.setattr(code.delegate.context, "user", user, raising=False)
     monkeypatch.setattr(code, "_get_members_of_group", lambda _: ["/people/admin"] if is_admin else [])
-    monkeypatch.setattr(code.web, "input", lambda **_: web.storage(page=1, limit=10, sort="added_time asc"))
+    monkeypatch.setattr(code.web, "input", lambda **_: web.storage(page=1, limit=10, sort="added_time asc", status="", error=""))
     monkeypatch.setattr(
         code.db,
         "select",
@@ -27,6 +28,8 @@ def test_batch_status_get_renders_retry_action(render_template, monkeypatch, is_
     def query(statement, **_):
         if "GROUP BY status" in statement:
             return [web.storage(status="failed", count=1)]
+        if "GROUP BY error" in statement:
+            return [web.storage(error="internal-error", count=1)]
         if "COUNT(*) AS count" in statement:
             return [web.storage(count=1)]
         return []
