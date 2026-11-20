@@ -117,3 +117,21 @@ def test_webpy_handlers_render_the_fastapi_bodies(monkeypatch, request_context_f
     assert "<title>" not in body  # the shell adds it, from the handler's title
 
     assert str(publishers_code.index().GET()) == render_jinja_template("publishers/index.html.jinja")
+
+
+def test_concurrent_requests_each_get_only_their_own_page(site_page_app, webpy_leftovers, fetch_concurrently, monkeypatch):
+    """The publisher comes from this request: never another request's, or web.py's leftovers."""
+
+    async def get_subject(key, **kwargs):
+        name = key.removeprefix("/publishers/")
+        return publisher_subject(key=key, name=name, solr_query=f'publisher_facet:"{name}"')
+
+    monkeypatch.setattr("openlibrary.fastapi.publishers.get_subject_async", get_subject)
+    n = 12
+    responses = fetch_concurrently(site_page_app(pages), [(f"/publishers/Press_{i}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        html = response.text
+        assert response.status_code == 200
+        assert webpy_leftovers not in html
+        assert f"<title>Publisher: Press {i} | Open Library</title>" in html
+        assert not any(f"Press {j}<" in html or f"Press {j} |" in html for j in range(n) if j != i)

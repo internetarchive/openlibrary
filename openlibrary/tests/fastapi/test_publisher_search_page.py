@@ -119,3 +119,23 @@ def test_webpy_handler_renders_the_fastapi_body(monkeypatch, request_context_fix
     assert webpy_body == expected
     assert 'href="/publishers/Penguin_Books">Penguin Books</a>' in webpy_body
     assert "3 books" in webpy_body
+
+
+def test_concurrent_requests_each_get_only_their_own_page(site_page_app, webpy_leftovers, fetch_concurrently, monkeypatch):
+    """The query comes from this request: never another request's, or web.py's leftovers."""
+
+    async def select_async(**kwargs):
+        return solr_result((f"Publisher {kwargs['facet_contains']}", 1))
+
+    solr = MagicMock()
+    solr.select_async = select_async
+    monkeypatch.setattr("openlibrary.fastapi.search.get_solr", lambda: solr)
+    n = 12
+    responses = fetch_concurrently(site_page_app(pages), [(f"/search/publishers?q=query-{i}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        html = response.text
+        assert response.status_code == 200
+        assert webpy_leftovers not in html
+        assert f'value="query-{i}"' in html
+        assert f'href="/publishers/Publisher_query-{i}"' in html
+        assert not any(f'query-{j}"' in html for j in range(n) if j != i)
