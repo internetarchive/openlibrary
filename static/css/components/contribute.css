@@ -1761,9 +1761,9 @@ textarea.contrib-input {
 /* Time in the margin, then the cover, then the entry. */
 .contrib-feed__inner {
   display: grid;
-  grid-template-columns:
-    var(--contrib-ledger-margin) var(--contrib-ledger-cover)
-    minmax(0, 1fr);
+  grid-template-columns: var(--contrib-ledger-margin) var(
+      --contrib-ledger-cover
+    ) minmax(0, 1fr);
   column-gap: var(--spacing-inline-md);
   align-items: center;
   min-height: 0;
