@@ -388,6 +388,16 @@ class TestSignals:
 
         assert self.signals(site) == {"spammer": [("deleted", True)]}
 
+    def test_a_record_created_then_edited_is_still_its_own(self, site):
+        signup(site, "spammer", NOW - timedelta(hours=2))
+        self.save(site, "spammer", self.work(1, title="Junk"), 100)
+        self.save(site, "spammer", self.work(1, title="Junk", description="## Why it matters\n**Great** read"), 90, kind="edit-book")
+
+        assert self.signals(site) == {"spammer": [("markdown", False)]}
+
+        site.save({"key": "/works/OL1W", "type": {"key": "/type/delete"}}, timestamp=NOW - timedelta(minutes=10))
+        assert self.signals(site) == {"spammer": [("deleted", True)]}
+
     def test_burst_after_signup(self, site):
         signup(site, "fast", NOW - timedelta(hours=3))
         signup(site, "steady", NOW - timedelta(hours=3))

@@ -311,14 +311,10 @@ def _ranked_writes(writes) -> int:
 
 def _written_keys(writes) -> tuple[list[str], list[str]]:
     """Records the account created and records it edited that someone else created, each newest first."""
-    created: list[str] = []
-    edited: list[str] = []
-    for change in writes:
-        for c in change.changes:
-            target = created if c.get("revision") == 1 else edited
-            if c["key"] not in created and c["key"] not in edited:
-                target.append(c["key"])
-    return created, edited
+    # A record the account created stays its own even after it edits it again, whichever write comes first.
+    seen = dict.fromkeys(c["key"] for change in writes for c in change.changes)
+    made = {c["key"] for change in writes for c in change.changes if c.get("revision") == 1}
+    return [k for k in seen if k in made], [k for k in seen if k not in made]
 
 
 def _record_text(doc) -> str:
