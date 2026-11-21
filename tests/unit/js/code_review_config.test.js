@@ -37,13 +37,13 @@ async function runScript(job, name, env, github = {}) {
         warning: () => {},
         debug: () => {}
     };
-    const fs = require('fs');
+    const fs = require('node:fs');
     const at = p => (typeof p === 'string' && !p.startsWith('/') ? join(dir, p) : p);
     const wrappedFs = { ...fs, readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), writeFileSync: (p, ...a) => fs.writeFileSync(at(p), ...a) };
     const context = { repo: { owner: 'internetarchive', repo: 'openlibrary' }, eventName: 'pull_request_target', payload: { pull_request: { number: 1 } } };
     const [file, fn] = STEPS[`${job}/${name}`];
     const processEnv = { env: { GITHUB_WORKSPACE: dir, ...env } };
-    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'fs' ? wrappedFs : require(id)), process: processEnv });
+    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'node:fs' ? wrappedFs : require(id)), process: processEnv });
     return recorded;
 }
 
@@ -62,7 +62,12 @@ function mockGitHub() {
                     return { data: { id: 999 } };
                 }
             },
-            issues: { get: async () => (calls.issuesGet++, { data: {} }) },
+            issues: {
+                get: async () => {
+                    calls.issuesGet++;
+                    return { data: {} };
+                }
+            },
             repos: { compareCommitsWithBasehead: async () => ({ data: 'diff --git a/a.py b/a.py\n' }) }
         },
         paginate: async (method, params) => (await method(params)).data,
@@ -206,6 +211,8 @@ test('SECURITY: settings are read before the PR head is extracted, and steps aft
 // ================================= gate step: turned-off dimensions =================================
 async function runGate(review, off) {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    // finding() anchors on a.py:1. A finding about a file outside the diff is a note, which doesn't count.
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+print(1)\n');
     const res = await runScript('analyze', 'Gate the analysis', { OFF_DIMENSIONS: JSON.stringify(off) });
     return { res, written: JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')) };
 }

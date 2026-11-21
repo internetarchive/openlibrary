@@ -38,7 +38,7 @@ async function withoutFilesOnBase({ github, owner, repo, baseRef, base, head, fi
 }
 
 async function resolveRange({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber =
@@ -82,7 +82,12 @@ async function resolveRange({ github, context, core, require, process }) {
     let base = pr.base.sha,
         incremental = false,
         files = null;
-    if (prior && priorSha !== head) {
+    // A maintainer asked to review the whole PR again (see FULL_REVIEW in the workflow), e.g. after a
+    // change to the bot: no incremental range, and no skip for a commit already reviewed.
+    const full = process.env.FULL_REVIEW === 'true';
+    if (full) {
+        core.info('Full review requested: reviewing the whole PR, even if this commit was reviewed before.');
+    } else if (prior && priorSha !== head) {
         // Use the prior SHA only if it is an ancestor of head. After a force-push it may not be,
         // and diffing from it would review the wrong changes.
         try {
@@ -245,6 +250,8 @@ async function resolveRange({ github, context, core, require, process }) {
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
     fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, files ? filterDiff(diff, files) : diff);
+    // The whole PR's diff, which a finding may anchor to. `post` fetches the same diff again.
+    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr.diff`, diff);
     // Settings from the base checkout's .pr_agent.toml, so a PR can't change them. Later steps use
     // these outputs, which the model cannot change; the model reads review-config.json.
     const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
@@ -264,6 +271,7 @@ async function resolveRange({ github, context, core, require, process }) {
                 base_sha: base,
                 head_sha: head,
                 incremental,
+                full_review: full,
                 prior_review_sha: incremental ? priorSha : null,
                 prior_review_at: prior ? prior.submitted_at : null,
                 files

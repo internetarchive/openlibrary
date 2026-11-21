@@ -48,10 +48,17 @@ A review starts in one of these ways:
   [`.pr_agent.toml`](../.pr_agent.toml)). See [What happens when you push](#what-happens-when-you-push).
 - **When someone asks.** Request a review from the `openlibrary-agentic-code-reviewer` team, use
   the re-request button next to `openlibrary-bot`, or comment `@openlibrary-bot` on the PR. The bot
-  adds 👀 to your comment when the review starts.
+  adds 👀 to your comment when the review starts. A maintainer can also comment
+  `@openlibrary-bot full review` to review the whole PR again, even a commit already reviewed. See
+  [What a re-review covers](#what-a-re-review-covers).
 
 It never reviews a draft or a closed PR. If you ask for a review and there's nothing to review (a
 draft, a closed PR, or a commit it already reviewed), the bot replies to say so.
+
+A PR stacked on another PR's branch, rather than master, isn't reviewed on its own: for those,
+GitHub would run the other branch's copy of the bot, which may not be merged yet. A review request
+there gets a one-time reply saying to comment `@openlibrary-bot review` instead, which runs
+master's copy.
 
 ### What happens when you push
 
@@ -90,7 +97,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     who{"Who is asking?"}
-    who -- "A maintainer" --> anyway["Any of the three ways works"]
+    who -- "A maintainer" --> anyway["Any of the three ways works, and @openlibrary-bot full review reviews the whole PR again"]
     who -- "The PR's author" --> author["Re-request openlibrary-bot, or comment @openlibrary-bot on your PR"]
     who -- "Anyone else" --> other["The bot replies once to say who can ask; ask a maintainer"]
 ```
@@ -113,11 +120,33 @@ rewrites the history it reviewed, the bot reviews the whole PR again.
 On each re-review the bot also re-checks its own open comments, as described in
 [Responding to a finding](#responding-to-a-finding).
 
+**A full re-review.** The bot doesn't review a commit twice, and merging master in doesn't start a
+review either. So after a change to the bot itself, an open PR keeps its old review until its
+author pushes. To review the whole PR again now, a maintainer can comment
+`@openlibrary-bot full review`, or run the Code Review Action workflow by hand with **full_review**
+checked. Each full review is a complete run of the bot, so only the maintainers listed above can
+start one. From the PR's author, the same comment starts an ordinary review.
+
+### Stacked PRs
+
+A PR can target another PR's branch instead of master, so it can be reviewed while the first one
+is still open. The bot reviews such a PR against the branch it targets, so the review covers only
+that PR's own changes, and merging the other branch into it counts as a base-branch merge.
+
+When the PR it's stacked on merges, GitHub retargets this one to master, but its branch still has
+the other PR's original commits. If that PR was squash-merged, those commits now differ from what's
+on master, and the PR's diff mixes in the other PR's changes in any file both PRs touched. That
+affects the Files tab and the bot alike. **Rebase onto master after the PR below yours merges.**
+The next review is then a full review of your changes against master.
+
 ### If a review gets stuck or fails
 
 If GitHub returns a server error (5xx) while the bot posts its review, the bot retries up to twice,
 10 and 20 seconds apart. It first checks whether GitHub posted the review anyway, so it doesn't post
 it twice. The job fails only if every attempt fails.
+
+If the model's `review.json` doesn't match the expected format, the bot runs the model once more to
+fix it. If it still doesn't match, the review is withheld.
 
 Ask again: comment `@openlibrary-bot`, or re-request the review.
 
@@ -154,8 +183,9 @@ When part of a review is held back, the rest is still posted, with a note saying
 held back. If the held-back part blocks, the bot requests changes and the `code-review` check fails
 with "Feedback withheld for maintainer review." It stays failed through later reviews, until a
 maintainer has looked at the PR, dismissed that review, and commented `@openlibrary-bot review` to
-refresh the check. The held-back text isn't sent anywhere: the bot keeps nothing that it can't post
-publicly.
+refresh the check. Until then, each later review also requests changes, even when it found nothing
+new, and says that it does so because of the held-back review, with a link to it. The held-back
+text isn't sent anywhere: the bot keeps nothing that it can't post publicly.
 
 The full instructions the bot follows are in
 [`.github/workflows/code_review.md`](../.github/workflows/code_review.md).
@@ -167,15 +197,21 @@ The full instructions the bot follows are in
 
 - **Inline comments** for findings that should be fixed before merging, each headed with its
   severity and area, for example **MEDIUM · Correctness — …**. Where the fix is small, the comment
-  includes a suggestion you can apply in one click.
+  includes a suggestion you can apply in one click. A re-review can comment on any line the PR
+  changes, not only the files changed since its last review. A finding about a whole file, or one
+  with no line in the diff to sit on, is a comment on the file instead. Every finding that blocks
+  has one of these threads, so you can always reply to it there.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
   sure about, and every test-coverage finding.
+- **Notes (won't block)** in the summary, for findings about code outside the PR's changes, which
+  have no thread. Reply in a comment on the PR if one doesn't apply.
 - **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
   inline comment, and one in the summary covering everything the review found.
 - **🎫 Linked issues**, collapsed, when the PR links to issues: which of their requirements the PR
   meets.
 - **A last line with the next step:** address the feedback before a maintainer reviews the PR,
-  or, when the bot found nothing, that a maintainer will review it next. Treat suggestions as
+  or, when the bot found nothing, that a maintainer will review it next (or, while an earlier
+  held-back review is open, that it's waiting for a maintainer to check it). Treat suggestions as
   feedback too, and use your judgement on each.
 
 **The verdict.** The review is one of:
@@ -190,9 +226,10 @@ The full instructions the bot follows are in
 | Check | Message | Meaning |
 |---|---|---|
 | ⏳ pending | Review in progress. | The bot is reviewing this commit. |
-| ⏳ pending | New commits. A review starts after 10 minutes with no more pushes. | A re-review starts when the pushes stop. |
+| ⏳ pending | Waiting for pushes to stop. Review starts ~`<time>` UTC, or comment @openlibrary-bot review to start now. | A re-review starts 10 minutes after the last push. Commenting starts it right away. |
 | ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
+| ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
 | ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit gets its own review. |
 | ❌ failure | N findings to address. | The review found problems that block. |
 | ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |
@@ -235,6 +272,13 @@ flowchart TD
   thread yourself or ask a maintainer to.
 - **Resolve it yourself.** The PR's author and anyone with write access can resolve a thread. Use
   your judgment; the bot can be wrong.
+
+When the bot closes the last open finding of one of its earlier reviews, it edits that review to
+open with **✅ Every finding in this review was fixed or dismissed.** and strikes through its old
+status line. That way an old review never shows a problem that's already gone. Only the text
+changes: the review's verdict stays as it was, and the bot never dismisses its own reviews. A
+review with a finding that had no thread is left as it is, since the bot can't tell whether that
+finding was fixed.
 
 A few more things worth knowing:
 

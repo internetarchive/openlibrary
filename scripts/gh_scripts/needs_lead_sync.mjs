@@ -80,7 +80,7 @@ export function formatNeedsLeadSummary({ changes, listError }, fullRepoName) {
         '',
         `Removed from issues that have a lead (${removed.length}): ${removed.join(', ')}`
     ];
-    for (const c of changes.filter(c => c.error)) {
+    for (const c of changes.filter(change => change.error)) {
         lines.push('', `Failed to ${c.change} on ${linkify(`#${c.number}`, fullRepoName)}: ${oneLine(c.error)}`);
     }
     if (listError) {

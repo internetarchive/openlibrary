@@ -250,8 +250,8 @@ describe('phraseQuery', () => {
     });
 
     test('normalizes curly double quotes before preserving the query', () => {
-        expect(phraseQuery('\u201cit was the best of times\u201d')).toBe('"it was the best of times"');
-        expect(phraseQuery('he said \u201chello there\u201d softly')).toBe('he said "hello there" softly');
+        expect(phraseQuery('\u201Cit was the best of times\u201D')).toBe('"it was the best of times"');
+        expect(phraseQuery('he said \u201Chello there\u201D softly')).toBe('he said "hello there" softly');
     });
 
     test('closes a stray quote before trailing text and drops a trailing one', () => {
@@ -276,7 +276,7 @@ describe('allWordsQuery', () => {
     test('sends the words loose, with field syntax broken up', () => {
         expect(allWordsQuery('  argentina\n brazil ')).toBe('argentina brazil');
         expect(allWordsQuery('languageSorter:English whale')).toBe('languageSorter English whale');
-        expect(allWordsQuery('\u201cwhite whale\u201d')).toBe('"white whale"');
+        expect(allWordsQuery('\u201Cwhite whale\u201D')).toBe('"white whale"');
         expect(allWordsQuery('  "  "  ')).toBe('');
     });
 });
