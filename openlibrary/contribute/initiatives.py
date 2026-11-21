@@ -34,11 +34,13 @@ from openlibrary.utils.request_context import site as request_site
 logger = logging.getLogger("openlibrary.contribute.initiatives")
 
 # How many people must say "I couldn't find it" before a gap leaves the list. Many books really have no LCCN or OCLC
-# number, but nearly every book has a cover, page count, publisher and language, so a miss there is weaker evidence.
+# number (or, before 1970, an ISBN), but nearly every book has a cover, page count, publisher, date and language, so a miss there is weaker evidence.
 NOT_FOUND_PEOPLE = {
     "lccn": 2,
     "oclc_numbers": 2,
+    "isbn": 2,
     "number_of_pages": 3,
+    "publish_date": 3,
     "publishers": 3,
     "covers": 3,
     "languages": 4,
@@ -128,8 +130,8 @@ def with_open_gap(picks: list[list], site, fields: tuple[str, ...], taken_works:
 
 
 def pick_most_shelved(size: int, site, per_work: int = EDITIONS_PER_WORK, fields: tuple[str, ...] | None = None) -> list[list]:
-    """The editions people name most when they shelve a book: ISBN editions only, at most ``per_work`` per work, and with
-    ``fields`` only those that still have a gap in one of them (which are work fields, so then one edition per work).
+    """The editions people name most when they shelve a book: ISBN editions only (unless the ISBN is what's asked for), at most
+    ``per_work`` per work, and with ``fields`` only those that still have a gap in one of them (which are work fields, so then one edition per work).
 
     Tops up from ``pick_most_read`` when the reading log names too few editions, as on a dev database.
     """
@@ -137,13 +139,14 @@ def pick_most_shelved(size: int, site, per_work: int = EDITIONS_PER_WORK, fields
     picks: list[list] = []
     taken_works: set[str] = set()
     counted: Counter[int] = Counter()
+    need_isbn = "isbn" not in (fields or ())
     for i in range(0, len(rows), 100):
         chunk = rows[i : i + 100]
         editions = {e.key: e for e in site.get_many([f"/books/OL{r['edition_id']}M" for r in chunk])}
         wanted = []
         for r in chunk:
             edition = editions.get(f"/books/OL{r['edition_id']}M")
-            if not edition or edition.type.key != "/type/edition" or not (edition.get("isbn_13") or edition.get("isbn_10")):
+            if not edition or edition.type.key != "/type/edition" or (need_isbn and not (edition.get("isbn_13") or edition.get("isbn_10"))):
                 continue
             if counted[r["work_id"]] >= per_work:
                 continue

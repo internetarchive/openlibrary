@@ -8,7 +8,17 @@
 import { setBannerCookie } from './banner';
 import { confirmFromTemplate } from './confirm-template';
 import { initFeed } from './contribute-feed';
-import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
+import {
+    parseIsbn,
+    isFormatValidIsbn10,
+    isChecksumValidIsbn10,
+    isFormatValidIsbn13,
+    isChecksumValidIsbn13,
+    parseLccn,
+    isValidLccn,
+    parseOclc,
+    isValidOclc
+} from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
@@ -22,7 +32,11 @@ const ROWS_MAX_TRIES = 36;
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
     lccn: { parse: parseLccn, isValid: isValidLccn },
-    oclc_numbers: { parse: parseOclc, isValid: isValidOclc }
+    oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
+    isbn: {
+        parse: raw => parseIsbn(raw).toUpperCase(),
+        isValid: isbn => (isFormatValidIsbn10(isbn) && isChecksumValidIsbn10(isbn)) || (isFormatValidIsbn13(isbn) && isChecksumValidIsbn13(isbn))
+    }
 };
 
 /**
@@ -313,7 +327,7 @@ function initManyChoice(group) {
     const sync = () => {
         group.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
         // By property: the chip reflects ``selected`` to its attribute only on its next render.
-        for (const chip of [...group.querySelectorAll('ol-chip')].filter(chip => chip.selected)) {
+        for (const chip of [...group.querySelectorAll('ol-chip')].filter(candidate => candidate.selected)) {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = name;

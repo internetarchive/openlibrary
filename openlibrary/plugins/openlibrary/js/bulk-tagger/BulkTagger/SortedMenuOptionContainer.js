@@ -59,7 +59,7 @@ export class SortedMenuOptionContainer {
         for (const option of menuOptions) {
             const index = this.findIndex(option);
             const removed = this.sortedMenuOptions.splice(index, 1);
-            removed.forEach(option => option.remove());
+            removed.forEach(removedOption => removedOption.remove());
         }
     }
 

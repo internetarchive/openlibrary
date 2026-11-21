@@ -210,8 +210,7 @@ describe('more', () => {
         [7, 2, 3, 5, 7],
         [7, 2, 3, 7, 7]
     ].forEach(test => {
-        const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
-        describe(label, () => {
+        describe(`Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`, () => {
             beforeAll(() => {
                 document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
                 window.Element.prototype.getClientRects = _stubbedGetClientRects;
@@ -236,8 +235,7 @@ describe('less', () => {
         [9, 2, 3, 8, 5],
         [7, 2, 3, 7, 5]
     ].forEach(test => {
-        const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
-        describe(label, () => {
+        describe(`Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`, () => {
             beforeAll(() => {
                 document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
                 window.Element.prototype.getClientRects = _stubbedGetClientRects;

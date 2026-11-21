@@ -300,6 +300,22 @@ class TestGetNotes:
         assert "My notes for this work" in html
         assert "work-level note" in html
 
+    def test_edition_note_page_links_the_edition_in_one_sentence(self, mock_site, render_template, request_context_fixture):
+        """'My notes for an edition of %(title)s' renders the edition link inside the sentence, escaped."""
+        request_context_fixture(lang="en")
+        macro.load_macros("openlibrary", lazy=True)
+        _save_fixtures(mock_site)
+        mock_site.save({"key": "/books/OL789M", "type": {"key": "/type/edition"}, "title": "Fish & <Chips>"})
+        notes = _make_notes_data((1, [{"edition_id": 123, "notes": "n1"}, {"edition_id": 789, "notes": "n2"}]))
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
+            entries = _make_patron_booknotes(mock_site).get_notes()
+
+        html = render_template("account/notes", entries, _make_user(mock_site), 1)
+
+        assert 'My notes for an edition of <a href="/books/OL123M/Edition_123">Edition 123</a>' in html
+        assert "Fish &amp; &lt;Chips&gt;</a>" in html
+        assert "<Chips>" not in html
+
     def test_edition_not_in_store_is_none(self, mock_site):
         """An edition referenced in notes but absent from the store is represented as None."""
         mock_site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "W"})
@@ -390,6 +406,19 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
     assert get_users_logged_books.await_args.kwargs["sort"] == expected
 
 
+def _render_reading_log(monkeypatch, requested: str, owners_page: bool, shelf_count: int = 0, used: str | None = "created desc") -> MagicMock:
+    """Renders a shelf where `requested` is the sort asked for and `used` the one the shelf came back in."""
+    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
+    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
+    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
+    monkeypatch.setattr(mybooks, "render", MagicMock())
+    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": shelf_count})
+    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
+
+    mybooks.mybooks_readinglog().render_template(mb)
+    return mb
+
+
 @pytest.mark.parametrize(
     ("requested", "owners_page", "used", "asked_for", "shown"),
     [
@@ -397,17 +426,27 @@ async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
         ("rating", False, "created desc", "desc", "desc"),
         ("title", False, "title", "title", "title"),
         ("title", True, "created desc", "title", "desc"),
+        ("title", True, None, "title", None),
     ],
 )
 def test_reading_log_menu_shows_the_sort_actually_used(monkeypatch, requested, owners_page, used, asked_for, shown):
-    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
-    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
-    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
-    monkeypatch.setattr(mybooks, "render", MagicMock())
-    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": 0})
-    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
-
-    mybooks.mybooks_readinglog().render_template(mb)
+    mb = _render_reading_log(monkeypatch, requested, owners_page, used=used)
 
     assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
     assert mybooks.render["account/reading_log"].call_args.kwargs["sort_order"] == shown
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "shelf_count", "asked_for", "unavailable"),
+    [
+        ("title", True, 10, "title", []),
+        ("rating", False, 10, "desc", ["rating"]),
+        ("title", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "desc", ["title", "old", "want_to_read"]),
+        ("rating", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "rating", ["title", "old", "want_to_read"]),
+    ],
+)
+def test_reading_log_menu_leaves_out_unavailable_sorts(monkeypatch, requested, owners_page, shelf_count, asked_for, unavailable):
+    mb = _render_reading_log(monkeypatch, requested, owners_page, shelf_count=shelf_count)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["unavailable_sorts"] == unavailable

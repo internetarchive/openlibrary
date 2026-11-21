@@ -110,8 +110,8 @@ const compactCount = n => new Intl.NumberFormat(undefined, { notation: 'compact'
 // A drag the trigger should accept: it carries plain text (a text selection
 // or a URL) and is not an ILE book selection, which stores JSON as text/plain.
 function isTextDrag(dataTransfer) {
-    const types = Array.from(dataTransfer?.types || []);
-    return types.includes('text/plain') && !types.includes('application/x.ile+json');
+    const types = new Set(Array.from(dataTransfer?.types || []));
+    return types.has('text/plain') && !types.has('application/x.ile+json');
 }
 
 export class SearchModal extends LitElement {
@@ -2488,7 +2488,7 @@ export class SearchModal extends LitElement {
         }
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
-        return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
+        return sprintf(this._i18n.resultsAnnounce, { shown: shown.toLocaleString(), total: total.toLocaleString() });
     }
 
     // Rows on screen, not the backend total (that's on the see-all).

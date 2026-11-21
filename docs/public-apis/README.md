@@ -238,7 +238,7 @@ Modeled after the HathiTrust Bibliographic API. Provides loan status and all phy
   }
 }
 ```
-Items come from Solr's `ia` field (up to 500 IA items per work). Loan status checked from `web.ctx.site.store("ebooks/{iaid}")`.
+Items come from Solr's `ia` field (up to 500 IA items per work). Loan status comes from IA lending through `openlibrary.core.lending.get_checked_out_async()`.
 
 ---
 
