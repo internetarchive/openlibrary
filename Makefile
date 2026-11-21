@@ -9,7 +9,8 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend test test-py test-py-uv test-py-integration test-i18n
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend test test-py test-py-uv test-py-integration test-i18n \
+	e2e-up e2e-stack e2e-assets e2e-index e2e-reindex test-e2e
 
 all: git frontend i18n
 
@@ -88,3 +89,76 @@ test-i18n:
 
 test:
 	make test-py && npm run test && make test-i18n
+
+# End-to-end tests
+# ----------------
+# Playwright drives a real browser on the host against the dev stack in Docker.
+# `make e2e-up` once per session, then `make test-e2e` as often as you like.
+# See tests/e2e/README.md.
+
+# The host port compose published for this checkout's fast_web, which picks up
+# FAST_WEB_PORT from .env as well as the shell. Empty when fast_web isn't up.
+E2E_PORT = $$(docker compose port fast_web 8080 2>/dev/null | cut -d: -f2)
+E2E_SERVICES = db memcached mockservices infobase covers solr web fast_web
+
+# Playwright runs on the host, so it needs the host's node_modules. Installing
+# through the local package keeps the browser matched to the pinned version.
+# The steps are sequential recipe lines, not prerequisites, so `make -j` can't
+# index before the stack is up.
+e2e-up:
+	$(MAKE) e2e-stack
+	$(MAKE) e2e-assets
+	$(MAKE) e2e-index
+	@test -d node_modules/@playwright/test || npm ci
+	npm exec -- playwright install chromium chromium-headless-shell
+
+e2e-stack:
+	docker compose up -d $(E2E_SERVICES)
+	@url=http://localhost:$(E2E_PORT); echo "Waiting for $$url ..."; \
+	for i in $$(seq 1 90); do \
+		curl -sf -o /dev/null $$url/ && exit 0; \
+		sleep 2; \
+	done; \
+	echo "Timed out. Try: docker compose logs web fast_web" >&2; \
+	exit 1
+
+# static/build ships inside the image, built from master at image build time.
+# Rebuild it from this working tree, or the browser tests stale bundles and
+# passes against code that isn't yours.
+e2e-assets:
+	docker compose run --rm home npm run build-assets
+
+# Solr starts empty, and the search, subject and author specs skip themselves
+# when it has no documents -- a skipped test reads exactly like a pass. Probe
+# for the works the search spec queries, not any document: a few edits or an
+# interrupted reindex leave a partial index. Query through the web container:
+# a Solr that answers on localhost can still be unreachable from the app.
+E2E_SOLR_PROBE = docker compose exec -T web curl -sf "http://solr:8983/solr/openlibrary/select?q=type:work%20AND%20author_name:tolkien&rows=0" \
+	| grep -o '"numFound":[0-9]*' | cut -d: -f2
+e2e-index:
+	@count=$$($(E2E_SOLR_PROBE)); \
+	if [ -z "$$count" ]; then \
+		echo "The web container can't reach Solr. Try: docker compose up -d --force-recreate solr" >&2; \
+		exit 1; \
+	elif [ "$$count" = "0" ]; then \
+		docker compose run --rm home make reindex-solr || exit 1; \
+		[ "$$($(E2E_SOLR_PROBE))" -gt 0 ] 2>/dev/null || \
+			{ echo "Reindexed, but Solr still has no Tolkien works. Try: docker compose logs solr" >&2; exit 1; }; \
+	else \
+		echo "Solr has the seed works; skipping reindex (make e2e-reindex to force)."; \
+	fi
+
+e2e-reindex:
+	docker compose run --rm home make reindex-solr
+
+# A thin wrapper over the npm script, the way `test` wraps `npm run test`, so
+# Playwright is invoked in exactly one place. Not folded into `test`: that runs
+# on any checkout, and these need the stack up and Solr populated. Reading the
+# port from this checkout's fast_web stops it silently testing another
+# checkout's stack; setting OL_BASE_URL skips that and points the suite elsewhere.
+PLAYWRIGHT_ARGS ?=
+test-e2e:
+	@port=$(E2E_PORT); base=$${OL_BASE_URL:-$${port:+http://localhost:$$port}}; \
+	[ -n "$$base" ] || { echo "fast_web isn't running for this checkout. Run: make e2e-up" >&2; exit 1; }; \
+	echo "Testing $$base"; \
+	OL_BASE_URL=$$base npm run test:e2e -- $(PLAYWRIGHT_ARGS)
