@@ -469,3 +469,29 @@ def test_a_half_renders_the_heading_and_itself_or_nothing(request_context_fixtur
 
     assert render({"part": "shelves", "shelves": [], "shelves_checked": True}) == ""
     assert render({"part": "loans", "loans": []}) == ""
+
+
+def test_a_ready_hold_shows_how_long_it_is_kept(request_context_fixture):
+    request_context_fixture(lang="en")
+    from openlibrary.core.jinja import get_jinja_env, render_jinja_template  # noqa: PLC0415
+
+    home_member = _home_member()
+    hold = _hold("ready", ready=True) | {"note": home_member.ready_label(2.2)}
+    # Alone it takes the large layout, beside a loan a line; either way its countdown shows.
+    for loans in ([], [_loan("borrowed", 5)]):
+        cards = home_member.build_loans(loans=loans, holds=[hold])
+        with patch.dict(get_jinja_env().globals, {"icon": lambda *args, **kwargs: ""}):
+            html = render_jinja_template("home/member.html.jinja", member={"name": "", "complete": True, "part": "loans", "loans": cards})
+        assert "Held for you for 2 more hours." in html
+
+
+def test_labels_count_and_pluralise(request_context_fixture):
+    request_context_fixture(lang="en")
+    home_member = _home_member()
+    assert [home_member.due_label(days) for days in (-1, 0, 1, 2)] == ["Due back today", "Due back today", "Due back tomorrow", "Due back in 2 days"]
+    assert home_member.ready_label(0) == "Borrow it soon, or it goes to the next reader."
+    assert home_member.ready_label(0.4) == "Held for you for 1 more hour."
+    assert home_member.ready_label(30) == "Held for you for 1 more day."
+    assert home_member.ready_label(60) == "Held for you for 2 more days."
+    assert home_member.waiting_label(1, 4) == "You're next in line"
+    assert home_member.waiting_label(3, 7) == "You're number 3 of 7 in line"
