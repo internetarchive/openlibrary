@@ -61,9 +61,10 @@ $code:
             source_url = "//archive.org/details/" + item
         return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
 
-    def link(url, label):
+    def link(url, label, rel=None):
+        rel_attr = ' rel="' + rel + '"' if rel else ''
         # detect-missing-i18n-skip-line
-        return '<a href="' + url + '">' + label + '</a>' if url else label
+        return '<a href="' + url + '"' + rel_attr + '>' + label + '</a>' if url else label
 
     def get_source_html(record_id):
         record_type = _('record')
@@ -77,7 +78,7 @@ $code:
 	if record.source_name in ('Promise Item', 'ISBNdb', 'OpenAlex'):
             return link(record.source_url, record.source_name)
 	else:
-            return link(record.source_url, record.source_name) + ' ' + link(record.url, record_type)
+            return link(record.source_url, record.source_name) + ' ' + link(record.url, record_type, rel='nofollow')
 
 $var get_source_record = get_source_record
 $var get_source_html = get_source_html
