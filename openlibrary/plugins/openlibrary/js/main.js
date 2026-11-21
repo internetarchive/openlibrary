@@ -611,6 +611,12 @@ $(function () {
         import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
     }
 
+    // Home page: a signed-in reader's loans, holds and Want to Read row
+    const homeMemberSlot = document.querySelector('.home-member-slot');
+    if (homeMemberSlot) {
+        import('./home-member').then(module => module.initHomeMember(homeMemberSlot));
+    }
+
     // Home page librarian call-out: /tasks can be slow to start painting.
     const librarianCta = document.querySelector('.librarian-card__cta');
     if (librarianCta) {
