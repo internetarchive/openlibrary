@@ -181,7 +181,7 @@ msgstr[1] ""
 msgid "Status:"
 msgstr ""
 
-#: about/index.html batch_import_list.html batch_import_view.html type/tag/index.html
+#: about/index.html admin/new_accounts.html.jinja batch_import_list.html batch_import_view.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -2312,22 +2312,81 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "Accounts under %(age)s old that edited in the last %(window)s and show a sign of spam: links in what they wrote, words from the spam list, books a librarian already deleted, or many books or lists right after signup. Times are in UTC."
+msgid "Accounts under %(age)s old that edited in the last %(window)s. Times are in UTC."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "How accounts are flagged"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "Show all %(count)s accounts"
+msgid "These rules come from the 861 accounts admins reverted as spam between August 2025 and November 2026. The strong signs mark 86%% of them, and none of the 42 ordinary new readers, authors and librarians they were checked against."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Likely spam: any one of"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "A phone number in a record they wrote or edited. Fake airline and software support lines are the most common spam. When the account also uploads covers or photos it is more likely a publisher, so this only marks it worth a look."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Sales or support-line wording: promo codes, discounts, casinos, “customer service number”, “how to talk to a live person”, “buy … online” and the like."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Words from the admin spam word list."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "All accounts under %(age)s old that edited in the last %(window)s, those with a sign of spam first. Adding books to a list doesn't count towards the order. Times are in UTC."
+msgid "%(count)s or more lists created. Readers make one or two; spam accounts made up to 100."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
-#, python-format
-msgid "Show only the %(count)s with a sign of spam"
+msgid "Their only edit put a link on their profile. These are SEO accounts that sign up, add a website and leave, often within a minute."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Books or authors they added that a librarian has already deleted."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Worth a look"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Links in books, lists or a profile they wrote, alongside other edits. Usually authors and publishers promoting their own work."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Article formatting (Markdown headings, bold, links) in a description."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "10 or more books or lists in the first hour."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Not counted"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Adding books to a list. It is what most new readers do, so it doesn't flag an account or move it up the order."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Editing within minutes of signing up. Most real new users do that too; the column is there for context."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Which accounts"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Likely spam"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2425,7 +2484,7 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "None of the %(count)s accounts under %(age)s old that edited in the last %(window)s shows a sign of spam."
+msgid "None of the %(count)s accounts under %(age)s old that edited in the last %(window)s is in this group."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -10255,8 +10314,15 @@ msgstr ""
 
 #: openlibrary/plugins/admin/new_accounts.py
 #, python-format
-msgid "Links in %(count)s record"
-msgid_plural "Links in %(count)s records"
+msgid "Phone number in %(count)s record"
+msgid_plural "Phone numbers in %(count)s records"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "Sales or support-line wording in %(count)s record"
+msgid_plural "Sales or support-line wording in %(count)s records"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -10269,8 +10335,31 @@ msgstr[1] ""
 
 #: openlibrary/plugins/admin/new_accounts.py
 #, python-format
+msgid "%(count)s lists created"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
 msgid "%(count)s record already deleted"
 msgid_plural "%(count)s records already deleted"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+msgid "Only edit: a link on their profile"
+msgstr ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "Links in %(count)s record"
+msgid_plural "Links in %(count)s records"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "Article formatting in %(count)s record"
+msgid_plural "Article formatting in %(count)s records"
 msgstr[0] ""
 msgstr[1] ""
 

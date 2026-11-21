@@ -137,18 +137,71 @@
 }
 
 .new-accounts__signal {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__signal--strong {
+  color: var(--color-error-fg);
+}
+
+.new-accounts__tier {
+  display: inline-block;
+  margin-block-end: var(--spacing-3xs);
   padding-inline: var(--spacing-inset-xs);
   border-radius: var(--border-radius-badge);
-  background-color: var(--color-warning-bg);
   font-size: var(--font-size-body-small);
-  color: var(--color-warning-fg);
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
 
-/* Links and spam words are the strongest signs; a burst alone is often an eager new librarian. */
-.new-accounts__signal--links,
-.new-accounts__signal--spam-words,
-.new-accounts__signal--deleted {
+.new-accounts__tier--likely {
   background-color: var(--color-error-bg);
   color: var(--color-error-fg);
+}
+
+.new-accounts__tier--look {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.new-accounts__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xs);
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.new-accounts__tab-count {
+  font-weight: var(--font-weight-regular);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__rules {
+  margin-block-end: var(--spacing-stack-md);
+  font-size: var(--font-size-body-medium);
+}
+
+.new-accounts__rules summary {
+  cursor: pointer;
+  color: var(--color-link);
+}
+
+.new-accounts__rules h3 {
+  margin: var(--spacing-stack-sm) 0 var(--spacing-2xs);
+  font-size: var(--font-size-title-small);
+}
+
+.new-accounts__rules :is(p, ul) {
+  max-width: 70ch;
+  margin: 0;
+}
+
+.new-accounts__rules ul {
+  padding-inline-start: var(--spacing-lg);
+}
+
+.new-accounts__rules ul > * {
+  list-style: disc;
 }

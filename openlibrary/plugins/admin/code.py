@@ -434,13 +434,13 @@ class new_accounts_view:
     """New accounts writing fast: young accounts ranked by recent edits, with block actions on each row."""
 
     def GET(self):
-        i = web.input(days=None, hours=None, all=None)
+        i = web.input(days=None, hours=None, show=None)
         report = new_accounts.build_report(
             site.get(),
             days=new_accounts.clamp_param(i.days, new_accounts.MAX_ACCOUNT_AGE_DAYS, new_accounts.MAX_ACCOUNT_AGE_DAYS_LIMIT),
             hours=new_accounts.clamp_param(i.hours, new_accounts.WINDOW_HOURS, new_accounts.WINDOW_HOURS_LIMIT),
-            # ?all=1 lists every young account; by default only those with a sign of spam.
-            flagged_only=not i.all,
+            # ?show=look or ?show=all widen the list; by default it holds only likely spam.
+            show=i.show if i.show in new_accounts.SHOW_CHOICES else new_accounts.LIKELY,
             spam_words=spamcheck.get_spam_words(),
         )
         body = render_jinja_template("admin/new_accounts.html.jinja", report=report)

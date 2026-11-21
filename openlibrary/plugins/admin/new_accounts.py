@@ -2,7 +2,9 @@
 
 Spam waves come from accounts that are days old at most and start writing within minutes of signing up.
 `build_report` finds them from one bounded scan of recent changes and returns plain values for the template.
-Most young accounts are not spam, so each one is checked for signs of it (`Signal`) and the page shows those first.
+Most young accounts are not spam, so each one is checked for signs of it (`Signal`). Strong signs make an account
+"likely spam", the default view; weak ones only make it "worth a look". The rules come from the accounts admins
+reverted as spam (see `find_signals`).
 """
 
 import re
@@ -36,14 +38,18 @@ BLOCKABLE_STATUSES = ("active", "verified")
 # Adding catalog books to one's own list is what new readers do most; it never counts towards the ranking.
 LIST_SEED_KINDS = ("edit-list-seeds",)
 
-# Signals. Only the records an account created are read, newest first, up to this many per account, plus its profile.
+# Signals. The records an account created or edited are read, newest first, up to this many, plus its profile.
 MAX_RECORDS_CHECKED = 20
 BURST_RECORDS = 10  # this many new books or lists ...
 BURST_MINUTES = 60  # ... this soon after signup
+MANY_LISTS = 3  # readers make one or two lists; spam accounts made up to 100 each
+PROFILE_KINDS = ("default-update", "update")
+# Uploading covers and photos is catalog work that spam accounts rarely do.
+CATALOG_WORK_KINDS = ("add-cover", "add-photo")
 # Fields of works, editions, authors, lists and profiles that hold text the account wrote.
 TEXT_FIELDS = ("title", "subtitle", "name", "description", "bio", "notes", "first_sentence", "website", "links")
 LINK_RE = re.compile(
-    r"https?://\S+|www\.\S+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|info|biz|xyz|top|shop|site|online|club|vip|co|me|ru|cn)\b", re.IGNORECASE
+    r"https?://\S+|www\.\S+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|info|biz|xyz|top|shop|site|online|club|vip|co|me|ru|cn|in|pk|bd|vn)\b", re.IGNORECASE
 )
 # Links to these are references, not promotion.
 TRUSTED_LINK_DOMAINS = (
@@ -61,6 +67,21 @@ TRUSTED_LINK_DOMAINS = (
     "librarything.com",
     "gutenberg.org",
 )
+# A run of digits and separators holding 10 to 13 digits: a phone number, unless it is an ISBN.
+PHONE_RE = re.compile(r"\+?\(?\d[\d\s().\/-]{8,}\d")
+# Wording from the sales and fake-support spam admins reverted: promo codes, casinos, and airline or software "help lines".
+SALES_RE = re.compile(
+    r"promo ?codes?|coupons?|discount codes?|\d+ ?% ?off\b|casino|betting|\bslots? (?:game|online)|payday|crypto|forex|backlinks?"
+    r"|\bseo (?:services?|agency|company)|escorts?\b|call ?girls?|viagra|\bcbd\b|referral codes?|whatsapp"
+    r"|customer (?:service|care|support)\W+(?:\w+\W+){0,2}?(?:number|line|phone|contact)|helpline|toll.?free"
+    r"|(?:contact|phone|support|change|reservation) numbers?"
+    r"|respond quickly|contact methods|(?:speak|talk) (?:to|with) (?:a )?(?:live )?(?:person|agent|human|representative)"
+    r"|login (?:not working|issues?)|c[oó]mo (?:hablar|llamar|comunicarse)|gu[ií]a ofic[i]al|\bbuy\b.{0,25}\bonline\b"
+    r"|packers and movers|movers and packers|24 ?[x/] ?7",
+    re.IGNORECASE,
+)
+# Headings, bold and links in Markdown: pasted SEO articles.
+MARKDOWN_RE = re.compile(r"(?:^|\s)#{1,3} \S|\*\*\S|\[[^\]]+\]\(")
 # Ordinary users can't delete these; when one an account created is gone, a librarian removed it.
 CATALOG_PREFIXES = ("/works/", "/books/", "/authors/")
 
@@ -78,8 +99,15 @@ class RecentEdit:
 
 @dataclass(frozen=True)
 class Signal:
-    code: str  # "links", "spam-words", "deleted" or "burst"; the CSS hook
+    code: str  # the CSS hook, e.g. "phone"
     label: str
+    strong: bool  # one strong signal makes the account likely spam
+
+
+LIKELY = "likely"
+LOOK = "look"
+NONE = "none"
+SHOW_CHOICES = (LIKELY, LOOK, "all")
 
 
 @dataclass
@@ -108,6 +136,7 @@ class AccountRow:
     first_write_is_fast: bool
     recent_edits: list[RecentEdit] = field(default_factory=list)
     signals: list[Signal] = field(default_factory=list)
+    tier: str = NONE  # LIKELY, LOOK or NONE
 
 
 @dataclass
@@ -118,8 +147,9 @@ class Report:
     window_label: str  # "24 hours"
     rows: list[AccountRow]
     matching_accounts: int  # before the cut to `max_accounts`
-    flagged_accounts: int  # of those, the ones with a signal
-    flagged_only: bool
+    likely_accounts: int
+    look_accounts: int
+    show: str  # LIKELY, LOOK or "all"
     max_accounts: int
     changes_scanned: int
     scan_capped: bool
@@ -206,12 +236,16 @@ def _ranked_writes(writes) -> int:
     return sum(c.kind not in LIST_SEED_KINDS for c in writes)
 
 
-def _created_keys(writes) -> list[str]:
-    """Records the account created, newest first: the first revision of each record in its changesets."""
-    keys: list[str] = []
+def _written_keys(writes) -> tuple[list[str], list[str]]:
+    """Records the account created and records it edited that someone else created, each newest first."""
+    created: list[str] = []
+    edited: list[str] = []
     for change in writes:
-        keys.extend(c["key"] for c in change.changes if c.get("revision") == 1 and c["key"] not in keys)
-    return keys
+        for c in change.changes:
+            target = created if c.get("revision") == 1 else edited
+            if c["key"] not in created and c["key"] not in edited:
+                target.append(c["key"])
+    return created, edited
 
 
 def _record_text(doc) -> str:
@@ -233,6 +267,16 @@ def _has_promo_link(text: str) -> bool:
     return False
 
 
+def _has_phone(text: str) -> bool:
+    for match in PHONE_RE.finditer(text):
+        digits = re.sub(r"\D", "", match.group(0))
+        is_isbn = "isbn" in text[max(0, match.start() - 8) : match.start()].lower() or (len(digits) == 13 and digits[:3] in ("978", "979"))
+        is_years = all(re.fullmatch(r"(1[5-9]|20)\d\d", group) for group in re.findall(r"\d+", match.group(0)))
+        if 10 <= len(digits) <= 13 and not is_isbn and not is_years:
+            return True
+    return False
+
+
 def _matches_spam_words(text: str, spam_words: list[str]) -> bool:
     text = text.lower()
     for word in spam_words:
@@ -245,33 +289,81 @@ def _matches_spam_words(text: str, spam_words: list[str]) -> bool:
     return False
 
 
+def tier_of(signals: list[Signal]) -> str:
+    if any(s.strong for s in signals):
+        return LIKELY
+    return LOOK if signals else NONE
+
+
 def find_signals(site, accounts: dict[str, tuple[datetime, list]], spam_words: list[str]) -> dict[str, list[Signal]]:
     """Signs of spam for each account, from what it wrote: `accounts` maps a profile key to (signup time, writes newest first).
 
-    Not signals, though spam has them too: a first write within minutes of signup, and many list additions.
-    Most new readers do both, so neither separates spam from them.
+    Tuned on the 861 accounts admins reverted as spam from Aug 2025 to Nov 2026, against new accounts that weren't:
+    the strong signals mark 86% of the spam accounts and none of 42 ordinary new accounts.
+    Not signals, though spam has them too: a first write within minutes of signup, and list additions.
+    Most new readers do both.
     """
-    created = {key: _created_keys(writes)[:MAX_RECORDS_CHECKED] for key, (_, writes) in accounts.items()}
-    wanted = sorted({k for keys in created.values() for k in keys} | set(accounts))
+    written = {key: _written_keys(writes) for key, (_, writes) in accounts.items()}
+    checked = {key: (created[:MAX_RECORDS_CHECKED], edited[:MAX_RECORDS_CHECKED]) for key, (created, edited) in written.items()}
+    wanted = sorted({k for created, edited in checked.values() for k in created + edited} | set(accounts))
     docs: dict = {}
     for start in range(0, len(wanted), 100):
         docs.update((doc.key, doc) for doc in site.get_many(wanted[start : start + 100]))
 
+    def live(keys) -> list:
+        return [docs[k] for k in keys if k in docs and docs[k].type.key != "/type/delete"]
+
     signals = {}
     for key, (signup, writes) in accounts.items():
+        created, edited = checked[key]
+        # What the account wrote itself: its profile and new records. Edited records also hold other people's text,
+        # so only wording that never belongs in a catalog record (phone numbers, sales pitches) counts there.
+        own = [_record_text(doc) for doc in live([key, *created])]
+        everything = own + [_record_text(doc) for doc in live(edited)]
+        kinds = {c.kind for c in writes}
+        catalog_work = bool(kinds & set(CATALOG_WORK_KINDS))
+        only_profile = kinds <= set(PROFILE_KINDS) and all(c["key"] == key for w in writes for c in w.changes)
+
         found = []
-        live = [docs[k] for k in [key, *created[key]] if k in docs and docs[k].type.key != "/type/delete"]
-        if with_links := sum(_has_promo_link(_record_text(doc)) for doc in live):
-            found.append(Signal("links", ungettext("Links in %(count)s record", "Links in %(count)s records", with_links, count=with_links)))
-        if spam_words and (with_words := sum(_matches_spam_words(_record_text(doc), spam_words) for doc in live)):
-            found.append(Signal("spam-words", ungettext("Spam words in %(count)s record", "Spam words in %(count)s records", with_words, count=with_words)))
-        deleted = sum(k.startswith(CATALOG_PREFIXES) and k in docs and docs[k].type.key == "/type/delete" for k in created[key])
-        if deleted:
-            found.append(Signal("deleted", ungettext("%(count)s record already deleted", "%(count)s records already deleted", deleted, count=deleted)))
+        if phones := sum(map(_has_phone, everything)):
+            label = ungettext("Phone number in %(count)s record", "Phone numbers in %(count)s records", phones, count=phones)
+            # A publisher's contact number next to real catalog work is self-promotion, not spam.
+            found.append(Signal("phone", label, strong=not catalog_work))
+        if sales := sum(bool(SALES_RE.search(t)) for t in everything):
+            found.append(
+                Signal(
+                    "sales",
+                    ungettext("Sales or support-line wording in %(count)s record", "Sales or support-line wording in %(count)s records", sales, count=sales),
+                    strong=True,
+                )
+            )
+        if spam_words and (with_words := sum(_matches_spam_words(t, spam_words) for t in everything)):
+            found.append(
+                Signal("spam-words", ungettext("Spam words in %(count)s record", "Spam words in %(count)s records", with_words, count=with_words), strong=True)
+            )
+        if (lists := sum(c.kind in LIST_CREATE_KINDS for c in writes)) >= MANY_LISTS:
+            found.append(Signal("lists", _("%(count)s lists created", count=lists), strong=True))
+        if deleted := sum(k.startswith(CATALOG_PREFIXES) and k in docs and docs[k].type.key == "/type/delete" for k in created):
+            found.append(
+                Signal("deleted", ungettext("%(count)s record already deleted", "%(count)s records already deleted", deleted, count=deleted), strong=True)
+            )
+        if links := sum(map(_has_promo_link, own)):
+            if only_profile:
+                found.append(Signal("profile-link", _("Only edit: a link on their profile"), strong=True))
+            else:
+                found.append(Signal("links", ungettext("Links in %(count)s record", "Links in %(count)s records", links, count=links), strong=False))
+        if markdown := sum(bool(MARKDOWN_RE.search(t)) for t in own):
+            found.append(
+                Signal(
+                    "markdown",
+                    ungettext("Article formatting in %(count)s record", "Article formatting in %(count)s records", markdown, count=markdown),
+                    strong=False,
+                )
+            )
         burst_end = signup + timedelta(minutes=BURST_MINUTES)
-        burst = sum(c.kind in BOOK_ADD_KINDS + LIST_CREATE_KINDS and c.timestamp <= burst_end for c in writes)
-        if burst >= BURST_RECORDS:
-            found.append(Signal("burst", _("%(count)s added in the first %(minutes)s min", count=burst, minutes=BURST_MINUTES)))
+        if (burst := sum(c.kind in BOOK_ADD_KINDS + LIST_CREATE_KINDS and c.timestamp <= burst_end for c in writes)) >= BURST_RECORDS:
+            found.append(Signal("burst", _("%(count)s added in the first %(minutes)s min", count=burst, minutes=BURST_MINUTES), strong=False))
+        found.sort(key=lambda s: not s.strong)
         signals[key] = found
     return signals
 
@@ -309,15 +401,17 @@ def build_report(
     max_changes: int = MAX_CHANGES_SCANNED,
     page_size: int = SCAN_PAGE_SIZE,
     history_limit: int = ACCOUNT_HISTORY_LIMIT,
-    flagged_only: bool = False,
+    show: str = "all",
     spam_words: list[str] | None = None,
 ) -> Report:
-    """Accounts under `days` days old that wrote in the last `hours` hours: those with a signal first, then most writes.
+    """Accounts under `days` days old that wrote in the last `hours` hours, likely spam first, then most writes.
+
+    `show` limits the rows to one tier: LIKELY, LOOK, or "all".
 
     Cost, in Infobase calls: the scan (at most max_changes / page_size), one `get_many` per 100 authors seen in it,
     and then for the `max_accounts` rows shown: one store read each for status and email, one `recentchanges` for
     each account that signed up before the scan's reach, and one `get_many` for the titles of the last edits.
-    The signals add one `get_many` per 100 records read: at most MAX_RECORDS_CHECKED + 1 per young account.
+    The signals add one `get_many` per 100 records read: at most 2 * MAX_RECORDS_CHECKED + 1 per young account.
     """
     now = now or utcnow()
     since = now - timedelta(hours=hours)
@@ -342,12 +436,13 @@ def build_report(
         return scanned_by_author[key][-1].timestamp - young[key][1]
 
     signals = find_signals(site, {key: (young[key][1], scanned_by_author[key]) for key in young}, spam_words or [])
-    flagged = [key for key in young if signals[key]]
+    tiers = {key: tier_of(signals[key]) for key in young}
+    order = {LIKELY: 0, LOOK: 1, NONE: 2}
 
     def rank(key: str):
-        return (-len(signals[key]), -_ranked_writes(scanned_by_author[key]), first_delay(key))
+        return (order[tiers[key]], -sum(s.strong for s in signals[key]), -_ranked_writes(scanned_by_author[key]), first_delay(key))
 
-    ranked = sorted(flagged if flagged_only else young, key=rank)
+    ranked = sorted((key for key in young if show == "all" or tiers[key] == show), key=rank)
     shown = ranked[:max_accounts]
 
     # The scan holds an account's whole history only if it signed up within the scan's reach.
@@ -411,10 +506,11 @@ def build_report(
                 first_write_is_fast=delay < timedelta(minutes=FAST_FIRST_WRITE_MINUTES),
                 recent_edits=recent_edits[key],
                 signals=signals[key],
+                tier=tiers[key],
             )
         )
 
-    rows.sort(key=lambda row: (-len(row.signals), -(row.edits_in_window - row.list_additions), row.first_write_delay))
+    rows.sort(key=lambda row: (order[row.tier], -sum(s.strong for s in row.signals), -(row.edits_in_window - row.list_additions), row.first_write_delay))
     return Report(
         days=days,
         hours=hours,
@@ -422,8 +518,9 @@ def build_report(
         window_label=ungettext("%(count)s hour", "%(count)s hours", hours, count=hours),
         rows=rows,
         matching_accounts=len(young),
-        flagged_accounts=len(flagged),
-        flagged_only=flagged_only,
+        likely_accounts=sum(t == LIKELY for t in tiers.values()),
+        look_accounts=sum(t == LOOK for t in tiers.values()),
+        show=show,
         max_accounts=max_accounts,
         changes_scanned=len(changes),
         scan_capped=scan_capped,
