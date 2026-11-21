@@ -41,6 +41,7 @@ def mock_user():
             "is_librarian_or_higher": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
             "can_edit_ocaid": User.can_edit_ocaid,
+            "get_account": lambda slf: None,
         },
     )()
 
@@ -1016,3 +1017,62 @@ class TestSiteContextMigration:
             handler().POST(key)
         assert current.get(key).title == "After"
         assert current.changesets[-1]["comment"] == "Edit record"
+
+
+class TestNewAccountBookLimit:
+    NOW = dt.datetime.now(dt.UTC).replace(tzinfo=None)
+
+    @pytest.fixture
+    def user(self, mock_site, monkeypatch):
+        """A non-privileged user whose account age and tags each test sets."""
+        account = Mock(has_tag=Mock(return_value=False), creation_time=Mock(return_value=self.NOW - dt.timedelta(days=1)))
+        u = Mock(key="/people/newbie", is_admin=Mock(return_value=False), is_librarian=Mock(return_value=False), get_account=Mock(return_value=account))
+        monkeypatch.setattr(accounts, "get_current_user", lambda: u)
+        return u
+
+    @staticmethod
+    def add_books(mock_site, user, count, hours_ago=1, action="add-book"):
+        for n in range(count):
+            when = TestNewAccountBookLimit.NOW - dt.timedelta(hours=hours_ago)
+            mock_site.save({"key": f"/works/OL{hours_ago}{n}W", "type": {"key": "/type/work"}}, action=action, author=user, timestamp=when)
+
+    def test_under_the_limit(self, mock_site, user):
+        self.add_books(mock_site, user, addbook.NEW_ACCOUNT_DAILY_BOOKS - 1)
+        assert not addbook.over_new_account_book_limit()
+
+    def test_at_the_limit(self, mock_site, user):
+        self.add_books(mock_site, user, addbook.NEW_ACCOUNT_DAILY_BOOKS)
+        assert addbook.over_new_account_book_limit()
+
+    def test_only_counts_the_last_24_hours(self, mock_site, user):
+        self.add_books(mock_site, user, addbook.NEW_ACCOUNT_DAILY_BOOKS, hours_ago=25)
+        assert not addbook.over_new_account_book_limit()
+
+    def test_only_counts_added_books(self, mock_site, user):
+        self.add_books(mock_site, user, addbook.NEW_ACCOUNT_DAILY_BOOKS, action="edit-book")
+        assert not addbook.over_new_account_book_limit()
+
+    def test_older_accounts_are_not_limited(self, mock_site, user):
+        user.get_account().creation_time.return_value = self.NOW - dt.timedelta(days=addbook.NEW_ACCOUNT_DAYS)
+        self.add_books(mock_site, user, addbook.NEW_ACCOUNT_DAILY_BOOKS)
+        assert not addbook.over_new_account_book_limit()
+
+    @pytest.mark.parametrize("privilege", ["trusted-user", "librarian", "admin"])
+    def test_trusted_accounts_are_not_limited(self, mock_site, user, privilege):
+        if privilege == "trusted-user":
+            user.get_account().has_tag.return_value = True
+        else:
+            getattr(user, f"is_{privilege}").return_value = True
+        self.add_books(mock_site, user, addbook.NEW_ACCOUNT_DAILY_BOOKS)
+        assert not addbook.over_new_account_book_limit()
+
+    def test_post_refuses_over_the_limit(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(kw, book_title="Book"))
+        monkeypatch.setattr(addbook.spamcheck, "is_spam", lambda *a, **kw: False)
+        monkeypatch.setattr(addbook, "get_recaptcha", lambda: None)
+        monkeypatch.setattr(addbook, "over_new_account_book_limit", lambda: True)
+        monkeypatch.setattr(addbook, "render_template", lambda *a, **kw: a)
+        template, title, _ = delegate.pages["/books/add"][None]().POST()
+        assert template == "message.html"
+        assert title == "Daily limit reached"

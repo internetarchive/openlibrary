@@ -149,13 +149,18 @@ class MockSite:
         offset = query.pop("offset", 0)
 
         author = query.pop("author", None)
+        kind = query.pop("kind", None)
+        begin_date = query.pop("begin_date", None)
 
         if not author:
             raise NotImplementedError("MockSite.recentchanges without author not implemented")
 
+        def matches(c):
+            return safeget(lambda: c["author"]["key"]) == author and (kind is None or c["kind"] == kind) and (begin_date is None or c["timestamp"] >= begin_date)
+
         result = list(
             itertools.islice(
-                (Changeset(self, c) for c in reversed(self.changesets) if safeget(lambda: c["author"]["key"]) == author),
+                (Changeset(self, c) for c in reversed(self.changesets) if matches(c)),
                 offset,
                 offset + limit,
             )
