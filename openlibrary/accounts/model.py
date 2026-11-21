@@ -390,7 +390,6 @@ class Account(web.storage):
             # Infogami exposes concurrency conflicts as error="conflict".
             error = e.get_data().get("error")
             if error != "conflict":
-                # Unexpected error - re-raise original exception.
                 raise
 
             # Verify that the profile and an active account already exist.
@@ -400,7 +399,6 @@ class Account(web.storage):
                 # Activation succeeded elsewhere.
                 return
 
-            # If conditions aren't met, re-raise the original race exception.
             raise
 
     def block(self) -> None:
