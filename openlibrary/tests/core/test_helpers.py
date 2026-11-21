@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 import web
 
 from openlibrary.core import helpers as h
@@ -129,6 +130,17 @@ def test_urlsafe():
 
     assert h.urlsafe("?a") == "a"
     assert h.urlsafe("a?") == "a"
+
+
+@pytest.mark.parametrize("title", ["..", ".", " .. ", "?..", "../"])
+def test_urlsafe_never_returns_a_dot_segment(title):
+    # "/works/OL1W/.." resolves to "/works" in the browser (#6856).
+    assert h.urlsafe(title) == "_"
+
+
+@pytest.mark.parametrize(("title", "expected"), [("...", "..."), ("..a", "..a"), ("a..", "a.."), ("a.b", "a.b")])
+def test_urlsafe_keeps_dots_that_are_not_a_dot_segment(title, expected):
+    assert h.urlsafe(title) == expected
 
 
 def test_texsafe():
