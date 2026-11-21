@@ -48,9 +48,8 @@ class TestBuildReport:
         report = build_report(site, now=NOW)
         assert report.rows == []
         assert report.matching_accounts == 0
-        assert report.changes_loaded == 0
         assert not report.capped
-        assert (report.age_label, report.window_label) == ("7 days", "24 hours")
+        assert report.age_label == "7 days"
 
     def test_groups_by_author_and_puts_the_busiest_first(self, site):
         signup(site, "quiet", NOW - timedelta(hours=5))
@@ -118,18 +117,21 @@ class TestBuildReport:
 
         assert report.rows == []
 
-    def test_edits_outside_the_window_count_only_towards_the_total(self, site):
+    def test_edits_before_the_scan_count_only_towards_the_total(self, site):
         signup(site, "returning", NOW - timedelta(days=3))
         write(site, "returning", "/works/OL1W", NOW - timedelta(days=3) + timedelta(minutes=5))
         write(site, "returning", "/works/OL2W", NOW - timedelta(hours=2))
+        signup(site, "other", NOW - timedelta(minutes=90))
+        write(site, "other", "/works/OL3W", NOW - timedelta(hours=1))
 
-        [row] = build_report(site, now=NOW).rows
+        row = next(row for row in build_report(site, now=NOW, max_changes=3).rows if row.username == "returning")
 
         assert (row.edits_in_window, row.total_edits, row.total_edits_label) == (1, 2, "2")
         assert row.exact
         # The first write is the one from three days ago, found in the account's own history.
         assert row.first_write_delay == timedelta(minutes=5)
-        assert build_report(site, now=NOW, hours=1).rows == []
+        # A scan that runs out of changes holds every edit.
+        assert next(row for row in build_report(site, now=NOW).rows if row.username == "returning").edits_in_window == 2
 
     def test_counts_by_kind(self, site):
         signup(site, "spammer", NOW - timedelta(hours=1))
@@ -214,15 +216,6 @@ class TestBuildReport:
         assert [(row.username, row.edits_in_window_label, row.total_edits_label, row.exact) for row in report.rows] == [("late", "4", "4", True)]
         assert not build_report(site, now=NOW, max_changes=4, history_limit=2).rows[0].exact
         assert not build_report(site, now=NOW, max_changes=100).capped
-
-    def test_a_wider_window_finds_older_edits(self, site):
-        signup(site, "earlier", NOW - timedelta(days=4))
-        write(site, "earlier", "/works/OL1W", NOW - timedelta(days=3))
-
-        assert build_report(site, now=NOW).rows == []
-        [row] = build_report(site, now=NOW, hours=7 * 24).rows
-        assert row.edits_in_window == 1
-        assert build_report(site, now=NOW, hours=7 * 24).window_label == "7 days"
 
     def test_a_failed_load_names_the_error(self, site, monkeypatch):
         monkeypatch.setattr(new_accounts, "scan_recent_changes", Mock(side_effect=RuntimeError("no pool")))
@@ -451,7 +444,7 @@ class TestTemplate:
 
     def test_empty(self, render):
         html = render()
-        assert "No accounts under 7 days old have made edits in the last 24 hours." in html
+        assert "No accounts under 7 days old made any of these edits." in html
         assert "<table" not in html
         assert "<strong>Spam review</strong>" in html  # the admin menu, on its current page
 
@@ -475,9 +468,6 @@ class TestTemplate:
         for action in ("block_account", "block_account_and_revert", "mark_trusted"):
             assert f'value="{action}"' in html
         assert html.count('method="post"') == 1
-        # The window control, on the current window.
-        assert 'name="hours"' in html
-        assert 'value="24"' in html
 
     def test_user_text_is_escaped_and_not_linked(self, site, render):
         signup(site, "spammer", NOW - timedelta(hours=1))
@@ -511,7 +501,7 @@ class TestTemplate:
         assert "Blocked, edits reverted" in html
         assert ">Trusted<" in html
 
-    def test_notices_when_capped(self, site, render):
+    def test_notices_how_far_back_and_how_many(self, site, render):
         for name in ("one", "two"):
             signup(site, name, NOW - timedelta(hours=2))
         for minutes in (60, 30):
@@ -520,7 +510,7 @@ class TestTemplate:
 
         html = render(max_changes=3, max_accounts=1)
 
-        assert "Only the newest 3 edits were scanned, back to 2100-01-01 11:00." in html
+        assert "Accounts under 7 days old in the newest 3 edits, back to 2100-01-01 11:00." in html
         assert "Showing the 1 busiest of 2 accounts." in html
 
 
@@ -583,7 +573,7 @@ class TestNewAccountsView:
 
         assert "No accounts under 3 days old" in request_as("/people/admin", days="3")["__body__"]
         # An override that can't be used falls back to the default.
-        assert "Accounts under 7 days old" in request_as("/people/admin", days="abc", hours="-1")["__body__"]
+        assert "Accounts under 7 days old" in request_as("/people/admin", days="abc")["__body__"]
 
     def test_block_returns_to_the_list(self, site, request_as):
         signup(site, "spammer", NOW - timedelta(hours=1))

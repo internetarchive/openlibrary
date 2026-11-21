@@ -2308,7 +2308,12 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "Accounts under %(age)s old that edited in the last %(window)s. Blocked and trusted accounts move to Reviewed. Times are in UTC."
+msgid "Accounts under %(age)s old in the newest %(count)s edits, back to %(time)s. Blocked and trusted accounts move to Reviewed. Times are in UTC."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Accounts under %(age)s old in the newest edits. Blocked and trusted accounts move to Reviewed. Times are in UTC."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2390,37 +2395,8 @@ msgid "Reviewed"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
-msgid "Edited in the last"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "24 hours"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "2 days"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "3 days"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "7 days"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "Show"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
 #, python-format
 msgid "The edits could not be loaded: %(error)s"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-#, python-format
-msgid "Only the newest %(count)s edits were scanned, back to %(time)s. Accounts that only edited before then are missing."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2477,9 +2453,8 @@ msgstr ""
 msgid "Signed up"
 msgstr ""
 
-#: admin/new_accounts.html.jinja
-#, python-format
-msgid "Edits, last %(window)s"
+#: admin/new_accounts.html.jinja contribute/landing.html.jinja
+msgid "Recent edits"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2564,12 +2539,12 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "None of the %(count)s accounts under %(age)s old that edited in the last %(window)s is in this group."
+msgid "None of the %(count)s accounts under %(age)s old in these edits is in this group."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
 #, python-format
-msgid "No accounts under %(age)s old have made edits in the last %(window)s."
+msgid "No accounts under %(age)s old made any of these edits."
 msgstr ""
 
 #: admin/pd_dashboard.html
@@ -4572,10 +4547,6 @@ msgstr ""
 
 #: contribute/landing.html.jinja
 msgid "Many books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in."
-msgstr ""
-
-#: contribute/landing.html.jinja
-msgid "Recent edits"
 msgstr ""
 
 #: FulltextResultIA.html.jinja contribute/landing.html.jinja contribute/parts.html.jinja
@@ -10475,13 +10446,6 @@ msgstr ""
 #, python-format
 msgid "%(count)s day"
 msgid_plural "%(count)s days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/plugins/admin/new_accounts.py
-#, python-format
-msgid "%(count)s hour"
-msgid_plural "%(count)s hours"
 msgstr[0] ""
 msgstr[1] ""
 

@@ -432,11 +432,10 @@ class new_accounts_view:
     """Spam review: young accounts ranked by signs of spam, blocked or marked trusted in bulk."""
 
     def GET(self):
-        i = web.input(days=None, hours=None, show=None)
+        i = web.input(days=None, show=None)
         report = new_accounts.build_report(
             site.get(),
             days=new_accounts.clamp_param(i.days, new_accounts.MAX_ACCOUNT_AGE_DAYS, new_accounts.MAX_ACCOUNT_AGE_DAYS_LIMIT),
-            hours=new_accounts.clamp_param(i.hours, new_accounts.WINDOW_HOURS, new_accounts.WINDOW_HOURS_LIMIT),
             # ?show=look or ?show=all widen the list; by default it holds only likely spam.
             show=i.show if i.show in new_accounts.SHOW_CHOICES else new_accounts.LIKELY,
             spam_words=spamcheck.get_spam_words(),
@@ -467,7 +466,7 @@ class new_accounts_view:
             if i.action == "block_account_and_revert":
                 message += " " + _("Reverted %(edits)d edits and deleted %(deleted)d records.", edits=edits, deleted=deleted)
             add_flash_message("info", message)
-        # fullpath keeps ?days=, ?hours= and ?show=
+        # fullpath keeps ?days= and ?show=
         raise web.seeother(web.ctx.fullpath)
 
 

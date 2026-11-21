@@ -18,16 +18,13 @@ from openlibrary.i18n import ungettext
 
 logger = logging.getLogger("openlibrary.admin.new_accounts")
 
-# Defaults, to be tuned. The first two can be overridden per request with ?days= and ?hours=.
+# Defaults, to be tuned. The first can be overridden per request with ?days=.
 MAX_ACCOUNT_AGE_DAYS = 7
-WINDOW_HOURS = 24
 MAX_ACCOUNT_AGE_DAYS_LIMIT = 30
-WINDOW_HOURS_LIMIT = 7 * 24
-WINDOW_CHOICES = (24, 48, 72, 7 * 24)  # the page's "Edited in the last" control
 
 MAX_ACCOUNTS = 50  # rows shown
-# Reading the edit tables directly timed out on production, so the window is scanned through Infobase, newest first.
-# 5,000 changes reach back about 10 hours on production; the page says when the cap cut the window short.
+# The newest edits are scanned through Infobase; reading the edit tables directly timed out on production.
+# 5,000 reach back about 10 hours there; the page says how far.
 MAX_CHANGES_LOADED = 5000
 SCAN_PAGE_SIZE = 1000  # changes per Infobase call during the scan
 ACCOUNT_HISTORY_LIMIT = 200  # changes loaded for a shown account whose history the scan doesn't cover
@@ -160,9 +157,7 @@ class AccountRow:
 @dataclass
 class Report:
     days: int
-    hours: int
     age_label: str  # "7 days"
-    window_label: str  # "24 hours"
     rows: list[AccountRow]
     matching_accounts: int  # before the cut to `max_accounts`
     likely_accounts: int
@@ -171,8 +166,8 @@ class Report:
     show: str  # LIKELY, LOOK, REVIEWED or "all"
     max_accounts: int
     changes_loaded: int
-    capped: bool  # MAX_CHANGES_LOADED was hit: the oldest edits are missing
-    loaded_back_to_label: str  # the oldest edit read, when capped
+    capped: bool  # MAX_CHANGES_LOADED was hit, so older edits weren't read
+    loaded_back_to_label: str  # the oldest edit read
     error: str = ""  # what broke, when loading failed; there are no rows
     fast_minutes: int = FAST_FIRST_WRITE_MINUTES
 
@@ -183,7 +178,7 @@ def utcnow() -> datetime:
 
 
 def clamp_param(value: str | None, default: int, limit: int) -> int:
-    """A ?days= or ?hours= override: a whole number from 1 to `limit`, or the default for anything else."""
+    """A ?days= override: a whole number from 1 to `limit`, or the default for anything else."""
     try:
         number = int(value or "")
     except ValueError:
@@ -207,17 +202,17 @@ def format_duration(delta: timedelta) -> str:
     return _("%(n)s d", n=amount(seconds / 86400))
 
 
-def scan_recent_changes(site, since: datetime, max_changes: int = MAX_CHANGES_LOADED, page_size: int = SCAN_PAGE_SIZE) -> tuple[list, bool]:
-    """Human changes since `since`, newest first, stopping at `max_changes`.
+def scan_recent_changes(site, max_changes: int = MAX_CHANGES_LOADED, page_size: int = SCAN_PAGE_SIZE) -> tuple[list, bool]:
+    """The newest `max_changes` human changes, newest first.
 
-    :return: the changes, and whether the cap was reached before the window was exhausted
+    :return: the changes, and whether the cap was reached before the changes ran out
     """
     changes: list = []
     seen: set = set()
     offset = 0
     while offset < max_changes:
         limit = min(page_size, max_changes - offset)
-        page = site.recentchanges({"begin_date": since.isoformat(), "bot": False, "limit": limit, "offset": offset})
+        page = site.recentchanges({"bot": False, "limit": limit, "offset": offset})
         # New changes arriving mid-scan push older ones onto the next page a second time.
         changes.extend(c for c in page if c.id not in seen)
         seen.update(c.id for c in page)
@@ -420,12 +415,6 @@ def _accounts_with(site, name: str, value: str) -> set[str]:
     return {"/people/" + key.removeprefix("account/") for key in keys}
 
 
-def _window_label(hours: int) -> str:
-    if hours > 24 and hours % 24 == 0:
-        return ungettext("%(count)s day", "%(count)s days", hours // 24, count=hours // 24)
-    return ungettext("%(count)s hour", "%(count)s hours", hours, count=hours)
-
-
 def build_report(site, **kwargs) -> Report:
     """`_build_report`, or an empty report naming the exception, so admins see what broke instead of a 500."""
     try:
@@ -433,9 +422,8 @@ def build_report(site, **kwargs) -> Report:
     except Exception as e:
         logger.exception("Spam review failed to load")
         frame = traceback.extract_tb(e.__traceback__)[-1]
-        days, hours = kwargs.get("days", MAX_ACCOUNT_AGE_DAYS), kwargs.get("hours", WINDOW_HOURS)
-        return Report(days=days, hours=hours, age_label=ungettext("%(count)s day", "%(count)s days", days, count=days),
-                      window_label=_window_label(hours), rows=[], matching_accounts=0, likely_accounts=0, look_accounts=0,
+        days = kwargs.get("days", MAX_ACCOUNT_AGE_DAYS)
+        return Report(days=days, age_label=ungettext("%(count)s day", "%(count)s days", days, count=days), rows=[], matching_accounts=0, likely_accounts=0, look_accounts=0,
                       reviewed_accounts=0, show=kwargs.get("show", "all"), max_accounts=kwargs.get("max_accounts", MAX_ACCOUNTS),
                       changes_loaded=0, capped=False, loaded_back_to_label="",
                       error=f"{type(e).__name__}: {e} ({frame.filename.rsplit('/', 1)[-1]}:{frame.lineno})")  # fmt: skip
@@ -445,7 +433,6 @@ def _build_report(
     site,
     now: datetime | None = None,
     days: int = MAX_ACCOUNT_AGE_DAYS,
-    hours: int = WINDOW_HOURS,
     max_accounts: int = MAX_ACCOUNTS,
     max_changes: int = MAX_CHANGES_LOADED,
     page_size: int = SCAN_PAGE_SIZE,
@@ -453,7 +440,7 @@ def _build_report(
     show: str = "all",
     spam_words: list[str] | None = None,
 ) -> Report:
-    """Accounts under `days` days old that wrote in the last `hours` hours, likely spam first, then most writes.
+    """Accounts under `days` days old among the newest `max_changes` edits, likely spam first, then most writes.
 
     `show` limits the rows to one queue: LIKELY or LOOK, the accounts of that tier still waiting for review;
     REVIEWED, those blocked or trusted; or "all".
@@ -464,38 +451,33 @@ def _build_report(
     `recentchanges` for each that signed up before the scan's reach, and one `get_many` for the titles of the last edits.
     """
     now = now or utcnow()
-    since = now - timedelta(hours=hours)
     signup_cutoff = now - timedelta(days=days)
     labels = {
         "days": days,
-        "hours": hours,
         "age_label": ungettext("%(count)s day", "%(count)s days", days, count=days),
-        "window_label": _window_label(hours),
         "show": show,
         "max_accounts": max_accounts,
     }
 
-    changes, capped = scan_recent_changes(site, since, max_changes=max_changes, page_size=page_size)
+    changes, capped = scan_recent_changes(site, max_changes=max_changes, page_size=page_size)
     loaded_back_to = changes[-1].timestamp if changes else None
-    # The scan holds an account's whole history only if it signed up within the scan's reach.
-    scan_reach = loaded_back_to if capped and loaded_back_to else since
 
-    in_window: dict[str, list] = {}
+    scanned: dict[str, list] = {}
     for change in _writes(changes):
         if change.author is not None:
-            in_window.setdefault(change.author.key, []).append(change)
+            scanned.setdefault(change.author.key, []).append(change)
 
     # Bot accounts and display names come from the profile, loaded in batches.
     young = {}
-    for user in load_records(site, sorted(in_window)).values():
+    for user in load_records(site, sorted(scanned)).values():
         created = _as_datetime(getattr(user, "created", None))
         if user.type.key == "/type/user" and not user.get("bot") and created and created >= signup_cutoff:
             young[user.key] = (user, created)
 
     def first_delay(key: str) -> timedelta:
-        return max(in_window[key][-1].timestamp - young[key][1], timedelta(0))
+        return max(scanned[key][-1].timestamp - young[key][1], timedelta(0))
 
-    signals = find_signals(site, {key: (young[key][1], in_window[key]) for key in young}, spam_words or [])
+    signals = find_signals(site, {key: (young[key][1], scanned[key]) for key in young}, spam_words or [])
     tiers = {key: tier_of(signals[key]) for key in young}
     order = {LIKELY: 0, LOOK: 1, NONE: 2}
     reviewed = (_accounts_with(site, "status", "blocked") | _accounts_with(site, "tags", TRUSTED_TAG)) & young.keys()
@@ -506,15 +488,16 @@ def _build_report(
         return show == "all" or (tiers[key] == show and key not in reviewed)
 
     def rank(key: str):
-        return (order[tiers[key]], -sum(s.strong for s in signals[key]), -_ranked_writes(in_window[key]), first_delay(key))
+        return (order[tiers[key]], -sum(s.strong for s in signals[key]), -_ranked_writes(scanned[key]), first_delay(key))
 
     shown = sorted(filter(in_queue, young), key=rank)[:max_accounts]
 
     history: dict[str, list] = {}
     exact_authors: set[str] = set()
     for key in shown:
-        writes = in_window[key]
-        if young[key][1] >= scan_reach:
+        writes = scanned[key]
+        # The scan holds an account's whole history if it ran out of changes, or the account signed up within its reach.
+        if not capped or (loaded_back_to and young[key][1] >= loaded_back_to):
             exact_authors.add(key)
         else:
             loaded = site.recentchanges({"author": key, "limit": history_limit})
@@ -528,9 +511,8 @@ def _build_report(
     rows = []
     for key in shown:
         user, created = young[key]
-        writes = history[key]
-        # The scan stops short of the window's start when capped; a loaded history fills the window back in.
-        window = [c for c in writes if c.timestamp >= since]
+        # The scan holds every edit back to where it stopped, so the count within it is exact.
+        writes, window = history[key], scanned[key]
         exact = key in exact_authors
         username = key.split("/")[-1]
         account = site.store.get(f"account/{username}") or {}
@@ -544,7 +526,6 @@ def _build_report(
         books_added = sum(c.kind in BOOK_ADD_KINDS for c in window)
         lists_created = sum(c.kind in LIST_CREATE_KINDS for c in window)
         list_additions = sum(c.kind in LIST_SEED_KINDS for c in window)
-        window_is_minimum = capped and not exact
         delay = max(writes[-1].timestamp - created, timedelta(0))
         delay_label = format_duration(delay)
 
@@ -560,7 +541,7 @@ def _build_report(
                 created_label=_timestamp_label(created),
                 age=format_duration(now - created),
                 edits_in_window=len(window),
-                edits_in_window_label=f"{len(window)}+" if window_is_minimum else str(len(window)),
+                edits_in_window_label=str(len(window)),
                 books_added=books_added,
                 lists_created=lists_created,
                 list_additions=list_additions,
@@ -587,5 +568,5 @@ def _build_report(
         reviewed_accounts=len(reviewed),
         changes_loaded=len(changes),
         capped=capped,
-        loaded_back_to_label=_timestamp_label(loaded_back_to) if capped and loaded_back_to else "",
+        loaded_back_to_label=_timestamp_label(loaded_back_to) if loaded_back_to else "",
     )
