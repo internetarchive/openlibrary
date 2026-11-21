@@ -6,11 +6,12 @@ import pytest
 import web
 
 from openlibrary.accounts.model import (
+    Account,
     OpenLibraryAccount,
 )
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.plugins.admin import code as admin_code
-from openlibrary.plugins.admin.code import LIST_CREATE_ACTIONS, revert_all_user_edits
+from openlibrary.plugins.admin.code import LIST_CREATE_ACTIONS, RevertProgress, revert_all_user_edits
 from openlibrary.utils.request_context import site
 
 
@@ -242,6 +243,229 @@ class TestRevertAllUserEdits:
         assert mock_site.get("/works/OL2W").type.key == "/type/delete"
 
 
+class TestRevertLargeAccount:
+    """Block-and-revert on an account with more changesets than one batch, or one request, can handle."""
+
+    @pytest.fixture
+    def spam_account(self, mock_site, monkeypatch):
+        """An account with 37 changesets: 25 new works, then 5 new lists, then 7 edits to someone else's works."""
+        monkeypatch.setattr(admin_code, "REVERT_BATCH_SIZE", 10)
+        good_alice = make_test_account("good_alice")
+        spam_alice = make_test_account("spam_alice")
+        spammer = spam_alice.get_user()
+        for n in range(7):
+            mock_site.save(author=good_alice.get_user(), query=make_thing(f"/works/OL{n}W", "Good Title"), action="add-book")
+        for n in range(100, 125):
+            mock_site.save(author=spammer, query=make_thing(f"/works/OL{n}W", "Spam Book"), action="add-book")
+        for n in range(5):
+            mock_site.save(author=spammer, query=make_thing(f"/people/spam_alice/lists/OL{n}L", "Spam List"), action="create-list")
+        for n in range(7):
+            mock_site.save(author=spammer, query=make_thing(f"/works/OL{n}W", "Spam Title"), action="edit-book")
+        return spam_alice
+
+    def assert_spam_deleted_exactly_once(self, mock_site):
+        for key in [f"/works/OL{n}W" for n in range(100, 125)] + [f"/people/spam_alice/lists/OL{n}L" for n in range(5)]:
+            doc = mock_site.get(key)
+            # created, then deleted: a third revision would be a second delete
+            assert (key, doc.type.key, doc.revision) == (key, "/type/delete", 2)
+
+    def assert_edits_reverted_exactly_once(self, mock_site):
+        for n in range(7):
+            work = mock_site.get(f"/works/OL{n}W")
+            # created, spammed, reverted: a fourth revision would be a second revert
+            assert (work.title, work.revision) == ("Good Title", 3)
+
+    def test_finishes_in_one_run_when_time_allows(self, mock_site, spam_account):
+        progress = revert_all_user_edits(spam_account)
+
+        assert progress == RevertProgress(reverted=7, deleted=30, lists_deleted=5, next_offset=None)
+        self.assert_spam_deleted_exactly_once(mock_site)
+        self.assert_edits_reverted_exactly_once(mock_site)
+
+    def test_stops_when_out_of_time_and_resumes_from_next_offset(self, mock_site, spam_account):
+        # With no time left, a run handles one batch: here the 7 edits and the 3 newest lists
+        runs = [revert_all_user_edits(spam_account, time_budget=0)]
+        assert runs[0] == RevertProgress(reverted=7, deleted=3, lists_deleted=3, next_offset=10)
+        # That batch is saved even though the job is unfinished
+        assert mock_site.get("/works/OL0W").title == "Good Title"
+        assert mock_site.get("/people/spam_alice/lists/OL4L").type.key == "/type/delete"
+        assert mock_site.get("/works/OL100W").type.key == "/type/work"
+
+        while (offset := runs[-1].next_offset) is not None:
+            runs.append(revert_all_user_edits(spam_account, offset=offset, time_budget=0))
+
+        assert [run.next_offset for run in runs] == [10, 20, 30, None]
+        assert sum(run.reverted for run in runs) == 7
+        assert sum(run.deleted for run in runs) == 30
+        assert sum(run.lists_deleted for run in runs) == 5
+        self.assert_spam_deleted_exactly_once(mock_site)
+        self.assert_edits_reverted_exactly_once(mock_site)
+
+    def test_run_killed_partway_keeps_its_work_and_a_rerun_finishes(self, mock_site, monkeypatch, spam_account):
+        save_many = mock_site.save_many
+        saves = []
+
+        def save_many_until_killed(*args, **kwargs):
+            if len(saves) == 3:
+                raise TimeoutError("worker killed")
+            saves.append(args)
+            return save_many(*args, **kwargs)
+
+        monkeypatch.setattr(mock_site, "save_many", save_many_until_killed)
+        with pytest.raises(TimeoutError):
+            revert_all_user_edits(spam_account)
+        monkeypatch.setattr(mock_site, "save_many", save_many)
+
+        # The two batches that completed are kept: all 5 lists and the 8 newest works
+        assert all(mock_site.get(f"/people/spam_alice/lists/OL{n}L").type.key == "/type/delete" for n in range(5))
+        assert [n for n in range(100, 125) if mock_site.get(f"/works/OL{n}W").type.key == "/type/delete"] == list(range(117, 125))
+
+        # Starting again from the top, with no offset, deletes only what is left
+        progress = revert_all_user_edits(spam_account)
+
+        assert (progress.deleted, progress.lists_deleted, progress.next_offset) == (17, 0, None)
+        self.assert_spam_deleted_exactly_once(mock_site)
+        assert all(mock_site.get(f"/works/OL{n}W").title == "Good Title" for n in range(7))
+
+    def test_repeat_run_on_a_finished_account_deletes_nothing(self, mock_site, spam_account):
+        revert_all_user_edits(spam_account)
+
+        progress = revert_all_user_edits(spam_account)
+
+        assert (progress.deleted, progress.lists_deleted, progress.next_offset) == (0, 0, None)
+        self.assert_spam_deleted_exactly_once(mock_site)
+
+    def test_does_not_undelete_when_a_batch_has_over_20_deleted_records(self, mock_site):
+        # Infobase's `things` returns 20 keys by default, so the 21st deleted record used to be missed
+        spam_alice = make_test_account("spam_alice")
+        keys = [f"/people/spam_alice/lists/OL{n}L" for n in range(25)]
+        for key in keys:
+            mock_site.save(author=spam_alice.get_user(), query=make_thing(key, "Spam List"), action="lists")
+            mock_site.save(author=spam_alice.get_user(), query=make_thing(key, "Spam List, edited"), action="lists")
+            mock_site.save(query=make_thing(key, thing_type="/type/delete"))
+
+        progress = revert_all_user_edits(spam_alice)
+
+        assert progress == RevertProgress()
+        for key in keys:
+            assert (key, mock_site.get(key).type.key, mock_site.get(key).revision) == (key, "/type/delete", 3)
+
+    def test_reverts_the_live_records_of_a_changeset_that_has_a_deleted_one(self, mock_site):
+        good_alice = make_test_account("good_alice")
+        spam_alice = make_test_account("spam_alice")
+        for key in ("/works/OL1W", "/works/OL2W"):
+            mock_site.save(author=good_alice.get_user(), query=make_thing(key, "Good Title"), action="add-book")
+        mock_site.save_many(
+            [make_thing("/works/OL1W", "Spam Title"), make_thing("/works/OL2W", "Spam Title")],
+            author=spam_alice.get_user(),
+            action="edit-book",
+        )
+        mock_site.save(query=make_thing("/works/OL2W", thing_type="/type/delete"))
+
+        progress = revert_all_user_edits(spam_alice)
+
+        assert progress == RevertProgress(reverted=1)
+        assert mock_site.get("/works/OL1W").title == "Good Title"
+        assert (mock_site.get("/works/OL2W").type.key, mock_site.get("/works/OL2W").revision) == ("/type/delete", 3)
+
+    def test_revert_does_not_refetch_changesets_it_already_listed(self, mock_site, monkeypatch, spam_account):
+        monkeypatch.setattr(mock_site, "get_change", Mock(side_effect=AssertionError("one request per changeset")))
+
+        assert revert_all_user_edits(spam_account).next_offset is None
+
+
+def is_blocked(username: str) -> bool:
+    return cast(OpenLibraryAccount, OpenLibraryAccount.get_by_username(username)).is_blocked()
+
+
+class TestBlockAccountAndRevertPost:
+    @pytest.fixture
+    def flashes(self, mock_site, monkeypatch) -> list[str]:
+        messages: list[str] = []
+        monkeypatch.setattr(admin_code, "add_flash_message", lambda kind, message: messages.append(message))
+        monkeypatch.setattr(Account, "get_edit_count", lambda self: 950)
+        for name, value in {"home": "http://localhost", "path": "/admin/people/spam_alice", "status": None}.items():
+            monkeypatch.setitem(web.ctx, name, value)
+        return messages
+
+    def post(self, monkeypatch, **form) -> str:
+        """Posts the form for spam_alice and returns where it redirects to."""
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, action="block_account_and_revert", **form))
+        with pytest.raises(web.SeeOther):
+            admin_code.people_view().POST("spam_alice")
+        return dict(web.ctx.headers)["Location"]
+
+    def test_blocks_the_account_before_reverting(self, flashes, monkeypatch):
+        make_test_account("spam_alice")
+        blocked_during_revert = []
+
+        def revert(account, offset=0):
+            blocked_during_revert.append(is_blocked("spam_alice"))
+            return RevertProgress()
+
+        monkeypatch.setattr(admin_code, "revert_all_user_edits", revert)
+        self.post(monkeypatch)
+
+        assert blocked_during_revert == [True]
+
+    def test_account_stays_blocked_when_the_revert_dies(self, flashes, monkeypatch):
+        make_test_account("spam_alice")
+        monkeypatch.setattr(admin_code, "revert_all_user_edits", Mock(side_effect=TimeoutError("worker killed")))
+        monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, action="block_account_and_revert"))
+
+        with pytest.raises(TimeoutError):
+            admin_code.people_view().POST("spam_alice")
+
+        assert is_blocked("spam_alice")
+
+    def test_reports_a_finished_revert(self, flashes, monkeypatch):
+        make_test_account("spam_alice")
+        monkeypatch.setattr(admin_code, "revert_all_user_edits", lambda account, offset=0: RevertProgress(reverted=3, deleted=40, lists_deleted=12))
+
+        assert self.post(monkeypatch) == "http://localhost/admin/people/spam_alice"
+        assert flashes == ["Blocked the account, reverted 3 edits and deleted 40 records (12 of them lists). All of its edits have been handled."]
+
+    def test_reports_how_far_an_unfinished_revert_got(self, flashes, monkeypatch):
+        make_test_account("spam_alice")
+        monkeypatch.setattr(
+            admin_code, "revert_all_user_edits", lambda account, offset=0: RevertProgress(reverted=3, deleted=40, lists_deleted=12, next_offset=200)
+        )
+
+        # The redirect carries the offset, which the page puts back in the form
+        assert self.post(monkeypatch) == "http://localhost/admin/people/spam_alice?revert_offset=200"
+        assert flashes == [
+            (
+                "The account is blocked. This pass reverted 3 edits and deleted 40 records (12 of them lists). "
+                '750 of its 950 changesets are still to do: press "continue reverting edits" to carry on.'
+            )
+        ]
+
+    @pytest.mark.parametrize(("revert_offset", "expected"), [(None, 0), ("200", 200), ("-5", 0), ("abc", 0)])
+    def test_continues_from_the_posted_offset(self, flashes, monkeypatch, revert_offset, expected):
+        make_test_account("spam_alice")
+        revert = Mock(return_value=RevertProgress())
+        monkeypatch.setattr(admin_code, "revert_all_user_edits", revert)
+
+        self.post(monkeypatch, **({"revert_offset": revert_offset} if revert_offset else {}))
+
+        assert revert.call_args.kwargs == {"offset": expected}
+
+    def test_large_account_is_cleaned_up_by_pressing_continue(self, flashes, mock_site, monkeypatch):
+        monkeypatch.setattr(admin_code, "REVERT_BATCH_SIZE", 10)
+        monkeypatch.setattr(admin_code, "REVERT_TIME_BUDGET_SECONDS", 0)
+        spammer = make_test_account("spam_alice").get_user()
+        for n in range(25):
+            mock_site.save(author=spammer, query=make_thing(f"/works/OL{n}W", "Spam Book"), action="add-book")
+
+        locations = [self.post(monkeypatch)]
+        while "revert_offset=" in locations[-1]:
+            locations.append(self.post(monkeypatch, revert_offset=locations[-1].split("revert_offset=")[1]))
+
+        assert [location.partition("?")[2] for location in locations] == ["revert_offset=10", "revert_offset=20", ""]
+        assert all(mock_site.get(f"/works/OL{n}W").revision == 2 for n in range(25))
+        assert is_blocked("spam_alice")
+
+
 class TestPeopleEditsPost:
     def test_revert_redirects_back_to_the_same_page(self, monkeypatch):
         reverted = []
@@ -269,6 +493,46 @@ class TestPeopleEditsPost:
             "Location",
             "http://localhost/admin/people/spammer/edits?page=3",
         ) in web.ctx.headers
+
+
+class TestPeopleViewTemplate:
+    @pytest.fixture
+    def render_view(self, monkeypatch, render_template):
+        monkeypatch.setitem(web.ctx, "path", "/admin/people/spammer")
+
+        def render(status, query_string=""):
+            monkeypatch.setattr(web, "input", lambda _m=None, **defaults: web.storage(defaults, **dict(parse_qsl(query_string))))
+            person = web.storage(
+                username="spammer",
+                displayname="Spammer",
+                email="spammer@example.com",
+                status=status,
+                activated_on=None,
+                last_login=None,
+                get_user=lambda: None,
+                get_links=list,
+                get_edit_count=lambda: 950,
+                has_tag=lambda tag: False,
+            )
+            return render_template("admin/people/view", person)
+
+        return render
+
+    def test_blocked_account_can_still_have_its_edits_reverted(self, render_view):
+        html = render_view("blocked")
+
+        assert "revert all edits" in html
+        assert 'name="revert_offset" value="0"' in html
+        assert "unblock this account" in html
+
+    def test_unfinished_revert_offers_to_continue_from_its_offset(self, render_view):
+        html = render_view("blocked", "revert_offset=200")
+
+        assert "continue reverting edits" in html
+        assert 'name="revert_offset" value="200"' in html
+
+    def test_bad_offset_starts_from_the_top(self, render_view):
+        assert 'name="revert_offset" value="0"' in render_view("blocked", "revert_offset=-5")
 
 
 class TestPeopleEditsTemplate:
@@ -352,8 +616,8 @@ class TestSiteContextMigration:
         # Treat the new book as an add-book changeset, as the real form does.
         added.kind = "add-book"
         account = Mock(get_recentchanges=Mock(return_value=[edited, added, deleted]))
-        edits, deletions = admin_code.revert_all_user_edits(account)
-        assert (edits, deletions) == (1, 1)
+        progress = admin_code.revert_all_user_edits(account)
+        assert progress == RevertProgress(reverted=1, deleted=1)
         assert current.get("/works/OL1W").title == "Keep this"
         assert current.get("/works/OL2W").type.key == "/type/delete"
         assert current.get("/works/OL3W").type.key == "/type/delete"
