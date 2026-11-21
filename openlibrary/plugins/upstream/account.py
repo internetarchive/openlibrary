@@ -64,6 +64,8 @@ logger = logging.getLogger("openlibrary.account")
 CONFIG_IA_DOMAIN: Final = config.get("ia_base_url", "https://archive.org")
 USERNAME_RETRIES = 3
 RESULTS_PER_PAGE: Final = 25
+MAX_GOODREADS_CSV_SIZE: Final = 10 * 1024 * 1024
+GOODREADS_CSV_REQUIRED_HEADERS: Final = frozenset({"ISBN", "ISBN13", "Book Id"})
 
 
 def get_login_error(error_key):
@@ -913,7 +915,11 @@ class fetch_goodreads(delegate.page):
 
     @require_login
     def POST(self):
-        books, books_wo_isbns = process_goodreads_csv(web.input(csv={}))
+        try:
+            books, books_wo_isbns = process_goodreads_csv(web.input(csv={}))
+        except GoodreadsCSVError as error:
+            add_flash_message("error", str(error))
+            raise web.seeother("/account/import")
         return render["account/import"](books, books_wo_isbns)
 
 
@@ -1491,23 +1497,73 @@ def as_admin(f):
     return g
 
 
+class GoodreadsCSVError(ValueError):
+    """An uploaded Goodreads CSV is missing, too large, or malformed."""
+
+
 def process_goodreads_csv(i):
-    csv_payload = i.csv if isinstance(i.csv, str) else i.csv.value
-    csv_file = csv.reader(csv_payload.splitlines(), delimiter=",", quotechar='"')
-    header = next(csv_file)
-    books = {}
-    books_wo_isbns = {}
-    for book in list(csv_file):
-        _book = dict(zip(header, book))
-        isbn = _book["ISBN"] = _book["ISBN"].replace('"', "").replace("=", "")
-        isbn_13 = _book["ISBN13"] = _book["ISBN13"].replace('"', "").replace("=", "")
-        if isbn != "":
-            books[isbn] = _book
-        elif isbn_13 != "":
-            books[isbn_13] = _book
-            books[isbn_13]["ISBN"] = isbn_13
+    csv_upload = getattr(i, "csv", None)
+    if csv_upload is None or (isinstance(csv_upload, dict) and not csv_upload):
+        raise GoodreadsCSVError(_("Please select a CSV file to import."))
+
+    try:
+        if isinstance(csv_upload, bytes):
+            csv_size = len(csv_upload)
+            csv_payload = csv_upload.decode("utf-8-sig")
+        elif isinstance(csv_upload, str):
+            csv_payload = csv_upload.removeprefix("\ufeff")
+            csv_size = len(csv_upload.encode("utf-8"))
         else:
-            books_wo_isbns[_book["Book Id"]] = _book
+            csv_size = getattr(csv_upload, "size", None)
+            if csv_size is not None and csv_size > MAX_GOODREADS_CSV_SIZE:
+                raise GoodreadsCSVError(_("The CSV file must be 10MB or smaller."))
+
+            csv_payload = csv_upload.value
+            if isinstance(csv_payload, bytes):
+                if csv_size is None:
+                    csv_size = len(csv_payload)
+                csv_payload = csv_payload.decode("utf-8-sig")
+            elif isinstance(csv_payload, str):
+                if csv_size is None:
+                    csv_size = len(csv_payload.encode("utf-8"))
+                csv_payload = csv_payload.removeprefix("\ufeff")
+            else:
+                raise GoodreadsCSVError(_("The file is not a valid Goodreads CSV."))
+    except (AttributeError, UnicodeError) as error:
+        raise GoodreadsCSVError(_("The file is not a valid UTF-8 Goodreads CSV.")) from error
+
+    if csv_size > MAX_GOODREADS_CSV_SIZE:
+        raise GoodreadsCSVError(_("The CSV file must be 10MB or smaller."))
+    if not csv_payload.strip():
+        raise GoodreadsCSVError(_("The file is empty or is not a valid Goodreads CSV."))
+
+    try:
+        csv_file = csv.reader(io.StringIO(csv_payload, newline=""), delimiter=",", quotechar='"', strict=True)
+        header = next(csv_file, None)
+        if not header or not GOODREADS_CSV_REQUIRED_HEADERS.issubset(header):
+            raise GoodreadsCSVError(_("The file is empty or is not a valid Goodreads CSV."))
+
+        books = {}
+        books_wo_isbns = {}
+        for book in csv_file:
+            if not book:
+                continue
+            if len(book) != len(header):
+                raise GoodreadsCSVError(_("The file is not a valid Goodreads CSV."))
+
+            _book = dict(zip(header, book))
+            isbn = _book["ISBN"] = _book["ISBN"].replace('"', "").replace("=", "")
+            isbn_13 = _book["ISBN13"] = _book["ISBN13"].replace('"', "").replace("=", "")
+            if isbn != "":
+                books[isbn] = _book
+            elif isbn_13 != "":
+                books[isbn_13] = _book
+                books[isbn_13]["ISBN"] = isbn_13
+            else:
+                books_wo_isbns[_book["Book Id"]] = _book
+    except csv.Error as error:
+        raise GoodreadsCSVError(_("The file is not a valid Goodreads CSV.")) from error
+
     return books, books_wo_isbns
 
 
