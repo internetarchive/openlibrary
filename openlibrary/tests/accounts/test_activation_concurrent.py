@@ -8,10 +8,9 @@ from infogami.infobase.client import ClientException
 from openlibrary.accounts import OpenLibraryAccount, model
 
 
-# Helper to build a ClientException with a JSON payload containing a "code"
-def make_client_exception(status: str, message: str, code: str | None = None) -> ClientException:
-    payload = {"code": code} if code is not None else {}
-    json_data = json.dumps(payload) if payload else None
+# Helper to build a ClientException with a JSON payload
+def make_client_exception(status: str, message: str, payload: dict | None = None) -> ClientException:
+    json_data = json.dumps(payload) if payload is not None else None
     return ClientException(status, message, json_data)
 
 
@@ -76,7 +75,7 @@ def test_concurrent_activation(mock_site, monkeypatch):
         # First invocation raises the race exception, second succeeds.
         if call_counter["count"] == 0:
             call_counter["count"] += 1
-            raise make_client_exception("400 Bad Request", "duplicate", code="unique_violation")
+            raise make_client_exception("409 Conflict", "conflict", {"error": "conflict"})
         else:
             call_counter["count"] += 1
             return "ok"
@@ -111,7 +110,7 @@ def test_concurrent_activation(mock_site, monkeypatch):
 def test_activation_already_active(mock_site, monkeypatch):
     username = "already_active"
     api = mock_site.get.return_value
-    api.activate_account.side_effect = make_client_exception("400 Bad Request", "already active", code="unique_violation")
+    api.activate_account.side_effect = make_client_exception("409 Conflict", "conflict", {"error": "conflict"})
     configure_profile_and_account_lookup(api, username, profile_exists=True, account_active=True)
     monkeypatch.setattr(model, "site", mock_site)
 
@@ -126,13 +125,15 @@ def test_activation_already_active(mock_site, monkeypatch):
 def test_unrelated_error_propagates(mock_site, monkeypatch):
     username = "bad_user"
     api = mock_site.get.return_value
-    api.activate_account.side_effect = make_client_exception("500 Internal Server Error", "boom", code="server_error")
+    api.activate_account.side_effect = make_client_exception(
+        "500 Internal Server Error", "internal error", {"error": "internal_error", "message": "internal error"}
+    )
     configure_profile_and_account_lookup(api, username, profile_exists=True, account_active=True)
     monkeypatch.setattr(model, "site", mock_site)
 
     with pytest.raises(ClientException) as exc_info:
         OpenLibraryAccount(_key=f"/people/{username}", username=username).activate()
-    assert exc_info.value.get_data()["code"] == "server_error"
+    assert exc_info.value.get_data()["error"] == "internal_error"
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +143,7 @@ def test_unrelated_error_propagates(mock_site, monkeypatch):
 def test_lookup_failure_propagates(mock_site, monkeypatch):
     username = "lookup_fail"
     api = mock_site.get.return_value
-    api.activate_account.side_effect = make_client_exception("400 Bad Request", "duplicate", code="unique_violation")
+    api.activate_account.side_effect = make_client_exception("409 Conflict", "conflict", {"error": "conflict"})
 
     # Simulate a failure when trying to fetch the profile.
     def broken_get(key):
@@ -162,7 +163,7 @@ def test_lookup_failure_propagates(mock_site, monkeypatch):
 def test_pending_account_propagates_original_error(mock_site, monkeypatch):
     username = "pending_user"
     api = mock_site.get.return_value
-    api.activate_account.side_effect = make_client_exception("400 Bad Request", "duplicate", code="unique_violation")
+    api.activate_account.side_effect = make_client_exception("409 Conflict", "conflict", {"error": "conflict"})
     # Profile exists, but the account document reports status "pending".
     configure_profile_and_account_lookup(api, username, profile_exists=True, account_active=False)
     monkeypatch.setattr(model, "site", mock_site)
@@ -170,4 +171,4 @@ def test_pending_account_propagates_original_error(mock_site, monkeypatch):
     with pytest.raises(ClientException) as exc_info:
         OpenLibraryAccount(_key=f"/people/{username}", username=username).activate()
     # Verify the original error code is retained.
-    assert exc_info.value.get_data()["code"] == "unique_violation"
+    assert exc_info.value.get_data()["error"] == "conflict"

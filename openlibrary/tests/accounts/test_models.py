@@ -293,7 +293,7 @@ def test_create_recovers_when_activation_races_concurrently(mock_site, mock_run_
         raise ClientException("400 Bad Data", "User already exists: racer")
 
     def racing_activate(username):
-        payload = json.dumps({"code": "conflict"})
+        payload = json.dumps({"error": "conflict"})
         raise ClientException("409 Conflict", "conflict", payload)
 
     mock_site.get.return_value.register.side_effect = competing_register

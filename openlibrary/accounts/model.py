@@ -387,10 +387,9 @@ class Account(web.storage):
             site.get().activate_account(username=self.username)
             return
         except ClientException as e:
-            # Check if this is a known activation-race error.
-            code = e.get_data().get("code")
-            known_codes = {"unique_violation", "lock_not_available", "conflict"}
-            if code not in known_codes:
+            # Infogami exposes concurrency conflicts as error="conflict".
+            error = e.get_data().get("error")
+            if error != "conflict":
                 # Unexpected error - re-raise original exception.
                 raise
 
