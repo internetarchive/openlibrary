@@ -180,6 +180,24 @@ def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
     assert 'language:("eng" OR "spa")' in editions_fq
 
 
+@pytest.mark.parametrize(
+    "param",
+    [
+        # /search passes only the params in the URL, and web.input gives a lone value as a string.
+        {"q": "tolkien", "author_facet": "OL26320A"},
+        # /search.json passes every field, so author_key is present too, as an empty list.
+        {"q": "tolkien", "author_key": [], "author_facet": ["OL26320A"]},
+    ],
+    ids=["search-page", "search-json"],
+)
+def test_prepare_solr_query_params_author_facet_filters_by_author_key(param):
+    """author_facet is an alias for author_key. Reading the value after renaming the
+    field raised a KeyError on /search and silently dropped the filter on /search.json."""
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), param)
+    fqs = [v for k, v in params if k == "fq"]
+    assert 'author_key:"OL26320A"' in fqs
+
+
 def _with_req_context(fn):
     """Run `fn` with a req_context set (the readable-count query reads
     solr_editions off it)."""
