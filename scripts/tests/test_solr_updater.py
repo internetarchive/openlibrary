@@ -1,10 +1,18 @@
+import asyncio
+import datetime as dt
+import os
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 # TODO: Can we remove _init_path someday :(
 sys.modules["_init_path"] = MagicMock()
 
-from scripts.solr_updater.solr_updater import parse_log
+from scripts.solr_updater import solr_updater
+from scripts.solr_updater.solr_updater import main, parse_log
+from scripts.solr_updater.transaction_log import TransactionsOffset
 
 
 class TestParseLog:
@@ -288,3 +296,88 @@ class TestParseLog:
             },
         }
         assert list(parse_log([sample_record])) == ["/books/OL1M", "/works/OL1W"]
+
+
+def test_database_source_rejects_unsupported_exclude_option():
+    with pytest.raises(ValueError, match="supported only with --source infobase"):
+        asyncio.run(main(ol_config="", source="database", exclude_edits_containing="test"))
+
+
+class TestFindTransactionsStart:
+    def write(self, tmp_path, name, content, old=False):
+        (tmp_path / name).write_text(content)
+        if old:
+            os.utime(tmp_path / name, (1, 1))
+
+    def start(self, tmp_path, initial_state=None):
+        return solr_updater.find_transactions_start(tmp_path / "solr.transactions-offset.json", tmp_path / "solr.offset", initial_state)
+
+    def test_offset_file_sits_next_to_the_log_offset_file(self):
+        assert solr_updater.get_transactions_offset_file(Path("/data/solr-update.offset")) == Path("/data/solr-update.transactions-offset.json")
+
+    def test_resumes_from_its_own_offset(self, tmp_path):
+        self.write(tmp_path, "solr.offset", "2026-11-03:0", old=True)
+        self.write(tmp_path, "solr.transactions-offset.json", '{"transaction": 1234, "force_update": 7}')
+        assert self.start(tmp_path) == TransactionsOffset(transaction=1234, force_update=7)
+
+    def test_switching_from_infobase_replays_its_day(self, tmp_path):
+        self.write(tmp_path, "solr.transactions-offset.json", '{"transaction": 1234, "force_update": 7}', old=True)
+        self.write(tmp_path, "solr.offset", "2026-11-03:4284441")
+        assert self.start(tmp_path) == dt.datetime(2026, 11, 3)
+
+    def test_initial_state_when_nothing_saved(self, tmp_path):
+        assert self.start(tmp_path, "2026-11-02T08:00") == dt.datetime(2026, 11, 2, 8)
+
+    def test_defaults_to_the_beginning_of_today(self, tmp_path):
+        assert self.start(tmp_path) == dt.datetime.combine(dt.datetime.now(dt.UTC).date(), dt.time())
+
+
+def test_switching_back_to_infobase_log_replays_transactions_day(tmp_path, monkeypatch):
+    log_offset_file = tmp_path / "solr.offset"
+    transactions_offset_file = tmp_path / "solr.transactions-offset.json"
+    log_offset_file.write_text("2026-11-02:4284441")
+    os.utime(log_offset_file, (1, 1))
+    transactions_offset_file.write_text('{"transaction": 1234, "force_update": 7}')
+
+    transaction_ids = []
+
+    async def get_transaction_created_at(transaction_id):
+        transaction_ids.append(transaction_id)
+        return dt.datetime(2026, 11, 3, 18, 45)
+
+    class StopPolling(Exception):
+        pass
+
+    log_instances = []
+
+    class FakeInfobaseLog:
+        def __init__(self, hostname, exclude=None):
+            self.offset = None
+            log_instances.append(self)
+
+        def seek(self, offset):
+            self.offset = offset
+
+        def read_records(self):
+            return []
+
+        def tell(self):
+            return self.offset
+
+    async def stop_after_first_poll(_seconds):
+        raise StopPolling
+
+    async def update_keys(_keys):
+        return 0
+
+    monkeypatch.setattr(solr_updater, "get_transaction_created_at", get_transaction_created_at)
+    monkeypatch.setattr(solr_updater, "InfobaseLog", FakeInfobaseLog)
+    monkeypatch.setattr(solr_updater, "update_keys", update_keys)
+    monkeypatch.setattr(solr_updater.asyncio, "sleep", stop_after_first_poll)
+
+    with pytest.raises(StopPolling):
+        asyncio.run(solr_updater.run_from_infobase_log(str(log_offset_file), None, None))
+
+    assert transaction_ids == [1234]
+    assert [log.offset for log in log_instances] == ["2026-11-03:0"]
+    assert log_offset_file.read_text() == "2026-11-03:0"

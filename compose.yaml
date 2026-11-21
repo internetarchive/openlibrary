@@ -70,6 +70,7 @@ services:
     environment:
       - OL_CONFIG=conf/openlibrary.yml
       - OL_URL=http://web:8080/
+      - SOLR_UPDATER_SOURCE=${SOLR_UPDATER_SOURCE:-infobase}
       - STATE_FILE=solr-update.offset
       - TRENDING_OFFSET_FILE=trending-update.offset
     volumes:
