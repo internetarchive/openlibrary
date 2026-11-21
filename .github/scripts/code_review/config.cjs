@@ -1,10 +1,11 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // Reads the code review bot's settings from .pr_agent.toml (PR-Agent's format).
 // code_review_action.yml loads this module and the file from the BASE checkout, before the
 // PR head is extracted, so a PR cannot change the settings that review it.
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const bool = v => typeof v === 'boolean';
 // Supported keys and their checks. A value that fails its check keeps the default.

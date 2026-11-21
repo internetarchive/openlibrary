@@ -1,5 +1,5 @@
 name: new_pr_labeler
-on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
+on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout has no `ref:` (base commit), scripts run from base; PR body/login reach the script only via env vars. _target is required: a fork's pull_request token cannot label/assign/close.
   pull_request_target:
     # `ready_for_review` is needed alongside `opened`: a PR opened as a draft is
     # skipped by the `!draft` guard below, and with `opened` as the only trigger
@@ -46,7 +46,7 @@ jobs:
           key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
       - if: steps.cache-octokit.outputs.cache-hit != 'true'
         run: npm install @octokit/action  # zizmor: ignore[adhoc-packages]
-      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN} ${{ github.event.pull_request.number }} "$PR_BODY"
+      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} "${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN}" ${{ github.event.pull_request.number }} "$PR_BODY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}

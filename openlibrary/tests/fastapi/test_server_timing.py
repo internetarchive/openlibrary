@@ -99,6 +99,16 @@ def test_sends_timings_to_statsd(client):
     assert put.call_count == 2
 
 
+def test_records_backend_times_in_prometheus(client):
+    with patch("openlibrary.utils.prometheus.record_backend_times") as record:
+        client.get("/sync")
+        client.get("/static/x.css")  # not an app endpoint; skipped
+    record.assert_called_once()
+    server, timings = record.call_args.args
+    assert server == "fastapi"
+    assert [(name, calls) for name, calls, _ in timings] == [("memcache", 1)]
+
+
 def test_real_app_on_by_default_and_can_be_turned_off(fastapi_client):
     from openlibrary.asgi_app import create_app  # noqa: PLC0415
 

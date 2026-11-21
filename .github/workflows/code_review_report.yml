@@ -1,3 +1,4 @@
+# If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 name: Code Review Weekly Report
 
 # A weekly report on how @openlibrary-bot's code review did (instructions in code_review_report.md).

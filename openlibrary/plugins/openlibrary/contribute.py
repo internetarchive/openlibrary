@@ -16,7 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
-from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative
+from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative, scan_tip
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
 from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
@@ -460,12 +460,13 @@ def build_task_rows(task: str, initiative: initiatives.Initiative, fields: tuple
     return rows
 
 
-def get_initiative_people(initiative: initiatives.Initiative) -> int:
-    """How many people have saved for ``initiative``, from the stats job's latest counts. Yesterday's doc covers just after midnight."""
+def get_initiative_people(initiative: initiatives.Initiative) -> int | None:
+    """How many people have saved for ``initiative``, from the stats job's latest counts; None until it has counted.
+    Yesterday's doc covers just after midnight."""
     for doc in reversed(admin.get_count_docs(2)):
         if (people := admin.initiative_counts(doc).get(initiative.slug, {}).get("people")) is not None:
             return people
-    return 0
+    return None
 
 
 def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
@@ -483,7 +484,8 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
     for initiative in listed:
         gaps = initiatives.get_gaps(initiative)
         p = initiatives.progress(gaps, initiative.fields, initiative.start, initiative.goal) if gaps else None
-        people = get_initiative_people(initiative) if p else 0
+        counted = get_initiative_people(initiative) if p else None
+        people = counted or 0
         finished = initiative.status() == "ended"
         cards.append(
             initiatives.describe(initiative)
@@ -498,7 +500,10 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                     (
                         _("%(percent)s%% done, goal reached", percent=p["percent"])
                         if p["reached"]
-                        else _("%(percent)s%% done, goal %(goal)s%%", percent=p["percent"], goal=p["goal"])
+                        # The goal goes in already formatted ("90%"), through the "%(percent)s%%" string the
+                        # figure uses, so this string has one %% and each language places its own % sign.
+                        # Weblate counts a second %% as an unnamed placeholder and flags the string.
+                        else _("%(percent)s%% done, goal %(goal)s", percent=p["percent"], goal=_("%(percent)s%%", percent=p["goal"]))
                     )
                     if p
                     else ""
@@ -527,12 +532,16 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                 "finished_label": (
                     (_("Finished · goal reached") if p["reached"] else _("Finished · %(percent)s%% filled", percent=p["percent"])) if p else _("Finished")
                 ),
+                # Finished, or past its goal: listed apart from the projects still asking for help.
+                "completed": finished or bool(p and p["reached"]),
                 "people_count": people,
                 "people": (
                     ungettext("%(count)s person helping", "%(count)s people helping", people, count=helpers.commify(people))
                     if people >= MIN_PEOPLE_SHOWN
                     else None
                 ),
+                # Counted, but too few to show: the row asks for help instead.
+                "help_needed": bool(p and not finished and not p["reached"] and counted is not None and counted < MIN_PEOPLE_SHOWN),
             }
         )
     return cards
@@ -794,6 +803,7 @@ def build_task_context(
             lccn=next((str(n).strip() for n in edition.get("lccn") or [] if str(n).strip()), ""),
             speculative=field_guide.isfdb and is_speculative(genre_labels(edition)),
         ),
+        "scan_tip": scan_tip(field_guide, book["scan_url"]),
         # Without an ISBN the links search on the title and author, and the page says so.
         "links_by_title": not book["isbn13"],
         # Nothing to compare against when no other edition has a value.

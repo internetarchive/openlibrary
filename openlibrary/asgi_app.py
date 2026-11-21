@@ -148,6 +148,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.merge_authors import router as merge_authors_router
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
+    from openlibrary.fastapi.publishers import pages as publishers_pages
     from openlibrary.fastapi.publishers import router as publishers_router
     from openlibrary.fastapi.search import pages as search_pages
     from openlibrary.fastapi.search import router as search_router
@@ -185,6 +186,7 @@ def _include_routers(app: FastAPI) -> None:
 
     # HTML pages, wrapped in the site shell (SitePageRoute).
     app.include_router(account_pages)
+    app.include_router(publishers_pages)
     app.include_router(search_pages)
     app.include_router(tasks_pages)
     app.include_router(tasks_public_pages)
@@ -298,8 +300,10 @@ def create_app() -> FastAPI | None:
     app.mount("/static", StaticFiles(directory=STATIC_ROOT), name="static")
 
     # --- Fast routes (mounted within this app) ---
+    # async: a sync handler runs in the threadpool, so the readiness probe
+    # would queue behind slow sync handlers when the pool is busy.
     @app.get("/health")
-    def health() -> dict[str, str]:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     _include_routers(app)

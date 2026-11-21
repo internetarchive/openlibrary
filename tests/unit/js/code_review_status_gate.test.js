@@ -105,7 +105,7 @@ test('decideStatus never leaks finding content -- description is counts and fixe
         // could carry a finding's content. The withheld-finding template carries NO number.
         assert.match(
             description,
-            /^(Review passed; all feedback resolved\.|No clean review for this commit\.|Review findings count unavailable\.|A finding was delivered privately; maintainer review required\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
+            /^(Review passed; all feedback resolved\.|No clean review for this commit\.|Review findings count unavailable\.|Feedback withheld for maintainer review\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
         );
         // A withheld description must never carry a digit (no count leak).
         if (c.withheld && c.findings) assert.ok(!/\d/.test(description), `withheld description leaked a digit: ${description}`);
@@ -200,17 +200,21 @@ test('analyze run steps invoke only allowlisted commands (no shell/interpreter/b
 });
 
 // The model has no shell or network. Fail if claude_args ever allows Bash or drops --disallowedTools.
-test('the Review (model) step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
-    const review = (analyzeJob.steps || []).find(s => (s.uses || '').includes('claude-code-action'));
-    assert.ok(review, 'expected a claude-code-action Review step in analyze');
-    const args = String((review.with && review.with.claude_args) || '');
-    const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
-    assert.ok(disallowed, 'Review step must pass --disallowedTools (the model must have no shell/network)');
-    for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
-        assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `--disallowedTools must include ${tool}`);
+test('every model step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
+    const models = (analyzeJob.steps || []).filter(s => (s.uses || '').includes('claude-code-action'));
+    assert.ok(models.length >= 2, 'expected the Review step and the format-fix step in analyze');
+    for (const model of models) {
+        const args = String((model.with && model.with.claude_args) || '');
+        const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
+        assert.ok(disallowed, `${model.name} must pass --disallowedTools (the model must have no shell/network)`);
+        for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
+            assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `${model.name}: --disallowedTools must include ${tool}`);
+        }
+        const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
+        assert.ok(!/\bBash\b/.test(allowed), `${model.name} must not re-enable Bash via --allowedTools`);
+        assert.equal(model.with.show_full_output, false, `${model.name} must not print the model's text to the public log`);
+        assert.equal(model.with.display_report, false, `${model.name} must not put the model's text in the step summary`);
     }
-    const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
-    assert.ok(!/\bBash\b/.test(allowed), 'Review step must not re-enable Bash via --allowedTools');
 });
 
 test('analyze job holds no PAT and no write permission (the no-write half of the split)', () => {
@@ -226,6 +230,15 @@ test('analyze job holds no PAT and no write permission (the no-write half of the
 });
 
 // ---- The status always matches the review it describes ----
+
+// ---- The superseded marker: a review of a commit the PR had moved past ----
+test('supersededMarker round-trips', () => {
+    const { supersededMarker, supersededCommit } = shared;
+    const a = 'a'.repeat(40);
+    assert.equal(supersededCommit(`x\n${supersededMarker(a)}`), a);
+    assert.equal(supersededCommit('x\n<!-- ol-pr-review-bot f=0 -->'), null);
+    assert.equal(supersededCommit('<!-- ol-pr-review-bot superseded reviewed=nope -->'), null);
+});
 
 // ---- headIsCurrent: the live-head check `post` and `status` share ----
 test('D1 headIsCurrent is true only when the pinned reviewed SHA still equals the live head', () => {
@@ -276,10 +289,10 @@ test('#14486 the resolver and the status job share the same verdict helpers (no 
         const src = source(file);
         assert.match(
             src,
-            /\{[^}]*\bparseReviewMarker\b[^}]*\bunresolvedThreadCount\b[^}]*\} = require\('\.\/shared\.cjs'\)/,
+            /\{[^}]*\bverdictFindings\b[^}]*\bheldBackOpen\b[^}]*\bunresolvedThreadCount\b[^}]*\} = require\('\.\/shared\.cjs'\)/,
             `${file} imports the shared helpers`
         );
-        assert.doesNotMatch(src, /const (parseReviewMarker|unresolvedThreadCount) =/, `${file} keeps no copy of its own`);
+        assert.doesNotMatch(src, /const (parseReviewMarker|verdictFindings|heldBackOpen|unresolvedThreadCount) =/, `${file} keeps no copy of its own`);
     }
     const { parseReviewMarker } = shared;
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
@@ -305,7 +318,16 @@ test('D2 parseReviewMarker reads the public findings count from the review-body 
 });
 test('D2 the post step embeds the findings-count marker in the review body', () => {
     // Without an `f=<count>` marker, a repost cannot reconstruct the count.
-    assert.ok(/ol-pr-review-bot f=\$\{/.test(post.validateAndPost.toString()), 'post must embed `<!-- ol-pr-review-bot f=${...} -->` in the review body');
+    assert.ok(/reviewMarker\(findingCount, heldBackBlocks\)/.test(post.validateAndPost.toString()), 'post must embed the marker in the review body');
+});
+test('the marker counts a blocking held-back part as one more finding', () => {
+    const { reviewMarker, heldBackBlocking, parseReviewMarker } = shared;
+    assert.equal(reviewMarker(2, false), '<!-- ol-pr-review-bot f=2 -->');
+    assert.equal(reviewMarker(0, true), '<!-- ol-pr-review-bot f=0 h=1 -->');
+    assert.equal(parseReviewMarker(reviewMarker(0, true)), 1);
+    assert.equal(parseReviewMarker(reviewMarker(2, true)), 3);
+    assert.equal(heldBackBlocking(reviewMarker(0, true)), true);
+    assert.equal(heldBackBlocking(reviewMarker(0, false)), false);
 });
 
 // ---- Withheld reviews: decideStatus, withheldFindings and the gate's findingsTotal ----
@@ -316,11 +338,11 @@ test('D3a decideStatus: a withhold with ZERO findings PASSES (the backstop-false
     assert.equal(d.state, 'success');
     assert.match(d.description, /passed/i);
 });
-test('D3a decideStatus: a withhold WITH a finding FAILS with the non-leaky private-delivery phrase', () => {
+test('D3a decideStatus: a withhold WITH a finding FAILS with the non-leaky withheld phrase', () => {
     const d = decideStatus({ postSucceeded: true, findings: 1, withheld: true, unresolved: 0 });
     assert.equal(d.pass, false);
     assert.equal(d.state, 'failure');
-    assert.equal(d.description, 'A finding was delivered privately; maintainer review required.');
+    assert.equal(d.description, 'Feedback withheld for maintainer review.');
     assert.ok(!/\d/.test(d.description), 'the withheld description must carry no count');
 });
 test('D3a decideStatus: an unknown finding count on a withheld review FAILS CLOSED', () => {
@@ -367,40 +389,105 @@ test('D3a gate: a clean publishable review reports findingsTotal (0 and N) and b
     assert.equal(two.findingsTotal, 2);
 });
 test('gate: the text scan reads markup both with tags stripped and with tags kept', () => {
-    const withSummary = summary => gate.check({ summary, dimensions: cleanDims(), findings: [] }).publish;
+    const withSummary = summary => !gate.check({ summary, dimensions: cleanDims(), findings: [] }).heldBack;
     assert.equal(withSummary('Rename the sec<b>ret</b> helper.'), false, 'tags stripped: a word split by a tag');
     assert.equal(withSummary('Rename the sec<x<y>>ret helper.'), false, 'tags stripped until none are left');
     assert.equal(withSummary('Label the `<input type="password">` field.'), false, 'tags kept: a tag in a code span is shown as text');
     assert.equal(withSummary('Wrap the <b>helper</b> name in a <code>tag</code>.'), true, 'harmless markup still publishes');
 });
-test('gate: a backstop withhold blocks only on a non-LOW finding', () => {
+test('gate: a finding the text scan holds back blocks only when it is not LOW; the rest is published', () => {
     const dims = cleanDims();
     dims.correctness = { status: 'findings' };
-    const withFindings = findings => gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: dims, findings });
+    const withFindings = findings => gate.check({ summary: 'fine', dimensions: dims, findings });
     const low = { dimension: 'correctness', severity: 'low', confidence: 8, title: 'a', body: 'b' };
-    assert.equal(withFindings([low]).blocking, false, 'LOW only -> not blocking');
-    assert.equal(withFindings([low, { ...low, severity: 'medium' }]).blocking, true, 'any MEDIUM/HIGH -> blocking');
+    const tripped = { ...low, body: 'This query is open to SQL injection.' };
+    const lowOnly = withFindings([low, tripped]);
+    assert.equal(lowOnly.publish, true);
+    assert.equal(lowOnly.heldBack, true);
+    assert.equal(lowOnly.blocking, false, 'LOW only -> not blocking');
+    assert.deepEqual(lowOnly.clean.findings, [low], 'the other finding is still published');
+    assert.equal(withFindings([low, { ...tripped, severity: 'medium' }]).blocking, true, 'a MEDIUM/HIGH held back -> blocking');
 });
-test('D3a gate: a withhold triggered by the backstop with 0 findings is NON-blocking (-> success)', () => {
-    // A security word trips the text scan, but the model filed no finding: the one withheld case
-    // that can pass.
-    const res = gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: cleanDims(), findings: [] });
-    assert.equal(res.publish, false, 'backstop term in the summary withholds the public text');
-    assert.equal(res.findingsTotal, 0, 'but the model found nothing');
-    assert.equal(res.blocking, false, '-> NON-blocking -> status greens itself');
+test('gate: a summary or note the text scan trips is replaced, and the rest is published', () => {
+    const dims = cleanDims();
+    dims.styleguide = dimNone('Checked the password form.');
+    const res = gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: dims, findings: [] });
+    assert.equal(res.publish, true);
+    assert.equal(res.heldBack, true);
+    assert.equal(res.blocking, false, 'no finding was held back -> NON-blocking');
+    assert.equal(res.clean.summary, '');
+    assert.equal(res.clean.dimensions.styleguide.note, gate.heldBackNote);
+    assert.equal(res.clean.dimensions.correctness.note, 'ok');
+    assert.equal(gate.check(res.clean).heldBack, false, 'the replacements pass the gate again');
 });
-test('D3a gate (Locke constraint 3): a MODEL security-classification is blocking regardless of count', () => {
-    // Withheld because the model flagged security: always blocking, whatever the count.
+
+// A diff adding lines 10-12 of app.py, with line 9 as context.
+const DIFF = 'diff --git a/app.py b/app.py\n--- a/app.py\n+++ b/app.py\n@@ -9,1 +9,4 @@\n x = 1\n+a = 1\n+b = 2\n+c = 3\n';
+const sec = f => ({
+    dimension: 'security',
+    severity: 'high',
+    confidence: 8,
+    title: 'authz gap',
+    body: 'Anyone can edit any list: check the owner.',
+    path: 'app.py',
+    line: 11,
+    ...f
+});
+const withSecurity = (findings, diff = DIFF) => {
     const dims = cleanDims();
     dims.security = { status: 'findings' };
-    const res = gate.check({
-        summary: 'review',
-        dimensions: dims,
-        findings: [{ dimension: 'security', severity: 'high', confidence: 8, title: 'authz gap', body: 'missing owner check' }]
-    });
-    assert.equal(res.publish, false, 'a security finding is never published');
-    assert.equal(res.blocking, true, 'model-classified security -> BLOCKING -> failure');
-    assert.ok(res.findingsTotal > 0);
+    return gate.check({ summary: 'review', dimensions: dims, findings }, diff);
+};
+test('gate: addedLines reads only + lines, past hunk headers and lines that look like headers', () => {
+    const added = gate.addedLines(`${DIFF}diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1,2 +1,2 @@\n---- removed\n++++ added\n kept\n`);
+    assert.deepEqual([...added.get('app.py')], [10, 11, 12]);
+    assert.deepEqual([...added.get('b.py')], [1]);
+});
+test('SECURITY gate: a concern in existing code is held back and blocks; the rest is published', () => {
+    const other = { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Off by one', body: 'Use <=.' };
+    for (const f of [sec({ scope: 'existing' }), sec({ scope: undefined }), sec({ scope: 'existing', severity: 'low', confidence: 2 })]) {
+        const dims = cleanDims();
+        dims.security = { status: 'findings' };
+        dims.correctness = { status: 'findings' };
+        const res = gate.check({ summary: 'review', dimensions: dims, findings: [f, other] }, DIFF);
+        assert.equal(res.publish, true);
+        assert.equal(res.heldBack, true);
+        assert.equal(res.blocking, true, 'a held-back security finding always blocks');
+        assert.deepEqual(res.clean.findings, [other]);
+        assert.deepEqual(res.clean.dimensions.security, { status: 'none' });
+        assert.ok(!JSON.stringify(res.clean).includes('owner'), 'nothing of it is kept');
+    }
+});
+test('SECURITY gate: a concern the PR introduces is published when it sits on lines the PR adds', () => {
+    const res = withSecurity([sec({ scope: 'introduced', start_line: 10, line: 12 })]);
+    assert.equal(res.heldBack, false);
+    assert.equal(res.clean.findings.length, 1);
+    assert.equal(res.clean.findings[0].scope, 'introduced');
+    assert.deepEqual(res.clean.dimensions.security, { status: 'findings' });
+    assert.equal(withSecurity([sec({ scope: 'introduced', severity: 'low', confidence: 2 })]).clean.findings[0].severity, 'medium', 'it always blocks');
+    // `post` gates the clean copy again, against its own diff.
+    assert.equal(gate.check(JSON.parse(JSON.stringify(res.clean)), DIFF).heldBack, false);
+});
+test('SECURITY gate: an "introduced" concern NOT on lines the PR adds is held back', () => {
+    for (const f of [
+        sec({ scope: 'introduced', line: 9 }), // a context line
+        sec({ scope: 'introduced', start_line: 9, line: 11 }), // starts on a context line
+        sec({ scope: 'introduced', line: 40 }), // not in the diff
+        sec({ scope: 'introduced', path: 'other.py' }),
+        sec({ scope: 'introduced', path: undefined, line: undefined })
+    ]) {
+        const res = withSecurity([f]);
+        assert.equal(res.heldBack, true, JSON.stringify(f));
+        assert.equal(res.blocking, true);
+        assert.deepEqual(res.clean.findings, []);
+    }
+    assert.equal(withSecurity([sec({ scope: 'introduced' })], '').heldBack, true, 'no diff -> held back');
+});
+test('SECURITY gate: an "introduced" concern carrying a credential is held back', () => {
+    assert.equal(withSecurity([sec({ scope: 'introduced', body: `Remove ghp_${'a'.repeat(36)}.` })]).heldBack, true);
+});
+test('gate: a bad scope makes the review unpublishable', () => {
+    assert.equal(withSecurity([sec({ scope: 'new' })]).publish, false);
 });
 test('D3a gate: a structurally malformed review is UNKNOWN and FAILS CLOSED (blocking=true)', () => {
     for (const bad of [null, 'nope', { summary: 5 }, { summary: 'x', dimensions: {}, findings: 'no' }]) {
@@ -417,7 +504,7 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /res\.publish \? res\.clean\.findings\.filter\(f => f\.severity !== 'low'\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
+        /res\.publish \? res\.clean\.findings\.filter\(blocks\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
 });
@@ -429,7 +516,7 @@ test('every checkout is github.sha (never a PR-head ref or a stale base.sha) wit
     const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
         (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
     );
-    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'pending', 'post', 'resolve', 'status']);
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'stacked', 'status']);
     for (const [job, w] of checkouts) {
         assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
         assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);
@@ -460,4 +547,76 @@ test('every github-script step runs a code review module from the base checkout,
             assert.equal(typeof load(join(SCRIPTS, m[1]))[fn[1]], 'function', `${m[1]} must export ${fn[1]}`);
         }
     }
+});
+
+test('gate: a dimension whose findings were all held back passes the gate again in post', () => {
+    const dims = cleanDims();
+    dims.accessibility = { status: 'findings' };
+    const first = gate.check({
+        summary: 'fine',
+        dimensions: dims,
+        findings: [{ dimension: 'accessibility', severity: 'medium', confidence: 8, title: 'Label', body: 'Guard against injection here.' }]
+    });
+    assert.equal(first.heldBack, true);
+    assert.deepEqual(first.clean.dimensions.accessibility, { status: 'none', note: gate.heldBackNote });
+    const again = gate.check(JSON.parse(JSON.stringify(first.clean)));
+    assert.equal(again.publish, true);
+    assert.equal(again.heldBack, false);
+});
+test('SECURITY gate: moved or reindented code is not "added", so an introduced concern on it is held back', () => {
+    const moved =
+        'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1,1 +0,0 @@\n-    run(cmd)\ndiff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -0,0 +1,2 @@\n+run(cmd)\n+fresh()\n';
+    assert.deepEqual([...gate.addedLines(moved).get('b.py')], [2]);
+    assert.equal(withSecurity([sec({ scope: 'introduced', path: 'b.py', line: 1 })], moved).heldBack, true);
+    assert.equal(withSecurity([sec({ scope: 'introduced', path: 'b.py', line: 2 })], moved).heldBack, false);
+});
+test('gate: a ticket_url that trips the scan drops that entry', () => {
+    const dims = cleanDims();
+    const tc = [{ ticket_url: 'https://github.com/secret-org/repo/issues/1', ticket_requirements: ['a'], fully_compliant_requirements: ['a'] }];
+    const res = gate.check({ summary: 'fine', dimensions: dims, findings: [], ticket_compliance: tc });
+    assert.equal(res.heldBack, true);
+    assert.deepEqual(res.clean.ticket_compliance, []);
+});
+test('a blocking held-back part stays open until its review is dismissed', () => {
+    const { heldBackOpen, verdictFindings } = shared;
+    const held = { state: 'CHANGES_REQUESTED', body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' };
+    const later = { state: 'APPROVED', body: 'y\n<!-- ol-pr-review-bot f=0 -->' };
+    assert.equal(heldBackOpen([held, later]), true);
+    assert.equal(heldBackOpen([{ ...held, state: 'DISMISSED' }, later]), false);
+    assert.equal(verdictFindings(held), 1);
+    assert.equal(verdictFindings({ ...held, state: 'DISMISSED' }), 0);
+    assert.equal(verdictFindings({ state: 'DISMISSED', body: 'x\n<!-- ol-pr-review-bot f=2 -->' }), 2);
+});
+
+// ---- A malformed review.json gets one try at a fix before the gate ----
+test('checkFormat says whether the gate would withhold review.json in full', async () => {
+    const { checkFormat } = load(join(SCRIPTS, 'analyze_gate.cjs'));
+    const malformed = async content => {
+        const out = {};
+        const fs = {
+            readFileSync: () => {
+                if (content === null) throw new Error('ENOENT');
+                return content;
+            }
+        };
+        await checkFormat({
+            core: { setOutput: (k, v) => (out[k] = v) },
+            require: id => (id === 'node:fs' ? fs : load(id)),
+            process: { env: { GITHUB_WORKSPACE: '/w' } }
+        });
+        return out.malformed;
+    };
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: [] })), 'false');
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: 'none' })), 'true');
+    assert.equal(await malformed('{"summary": '), 'true');
+    assert.equal(await malformed(null), 'true');
+});
+
+test('the format-fix step runs only when the format check failed, before the gate', () => {
+    const steps = analyzeJob.steps || [];
+    const i = name => steps.findIndex(s => s.name === name);
+    assert.ok(i('Review') < i("Check the review's format"));
+    assert.ok(i("Check the review's format") < i("Fix the review's format"));
+    assert.ok(i("Fix the review's format") < i('Gate the analysis before upload'), 'the gate must check the fixed file');
+    assert.equal(steps[i("Fix the review's format")].if, "steps.format.outputs.malformed == 'true'");
 });

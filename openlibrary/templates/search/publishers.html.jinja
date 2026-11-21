@@ -1,0 +1,22 @@
+{# Takes `q` (the query) and `publishers`: a list of PublisherResult. #}
+{% from "search/searchbox.html.jinja" import searchbox %}
+<div id="contentHead">
+    <h1>{{ _("Publishers Search") }}</h1>
+</div>
+<div id="contentBody">
+    <div class="section">
+        <form class="siteSearch olform" action="">
+            {{ searchbox(q=q) }}
+        </form>
+    </div>
+    <ul class="subjectList">
+        {% for p in publishers %}
+            <li>
+                <a href="{{ p.key }}">{{ p.name }}</a>
+                <span class="count">
+                    <b>{{ ngettext("%(count)d book", "%(count)d books", p.count, count=p.count) }}</b>
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

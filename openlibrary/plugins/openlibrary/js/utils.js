@@ -7,19 +7,17 @@ See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-21079
 // used in templates/admin/imports.html
 export function truncate(text, limit) {
     if (text.length > limit) {
-        return `${text.substr(0, limit)}...`;
-    } else {
-        return text;
+        return `${text.slice(0, limit)}...`;
     }
+    return text;
 }
 
 // used in openlibrary/templates/books/edit/excerpts.html
 export function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
-    } else {
-        return false_value;
     }
+    return false_value;
 }
 
 /**

@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `resolve` job: resolves the review threads `post` listed, and does nothing else.
 // It runs with the job's GITHUB_TOKEN. resolveReviewThread needs Contents: write, which we won't give
 // the bot's PAT (#14533), so this job holds it only for the few seconds it runs.

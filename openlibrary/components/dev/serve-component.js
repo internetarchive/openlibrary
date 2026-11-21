@@ -1,7 +1,7 @@
 /*
 Creates the js files to be imported for the dev server
 */
-const fs = require('fs');
+const fs = require('node:fs');
 
 const componentName = process.env.COMPONENT || 'HelloWorld';
 

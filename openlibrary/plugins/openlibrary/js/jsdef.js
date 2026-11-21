@@ -22,14 +22,14 @@ import { truncate, cond } from './utils';
 
 //used in templates/lib/pagination.html
 export function range(begin, end, step) {
-    var r, i;
+    let i;
     step = step || 1;
     if (end === undefined) {
         end = begin;
         begin = 0;
     }
 
-    r = [];
+    const r = [];
     for (i = begin; i < end; i += step) {
         r[r.length] = i;
     }
@@ -60,8 +60,8 @@ export function enumerate(a) {
     // Keep new Array(n): it preserves holes for sparse input, which
     // Array.from({ length }) would turn into undefined entries.
     // oxlint-disable-next-line unicorn/no-new-array
-    var b = new Array(a.length);
-    var i;
+    const b = new Array(a.length);
+    let i;
     for (i in a) {
         b[i] = [i, a[i]];
     }
@@ -77,7 +77,7 @@ export function ForLoop(parent, seq) {
 }
 
 ForLoop.prototype.next = function () {
-    var i = this.index0 + 1;
+    const i = this.index0 + 1;
 
     this.index0 = i;
     this.index = i + 1;
@@ -95,8 +95,8 @@ ForLoop.prototype.next = function () {
 
 // used in plugins/upstream/jsdef.py
 export function foreach(seq, parent_loop, callback) {
-    var loop = new ForLoop(parent_loop, seq);
-    var i, args, j;
+    const loop = new ForLoop(parent_loop, seq);
+    let i, args, j;
 
     for (i = 0; i < seq.length; i++) {
         loop.next();
@@ -122,9 +122,8 @@ export function websafe(value) {
     try {
         if (value === null || value === undefined) {
             return '';
-        } else {
-            return htmlquote(value.toString());
         }
+        return htmlquote(value.toString());
     } catch (e) {
         return '';
     }
@@ -165,6 +164,7 @@ export function jsdef_get(obj, key, def = null) {
 
 export function exposeGlobally() {
     // Extend existing prototypes
+    // oxlint-disable-next-line no-extend-native -- Templetor-compiled templates call "str".join(...)
     String.prototype.join = join;
 
     window.commify = commify;

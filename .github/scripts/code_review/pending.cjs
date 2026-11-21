@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // The `pending` job: reacts to the @-mention that asked for a review, and marks the head
 // `code-review=pending` while the review runs.
 'use strict';

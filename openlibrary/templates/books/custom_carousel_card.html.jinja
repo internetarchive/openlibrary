@@ -71,8 +71,8 @@
                     {% if cover_url %}
                         <img class="bookcover"
                              loading="lazy"
-                             title="{{ title }}{{ byline }}"
-                             alt="{{ title }}{{ byline }}"
+                             title="{{ cover_label }}"
+                             alt="{{ cover_label }}"
                              src="{{ cover_url }}" />
                     {% else %}
                         <div class="carousel__item__blankcover" title="{{ title }}">
