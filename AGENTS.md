@@ -64,6 +64,19 @@ npm run watch               # Dev mode with hot reload
 - **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
 - **Branches:** `{issue-number}/{type}/{slug}`
 
+### Code Comments
+
+Write comments for someone reading the code as it is now, with no access to the issue, the PR or your session.
+
+- Default to no comment. Add one only when it tells the reader something the code can't: why it's done this way, a constraint or invariant, a workaround, or a consequence that lives elsewhere. Before adding one, name the mistake it prevents.
+- Don't restate the code, or repeat what a well-named function already says. `# Set a one-minute timeout` above `timeout=60` adds nothing. If the code needs narrating to be followed, rename things or split the function instead.
+- Describe the code, not its history. No "now uses", "changed to", "previously", "fixed the bug where" or "as discussed". That belongs in the commit message and PR description.
+- Keep length proportional to the complexity. Most comments are one short line. Longer is fine for a hard algorithm, a regex or a subtle race. If a workaround needs a paragraph of justification, fix the code.
+- Don't address the reviewer, the user or the next agent. No section banners, no commented-out code.
+- Doc comments are different: document functions, parameters and fields. Use JSDoc with types in JS (components follow [`docs/frontend/web-components.md`](docs/frontend/web-components.md)) and `:param name:` docstrings in Python. Say what a value means, not how the function works inside.
+- Keep existing comments unless your change makes them wrong, and then fix them.
+- Before finishing, reread every comment you added as a new contributor would, and delete the ones that break these rules.
+
 ### Picking Up an Issue
 
 Agents opening PRs follow [`CONTRIBUTING.md`](CONTRIBUTING.md) like everyone else: read it before starting work on an issue, including the `Good First Issue` rules (the bot closes PRs from authors who haven't commented on the issue).

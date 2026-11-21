@@ -45,10 +45,19 @@ const supersededCommit = body => {
     const m = /<!-- ol-pr-review-bot superseded reviewed=([0-9a-f]{40}) -->/.exec(String(body || ''));
     return m ? m[1] : null;
 };
-// Threads that block the status: unresolved and not outdated. This includes the bot's own
-// just-posted findings, so a review with findings stays red until they are addressed.
+// Opens the bot's inline comment for a suggestion that doesn't block: a low-severity finding with a
+// change the author can apply in one click. Threads the bot opens with it never block the status or
+// the verdict. Only the bot's own comments count, so nobody else can make a thread non-blocking.
+const SUGGESTION_MARKER = '<!-- ol-pr-review-bot suggestion -->';
+const isSuggestionThread = (t, botLogin = 'openlibrary-bot') => {
+    const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
+    return !!(c && c.author && c.author.login === botLogin && String(c.body || '').includes(SUGGESTION_MARKER));
+};
+// Threads that block the status: unresolved, not outdated, and not one of the bot's suggestions.
+// This includes the bot's own just-posted findings, so a review with findings stays red until they
+// are addressed. Threads need their first comment's author and body to tell suggestions apart.
 const unresolvedThreadCount = threads => {
-    return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated ? 1 : 0), 0);
+    return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated && !isSuggestionThread(t) ? 1 : 0), 0);
 };
 
 // The parts of a unified diff for the given paths (old or new name). A re-review sees only these.
@@ -135,6 +144,8 @@ module.exports = {
     heldBackReview,
     verdictFindings,
     unresolvedThreadCount,
+    SUGGESTION_MARKER,
+    isSuggestionThread,
     filterDiff,
     supersededMarker,
     supersededCommit

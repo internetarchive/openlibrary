@@ -206,6 +206,12 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
 - The docs in Step 2's table, for the areas they cover.
 - Lint suppressions are scoped to the one line that needs them: a `# noqa: <CODE>` on that line,
   not a new file or code under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml`.
+- Code comments the PR adds that break the "Code Comments" rules in `AGENTS.md`: comments that
+  restate the code or what a well-named function already says, narrate the code's history ("now",
+  "previously", "changed to", "per review"), address the reviewer, or run to several sentences for
+  simple code. One `low` finding per comment, with a `suggestion` that deletes it (an empty
+  string) or shortens it to the line worth keeping. Don't flag missing comments, doc comments
+  (JSDoc, docstrings), or comments the PR didn't add.
 
 Not findings: formatting a linter already enforces, subjective naming, or missing type
 annotations in a file that has none.
@@ -354,7 +360,9 @@ Field rules:
   Leaving it out means `"existing"`; any other value makes the review unpublishable.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
   unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
-  that don't block merging; use `medium` or `high` for anything that should be fixed first.
+  that don't block merging. A `low` finding with a `suggestion` on lines in `pr.diff` also gets a
+  comment on those lines with the change, which still doesn't block. Use `medium` or `high` for
+  anything that should be fixed first.
   `test_coverage` findings are always posted as suggestions, whatever their `severity`, and
   `security` findings always block.
 - `confidence` — required on every finding: an integer from 1 to 10 for how sure you are the
@@ -396,11 +404,12 @@ Field rules:
   item. Every item in every list is a non-empty string; use `[]` for an empty list. Anything
   else makes the review unpublishable. The three result lists are posted, one short line per
   item; `ticket_requirements` is not.
-- `suggestion` — the replacement text for **exactly** the `start_line..line` range, rendered as
-  a GitHub suggestion the author can apply in one click. Include one whenever the fix only
-  changes the anchored lines: copy those lines exactly from `pr-head/<path>`, keep their
-  indentation, and edit them. The line count must match the range. Leave it out when the fix
-  touches other lines or files, or when you aren't sure the replacement is right.
+- `suggestion` — the text that replaces the `start_line..line` range, rendered as a GitHub
+  suggestion the author can apply in one click. Include one whenever the fix only changes the
+  anchored lines: copy those lines exactly from `pr-head/<path>`, keep their indentation, and edit
+  them. The replacement may have more or fewer lines than the range, and an empty string deletes
+  the range. Anchor the range on exactly the lines the fix replaces, no more. Leave it out when
+  the fix touches other lines or files, or when you aren't sure the replacement is right.
 - Write for a busy reader: short sentences, no restating the code, no walls of text.
 - Keep `findings` to the things worth a maintainer's attention. Ten real findings beat forty
   padded ones, and this review costs money per run.
