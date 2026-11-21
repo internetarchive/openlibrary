@@ -2414,6 +2414,11 @@ msgid "Show"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
+#, python-format
+msgid "The edits could not be loaded: %(error)s"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
 msgid "Loading the edits took too long and was stopped. Try again, or look at fewer days of signups with ?days=."
 msgstr ""
 

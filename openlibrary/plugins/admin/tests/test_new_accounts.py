@@ -249,6 +249,14 @@ class TestBuildReport:
         assert report.timed_out
         assert report.rows == []
 
+    def test_a_failed_load_names_the_error(self, site, monkeypatch):
+        monkeypatch.setattr(new_accounts, "load_young_account_changes_sync", Mock(side_effect=RuntimeError("no pool")))
+
+        report = build_report(site, now=NOW)
+
+        assert report.error.startswith("RuntimeError: no pool (")
+        assert report.rows == []
+
     def test_calls(self, site, monkeypatch):
         for n in range(3):
             signup(site, f"user{n}", NOW - timedelta(hours=2))

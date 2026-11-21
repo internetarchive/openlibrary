@@ -9,7 +9,9 @@ reverted as spam (see `find_signals`).
 """
 
 import json
+import logging
 import re
+import traceback
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -20,6 +22,8 @@ from openlibrary.core.async_db import connection
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.utils.async_utils import async_bridge
+
+logger = logging.getLogger("openlibrary.admin.new_accounts")
 
 # Defaults, to be tuned. The first two can be overridden per request with ?days= and ?hours=.
 MAX_ACCOUNT_AGE_DAYS = 7
@@ -175,6 +179,7 @@ class Report:
     capped: bool  # MAX_CHANGES_LOADED was hit: the oldest edits are missing
     loaded_back_to_label: str  # the oldest edit read, when capped
     timed_out: bool = False  # a query gave up; there are no rows
+    error: str = ""  # what broke, when loading failed; there are no rows
     fast_minutes: int = FAST_FIRST_WRITE_MINUTES
 
 
@@ -224,10 +229,10 @@ YOUNG_ACCOUNT_CHANGES = """
     ORDER BY t.created DESC
     LIMIT %(limit)s
 """
-# Only the fields the signals read, from each record's latest revision.
+# Only the fields the signals read, from each record's latest revision. jsonb rejects an escaped NUL, which spam can hold.
 RECORD_TEXTS = """
     SELECT t.key, type.key AS type,
-           (SELECT jsonb_object_agg(f.key, f.value) FROM jsonb_each(d.data::jsonb) f WHERE f.key = ANY(%(fields)s)) AS fields
+           (SELECT jsonb_object_agg(f.key, f.value) FROM jsonb_each(replace(d.data, '\\u0000', '')::jsonb) f WHERE f.key = ANY(%(fields)s)) AS fields
     FROM thing t
     JOIN thing type ON type.id = t.type
     LEFT JOIN data d ON d.thing_id = t.id AND d.revision = t.latest_revision
@@ -472,7 +477,22 @@ def _window_label(hours: int) -> str:
     return ungettext("%(count)s hour", "%(count)s hours", hours, count=hours)
 
 
-def build_report(
+def build_report(site, **kwargs) -> Report:
+    """`_build_report`, or an empty report naming the exception, so admins see what broke instead of a 500."""
+    try:
+        return _build_report(site, **kwargs)
+    except Exception as e:
+        logger.exception("Spam review failed to load")
+        frame = traceback.extract_tb(e.__traceback__)[-1]
+        days, hours = kwargs.get("days", MAX_ACCOUNT_AGE_DAYS), kwargs.get("hours", WINDOW_HOURS)
+        return Report(days=days, hours=hours, age_label=ungettext("%(count)s day", "%(count)s days", days, count=days),
+                      window_label=_window_label(hours), rows=[], matching_accounts=0, likely_accounts=0, look_accounts=0,
+                      reviewed_accounts=0, show=kwargs.get("show", "all"), max_accounts=kwargs.get("max_accounts", MAX_ACCOUNTS),
+                      changes_loaded=0, capped=False, loaded_back_to_label="",
+                      error=f"{type(e).__name__}: {e} ({frame.filename.rsplit('/', 1)[-1]}:{frame.lineno})")  # fmt: skip
+
+
+def _build_report(
     site,
     now: datetime | None = None,
     days: int = MAX_ACCOUNT_AGE_DAYS,
