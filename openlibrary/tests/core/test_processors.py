@@ -1,10 +1,12 @@
 import re
 
+import pytest
 import web
 
 from infogami.infobase import client, common
 from openlibrary.core import helpers
 from openlibrary.core.processors import readableurls as processors
+from openlibrary.utils.request_context import site as site_context
 
 
 class MockSite:
@@ -96,6 +98,7 @@ def test_book_urls():
     # with bad title
     assert f("/books/OL1M/bar") == ("/books/OL1M", "/books/OL1M/foo")
     assert f("/books/OL1M/bar/edit") == ("/books/OL1M/edit", "/books/OL1M/foo/edit")
+    assert f("/books/OL1M/export") == ("/books/OL1M", "/books/OL1M/foo")
 
     # test /b/ redirects
     assert f("/b/OL1M") == ("/books/OL1M", "/books/OL1M/foo")
@@ -128,6 +131,87 @@ def test_list_urls():
         "/people/joe/lists/OL1L/edit",
         "/people/joe/lists/OL1L/foo/edit",
     )
+
+
+@pytest.mark.parametrize(
+    ("key", "type_key"),
+    [
+        ("/people/joe/lists/OL1L", "/type/list"),
+        ("/lists/OL1L", "/type/list"),
+        ("/series/OL1L", "/type/series"),
+    ],
+)
+@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions", "preview.png"])
+def test_list_action_urls(key, type_key, action):
+    site = MockSite()
+    site.add({"key": key, "type": {"key": type_key}, "name": "foo"})
+    patterns = processors.ReadableUrlProcessor.patterns
+
+    for slug in ("", "/foo", "/bar", f"/{action}"):
+        assert processors.get_readable_path(site, f"{key}{slug}/{action}", patterns) == (
+            f"{key}/{action}",
+            f"{key}/foo/{action}",
+        )
+
+
+@pytest.mark.parametrize(("key", "type_key"), [("/people/joe/lists/OL1L", "/type/list"), ("/series/OL1L", "/type/series")])
+@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions", "preview.png"])
+def test_list_action_name_is_canonical_slug(key, type_key, action):
+    site = MockSite()
+    site.add({"key": key, "type": {"key": type_key}, "name": action})
+    patterns = processors.ReadableUrlProcessor.patterns
+
+    assert processors.get_readable_path(site, key, patterns) == (key, f"{key}/{action}")
+    assert processors.get_readable_path(site, f"{key}/{action}", patterns) == (key, f"{key}/{action}")
+    assert processors.get_readable_path(site, f"{key}/{action}/{action}", patterns) == (
+        f"{key}/{action}",
+        f"{key}/{action}/{action}",
+    )
+
+
+@pytest.mark.parametrize("suffix", [".json", "/seeds.json", "/editions.yml"])
+def test_list_encoded_urls(suffix):
+    path = f"/people/joe/lists/OL1L{suffix}"
+    assert get_readable_path(path) == (path, path)
+
+
+def test_list_urls_with_explicit_encoding():
+    path = "/people/joe/lists/OL1L/export"
+    assert get_readable_path(path, encoding="json") == (path, path)
+
+
+def test_list_action_name_with_nested_suffix():
+    assert get_readable_path("/people/joe/lists/OL1L/export/feeds/updates.atom") == (
+        "/people/joe/lists/OL1L/feeds/updates.atom",
+        "/people/joe/lists/OL1L/foo/feeds/updates.atom",
+    )
+
+
+@pytest.mark.parametrize("action", ["export", "embed", "preview.png"])
+@pytest.mark.parametrize("method", ["GET", "POST"])
+def test_list_action_request_preserves_query(action, method):
+    class ActionHandler:
+        def GET(self, action):
+            return web.ctx.fullpath
+
+        POST = GET
+
+    key = "/people/joe/lists/OL1L"
+    token = site_context.set(_get_mock_site())
+    try:
+        app = web.application((rf"{key}/(export|embed|preview\.png)", ActionHandler), {})
+        app.add_processor(web.loadhook(lambda: setattr(web.ctx, "encoding", None)))
+        app.add_processor(processors.ReadableUrlProcessor())
+        response = app.request(f"{key}/{action}?format=json", method=method)
+        if method == "GET":
+            assert response.status == "301 Moved Permanently"
+            assert response.headers["Location"] == f"http://0.0.0.0:8080{key}/foo/{action}?format=json"
+            response = app.request(f"{key}/foo/{action}?format=json")
+    finally:
+        site_context.reset(token)
+
+    assert response.status == "200 OK"
+    assert response.data.decode() == f"{key}/{action}?format=json"
 
 
 # ---------------------------------------------------------------------------
