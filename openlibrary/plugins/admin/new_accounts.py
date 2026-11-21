@@ -217,6 +217,7 @@ class TooSlow(Exception):
     """A query ran past QUERY_TIMEOUT_MS."""
 
 
+# Production's `transaction` has no `bot` column; bot accounts are dropped by their profile's `bot` flag instead.
 # Infobase's own tables, read directly: `thing` (one row per record), `transaction` (one per changeset) and `data`
 # (one per revision). Both queries go through the indexes on thing.created, thing.key and transaction.author_id.
 YOUNG_ACCOUNT_CHANGES = """
@@ -225,7 +226,6 @@ YOUNG_ACCOUNT_CHANGES = """
     JOIN transaction t ON t.author_id = a.id
     WHERE a.type = (SELECT id FROM thing WHERE key = '/type/user')
       AND a.created >= %(signup_cutoff)s
-      AND t.bot IS NOT TRUE
     ORDER BY t.created DESC
     LIMIT %(limit)s
 """
@@ -251,7 +251,7 @@ async def _fetch_all_within_timeout(query: str, params: dict) -> list[dict]:
 
 
 async def load_young_account_changes(signup_cutoff: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
-    """Every human changeset by accounts created since `signup_cutoff`, newest first, shaped like `site.recentchanges`.
+    """Every changeset by accounts created since `signup_cutoff`, newest first, shaped like `site.recentchanges`.
 
     :return: the changes, and whether `limit` cut off the oldest
     """

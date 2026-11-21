@@ -467,7 +467,7 @@ class TestQueries:
 
         (query, params), _ = rows.await_args
         assert "a.created >= %(signup_cutoff)s" in query
-        assert "t.bot IS NOT TRUE" in query
+        assert "t.bot" not in query  # production has no such column
         assert params == {"signup_cutoff": NOW - timedelta(days=7), "limit": 1}
         assert capped
         [change] = changes
