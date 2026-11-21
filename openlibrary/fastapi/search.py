@@ -21,7 +21,7 @@ from pydantic import (
 
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
-from openlibrary.core.helpers import commify
+from openlibrary.core.helpers import commify, urlsafe
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.models import (
@@ -34,6 +34,7 @@ from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SiteP
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, hit_editions, render_inside_body
 from openlibrary.plugins.upstream.mybooks import get_reading_states_async
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -45,6 +46,7 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.sort_menu import SortMenu, SortScheme
 from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
@@ -570,6 +572,29 @@ class SearchNav:
 SearchNavDep = Annotated[SearchNav, Depends(SearchNav.from_request)]
 
 
+@dataclass(frozen=True)
+class SortLinks:
+    """What the sort menu (``SortMenu``) needs from the request: the page's path and query to build its links, and who is asking.
+
+    ``path`` is the request path. A page with a readable URL (``/authors/OL1A/Name``) must link from that path.
+    """
+
+    path: str
+    params: Mapping[str, str]  # one value per key, the last if repeated
+    is_bot: bool
+    is_librarian: bool  # sees the beta sorts
+
+    @classmethod
+    def from_request(cls, request: Request, user: CurrentUserDep) -> Self:
+        return cls(request.url.path, dict(request.query_params), req_context.get().is_bot, bool(user and user.is_librarian))
+
+    def menu(self, selected_sort: str | None, *, scheme: SortScheme) -> SortMenu:
+        return SortMenu.build(selected_sort, path=self.path, params=self.params, scheme=scheme, can_see_beta_sorts=self.is_librarian, is_bot=self.is_bot)
+
+
+SortLinksDep = Annotated[SortLinks, Depends(SortLinks.from_request)]
+
+
 class AdvancedSearchForm(BaseModel):
     """Pre-fill for the /advancedsearch form. A ``*_facet`` param fills its field when that is empty."""
 
@@ -762,3 +787,47 @@ async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> Site
         total_pages=ceil((response.num_found or 0) / limit) if response else 0,
     )
     return SitePage(body, page=PageMeta(title=subjects_search_title(q)))
+
+
+def authors_search_title(q: str) -> str:
+    """Page title for /search/authors: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Author search", query=q) if q else _("Author search")
+
+
+@pages.get("/search/authors")
+async def search_authors(nav: SearchNavDep, sort_links: SortLinksDep, user: CurrentUserDep, q: str = "", page: int = 1, sort: AuthorSortOption = "") -> SitePage:  # type: ignore[valid-type]
+    # TODO: Retire the web.py `author_search` handler (it still serves /search/authors
+    # in production) once production routes /search/authors here.
+    q = q.strip()
+    page = max(1, page)
+    limit = 100  # Matches web.py's author_search results_per_page
+    response = (
+        await run_solr_query_async(
+            AuthorSearchScheme(),
+            {"q": q},
+            offset=(page - 1) * limit,
+            rows=limit,
+            fields="*",
+            sort=sort,
+            request_label="AUTHOR_SEARCH",
+        )
+        if q
+        else None
+    )
+    # num_found is None when Solr errors; the template shows the error instead of results.
+    num_found = (response.num_found or 0) if response else 0
+
+    body = render_jinja_template(
+        "search/authors.html.jinja",
+        nav=nav,
+        q=q,
+        sort_menu=sort_links.menu(sort, scheme="authors"),
+        search_response=response,
+        can_merge=bool(user and user.is_librarian),
+        urlsafe=urlsafe,
+        coverstore_url=get_coverstore_public_url(),
+        commified_num_found=commify(num_found),
+        page=page,
+        total_pages=ceil(num_found / limit),
+    )
+    return SitePage(body, page=PageMeta(title=authors_search_title(q)))
