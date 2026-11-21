@@ -44,12 +44,7 @@
     {% if data.same_book %}
         <section class="contrib-section contrib-next" data-same-book>
             <span class="contrib-h">{{ _("While you're on this book") }}</span>
-            {{ parts.book_header(data.book, compact=True) }}
-            <ul class="contrib-row__tasks">
-                {% for task in data.same_book %}
-                    {{ parts.task_row(task, "TaskDone|SameBookTask") }}
-                {% endfor %}
-            </ul>
+            {{ parts.task_book(data.book, data.book_labels, tasks=data.same_book, compact=True, track="TaskDone|SameBookTask") }}
         </section>
     {% endif %}
     <div class="contrib-hero__actions">
