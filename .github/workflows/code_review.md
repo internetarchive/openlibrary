@@ -204,6 +204,8 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
 - No speculative abstractions (a helper called once), and no error handling for states the
   framework already rules out; validate at system boundaries only.
 - The docs in Step 2's table, for the areas they cover.
+- Lint suppressions are scoped to the one line that needs them: a `# noqa: <CODE>` on that line,
+  not a new file or code under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml`.
 
 Not findings: formatting a linter already enforces, subjective naming, or missing type
 annotations in a file that has none.
