@@ -27,7 +27,10 @@ from openlibrary.utils.request_context import RequestContextVars, req_context, s
 @pytest.fixture(scope="session")
 def fastapi_client():
     """Create a test client for the FastAPI app (session-scoped for speed)."""
-    with patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True):
+    with (
+        patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True),
+        patch("openlibrary.asgi_app.get_redirect_location", return_value=None),
+    ):
         from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
         app = create_app()
