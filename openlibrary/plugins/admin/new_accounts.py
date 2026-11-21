@@ -38,12 +38,12 @@ BOOK_ADD_KINDS = ("add-book",)
 LIST_CREATE_KINDS = ("lists", "create-list", "create-series")
 # Which record of a changeset to show, e.g. the work of an add-book rather than its edition or author.
 RECORD_PRIORITY = ("/works/", "/books/", "/lists/", "/series/", "/authors/")
-BLOCKABLE_STATUSES = ("active", "verified")
 # Adding catalog books to one's own list is what new readers do most; it never counts towards the ranking.
 LIST_SEED_KINDS = ("edit-list-seeds",)
 # The page is a queue: an account leaves it once an admin blocks it or tags it trusted (which also skips the captcha).
 TRUSTED_TAG = "trusted-user"
-# Blocked and trusted accounts are looked up newest-changed first; a young account blocked recently is near the top.
+# Blocked and trusted accounts are looked up newest-changed first (Infobase gives a store row a new id on every put, and
+# orders by id), so a young account blocked recently is near the top.
 REVIEW_LOOKUP_LIMIT = 1000
 
 # Signals. The records an account created or edited are read, newest first, up to this many, plus its profile.
@@ -131,7 +131,6 @@ class AccountRow:
     displayname: str
     status: str
     email: str | None
-    can_block: bool
     created: datetime
     created_label: str
     age: str
@@ -423,10 +422,21 @@ def build_report(site, **kwargs) -> Report:
         logger.exception("Spam review failed to load")
         frame = traceback.extract_tb(e.__traceback__)[-1]
         days = kwargs.get("days", MAX_ACCOUNT_AGE_DAYS)
-        return Report(days=days, age_label=ungettext("%(count)s day", "%(count)s days", days, count=days), rows=[], matching_accounts=0, likely_accounts=0, look_accounts=0,
-                      reviewed_accounts=0, show=kwargs.get("show", "all"), max_accounts=kwargs.get("max_accounts", MAX_ACCOUNTS),
-                      changes_loaded=0, capped=False, loaded_back_to_label="",
-                      error=f"{type(e).__name__}: {e} ({frame.filename.rsplit('/', 1)[-1]}:{frame.lineno})")  # fmt: skip
+        return Report(
+            days=days,
+            age_label=ungettext("%(count)s day", "%(count)s days", days, count=days),
+            rows=[],
+            matching_accounts=0,
+            likely_accounts=0,
+            look_accounts=0,
+            reviewed_accounts=0,
+            show=kwargs.get("show", "all"),
+            max_accounts=kwargs.get("max_accounts", MAX_ACCOUNTS),
+            changes_loaded=0,
+            capped=False,
+            loaded_back_to_label="",
+            error=f"{type(e).__name__}: {e} ({frame.filename.rsplit('/', 1)[-1]}:{frame.lineno})",
+        )
 
 
 def _build_report(
@@ -536,7 +546,6 @@ def _build_report(
                 displayname=str(user.get("displayname") or username),
                 status=status,
                 email=account.get("email"),
-                can_block=status in BLOCKABLE_STATUSES,
                 created=created,
                 created_label=_timestamp_label(created),
                 age=format_duration(now - created),

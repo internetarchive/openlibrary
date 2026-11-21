@@ -185,8 +185,8 @@ class TestBuildReport:
 
         active, blocked = build_report(site, now=NOW).rows
 
-        assert (active.displayname, active.email, active.status, active.can_block) == ("spammer name", "spammer@example.org", "active", True)
-        assert (blocked.status, blocked.can_block) == ("blocked", False)
+        assert (active.displayname, active.email, active.status) == ("spammer name", "spammer@example.org", "active")
+        assert blocked.status == "blocked"
 
     def test_only_the_busiest_accounts_are_shown(self, site):
         for n in range(4):
