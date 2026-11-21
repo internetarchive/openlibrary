@@ -200,17 +200,21 @@ test('analyze run steps invoke only allowlisted commands (no shell/interpreter/b
 });
 
 // The model has no shell or network. Fail if claude_args ever allows Bash or drops --disallowedTools.
-test('the Review (model) step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
-    const review = (analyzeJob.steps || []).find(s => (s.uses || '').includes('claude-code-action'));
-    assert.ok(review, 'expected a claude-code-action Review step in analyze');
-    const args = String((review.with && review.with.claude_args) || '');
-    const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
-    assert.ok(disallowed, 'Review step must pass --disallowedTools (the model must have no shell/network)');
-    for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
-        assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `--disallowedTools must include ${tool}`);
+test('every model step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
+    const models = (analyzeJob.steps || []).filter(s => (s.uses || '').includes('claude-code-action'));
+    assert.ok(models.length >= 2, 'expected the Review step and the format-fix step in analyze');
+    for (const model of models) {
+        const args = String((model.with && model.with.claude_args) || '');
+        const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
+        assert.ok(disallowed, `${model.name} must pass --disallowedTools (the model must have no shell/network)`);
+        for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
+            assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `${model.name}: --disallowedTools must include ${tool}`);
+        }
+        const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
+        assert.ok(!/\bBash\b/.test(allowed), `${model.name} must not re-enable Bash via --allowedTools`);
+        assert.equal(model.with.show_full_output, false, `${model.name} must not print the model's text to the public log`);
+        assert.equal(model.with.display_report, false, `${model.name} must not put the model's text in the step summary`);
     }
-    const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
-    assert.ok(!/\bBash\b/.test(allowed), 'Review step must not re-enable Bash via --allowedTools');
 });
 
 test('analyze job holds no PAT and no write permission (the no-write half of the split)', () => {
@@ -582,4 +586,37 @@ test('a blocking held-back part stays open until its review is dismissed', () =>
     assert.equal(verdictFindings(held), 1);
     assert.equal(verdictFindings({ ...held, state: 'DISMISSED' }), 0);
     assert.equal(verdictFindings({ state: 'DISMISSED', body: 'x\n<!-- ol-pr-review-bot f=2 -->' }), 2);
+});
+
+// ---- A malformed review.json gets one try at a fix before the gate ----
+test('checkFormat says whether the gate would withhold review.json in full', async () => {
+    const { checkFormat } = load(join(SCRIPTS, 'analyze_gate.cjs'));
+    const malformed = async content => {
+        const out = {};
+        const fs = {
+            readFileSync: () => {
+                if (content === null) throw new Error('ENOENT');
+                return content;
+            }
+        };
+        await checkFormat({
+            core: { setOutput: (k, v) => (out[k] = v) },
+            require: id => (id === 'node:fs' ? fs : load(id)),
+            process: { env: { GITHUB_WORKSPACE: '/w' } }
+        });
+        return out.malformed;
+    };
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: [] })), 'false');
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: 'none' })), 'true');
+    assert.equal(await malformed('{"summary": '), 'true');
+    assert.equal(await malformed(null), 'true');
+});
+
+test('the format-fix step runs only when the format check failed, before the gate', () => {
+    const steps = analyzeJob.steps || [];
+    const i = name => steps.findIndex(s => s.name === name);
+    assert.ok(i('Review') < i("Check the review's format"));
+    assert.ok(i("Check the review's format") < i("Fix the review's format"));
+    assert.ok(i("Fix the review's format") < i('Gate the analysis before upload'), 'the gate must check the fixed file');
+    assert.equal(steps[i("Fix the review's format")].if, "steps.format.outputs.malformed == 'true'");
 });

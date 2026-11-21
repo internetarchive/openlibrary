@@ -59,4 +59,17 @@ async function gateAnalysis({ core, require, process }) {
     core.info('Gate evaluated; artifact prepared.');
 }
 
-module.exports = { gateAnalysis };
+// The `analyze` job's "Check the review's format" step, run right after the model and before the
+// gate: says whether the gate would withhold review.json in full, so the model gets one try to fix it.
+async function checkFormat({ core, require, process }) {
+    const fs = require('node:fs');
+    let review = null;
+    try {
+        review = JSON.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/review.json`, 'utf8'));
+    } catch (e) {
+        review = null;
+    }
+    core.setOutput('malformed', gate.check(review, '').publish ? 'false' : 'true');
+}
+
+module.exports = { gateAnalysis, checkFormat };

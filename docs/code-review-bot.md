@@ -145,6 +145,9 @@ If GitHub returns a server error (5xx) while the bot posts its review, the bot r
 10 and 20 seconds apart. It first checks whether GitHub posted the review anyway, so it doesn't post
 it twice. The job fails only if every attempt fails.
 
+If the model's `review.json` doesn't match the expected format, the bot runs the model once more to
+fix it. If it still doesn't match, the review is withheld.
+
 Ask again: comment `@openlibrary-bot`, or re-request the review.
 
 - If the bot hasn't posted a review for the PR's latest commit (the review failed, or the check
