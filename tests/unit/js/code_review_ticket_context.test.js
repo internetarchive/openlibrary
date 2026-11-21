@@ -183,6 +183,26 @@ test('fetch step: no linked issues, or a failed lookup, writes [] and never fail
         }
     }));
 
+test('fetch step: writes the PR title and description, without HTML comments and capped, even with ticket analysis off', () =>
+    withDir(async d => {
+        const body = `<!-- template hint -->Moves /foo to FastAPI. Closes #1${'x'.repeat(20000)}`;
+        const { github, asked } = fetchGitHub({ pr: { title: 'Serve /foo from FastAPI', body, head: { ref: 'master' } }, issues: { 1: issue(1) } });
+        await runScript(FETCH, { github, env: { PR: '1', GITHUB_WORKSPACE: d, TICKET_ANALYSIS: 'false' } });
+        const out = JSON.parse(readFileSync(join(d, 'pr-description.json'), 'utf8'));
+        assert.equal(out.title, 'Serve /foo from FastAPI');
+        assert.ok(out.body.startsWith('Moves /foo to FastAPI.'), 'HTML comments are dropped');
+        assert.equal(out.body.length, 10000 + 3, 'body capped at 10,000 characters plus "..."');
+        assert.deepEqual(asked, [], 'no issues fetched with ticket analysis off');
+    }));
+
+test('fetch step: a PR that cannot be read writes a null description', () =>
+    withDir(async d => {
+        const { github } = fetchGitHub({ prThrows: true });
+        const res = await runScript(FETCH, { github, env: { PR: '1', GITHUB_WORKSPACE: d } });
+        assert.equal(res.failed, null);
+        assert.equal(JSON.parse(readFileSync(join(d, 'pr-description.json'), 'utf8')), null);
+    }));
+
 test('fetch step runs before the model, only when a review runs, with a read-only issues scope', () => {
     const steps = workflow.jobs.analyze.steps;
     const fetchIdx = steps.findIndex(s => (s.name || '').includes('Fetch linked issues'));
