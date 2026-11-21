@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from infogami.infobase.client import Thing
+from openlibrary.plugins.openlibrary import connection
 from openlibrary.solr.data_provider import DatabaseDataProvider
 
 # (Tag's singular tag_type, the work field [plural] that lists such tags,
@@ -66,6 +67,16 @@ class TestDatabaseDataProvider:
         dp.clear_cache()
         await dp.get_document("/works/OL1W")
         assert mock_site.get_many.call_count == 2
+
+    def test_reads_skip_memcache(self, monkeypatch):
+        mock_ol_connection = MagicMock()
+        monkeypatch.setattr(connection, "OLConnection", mock_ol_connection)
+        dp = DatabaseDataProvider(db=MagicMock())
+
+        site = dp.get_site()
+
+        mock_ol_connection.assert_called_once_with(use_memcache=False)
+        assert site._conn is mock_ol_connection.return_value
 
     @pytest.mark.asyncio
     async def test_preloads_tags_from_db_shaped_refs(self):

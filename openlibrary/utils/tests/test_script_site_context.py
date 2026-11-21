@@ -13,6 +13,7 @@ from infogami.utils import delegate
 from openlibrary import setup
 from openlibrary.admin import stats
 from openlibrary.bookworm import cli
+from openlibrary.plugins.openlibrary import connection
 from openlibrary.solr.data_provider import DatabaseDataProvider
 from openlibrary.utils.request_context import create_context_for_script, req_context, site
 from scripts import affiliate_server, expire_accounts
@@ -117,23 +118,21 @@ def test_database_provider_initializes_script_context(monkeypatch):
     monkeypatch.setattr(web, "database", Mock())
 
     def run():
-        provider = DatabaseDataProvider()
-        assert provider.get_site() is script_site
+        DatabaseDataProvider()
+        assert site.get() is script_site
         assert req_context.get() == create_context_for_script()
 
     Context().run(run)
 
 
-def test_database_provider_uses_contextvar_without_web_ctx():
+def test_database_provider_reads_skip_memcache_without_web_ctx(monkeypatch):
+    uncached_connection = Mock()
+    monkeypatch.setattr(connection, "OLConnection", Mock(return_value=uncached_connection))
+
     def run():
-        context_site = Mock()
         web.ctx.pop("site", None)
-        site.set(context_site)
-        provider = DatabaseDataProvider(db=Mock())
-        assert provider.get_site() is context_site
-        next_site = Mock()
-        site.set(next_site)
-        assert provider.get_site() is next_site
+        site.set(Mock())
+        assert DatabaseDataProvider(db=Mock()).get_site()._conn is uncached_connection
         explicit_site = Mock()
         assert DatabaseDataProvider(site=explicit_site, db=Mock()).get_site() is explicit_site
 
