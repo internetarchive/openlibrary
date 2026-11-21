@@ -208,8 +208,8 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
   not a new file or code under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml`.
 - Code comments the PR adds that break the "Code Comments" rules in `AGENTS.md`: comments that
   restate the code or what a well-named function already says, narrate the code's history ("now",
-  "previously", "changed to", "per review"), address the reviewer, or run to several sentences for
-  simple code. One `low` finding per comment, with a `suggestion` that deletes it (an empty
+  "previously", "changed to", "per review"), address the reviewer, run to several sentences for
+  simple code, or are section banners or commented-out code. One `low` finding per comment, with a `suggestion` that deletes it (an empty
   string) or shortens it to the line worth keeping. Don't flag missing comments, doc comments
   (JSDoc, docstrings), or comments the PR didn't add.
 
@@ -240,6 +240,9 @@ current file.
   workflow resolves the thread. A reply that only disagrees, or asks you to dismiss it, is not enough.
 - **Not fixed**, or you are not sure: leave it out. The thread stays open for the author. Do not
   report it again as a new finding.
+- **A suggestion** (`"suggestion": true`): it never blocks. Add
+  its `id` to `resolved` once the code takes the suggestion or otherwise fixes what it pointed out;
+  otherwise leave it out. Don't dismiss one or report it again.
 
 Only mark a thread fixed when the current code clearly addresses it. A thread you resolve by
 mistake hides a real problem; one you leave open costs a human one click.

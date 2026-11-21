@@ -47,11 +47,13 @@ const supersededCommit = body => {
 };
 // Opens the bot's inline comment for a suggestion that doesn't block: a low-severity finding with a
 // change the author can apply in one click. Threads the bot opens with it never block the status or
-// the verdict. Only the bot's own comments count, so nobody else can make a thread non-blocking.
+// the verdict. It counts only at the very start of the bot's own comment: a finding's comment starts
+// with its severity heading, so model-written text that quotes the marker can't make it non-blocking,
+// and nobody else can write the bot's comments.
 const SUGGESTION_MARKER = '<!-- ol-pr-review-bot suggestion -->';
 const isSuggestionThread = (t, botLogin = 'openlibrary-bot') => {
     const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
-    return !!(c && c.author && c.author.login === botLogin && String(c.body || '').includes(SUGGESTION_MARKER));
+    return !!(c && c.author && c.author.login === botLogin && String(c.body || '').startsWith(SUGGESTION_MARKER));
 };
 // Threads that block the status: unresolved, not outdated, and not one of the bot's suggestions.
 // This includes the bot's own just-posted findings, so a review with findings stays red until they

@@ -256,19 +256,28 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     const inlineSuggested = new Set();
     const heading = f => `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
     // The suggested change, as a block GitHub can apply in one click. The replacement may have more or
-    // fewer lines than start..line, and an empty one deletes them. One that changes nothing is dropped.
+    // fewer lines than start..line, and an empty one deletes them. It needs start..line to be one
+    // unbroken run of lines in the diff (GitHub rejects a range across hunks), and is dropped if it
+    // changes nothing.
     const suggestionBlock = (f, start) => {
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         if (f.suggestion == null) return '';
+        const lines = anchorable.get(f.path);
         const want = Number(f.line) - Number(start) + 1;
-        const current = Array.from({ length: want }, (_, i) => anchorable.get(f.path).get(Number(start) + i)).join('\n');
-        if (f.suggestion === current) {
+        const range = Array.from({ length: want }, (_, i) => lines.get(Number(start) + i));
+        if (range.some(l => l === undefined)) {
+            core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (the range isn't one run of lines in the diff).`);
+            return '';
+        }
+        // A trailing newline would add a blank line when applied.
+        const text = f.suggestion.replace(/\n$/, '');
+        if (text === range.join('\n')) {
             core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (no change).`);
             return '';
         }
         // Longer than any backtick run inside, so the suggestion can't close the fence.
-        const fence = '`'.repeat(Math.max(2, ...(f.suggestion.match(/`+/g) || []).map(r => r.length)) + 1);
-        return f.suggestion === '' ? `\n\n${fence}suggestion\n${fence}` : `\n\n${fence}suggestion\n${f.suggestion}\n${fence}`;
+        const fence = '`'.repeat(Math.max(2, ...(text.match(/`+/g) || []).map(r => r.length)) + 1);
+        return text === '' ? `\n\n${fence}suggestion\n${fence}` : `\n\n${fence}suggestion\n${text}\n${fence}`;
     };
     const lineComment = (f, body) => {
         const start = f.start_line || f.line;
@@ -284,8 +293,9 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             suggestions.push(f);
             const block = inlineKeyIssues && threadKind(f, anchors) === 'line' ? suggestionBlock(f, f.start_line || f.line) : '';
             if (block) {
-                const title = `**Suggestion (won't block) · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
-                suggestionComments.push(lineComment(f, `${title}${block}${agentPrompt(f, true)}\n\n${SUGGESTION_MARKER}`));
+                // The marker must come first: isSuggestionThread only looks at the start of the comment.
+                const title = `${SUGGESTION_MARKER}\n**Suggestion (won't block) · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+                suggestionComments.push(lineComment(f, `${title}${block}${agentPrompt(f, true)}`));
                 inlineSuggested.add(f);
             }
             continue;
@@ -676,14 +686,19 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 continue;
             }
             if (!e || e.status !== 422) throw e;
-            if (inline.length || fileLevel.length || suggestionComments.length) {
+            if (suggestionComments.length) {
+                // Suggestion comments are the newest kind and never block, so drop them first: one bad
+                // suggestion mustn't push every blocking finding out of its thread. They stay listed in
+                // the summary.
+                core.warning(`The review was rejected (422: ${e.message}); posting it again without the suggestion comments.`);
+                suggestionComments.length = 0;
+                inlineSuggested.clear();
+                summary = renderSummary();
+            } else if (inline.length || fileLevel.length) {
                 core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);
                 orphaned.push(...(inline.length ? inlineFindings : []), ...fileLevel.map(x => x.finding));
                 inline.length = 0;
                 fileLevel.length = 0;
-                // Suggestions are listed in the summary already; they only lose the line comment.
-                suggestionComments.length = 0;
-                inlineSuggested.clear();
                 summary = renderSummary();
             } else if (event !== 'COMMENT') {
                 core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
