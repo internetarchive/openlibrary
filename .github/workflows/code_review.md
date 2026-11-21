@@ -103,6 +103,13 @@ unpublishable.
 - Does the code do what the PR description says it does?
 - Edge cases the PR does not handle that could cause a bug.
 - **Callers that assume the old behaviour.** Grep for every call site of a changed function.
+- **Submodule pointer changes.** A `Subproject commit` hunk in the diff (for example on
+  `vendor/infogami`) moves a submodule to a different commit. If the PR doesn't say it means to
+  bump that submodule, the change is almost always an accident: a stale local checkout got
+  committed along with the real work, and merging it would roll the submodule back. Report it as a
+  `medium` correctness finding with `path` set to the submodule and no `start_line`/`line`. The fix
+  is `git checkout origin/master -- <path>`, then commit. `pr-head/` holds the submodule as an
+  empty directory, so judge from the diff and the PR description alone.
 - **Blocking I/O on the async path.** `psycopg2`, `requests`, and other synchronous clients
   called from an `async def` stall the entire worker, including requests that never touch the
   changed feature. This class has reached production here before.

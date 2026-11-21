@@ -164,7 +164,7 @@ Every review covers five areas:
 
 | Area | What it looks for |
 |---|---|
-| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path |
+| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path, submodule pointers changed by accident |
 | Security | Anything touching auth, sessions, redirects, user input in SQL, shell, files or templates |
 | Accessibility | Templates, JS and CSS against WCAG 2.1 AA: alt text, labels, keyboard access, contrast |
 | Test coverage | A missing test that would catch a real bug, a test that can't fail, and tests that aren't worth keeping |
