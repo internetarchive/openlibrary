@@ -193,6 +193,12 @@ $(function () {
         import('./lists/ListViewBody.js');
     }
 
+    // Snippets feed page (/snippets)
+    const snippetsGrid = document.querySelector('.js-snippets');
+    if (snippetsGrid) {
+        import('./snippets').then(module => module.initSnippets(snippetsGrid));
+    }
+
     // Carousels rendered with the page (home/welcome.html, account/mybooks.html); lazy rows are set up by lazy-carousel.js.
     const nativeCarousels = document.querySelectorAll('ol-carousel[data-config]');
     if (nativeCarousels.length) {
