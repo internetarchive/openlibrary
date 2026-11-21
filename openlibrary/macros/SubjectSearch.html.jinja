@@ -1,9 +1,7 @@
 {#
   The subject search form, embedded in wiki page bodies through the Templetor
   macro beside this file. A verbatim port of it: same markup, same classes,
-  same ids. (That macro's name is deliberately not written out here -- it is
-  listed in check_unused_templates.DB_USED_EXCLUSIONS, and naming it in code
-  makes that hook read the exclusion as dead.)
+  same ids.
 
   `q` is passed in rather than read from the request. Called from FastAPI, a
   request read inside a template can return a value left over from another
