@@ -14,6 +14,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from infogami.utils import macro
+from openlibrary.core.shell.user import ShellUser
 from openlibrary.fastapi.search import pages
 from openlibrary.plugins.worksearch.code import SearchResponse
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
@@ -214,18 +215,18 @@ def test_authors_page_escapes_query(client):
     assert 'data-query=""><' not in response.text
 
 
-def test_authors_page_offers_merge_to_librarians(client):
-    librarian = MagicMock()
-    librarian.is_librarian_or_higher.return_value = True
+def test_authors_page_offers_merge_and_beta_sorts_to_librarians(client, monkeypatch):
+    librarian = ShellUser(key="/people/lib", created=None, ia_id=None, is_librarian=True, is_super_librarian=False, open_merges_count=0)
+    monkeypatch.setattr("openlibrary.fastapi.shared.site_page.load_shell_user", lambda: librarian)
     docs = [_author("OL1A", "Jane Austen"), _author("OL2A", "Jane Austin")]
     with ExitStack() as stack:
         patched_search(stack, _solr_response(*docs, num_found=2))
-        stack.enter_context(patch("openlibrary.fastapi.search.get_current_user", return_value=librarian))
         response = client.get("/search/authors?q=jane+austen")
 
     assert response.status_code == 200
     assert "Is the same author listed twice?" in response.text
     assert 'href="/authors/merge?records=OL1A,OL2A"' in response.text
+    assert "Birth Date (oldest) (beta: Librarian only)" in response.text
 
 
 def test_authors_page_does_not_offer_merge_to_visitors(client):
@@ -236,6 +237,7 @@ def test_authors_page_does_not_offer_merge_to_visitors(client):
 
     assert response.status_code == 200
     assert "/authors/merge?records=" not in response.text
+    assert "beta: Librarian only" not in response.text
 
 
 def test_concurrent_requests_each_get_their_own_sort_links(site_page_app, webpy_leftovers, fetch_concurrently):

@@ -48,7 +48,8 @@ def test_items_json_matches_what_sort_options_js_reads():
     items = json.loads(build("want_to_read").items_json)
     assert items[0] == {"value": "relevance", "label": "Relevance", "url": "/search?q=tolkien", "track": "Relevance"}
     nested = next(i for i in items if i["value"] == "want_to_read")
-    assert list(nested) == ["value", "label", "nested", "url", "track"]
+    assert nested["nested"] is True
+    assert "nested" not in items[0]
 
 
 @pytest.mark.parametrize("is_bot", [False, True])
@@ -58,9 +59,16 @@ def test_random_sort_selects_random_and_offers_shuffle_to_people(is_bot):
     assert menu.shuffle_href == (None if is_bot else f"/search?q=tolkien&sort=random_{NOW.timestamp()}")
 
 
-def test_unknown_sort_falls_back_to_the_default():
-    menu = build("nonsense", scheme="languages", default_sort="count")
+@pytest.mark.parametrize("selected", ["nonsense", "random_5"])  # languages has no Random option
+def test_unknown_sort_falls_back_to_the_default(selected):
+    menu = build(selected, scheme="languages", default_sort="count")
     assert (menu.selected_value, menu.selected_label) == ("count", "Work Count")
+
+
+def test_now_defaults_to_the_current_time():
+    menu = SortMenu.build("random", path="/search", params={})
+    assert menu.shuffle_href
+    assert menu.shuffle_href.startswith("/search?sort=random_")
 
 
 @pytest.mark.parametrize(
@@ -79,8 +87,7 @@ def test_beta_sorts_show_for_librarians_or_when_selected(scheme, selected, beta,
     assert [v for v in values if v in beta_values] == ([beta_key] if beta_key else [])
 
 
-def test_exclude_keeps_templetors_in_test():
-    # The author page passes a string; reading log passes a list
-    assert "relevance" not in [i.value for i in build(None, exclude="relevance", default_sort="editions").items]
+def test_exclude_leaves_out_options():
+    assert "relevance" not in [i.value for i in build(None, exclude=["relevance"], default_sort="editions").items]
     menu = build(None, scheme="reading_log", default_sort="desc", exclude=["rating", "want_to_read"])
     assert [i.value for i in menu.items] == ["desc", "asc", "title", "old"]

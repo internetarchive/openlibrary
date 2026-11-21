@@ -8,7 +8,6 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime
 from math import ceil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -1154,7 +1153,6 @@ def sort_menu(selected_sort: str | None, **kwargs) -> SortMenu:
         params=web.input(_method="get"),
         can_see_beta_sorts=bool(user and (user.is_admin() or user.is_librarian())),
         is_bot=req_context.get().is_bot,
-        now=datetime.now(),
         **kwargs,
     )
 
@@ -1183,6 +1181,7 @@ class author_search(delegate.page):
         # An empty query renders the bare search form, so there is no response to read;
         # num_found is None when Solr errors.
         num_found = (resp.num_found or 0) if resp else 0
+        user = site.get().get_user()
 
         # Local import: openlibrary.fastapi.search imports this module.
         from openlibrary.fastapi.search import SearchNav, authors_search_title
@@ -1193,7 +1192,7 @@ class author_search(delegate.page):
             q=q,
             sort_menu=sort_menu(sort, scheme="authors"),
             search_response=resp,
-            user=site.get().get_user(),
+            can_merge=bool(user and user.is_librarian_or_higher()),
             urlsafe=urlsafe,
             coverstore_url=get_coverstore_public_url(),
             commified_num_found=commify(num_found),

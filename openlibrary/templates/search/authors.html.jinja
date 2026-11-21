@@ -2,7 +2,7 @@
 
    Besides nav/q/search_response, the render call must pass:
      sort_menu      -- a SortMenu for the author sorts (openlibrary/plugins/worksearch/sort_menu.py)
-     user           -- the logged-in user, or None
+     can_merge      -- whether to offer merging the listed authors (librarians and up)
      urlsafe        -- openlibrary.core.helpers.urlsafe
      coverstore_url -- get_coverstore_public_url()
    They are render args rather than Jinja globals, and the env is StrictUndefined,
@@ -38,7 +38,7 @@
                 {{ ngettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commified_num_found) }}
                 {% if search_response.num_found > 1 %}
                     {{ sort_options(sort_menu) }}
-                    {% if search_response.num_found >= 2 and user and user.is_librarian_or_higher() %}
+                    {% if search_response.num_found >= 2 and can_merge %}
                         {# Jinja has no generator expressions; collect the OLIDs by appending to a list. #}
                         {% set merge_keys = [] %}
                         {% for doc in search_response.docs %}
