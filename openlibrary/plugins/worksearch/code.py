@@ -1151,7 +1151,8 @@ def sort_menu(selected_sort: str | None, **kwargs) -> SortMenu:
         selected_sort,
         path=web.ctx.get("readable_path", web.ctx.path),
         params=web.input(_method="get"),
-        can_see_beta_sorts=bool(user and (user.is_admin() or user.is_librarian())),
+        # Same group as the FastAPI pages (ShellUser.is_librarian): librarians, super-librarians and admins.
+        can_see_beta_sorts=bool(user and user.is_librarian_or_higher()),
         is_bot=req_context.get().is_bot,
         **kwargs,
     )
