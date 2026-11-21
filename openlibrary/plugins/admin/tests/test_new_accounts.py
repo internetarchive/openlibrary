@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 import web
@@ -38,25 +38,8 @@ def stub_icon(monkeypatch):
 
 
 @pytest.fixture
-def site(mock_site, request_context_fixture, monkeypatch):
-    """The mock site, answering the page's two SQL queries too."""
+def site(mock_site, request_context_fixture):
     request_context_fixture(lang="en")
-
-    def load_young_account_changes(signup_cutoff, since, limit=new_accounts.MAX_CHANGES_LOADED):
-        def young(change) -> bool:
-            created = new_accounts._as_datetime(mock_site.get(change.author.key).get("created"))
-            return created is not None and created >= signup_cutoff
-
-        changes = [c for c in mock_site.recentchanges({"bot": False, "limit": 10**6}) if c.author and young(c)]
-        active = {c.author.key for c in changes if c.timestamp >= since}
-        changes = [c for c in changes if c.author.key in active]
-        return changes[:limit], len(changes) >= limit
-
-    def load_records(keys):
-        return {doc.key: doc for doc in mock_site.get_many(keys)}
-
-    monkeypatch.setattr(new_accounts, "load_young_account_changes_sync", load_young_account_changes)
-    monkeypatch.setattr(new_accounts, "load_records_sync", load_records)
     return mock_site
 
 
@@ -227,9 +210,9 @@ class TestBuildReport:
         assert report.capped
         assert report.changes_loaded == 4
         assert report.loaded_back_to_label == "2100-01-01 11:00"
-        # `early` only wrote before the cut.
-        assert [(row.username, row.edits_in_window_label, row.total_edits_label) for row in report.rows] == [("late", "4+", "4+")]
-        assert row_is_inexact(report.rows[0])
+        # `early` only wrote before the cut; `late` signed up before it, so its history is loaded on its own.
+        assert [(row.username, row.edits_in_window_label, row.total_edits_label, row.exact) for row in report.rows] == [("late", "4", "4", True)]
+        assert not build_report(site, now=NOW, max_changes=4, history_limit=2).rows[0].exact
         assert not build_report(site, now=NOW, max_changes=100).capped
 
     def test_a_wider_window_finds_older_edits(self, site):
@@ -241,18 +224,8 @@ class TestBuildReport:
         assert row.edits_in_window == 1
         assert build_report(site, now=NOW, hours=7 * 24).window_label == "7 days"
 
-    def test_a_slow_query_empties_the_page(self, site, monkeypatch):
-        signup(site, "spammer", NOW - timedelta(hours=1))
-        write(site, "spammer", "/works/OL1W", NOW - timedelta(minutes=58))
-        monkeypatch.setattr(new_accounts, "load_records_sync", Mock(side_effect=new_accounts.TooSlow))
-
-        report = build_report(site, now=NOW)
-
-        assert report.timed_out
-        assert report.rows == []
-
     def test_a_failed_load_names_the_error(self, site, monkeypatch):
-        monkeypatch.setattr(new_accounts, "load_young_account_changes_sync", Mock(side_effect=RuntimeError("no pool")))
+        monkeypatch.setattr(new_accounts, "scan_recent_changes", Mock(side_effect=RuntimeError("no pool")))
 
         report = build_report(site, now=NOW)
 
@@ -263,20 +236,16 @@ class TestBuildReport:
         for n in range(3):
             signup(site, f"user{n}", NOW - timedelta(hours=2))
             write(site, f"user{n}", f"/works/OL{n}W", NOW - timedelta(hours=1))
-        load_records = Mock(return_value={})
         get_many = Mock(side_effect=site.get_many)
-        monkeypatch.setattr(new_accounts, "load_records_sync", load_records)
+        recentchanges = Mock(side_effect=site.recentchanges)
         monkeypatch.setattr(site, "get_many", get_many)
+        monkeypatch.setattr(site, "recentchanges", recentchanges)
 
         assert len(build_report(site, now=NOW).rows) == 3
 
-        # One query for the records checked for signals, and one batch each of profiles and titles.
-        assert load_records.call_count == 1
-        assert get_many.call_count == 2
-
-
-def row_is_inexact(row) -> bool:
-    return not row.exact and row.first_write_label.startswith("at most ")
+        # One batch each of profiles, records checked for signals, and titles; one scan page and no per-account history.
+        assert get_many.call_count == 3
+        assert recentchanges.call_count == 1
 
 
 class TestSignals:
@@ -451,49 +420,6 @@ class TestSignals:
         assert sorted((row.username, row.review) for row in reviewed) == [("author", "trusted"), ("spammer", "blocked")]
 
 
-class TestQueries:
-    """The SQL, its parameters, and how rows become changes and records. Its plan was checked on a dev database."""
-
-    @pytest.fixture
-    def rows(self, monkeypatch):
-        fetch = AsyncMock()
-        monkeypatch.setattr(new_accounts, "_fetch_all_within_timeout", fetch)
-        return fetch
-
-    def test_young_account_changes(self, rows):
-        rows.return_value = [
-            {"id": 7, "kind": "add-book", "author": "/people/a", "timestamp": NOW, "comment": None, "changes": '[{"key": "/works/OL1W", "revision": 1}]'}
-        ]
-
-        changes, capped = new_accounts.load_young_account_changes_sync(NOW - timedelta(days=7), NOW - timedelta(hours=24), limit=1)
-
-        (query, params), _ = rows.await_args
-        assert "a.created >= %(signup_cutoff)s" in query
-        assert "created >= %(since)s" in query
-        assert "t.bot" not in query  # production has no such column
-        assert params == {"signup_cutoff": NOW - timedelta(days=7), "since": NOW - timedelta(hours=24), "limit": 1}
-        assert capped
-        [change] = changes
-        assert (change.id, change.kind, change.author.key, change.timestamp, change.comment) == (7, "add-book", "/people/a", NOW, "")
-        assert change.changes[0]["key"] == change.changes[0].key == "/works/OL1W"
-
-    def test_records(self, rows):
-        rows.return_value = [
-            {"key": "/works/OL1W", "type": "/type/work", "fields": {"title": "Call 1-888-314-1997"}},
-            {"key": "/works/OL2W", "type": "/type/delete", "fields": None},
-        ]
-
-        docs = new_accounts.load_records_sync(["/works/OL1W", "/works/OL2W"])
-
-        (query, params), _ = rows.await_args
-        assert params == {"keys": ["/works/OL1W", "/works/OL2W"], "fields": list(new_accounts.TEXT_FIELDS)}
-        assert "t.key = ANY(%(keys)s)" in query
-        assert (docs["/works/OL1W"].type.key, docs["/works/OL1W"].get("title")) == ("/type/work", "Call 1-888-314-1997")
-        assert docs["/works/OL2W"].type.key == "/type/delete"
-        assert new_accounts.load_records_sync([]) == {}
-        assert rows.await_count == 1
-
-
 @pytest.mark.parametrize(
     ("seconds", "expected"),
     [
@@ -594,7 +520,7 @@ class TestTemplate:
 
         html = render(max_changes=3, max_accounts=1)
 
-        assert "Only the newest 3 edits by new accounts were read, back to 2100-01-01 11:00." in html
+        assert "Only the newest 3 edits were scanned, back to 2100-01-01 11:00." in html
         assert "Showing the 1 busiest of 2 accounts." in html
 
 

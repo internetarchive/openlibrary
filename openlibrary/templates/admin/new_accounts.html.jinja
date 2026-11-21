@@ -68,14 +68,9 @@
     {% if report.error %}
         <p class="new-accounts__notice">{{ _("The edits could not be loaded: %(error)s", error=report.error) }}</p>
     {% endif %}
-    {% if report.timed_out %}
-        <p class="new-accounts__notice">
-            {{ _("Loading the edits took too long and was stopped. Try again, or look at fewer days of signups with ?days=.") }}
-        </p>
-    {% endif %}
     {% if report.capped %}
         <p class="new-accounts__notice">
-            {{ _("Only the newest %(count)s edits by new accounts were read, back to %(time)s. Older edits are not counted.", count=report.changes_loaded, time=report.loaded_back_to_label) }}
+            {{ _("Only the newest %(count)s edits were scanned, back to %(time)s. Accounts that only edited before then are missing.", count=report.changes_loaded, time=report.loaded_back_to_label) }}
         </p>
     {% endif %}
     {% if report.rows %}
@@ -210,7 +205,7 @@
                 </table>
             </div>
         </form>
-    {% elif report.timed_out or report.error %}
+    {% elif report.error %}
     {% elif report.show != "all" and report.matching_accounts %}
         <p class="new-accounts__empty">
             {{ _("None of the %(count)s accounts under %(age)s old that edited in the last %(window)s is in this group.", count=report.matching_accounts, age=report.age_label, window=report.window_label) }}

@@ -2419,12 +2419,8 @@ msgid "The edits could not be loaded: %(error)s"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
-msgid "Loading the edits took too long and was stopped. Try again, or look at fewer days of signups with ?days=."
-msgstr ""
-
-#: admin/new_accounts.html.jinja
 #, python-format
-msgid "Only the newest %(count)s edits by new accounts were read, back to %(time)s. Older edits are not counted."
+msgid "Only the newest %(count)s edits were scanned, back to %(time)s. Accounts that only edited before then are missing."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
