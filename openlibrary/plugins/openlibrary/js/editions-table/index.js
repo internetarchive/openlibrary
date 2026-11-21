@@ -38,7 +38,6 @@ function initPagination(table) {
 }
 
 export function initEditionsTable() {
-    var rowCount;
     let currentLength;
     // Prevent reinitialization of the editions datatable
     if ($.fn.DataTable.isDataTable($('#editions'))) {
@@ -67,7 +66,7 @@ export function initEditionsTable() {
         localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
-    rowCount = $('#editions tbody tr').length;
+    const rowCount = $('#editions tbody tr').length;
     if (rowCount < 4) {
         $('#editions').DataTable({
             aoColumns: [{ sType: 'html' }, null],

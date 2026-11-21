@@ -261,7 +261,7 @@ def midnight(day: date) -> str:
 
 
 # Details many books really don't have: a project asking for them starts with a lower goal.
-HARD_FIELDS = frozenset({"lccn", "oclc_numbers"})
+HARD_FIELDS = frozenset({"lccn", "oclc_numbers", "isbn"})
 GOAL_SOME_HARD = 75
 GOAL_ALL_HARD = 50
 

@@ -1,0 +1,23 @@
+{# Sort menu for search results. `menu` is a SortMenu (openlibrary/plugins/worksearch/sort_menu.py), which
+   holds the options, their links and the selection, so this template reads nothing from the request.
+   Jinja callers import the macro; Templetor renders this file with `menu` from `sort_menu(...)`. #}
+{% macro sort_options(menu) %}
+    {# Trigger is slotted rather than left to the component's default so it's server-rendered — no
+       layout shift on upgrade. sort_options.js navigates. #}
+    <span class="sort">
+        <ol-menu-popover class="sort-options" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ menu.selected_value }}" items="{{ menu.items_json }}" aria-label="{{ _('Sort results') }}">
+            <ol-button slot="trigger">
+                {{ menu.selected_label }}
+            </ol-button>
+        </ol-menu-popover>
+        {% if menu.shuffle_href %}
+            <a class="sort-random-shuffle"
+               href="{{ menu.shuffle_href }}"
+               data-ol-link-track="SearchSort|RandomShuffle"
+               rel="nofollow">{{ _("Shuffle") }}</a>
+        {% endif %}
+    </span>
+{% endmacro %}
+{% if menu is defined %}
+    {{ sort_options(menu) }}
+{% endif %}

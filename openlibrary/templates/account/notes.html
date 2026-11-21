@@ -33,11 +33,13 @@ $def with (notes, user, num_found, page=1, results_per_page=25)
                     $ edition = i['editions'][k]
                     <div class="book-info">
                       <div class="title">
-                        $_('My notes for an edition of ')
                         $if edition.title:
-                          <a href="$edition.url()">$edition.title</a><br>
+                          $ edition_link = '<a href="%s">%s</a>' % (websafe(edition.url()), websafe(edition.title))
                         $else:
-                          <a href="$edition.url()"><em>$_('Title Missing')</em></a>
+                          $ edition_link = '<a href="%s"><em>%s</em></a>' % (websafe(edition.url()), websafe(_('Title Missing')))
+                        $:_('My notes for an edition of %(title)s', title=edition_link)
+                        $if edition.title:
+                          <br>
                         <div class="published">
                           $if edition.publishers and edition.publish_date:
                             $edition.publish_date, $(', '.join(edition.publishers))

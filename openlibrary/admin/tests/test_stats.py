@@ -16,3 +16,21 @@ def test_backfill_days_dont_inherit_a_later_days_counts(monkeypatch):
     today, *past = [docs[-1] for _date, docs in sorted(stored.items(), reverse=True)]
     assert today == {"saves": 3, "initiative_open_gaps": 40}
     assert past == [{"saves": 2}, {"saves": 1}]
+
+
+def test_connect_to_pg_passes_port_and_password(monkeypatch, tmp_path):
+    "Both key styles in the production configs (infobase.yml and coverstore.yml) keep host, port and password."
+    connected = []
+    monkeypatch.setattr(stats.web, "database", lambda **kw: connected.append(kw))
+    infobase_yml = tmp_path / "infobase.yml"
+    infobase_yml.write_text("db_parameters:\n  engine: postgres\n  host: db\n  database: openlibrary\n  username: ol\n  password: secret\n  port: 6432\n")
+    coverstore_yml = tmp_path / "coverstore.yml"
+    coverstore_yml.write_text("db_parameters:\n  dbn: postgres\n  host: db\n  db: coverstore\n  user: ol\n  pw: secret\n  port: 6432\n")
+
+    stats.connect_to_pg(str(infobase_yml))
+    stats.connect_to_pg(str(coverstore_yml))
+
+    assert connected == [
+        {"dbn": "postgres", "db": "openlibrary", "user": "ol", "pw": "secret", "host": "db", "port": 6432},
+        {"dbn": "postgres", "db": "coverstore", "user": "ol", "pw": "secret", "host": "db", "port": 6432},
+    ]

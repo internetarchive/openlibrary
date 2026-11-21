@@ -59,6 +59,18 @@ PYEOF
 fi
 
 # --- Phase 2: build ---
+# messages.pot is generated, so two PRs that both add strings conflict on it even
+# though their changes are compatible. Keep the branch's copy rather than skip the
+# PR: nothing reads the .pot at runtime (only the .po/.mo files), and a line-based
+# union of two .pot files isn't valid PO. The driver is only defined here, so
+# merges elsewhere still conflict and get the .pot regenerated properly.
+git config merge.messages-pot.name "keep ours for the generated messages.pot"
+git config merge.messages-pot.driver true
+# The testing server doesn't run the tests, so a conflict confined to test files
+# shouldn't keep a PR off it; keep the branch's copy of those files instead.
+git config merge.test-files.name "keep ours for test files"
+git config merge.test-files.driver true
+
 git checkout master
 git pull origin master
 git branch -D "$NEW_BRANCH" 2>/dev/null || true

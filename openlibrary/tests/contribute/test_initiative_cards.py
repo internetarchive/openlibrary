@@ -55,12 +55,16 @@ def test_tasks_left_uses_the_plural_and_groups_thousands(cards):
     ],
 )
 def test_people_line_hides_low_counts(cards, people, expected):
-    assert cards(docs=[{"initiative_slug": ACTIVE.slug, "initiative_people": people}])[ACTIVE.slug]["people"] == expected
+    card = cards(docs=[{"initiative_slug": ACTIVE.slug, "initiative_people": people}])[ACTIVE.slug]
+    assert card["people"] == expected
+    # Below the threshold the row asks for help instead.
+    assert card["help_needed"] is (expected is None)
 
 
 def test_people_line_waits_for_the_stats_job(cards):
-    assert cards()[ACTIVE.slug]["people"] is None
-    assert cards(docs=[{"saves": 3}])[ACTIVE.slug]["people"] is None
+    # Not counted yet is not the same as nobody helping: no count, and no call for help either.
+    for card in (cards()[ACTIVE.slug], cards(docs=[{"saves": 3}])[ACTIVE.slug]):
+        assert (card["people"], card["help_needed"]) == (None, False)
 
 
 def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
@@ -134,3 +138,11 @@ def test_a_finished_project_that_reached_its_goal_says_so(cards, ended):
     finished = contribute.build_finished(built[ended.slug])
     assert finished["title"] == "This project reached its goal"
     assert finished["note"] == "Together we reached the goal: 100% of its details were filled in. Thank you to everyone who helped."
+
+
+def test_a_project_past_its_goal_is_completed(cards):
+    # Nothing left open: the percent is 100 and the goal is reached.
+    done = cards(gaps=[["/books/OL1M", 9, [], []]], docs=[{"initiatives": {ACTIVE.slug: {"people": 2}}}])[ACTIVE.slug]
+    assert (done["reached"], done["completed"], done["help_needed"]) == (True, True, False)
+    running = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 60}}}])[ACTIVE.slug]
+    assert (running["completed"], running["people"]) == (False, "60 people helping")

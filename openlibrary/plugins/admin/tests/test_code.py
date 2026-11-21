@@ -11,16 +11,17 @@ from openlibrary.accounts.model import (
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin.code import LIST_CREATE_ACTIONS, revert_all_user_edits
+from openlibrary.utils.request_context import site
 
 
 def make_test_account(username: str) -> OpenLibraryAccount:
-    web.ctx.site.register(
+    site.get().register(
         username=username,
         email=f"{username}@foo.org",
         password="password",
         displayname=f"{username} User",
     )
-    web.ctx.site.activate_account(username)
+    site.get().activate_account(username)
     return cast(OpenLibraryAccount, OpenLibraryAccount.get_by_username(username))
 
 
@@ -56,22 +57,22 @@ class TestRevertAllUserEdits:
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
 
-        web.ctx.site.save(
+        mock_site.save(
             author=good_alice.get_user(),
             query=make_thing("/works/OL123W", "Good Book Title"),
             action="add-book",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL789W", "Spammy New Book"),
             action="add-book",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL345W", "Spammy New Book 2"),
             action="add-book",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=good_alice.get_user(),
             query=make_thing("/works/OL12333W", "Good Book Title 2"),
             action="add-book",
@@ -80,27 +81,27 @@ class TestRevertAllUserEdits:
         revert_all_user_edits(spam_alice)
 
         # Good books un-altered
-        assert web.ctx.site.get("/works/OL123W").revision == 1
-        assert web.ctx.site.get("/works/OL123W").title == "Good Book Title"
-        assert web.ctx.site.get("/works/OL12333W").revision == 1
-        assert web.ctx.site.get("/works/OL12333W").title == "Good Book Title 2"
+        assert mock_site.get("/works/OL123W").revision == 1
+        assert mock_site.get("/works/OL123W").title == "Good Book Title"
+        assert mock_site.get("/works/OL12333W").revision == 1
+        assert mock_site.get("/works/OL12333W").title == "Good Book Title 2"
 
         # Spam books deleted
-        assert web.ctx.site.get("/works/OL789W").revision == 2
-        assert web.ctx.site.get("/works/OL789W").type.key == "/type/delete"
-        assert web.ctx.site.get("/works/OL345W").revision == 2
-        assert web.ctx.site.get("/works/OL345W").type.key == "/type/delete"
+        assert mock_site.get("/works/OL789W").revision == 2
+        assert mock_site.get("/works/OL789W").type.key == "/type/delete"
+        assert mock_site.get("/works/OL345W").revision == 2
+        assert mock_site.get("/works/OL345W").type.key == "/type/delete"
 
     def test_reverts_spam_edits(self, mock_site):
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
 
-        web.ctx.site.save(
+        mock_site.save(
             author=good_alice.get_user(),
             query=make_thing("/works/OL123W", "Good Book Title"),
             action="add-book",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL123W", "Spammy Book Title"),
             action="edit-book",
@@ -109,23 +110,23 @@ class TestRevertAllUserEdits:
         revert_all_user_edits(spam_alice)
 
         # Reverted back to good edit
-        assert web.ctx.site.get("/works/OL123W").revision == 3
-        assert web.ctx.site.get("/works/OL123W").title == "Good Book Title"
-        assert web.ctx.site.get("/works/OL123W").type.key == "/type/work"
+        assert mock_site.get("/works/OL123W").revision == 3
+        assert mock_site.get("/works/OL123W").title == "Good Book Title"
+        assert mock_site.get("/works/OL123W").type.key == "/type/work"
 
     def test_deletes_spam_lists(self, mock_site):
         good_alice = make_test_account("good_alice")
         spam_alice = make_test_account("spam_alice")
 
         # Good alice's list should not be touched
-        web.ctx.site.save(
+        mock_site.save(
             author=good_alice.get_user(),
             query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
             action="lists",
         )
 
         # Spam alice creates a list (revision 1)
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/spam_alice/lists/OL2L", "Spam List"),
             action="lists",
@@ -134,16 +135,16 @@ class TestRevertAllUserEdits:
         revert_all_user_edits(spam_alice)
 
         # Good list remains
-        assert web.ctx.site.get("/people/good_alice/lists/OL1L").type.key == "/type/list"
+        assert mock_site.get("/people/good_alice/lists/OL1L").type.key == "/type/list"
 
         # Spam list is deleted
-        assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
+        assert mock_site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
 
     @pytest.mark.parametrize("action", ["create-list", "create-series"])
     def test_deletes_spam_lists_with_create_actions(self, mock_site, action):
         spam_alice = make_test_account("spam_alice")
 
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/spam_alice/lists/OL2L", "Spam List"),
             action=action,
@@ -151,7 +152,7 @@ class TestRevertAllUserEdits:
 
         revert_all_user_edits(spam_alice)
 
-        assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
+        assert mock_site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
 
     @pytest.mark.parametrize("action", LIST_CREATE_ACTIONS)
     def test_does_not_delete_edited_lists(self, mock_site, action):
@@ -159,14 +160,14 @@ class TestRevertAllUserEdits:
         spam_alice = make_test_account("spam_alice")
 
         # Good alice creates a list
-        web.ctx.site.save(
+        mock_site.save(
             author=good_alice.get_user(),
             query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
             action=action,
         )
 
         # Spam alice edits good alice's list (revision 2 — spam alice did NOT create it)
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/good_alice/lists/OL1L", "Vandalized List"),
             action=action,
@@ -175,19 +176,19 @@ class TestRevertAllUserEdits:
         revert_all_user_edits(spam_alice)
 
         # The list should be reverted (back to good title) but NOT deleted
-        reverted = web.ctx.site.get("/people/good_alice/lists/OL1L")
+        reverted = mock_site.get("/people/good_alice/lists/OL1L")
         assert reverted.type.key == "/type/list"
         assert reverted.name == "Good List"
 
     def test_does_not_undelete(self, mock_site):
         spam_alice = make_test_account("spam_alice")
 
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/spam_alice/lists/OL123L", "spam spam spam"),
             action="lists",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/spam_alice/lists/OL123L", thing_type="/type/delete"),
             action="lists",
@@ -195,30 +196,30 @@ class TestRevertAllUserEdits:
 
         revert_all_user_edits(spam_alice)
 
-        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").revision >= 2
-        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").type.key == "/type/delete"
+        assert mock_site.get("/people/spam_alice/lists/OL123L").revision >= 2
+        assert mock_site.get("/people/spam_alice/lists/OL123L").type.key == "/type/delete"
 
     def test_two_spammy_editors(self, mock_site):
         spam_alice = make_test_account("spam_alice")
         spam_bob = make_test_account("spam_bob")
 
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL1W", "Alice is Awesome"),
             action="add-book",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_bob.get_user(),
             query=make_thing("/works/OL2W", "Bob is Awesome"),
             action="add-book",
         )
 
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL2W", "Bob Sucks"),
             action="edit-book",
         )
-        web.ctx.site.save(
+        mock_site.save(
             author=spam_bob.get_user(),
             query=make_thing("/works/OL1W", "Alice Sucks"),
             action="edit-book",
@@ -227,18 +228,18 @@ class TestRevertAllUserEdits:
         revert_all_user_edits(spam_alice)
 
         # Reverted back to good edit
-        assert web.ctx.site.get("/works/OL1W").revision == 3
-        assert web.ctx.site.get("/works/OL1W").type.key == "/type/delete"
-        assert web.ctx.site.get("/works/OL2W").revision == 3
-        assert web.ctx.site.get("/works/OL2W").title == "Bob is Awesome"
+        assert mock_site.get("/works/OL1W").revision == 3
+        assert mock_site.get("/works/OL1W").type.key == "/type/delete"
+        assert mock_site.get("/works/OL2W").revision == 3
+        assert mock_site.get("/works/OL2W").title == "Bob is Awesome"
 
         revert_all_user_edits(spam_bob)
 
         # Reverted back to good edit
-        assert web.ctx.site.get("/works/OL1W").revision == 3
-        assert web.ctx.site.get("/works/OL1W").type.key == "/type/delete"
-        assert web.ctx.site.get("/works/OL2W").revision == 4
-        assert web.ctx.site.get("/works/OL2W").type.key == "/type/delete"
+        assert mock_site.get("/works/OL1W").revision == 3
+        assert mock_site.get("/works/OL1W").type.key == "/type/delete"
+        assert mock_site.get("/works/OL2W").revision == 4
+        assert mock_site.get("/works/OL2W").type.key == "/type/delete"
 
 
 class TestPeopleEditsPost:

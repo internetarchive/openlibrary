@@ -57,6 +57,12 @@ def is_valid_web_book_url(url: str) -> bool:
     return parsed.scheme in ("http", "https") and bool(parsed.netloc)
 
 
+def can_add_web_book_url() -> bool:
+    """Only librarians see the Book URL field; spam accounts post it directly to plant links."""
+    user = accounts.get_current_user()
+    return bool(user and user.is_librarian_or_higher())
+
+
 def can_edit_ocaid() -> bool:
     """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
     user = accounts.get_current_user()
@@ -65,7 +71,7 @@ def can_edit_ocaid() -> bool:
 
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
-        """Check to see if account is an admin, or more than two years old."""
+        """Trusted users, librarians, admins and accounts over 30 days old skip the captcha."""
         user = accounts.get_current_user()
         account = user and user.get_account()
 
@@ -277,21 +283,25 @@ class addbook(delegate.page):
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
-        if not accounts.get_current_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-                return render_template(
-                    "message.html",
-                    "Recaptcha solution was incorrect",
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
-
         i.web_book_url = i.web_book_url.strip()
         if not is_valid_web_book_url(i.web_book_url):
             return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
 
         if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
             return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
+
+        if i.web_book_url and not can_add_web_book_url():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add a Book URL."))
+
+        # After the cheap checks, so a typo there doesn't spend the single-use captcha token.
+        recap = get_recaptcha()
+        # Fail closed: bots flood new books during reCAPTCHA outages, and a new account can wait.
+        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip, fail_open=False):
+            return render_template(
+                "message.html",
+                "Recaptcha solution was incorrect",
+                'Please <a href="javascript:history.back()">go back</a> and try again.',
+            )
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -306,7 +316,8 @@ class addbook(delegate.page):
 
         if isinstance(match, list):
             # multiple matches
-            return render_template("books/check", i, match)
+            # The choice re-posts here, and captcha tokens are single-use, so it needs its own.
+            return render_template("books/check", i, match, recaptcha=recap)
 
         elif match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition

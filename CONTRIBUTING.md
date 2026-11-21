@@ -43,6 +43,7 @@ When requesting assignment:
 
 [Browse Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) — ideal for first-time contributors.
 
+- Wait for a `Priority: *` label and for `Needs: Triage` to be removed before starting work
 - Only work on issues that are not assigned to anyone
 - Check the issue's comments and linked pull requests first. If there's already an open PR for the issue, please pick a different one
 - If someone else has commented that they're working on it, give them a day to work on it first. If there's still no PR after that, it's fine for you to take it on too
@@ -74,6 +75,7 @@ Review comments are a normal part of the process. Most PRs need at least one rou
 - Resolve all review comments before requesting another review
 - When resolving a comment, reply with "DONE" or "WON'T FIX because ..."
 - If the issue has a `Lead: @username` label, that person is usually the best reviewer to tag
+- Most PRs also get an automated review from `@openlibrary-bot`. [How the code review bot works](docs/code-review-bot.md) explains when it runs, what its comments and the `code-review` check mean, and how to respond
 
 For issues other than `Good First Issue`, if you haven't heard back within one week of requesting assignment, feel free to tag the `Lead:` on the issue.
 

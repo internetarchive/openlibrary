@@ -22,7 +22,7 @@ export function initTagChips(group) {
     const sync = () => {
         group.querySelectorAll('input[data-pick]').forEach(input => input.remove());
         // By property: the chip reflects ``selected`` to its attribute only on its next render.
-        for (const chip of [...group.querySelectorAll('ol-chip')].filter(chip => chip.selected)) {
+        for (const chip of [...group.querySelectorAll('ol-chip')].filter(candidate => candidate.selected)) {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = name;

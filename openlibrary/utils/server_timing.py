@@ -2,6 +2,9 @@
 
 https://www.w3.org/TR/server-timing/ -- shown in the browser devtools Network tab.
 
+web.py collects them too, without the header, for the ``ol_request_backend_seconds``
+Prometheus metric (see ``openlibrary.utils.prometheus.WebPyPrometheusProcessor``).
+
 Timings live in a ContextVar, which FastAPI's threadpool and ``async_bridge`` copy,
 so sync code called from a request records into the same place. Outside a request
 everything here is a no-op.

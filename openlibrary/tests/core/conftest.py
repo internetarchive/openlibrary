@@ -18,7 +18,7 @@ _real_sleep = _time.sleep
 from pathlib import Path
 from uuid import uuid4
 
-import pytest
+import pytest_asyncio
 import web
 from pytest_postgresql import factories
 from pytest_postgresql.janitor import DatabaseJanitor
@@ -31,8 +31,8 @@ _SCHEMA_PATH = Path(__file__).resolve().parents[2] / "core" / "schema.sql"
 pg_proc = factories.postgresql_proc(load=[_SCHEMA_PATH])
 
 
-@pytest.fixture
-def pg_db(pg_proc, monkeypatch):
+@pytest_asyncio.fixture
+async def pg_db(pg_proc, monkeypatch):
     """Fresh postgres per test, with ``web.config.db_parameters`` pointed at it."""
     monkeypatch.setattr("time.sleep", _real_sleep)
 
@@ -60,6 +60,11 @@ def pg_db(pg_proc, monkeypatch):
         # Fresh pool per test database.
         with async_db._entries_lock:
             async_db._entries.clear()
-        yield
-        with async_db._entries_lock:
-            async_db._entries.clear()
+        try:
+            yield
+        finally:
+            # Stop pool workers on their owning loop before pytest shuts it down
+            # or the janitor drops the database. Clearing the registry isn't a close.
+            await async_db.close_pool()
+            with async_db._entries_lock:
+                async_db._entries.clear()
