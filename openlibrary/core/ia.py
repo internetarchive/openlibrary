@@ -2,7 +2,7 @@
 
 import datetime as dt
 import logging
-from collections.abc import Callable, Generator
+from collections.abc import Generator, Iterable
 from urllib.parse import urlencode
 
 import httpx
@@ -48,6 +48,18 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
         logger.exception(f"Exception occurred accessing {url}.")
     stats.end()
     return api_response
+
+
+async def get_api_response_async(url: str, params: dict | None = None) -> dict:
+    """Async version of ``get_api_response``: same request, timeout and error handling."""
+    try:
+        r = await get_async_session().get(url, params=params, timeout=3, extensions={"server_timing": "ia-metadata"})
+        if r.status_code == httpx.codes.OK:
+            return r.json()
+        logger.info(f"{r.status_code} response received from {url}")
+    except Exception:
+        logger.exception(f"Exception occurred accessing {url}.")
+    return {}
 
 
 def save_page_now(url: str, access_key: str | None = None, secret_key: str | None = None) -> str:
@@ -102,7 +114,38 @@ def get_metadata_direct(itemid: str, only_metadata: bool = True, cache: bool = T
     return extract_item_metadata(full_json) if only_metadata else full_json
 
 
-get_metadata: Callable[[str], dict] = cache.memcache_memoize(get_metadata_direct, key_prefix="ia.get_metadata", timeout=5 * cache.MINUTE_SECS)
+get_metadata = cache.memcache_memoize(get_metadata_direct, key_prefix="ia.get_metadata", timeout=5 * cache.MINUTE_SECS)
+
+DEFAULT_METADATA_CONCURRENCY = 10
+
+
+async def get_metadata_direct_async(itemid: str, only_metadata: bool = True, cache: bool = True) -> dict:
+    """Async version of ``get_metadata_direct(itemid)``."""
+    url = f"{IA_BASE_URL}/metadata/{web.safestr(itemid.strip())}"
+    params = {}
+    if cache is False:
+        params["dontcache"] = 1
+    full_json = await get_api_response_async(url, params)
+    return extract_item_metadata(full_json) if only_metadata else full_json
+
+
+async def get_metadata_many_async(itemids: Iterable[str], max_concurrency: int = DEFAULT_METADATA_CONCURRENCY) -> dict[str, dict]:
+    """``{itemid: get_metadata(itemid)}`` for each itemid, without blocking the event loop.
+
+    Uses the same memcache entries as ``get_metadata`` and fetches the uncached items from
+    archive.org concurrently, at most ``max_concurrency`` at a time.
+    """
+    if max_concurrency < 1:
+        raise ValueError(f"max_concurrency must be at least 1, got {max_concurrency}")
+    unique_itemids = list(dict.fromkeys(itemids))
+    if not unique_itemids:
+        return {}
+    values = await get_metadata.call_many_async(
+        [(itemid,) for itemid in unique_itemids],
+        get_metadata_direct_async,
+        max_concurrency=max_concurrency,
+    )
+    return dict(zip(unique_itemids, values, strict=True))
 
 
 def extract_item_metadata(item_json: dict) -> dict:
