@@ -45,11 +45,8 @@ const supersededCommit = body => {
     const m = /<!-- ol-pr-review-bot superseded reviewed=([0-9a-f]{40}) -->/.exec(String(body || ''));
     return m ? m[1] : null;
 };
-// Opens the bot's inline comment for a suggestion that doesn't block: a low-severity finding with a
-// change the author can apply in one click. Threads the bot opens with it never block the status or
-// the verdict. It counts only at the very start of the bot's own comment: a finding's comment starts
-// with its severity heading, so model-written text that quotes the marker can't make it non-blocking,
-// and nobody else can write the bot's comments.
+// Starts the bot's suggestion comments, whose threads never block. It counts only at the start of a
+// bot-authored first comment, which model-written text can't reach.
 const SUGGESTION_MARKER = '<!-- ol-pr-review-bot suggestion -->';
 const isSuggestionThread = (t, botLogin = 'openlibrary-bot') => {
     const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];

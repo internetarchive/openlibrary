@@ -242,33 +242,24 @@ async function validateAndPost({ github, context, core, require, process, sleep 
 
     // Every finding that blocks gets a thread, so the author can reply to it and a later review can
     // resolve it (see threadKind): a line comment, or a comment on the whole file when there's no line
-    // to use. Low severity findings are suggestions in the summary; one with a change to apply also
-    // gets a line comment, marked so it never blocks (see SUGGESTION_MARKER). A finding about no file
-    // the PR changes is a note in the summary that doesn't block (analyze counts it the same way).
+    // to use. Low severity findings are suggestions: a line comment that never blocks when there's a
+    // change to apply, otherwise an item in the summary. A finding about no file the PR changes is a
+    // note in the summary that doesn't block (analyze counts it the same way).
     const inline = [],
         inlineFindings = [],
         fileLevel = [],
         orphaned = [],
         notes = [],
         suggestions = [],
-        suggestionComments = [];
-    // The low findings that have a line comment, so the summary can point to it.
-    const inlineSuggested = new Set();
-    const heading = f => `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
-    // The suggested change, as a block GitHub can apply in one click. The replacement may have more or
-    // fewer lines than start..line, and an empty one deletes them. It needs start..line to be one
-    // unbroken run of lines in the diff (GitHub rejects a range across hunks), and is dropped if it
-    // changes nothing.
-    const suggestionBlock = (f, start) => {
+        suggestionComments = [],
+        suggestionFindings = [];
+    const heading = (f, label = (f.severity || 'note').toUpperCase()) => `**${label} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+    // A one-click suggestion; an empty one deletes the range. Dropped if it changes nothing.
+    const suggestionBlock = f => {
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         if (f.suggestion == null) return '';
-        const lines = anchorable.get(f.path);
-        const want = Number(f.line) - Number(start) + 1;
-        const range = Array.from({ length: want }, (_, i) => lines.get(Number(start) + i));
-        if (range.some(l => l === undefined)) {
-            core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (the range isn't one run of lines in the diff).`);
-            return '';
-        }
+        const start = Number(f.start_line || f.line);
+        const range = Array.from({ length: Number(f.line) - start + 1 }, (_, i) => anchorable.get(f.path).get(start + i));
         // A trailing newline would add a blank line when applied.
         const text = f.suggestion.replace(/\n$/, '');
         if (text === range.join('\n')) {
@@ -290,14 +281,11 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     };
     for (const f of review.findings || []) {
         if (f.severity === 'low') {
-            suggestions.push(f);
-            const block = inlineKeyIssues && threadKind(f, anchors) === 'line' ? suggestionBlock(f, f.start_line || f.line) : '';
+            const block = inlineKeyIssues && threadKind(f, anchors) === 'line' ? suggestionBlock(f) : '';
             if (block) {
-                // The marker must come first: isSuggestionThread only looks at the start of the comment.
-                const title = `${SUGGESTION_MARKER}\n**Suggestion (won't block) · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
-                suggestionComments.push(lineComment(f, `${title}${block}${agentPrompt(f, true)}`));
-                inlineSuggested.add(f);
-            }
+                suggestionComments.push(lineComment(f, `${SUGGESTION_MARKER}\n${heading(f, "Suggestion (won't block)")}\n\nApply it or ignore it.${block}`));
+                suggestionFindings.push(f);
+            } else suggestions.push(f);
             continue;
         }
         // .pr_agent.toml inline_key_issues = false keeps every finding in the review summary.
@@ -322,7 +310,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             });
             continue;
         }
-        inline.push(lineComment(f, heading(f) + suggestionBlock(f, f.start_line || f.line) + agentPrompt(f, true)));
+        inline.push(lineComment(f, heading(f) + suggestionBlock(f) + agentPrompt(f, true)));
         inlineFindings.push(f);
     }
 
@@ -346,13 +334,13 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         const short = headSha.slice(0, 7);
         const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
         const blocking = blockingCount();
+        const suggested = suggestions.length + suggestionFindings.length;
         let status;
-        if (!blocking && !suggestions.length && !notes.length)
-            status = heldBack ? `**No published findings** on \`${short}\`.` : `**No issues found** on \`${short}\`.`;
+        if (!blocking && !suggested && !notes.length) status = heldBack ? `**No published findings** on \`${short}\`.` : `**No issues found** on \`${short}\`.`;
         else {
             const counts = [
                 blocking ? `**${plural(blocking, 'finding')}**` : '**No blocking findings**',
-                suggestions.length && plural(suggestions.length, 'suggestion'),
+                suggested && plural(suggested, 'suggestion'),
                 notes.length && plural(notes.length, 'note')
             ];
             status = `${counts.filter(Boolean).join(' · ')} on \`${short}\``;
@@ -387,8 +375,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 .join('\n\n')}`;
         }
         if (suggestions.length) {
-            const where = f => location(f) + (inlineSuggested.has(f) ? ' · change suggested on the line' : '');
-            summary += `\n\n### Suggestions (won't block)\n\n${suggestions.map(f => `- **${f.title}**${where(f)}\n  ${String(f.body).replace(/\n/g, ' ')}`).join('\n\n')}`;
+            summary += `\n\n### Suggestions (won't block)\n\n${suggestions.map(f => `- **${f.title}**${location(f)}\n  ${String(f.body).replace(/\n/g, ' ')}`).join('\n\n')}`;
         }
         if (notes.length) {
             summary += `\n\n### Notes (won't block)\n\nAbout code outside this PR's changes, so there's no thread to reply in. Reply in a comment on the PR if one doesn't apply.\n\n${notes
@@ -396,7 +383,14 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 .join('\n\n')}`;
         }
         // After a rejected post the threads have moved into `orphaned`, so count them once.
-        summary += combinedAgentPrompt([...(inline.length ? inlineFindings : []), ...fileLevel.map(x => x.finding), ...orphaned, ...suggestions, ...notes]);
+        summary += combinedAgentPrompt([
+            ...(inline.length ? inlineFindings : []),
+            ...fileLevel.map(x => x.finding),
+            ...orphaned,
+            ...suggestions,
+            ...suggestionFindings,
+            ...notes
+        ]);
 
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
@@ -405,7 +399,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         // The first part is the next step, which also says this isn't an approval. Suggestions count
         // as feedback: we want it taken seriously, and the author can judge what applies.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
-        const feedback = blocking || suggestions.length || notes.length;
+        const feedback = blocking || suggested || notes.length;
         const next = feedback
             ? 'Please address the feedback above before a maintainer reviews this PR'
             : earlierHold
@@ -687,12 +681,11 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             }
             if (!e || e.status !== 422) throw e;
             if (suggestionComments.length) {
-                // Suggestion comments are the newest kind and never block, so drop them first: one bad
-                // suggestion mustn't push every blocking finding out of its thread. They stay listed in
-                // the summary.
-                core.warning(`The review was rejected (422: ${e.message}); posting it again without the suggestion comments.`);
+                // They never block, so move them to the summary before the blocking findings.
+                core.warning(`The review was rejected (422: ${e.message}); posting it again with the suggestion comments in the summary.`);
+                suggestions.push(...suggestionFindings);
                 suggestionComments.length = 0;
-                inlineSuggested.clear();
+                suggestionFindings.length = 0;
                 summary = renderSummary();
             } else if (inline.length || fileLevel.length) {
                 core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);

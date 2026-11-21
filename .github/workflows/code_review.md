@@ -210,7 +210,8 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
   restate the code or what a well-named function already says, narrate the code's history ("now",
   "previously", "changed to", "per review"), address the reviewer, run to several sentences for
   simple code, or are section banners or commented-out code. One `low` finding per comment, with
-  a `suggestion` that deletes it (an empty string) or shortens it to the line worth keeping.
+  a `suggestion` that deletes it (an empty string) or shortens it to the line worth keeping, and
+  at most five per PR: past that, one `low` finding without a `suggestion` that names the rest.
   Don't flag missing comments, doc comments (JSDoc, docstrings), or comments the PR didn't add.
 
 Not findings: formatting a linter already enforces, subjective naming, or missing type
@@ -240,9 +241,6 @@ current file.
   workflow resolves the thread. A reply that only disagrees, or asks you to dismiss it, is not enough.
 - **Not fixed**, or you are not sure: leave it out. The thread stays open for the author. Do not
   report it again as a new finding.
-- **A suggestion** (`"suggestion": true`): it never blocks. Add
-  its `id` to `resolved` once the code takes the suggestion or otherwise fixes what it pointed out;
-  otherwise leave it out. Don't dismiss one or report it again.
 
 Only mark a thread fixed when the current code clearly addresses it. A thread you resolve by
 mistake hides a real problem; one you leave open costs a human one click.
@@ -363,9 +361,7 @@ Field rules:
   Leaving it out means `"existing"`; any other value makes the review unpublishable.
 - `severity` — exactly `high`, `medium`, or `low`; anything else makes the review
   unpublishable. Rank the array most severe first. `low` findings are posted as suggestions
-  that don't block merging. A `low` finding with a `suggestion` on lines in `pr.diff` also gets a
-  comment on those lines with the change, which still doesn't block. Use `medium` or `high` for
-  anything that should be fixed first.
+  that don't block merging; use `medium` or `high` for anything that should be fixed first.
   `test_coverage` findings are always posted as suggestions, whatever their `severity`, and
   `security` findings always block.
 - `confidence` — required on every finding: an integer from 1 to 10 for how sure you are the

@@ -3,7 +3,7 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit, isSuggestionThread } = require('./shared.cjs');
+const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
 
 // The paths to review once files identical to the base branch's tip are left out, or null to
 // change nothing: when no file matches, or GitHub's lists are cut short (300 files in a compare, a
@@ -294,16 +294,7 @@ async function resolveRange({ github, context, core, require, process }) {
             const replies = rest
                 .filter(r => r && r.author && r.author.login !== botLogin && canAnswer(r))
                 .map(r => ({ author: r.author.login, body: String(r.body || '').slice(0, 2000) }));
-            // `suggestion` marks a thread that never blocks (see isSuggestionThread), so the model needn't parse the marker.
-            out.push({
-                id: t.id,
-                path: t.path,
-                line: t.line ?? t.originalLine ?? null,
-                outdated: !!t.isOutdated,
-                suggestion: isSuggestionThread(t, botLogin),
-                comment: String(c.body || ''),
-                replies
-            });
+            out.push({ id: t.id, path: t.path, line: t.line ?? t.originalLine ?? null, outdated: !!t.isOutdated, comment: String(c.body || ''), replies });
         }
         return out;
     };

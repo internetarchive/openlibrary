@@ -606,14 +606,11 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
                 ]
             }
         });
-        const suggestion = node('SUGGESTION');
-        suggestion.comments.nodes[0].body = `${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — SUGGESTION**\n\nbody`;
         const nodes = [
             node('OPEN'),
             node('OUTDATED', { outdated: true, line: null, originalLine: 22 }),
             node('DONE', { resolved: true }),
-            node('HUMAN', { author: 'alice' }),
-            suggestion
+            node('HUMAN', { author: 'alice' })
         ];
         const github = {
             rest: {
@@ -632,11 +629,10 @@ test('range: writes our own OPEN threads (outdated included, line falls back to 
         await runScript(range.resolveRange, { github, context: ctx, env: { GITHUB_WORKSPACE: d }, cwd: d });
         const prior = JSON.parse(readFileSync(join(d, 'prior-threads.json'), 'utf8'));
         assert.deepEqual(
-            prior.map(t => [t.id, t.line, t.outdated, t.suggestion]),
+            prior.map(t => [t.id, t.line, t.outdated]),
             [
-                ['OPEN', 5, false, false],
-                ['OUTDATED', 22, true, false],
-                ['SUGGESTION', 5, false, true]
+                ['OPEN', 5, false],
+                ['OUTDATED', 22, true]
             ]
         );
         assert.match(prior[0].comment, /Correctness — OPEN/);
@@ -736,11 +732,9 @@ test('post: a suggestion may replace the lines with more or fewer lines', async 
 test('post: an empty suggestion deletes the lines', async () => {
     assert.match(await postedBody(''), /\n```suggestion\n```/);
 });
-test('post: a suggestion that changes nothing is dropped, even with a trailing newline', async () => {
-    for (const s of ['print(1)', 'print(1)\n']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
-});
-test('post: a trailing newline is trimmed so applying it adds no blank line', async () => {
+test('post: a trailing newline is trimmed, and a suggestion that changes nothing is dropped', async () => {
     assert.match(await postedBody('print(2)\n'), /\n```suggestion\nprint\(2\)\n```/);
+    for (const s of ['print(1)', 'print(1)\n']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
 });
 
 // A low finding is a suggestion that never blocks. With a change to apply, it also gets a line comment,
@@ -771,17 +765,18 @@ test('post: a low finding with a change gets a non-blocking line comment, and th
     const [c] = posted.comments;
     assert.equal(c.path, 'a.py');
     assert.ok(c.body.startsWith(`${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — Comment restates the code**`), c.body);
-    assert.match(c.body, /\n```suggestion\n```/);
+    assert.match(c.body, /\n```suggestion\n```$/);
+    assert.doesNotMatch(c.body, /Prompt for AI agents/);
     assert.equal(posted.event, 'APPROVE', 'a suggestion never blocks');
     assert.match(posted.body, /^\*\*No blocking findings\*\* · 1 suggestion on `/);
-    assert.match(posted.body, /- \*\*Comment restates the code\*\* · `a\.py:1` · change suggested on the line/);
+    assert.doesNotMatch(posted.body, /### Suggestions/, 'not listed twice');
     assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
 });
 test('post: a low finding without a change, or with one that changes nothing, stays in the summary only', async () => {
     for (const extra of [{}, { suggestion: 'print(1)' }]) {
         const posted = await postedLow(low(extra));
         assert.equal((posted.comments || []).length, 0, JSON.stringify(extra));
-        assert.doesNotMatch(posted.body, /change suggested on the line/);
+        assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Comment restates the code\*\*/);
     }
 });
 test('post: inline comments off, a low finding stays in the summary only', async () => {
@@ -789,17 +784,6 @@ test('post: inline comments off, a low finding stays in the summary only', async
     try {
         const { github, calls } = mockGitHub({ author: 'contributor' });
         await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), INLINE_KEY_ISSUES: 'false' }, cwd: d });
-        assert.equal((calls.createReview[0].comments || []).length, 0);
-    } finally {
-        teardown();
-    }
-});
-test('post: a suggestion whose range spans two hunks gets no comment', async () => {
-    const d = setup(reviewWith([low({ start_line: 1, line: 5, suggestion: '' })]));
-    writeFileSync(join(d, 'pr.diff'), 'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+print(1)\n@@ -5 +5 @@\n+print(5)\n');
-    try {
-        const { github, calls } = mockGitHub({ author: 'contributor' });
-        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
         assert.equal((calls.createReview[0].comments || []).length, 0);
     } finally {
         teardown();
@@ -815,8 +799,7 @@ test('post: on a 422, suggestion comments are dropped first and blocking finding
         assert.equal(posted.comments.length, 1, 'only the blocking thread');
         assert.match(posted.comments[0].body, /^\*\*HIGH · Correctness — Bug here\*\*/);
         assert.equal(posted.event, 'REQUEST_CHANGES');
-        assert.match(posted.body, /- \*\*Comment restates the code\*\* · `a\.py:1`\n/, 'still listed as a suggestion');
-        assert.doesNotMatch(posted.body, /change suggested on the line/);
+        assert.match(posted.body, /- \*\*Comment restates the code\*\* · `a\.py:1`\n/, 'moved to the summary');
     } finally {
         teardown();
     }

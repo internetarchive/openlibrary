@@ -73,7 +73,7 @@ Write comments for someone reading the code as it is now, with no access to the 
 - Describe the code, not its history. No "now uses", "changed to", "previously", "fixed the bug where" or "as discussed". That belongs in the commit message and PR description.
 - Keep length proportional to the complexity. Most comments are one short line. Longer is fine for a hard algorithm, a regex or a subtle race. If a workaround needs a paragraph of justification, fix the code.
 - Don't address the reviewer, the user or the next agent. No section banners, no commented-out code.
-- Doc comments are different. When you write one for a function, parameter or field, use JSDoc with types in JS (components follow [`docs/frontend/web-components.md`](docs/frontend/web-components.md)) and `:param name:` docstrings in Python. Say what a value means, not how the function works inside.
+- Doc comments (JSDoc with types, `:param name:` docstrings) say what a value means, not how the function works inside.
 - Keep existing comments unless your change makes them wrong, and then fix them.
 - Before finishing, reread every comment you added as a new contributor would, and delete the ones that break these rules.
 
