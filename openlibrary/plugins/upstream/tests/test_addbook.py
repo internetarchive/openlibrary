@@ -1,6 +1,7 @@
 """py.test tests for addbook"""
 
 import datetime as dt
+import io
 from unittest.mock import Mock
 
 import pytest
@@ -57,6 +58,58 @@ class TestSaveBookHelper:
         assert f({}) == {}
         assert f({"authors": []}) == {}
         assert f({"authors": [{"type": "/type/author_role"}]}) == {}
+
+    @pytest.mark.parametrize(
+        ("posted", "expected"),
+        [
+            (["", "/tags/OL1T", "/tags/OL2T"], [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]),
+            (["", "/tags/OL1T", "/tags/OL1T"], [{"key": "/tags/OL1T"}]),
+            ([""], None),
+        ],
+    )
+    def test_genres(self, monkeypatch, posted, expected):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(addbook, "get_tags_of_type", lambda fld: [web.storage(key="/tags/OL1T"), web.storage(key="/tags/OL2T")])
+        work = addbook.SaveBookHelper(None, None).process_work(web.storage({"genres": posted}))
+        assert "genres" in work
+        assert work.genres == expected
+
+    def test_genres_outside_the_vocabulary_are_refused_unless_already_saved(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(addbook, "get_tags_of_type", lambda fld: [web.storage(key="/tags/OL1T")])
+        saved = web.storage(key="/works/OL1W", genres=[{"key": "/tags/OL5T"}])
+        helper = addbook.SaveBookHelper(saved, None)
+        work = helper.process_work(web.storage({"genres": ["", "/tags/OL1T", "/tags/OL5T"]}))
+        assert work.genres == [{"key": "/tags/OL1T"}, {"key": "/tags/OL5T"}]
+        for stray in ("/tags/OL9T", "/people/foo"):
+            with pytest.raises(addbook.ValidationException):
+                helper.process_work(web.storage({"genres": ["", stray]}))
+
+    @pytest.mark.parametrize(
+        ("body", "expected"),
+        [
+            (b"work--title=A&work--genres=&work--genres=%2Ftags%2FOL1T&work--genres=%2Ftags%2FOL2T", ["", "/tags/OL1T", "/tags/OL2T"]),
+            (b"work--title=A&work--genres=", [""]),
+            (b"work--title=A", None),
+        ],
+    )
+    def test_the_edit_form_keeps_every_posted_genre(self, monkeypatch, body, expected):
+        env = {
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": "application/x-www-form-urlencoded",
+            "CONTENT_LENGTH": str(len(body)),
+            "wsgi.input": io.BytesIO(body),
+        }
+        monkeypatch.setattr(web.ctx, "env", env, raising=False)
+        # web.py keeps the parsed body on ctx; each case is a new request.
+        monkeypatch.delattr(web.ctx, "data", raising=False)
+        i = addbook.edit_form_input()
+        assert i["work--title"] == "A"
+        assert i.get("work--genres") == expected
+
+    def test_genres_not_posted_are_left_alone(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        assert "genres" not in addbook.SaveBookHelper(None, None).process_work(web.storage({"title": "A"}))
 
     def test_editing_orphan_creates_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
