@@ -754,7 +754,10 @@ def update_edition(rec: MarcBase, edition: dict[str, Any], func: Callable, field
             edition[field] += v
         elif field in edition and isinstance(edition[field], dict):
             for key, values in v.items():
-                edition[field].setdefault(key, []).extend(values)
+                lst = edition[field].setdefault(key, [])
+                for value in values:
+                    if value not in lst:
+                        lst.append(value)
         else:
             edition[field] = v
 
