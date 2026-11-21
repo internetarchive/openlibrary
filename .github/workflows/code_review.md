@@ -209,9 +209,9 @@ Only material violations — confusing, error-prone, or tech debt. Open Library'
 - Code comments the PR adds that break the "Code Comments" rules in `AGENTS.md`: comments that
   restate the code or what a well-named function already says, narrate the code's history ("now",
   "previously", "changed to", "per review"), address the reviewer, run to several sentences for
-  simple code, or are section banners or commented-out code. One `low` finding per comment, with a `suggestion` that deletes it (an empty
-  string) or shortens it to the line worth keeping. Don't flag missing comments, doc comments
-  (JSDoc, docstrings), or comments the PR didn't add.
+  simple code, or are section banners or commented-out code. One `low` finding per comment, with
+  a `suggestion` that deletes it (an empty string) or shortens it to the line worth keeping.
+  Don't flag missing comments, doc comments (JSDoc, docstrings), or comments the PR didn't add.
 
 Not findings: formatting a linter already enforces, subjective naming, or missing type
 annotations in a file that has none.
@@ -380,7 +380,8 @@ Field rules:
   the review unpublishable.
 - `path`, `start_line`, `line` — the anchor. `line` is the **last** line of the range;
   `start_line` the first. **Both must be lines that appear as added or context lines on the
-  RIGHT side of `pr.diff`.** On a re-review, `pr.diff` also has the files outside `review.diff`,
+  RIGHT side of `pr.diff`, in the same hunk.** A range across two hunks is posted on the whole
+  file instead. On a re-review, `pr.diff` also has the files outside `review.diff`,
   so a finding about code the PR changed before your last pass can still go inline.
 
   A finding blocks only if it gets a thread, because the thread is where the author replies and

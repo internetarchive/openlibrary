@@ -131,8 +131,11 @@ const threadKind = (f, anchors) => {
     const ln = anchors.lines.get(f.path);
     const end = Number(f.line),
         start = Number(f.start_line || f.line);
-    if (f.line && ln.has(end) && ln.has(start) && start <= end) return 'line';
-    return 'file';
+    // Every line of the range must be in the diff: GitHub rejects a comment across two hunks, and that
+    // one rejection would move every blocking finding out of its thread.
+    if (!f.line || !(start <= end)) return 'file';
+    for (let n = start; n <= end; n++) if (!ln.has(n)) return 'file';
+    return 'line';
 };
 
 module.exports = {
