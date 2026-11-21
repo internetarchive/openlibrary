@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from dataclasses import dataclass
 from typing import Literal, cast, override
@@ -14,6 +15,8 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.utils.request_context import site
+
+logger = logging.getLogger("openlibrary.importapi")
 
 
 class import_preview(delegate.page):
@@ -49,13 +52,8 @@ class import_preview(delegate.page):
             add_flash_message("error", str(e))
             return render_template("import_preview.html", metadata_provider_factory)
 
-        try:
-            result = req.metadata_provider.do_import(req.identifier, req.save)
-        except ValueError as e:
-            add_flash_message("error", str(e))
-            return render_template("import_preview.html", metadata_provider_factory, req=req)
-
-        if req.save:
+        result = req.run()
+        if req.save and result.get("success"):
             add_flash_message("success", "Import successful")
             return web.seeother(result["edition"]["key"])
         else:
@@ -101,6 +99,26 @@ class ImportPreviewRequest:
             identifier=identifier or "",
             save=i.get("save", "false") == "true",
         )
+
+    def run(self) -> dict:
+        """Run the import, reporting a failure in the same shape /api/import does."""
+        # Avoids the same circular import as IaMetadataProvider.
+        from openlibrary.plugins.importapi.code import BookImportError
+
+        try:
+            return self.metadata_provider.do_import(self.identifier, self.save)
+        except BookImportError as e:
+            return {"success": False, "error_code": e.error_code, "error": e.error, **e.kwargs}
+        except ValueError as e:
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            # Unexpected exceptions can carry internal hosts, SQL, etc., so only their type is shown.
+            logger.exception("Import preview failed for %s:%s", self.metadata_provider.id_name, self.identifier)
+            return {
+                "success": False,
+                "error_code": "unhandled-exception",
+                "error": f"Unexpected {type(e).__name__}; details have been logged.",
+            }
 
 
 class AbstractMetadataProvider:

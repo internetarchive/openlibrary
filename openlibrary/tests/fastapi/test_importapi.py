@@ -4,6 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from openlibrary.plugins.importapi.code import BookImportError
+from openlibrary.plugins.importapi.import_ui import ImportPreviewRequest
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 
@@ -60,7 +62,7 @@ def mock_import_request():
 
     def _make(save: bool = False):
         mock_req = MagicMock()
-        mock_req.metadata_provider.do_import.return_value = FAKE_IMPORT_RESULT
+        mock_req.run.return_value = FAKE_IMPORT_RESULT
         mock_req.save = save
         return mock_req
 
@@ -142,7 +144,7 @@ class TestImportPreviewGet:
         def fake_from_input(i):
             captured["save"] = i.get("save", "false")
             mock_req = MagicMock()
-            mock_req.metadata_provider.do_import.return_value = FAKE_IMPORT_RESULT
+            mock_req.run.return_value = FAKE_IMPORT_RESULT
             mock_req.save = False
             return mock_req
 
@@ -171,7 +173,7 @@ class TestImportPreviewGet:
         def fake_from_input(i):
             captured["params"] = i
             mock_req = MagicMock()
-            mock_req.metadata_provider.do_import.return_value = FAKE_IMPORT_RESULT
+            mock_req.run.return_value = FAKE_IMPORT_RESULT
             mock_req.save = False
             return mock_req
 
@@ -183,6 +185,21 @@ class TestImportPreviewGet:
         assert response.status_code == 200
         assert captured["params"]["provider"] == "amazon"
         assert captured["params"]["identifier"] == "1234567890"
+
+    def test_get_import_failure_returns_error(self):
+        provider = MagicMock()
+        provider.do_import.side_effect = BookImportError("not-differentiable", "publishers: Field required")
+        self.monkeypatch.setattr(
+            "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
+            lambda i: ImportPreviewRequest(metadata_provider=provider, identifier="foo", save=False),
+        )
+        response = self.client.get("/import/preview.json?source=ia:foo")
+        assert response.status_code == 200
+        assert response.json() == {
+            "success": False,
+            "error_code": "not-differentiable",
+            "error": "publishers: Field required",
+        }
 
     def test_get_no_params_returns_error(self):
         self.monkeypatch.setattr(
@@ -218,7 +235,7 @@ class TestImportPreviewPost:
         def fake_from_input(i):
             captured["save"] = i.get("save", "false")
             mock_req = MagicMock()
-            mock_req.metadata_provider.do_import.return_value = FAKE_IMPORT_RESULT
+            mock_req.run.return_value = FAKE_IMPORT_RESULT
             mock_req.save = captured["save"] == "true"
             return mock_req
 
@@ -239,7 +256,7 @@ class TestImportPreviewPost:
         def fake_from_input(i):
             captured["save"] = i.get("save", "false")
             mock_req = MagicMock()
-            mock_req.metadata_provider.do_import.return_value = FAKE_IMPORT_RESULT
+            mock_req.run.return_value = FAKE_IMPORT_RESULT
             return mock_req
 
         self.monkeypatch.setattr(

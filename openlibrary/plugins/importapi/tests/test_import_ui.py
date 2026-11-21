@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from openlibrary.catalog import add_book
 from openlibrary.plugins.importapi import import_ui
+from openlibrary.plugins.importapi.code import BookImportError
 from openlibrary.plugins.importapi.import_ui import GutenbergMetadataProvider, ImportPreviewRequest, RawJsonMetadataProvider
 
 GUTENBERG_SAMPLE = Path(__file__).parents[3] / "bookworm" / "tests" / "samples" / "gutenberg.json"
@@ -110,3 +112,28 @@ def test_raw_json_is_selectable_by_source_prefix():
     req = ImportPreviewRequest.from_input({"source": 'json:{"title": "a:b"}'})
     assert isinstance(req.metadata_provider, RawJsonMetadataProvider)
     assert req.identifier == '{"title": "a:b"}'
+
+
+def _failing_request(exc: Exception) -> ImportPreviewRequest:
+    provider = MagicMock()
+    provider.id_name = "ia"
+    provider.do_import.side_effect = exc
+    return ImportPreviewRequest(metadata_provider=provider, identifier="foo", save=False)
+
+
+@pytest.mark.parametrize(
+    ("exc", "expected"),
+    [
+        (
+            BookImportError("not-differentiable", "publishers: Field required"),
+            {"success": False, "error_code": "not-differentiable", "error": "publishers: Field required"},
+        ),
+        (ValueError("Invalid JSON"), {"success": False, "error": "Invalid JSON"}),
+        (
+            add_book.RequiredFields(["title"]),
+            {"success": False, "error_code": "unhandled-exception", "error": "Unexpected RequiredFields; details have been logged."},
+        ),
+    ],
+)
+def test_run_reports_import_failures(exc, expected):
+    assert _failing_request(exc).run() == expected
