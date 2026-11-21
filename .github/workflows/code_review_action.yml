@@ -247,6 +247,36 @@ jobs:
           # run (see the pin note above); the review step has no shell.
           allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
 
+      # A review.json that breaks the format is withheld in full, so give the model one try to fix it.
+      - name: Check the review's format
+        id: format
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { checkFormat } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/analyze_gate.cjs`);
+            await checkFormat({ core, require, process });
+
+      # Same as Review (see the notes there) except the prompt.
+      - name: Fix the review's format
+        if: steps.format.outputs.malformed == 'true'
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/code_review.md
+
+            You reviewed PR #${{ steps.range.outputs.pr }}, but `review.json` doesn't match the format above.
+            Fix it so it does, keeping your findings. If it's missing, review the PR and write it.
+          claude_args: >-
+            --max-turns 75
+            --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
+            --disallowedTools "Bash WebFetch WebSearch"
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: false
+          display_report: false
+          allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
+
       - name: Gate the analysis before upload
         id: analyze-gate
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
