@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 import web
@@ -8,7 +8,7 @@ from markupsafe import Markup
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin import new_accounts
-from openlibrary.plugins.admin.new_accounts import build_report, clamp_param, format_duration, scan_recent_changes
+from openlibrary.plugins.admin.new_accounts import build_report, clamp_param, format_duration
 
 # Far from the wall clock, when the mock site saves its type documents.
 NOW = datetime(2100, 1, 1, 12, 0, 0)
@@ -38,8 +38,23 @@ def stub_icon(monkeypatch):
 
 
 @pytest.fixture
-def site(mock_site, request_context_fixture):
+def site(mock_site, request_context_fixture, monkeypatch):
+    """The mock site, answering the page's two SQL queries too."""
     request_context_fixture(lang="en")
+
+    def load_young_account_changes(signup_cutoff, limit=new_accounts.MAX_CHANGES_LOADED):
+        def young(change) -> bool:
+            created = new_accounts._as_datetime(mock_site.get(change.author.key).get("created"))
+            return created is not None and created >= signup_cutoff
+
+        changes = [c for c in mock_site.recentchanges({"bot": False, "limit": 10**6}) if c.author and young(c)]
+        return changes[:limit], len(changes) >= limit
+
+    def load_records(keys):
+        return {doc.key: doc for doc in mock_site.get_many(keys)}
+
+    monkeypatch.setattr(new_accounts, "load_young_account_changes_sync", load_young_account_changes)
+    monkeypatch.setattr(new_accounts, "load_records_sync", load_records)
     return mock_site
 
 
@@ -48,8 +63,8 @@ class TestBuildReport:
         report = build_report(site, now=NOW)
         assert report.rows == []
         assert report.matching_accounts == 0
-        assert report.changes_scanned == 0
-        assert not report.scan_capped
+        assert report.changes_loaded == 0
+        assert not report.capped
         assert (report.age_label, report.window_label) == ("7 days", "24 hours")
 
     def test_groups_by_author_and_puts_the_busiest_first(self, site):
@@ -117,7 +132,6 @@ class TestBuildReport:
         report = build_report(site, now=NOW)
 
         assert report.rows == []
-        assert report.changes_scanned == 0
 
     def test_edits_outside_the_window_count_only_towards_the_total(self, site):
         signup(site, "returning", NOW - timedelta(days=3))
@@ -198,7 +212,7 @@ class TestBuildReport:
         assert [row.username for row in report.rows] == ["user3", "user2"]
         assert report.matching_accounts == 4
 
-    def test_scan_stops_at_the_cap(self, site):
+    def test_a_capped_load_says_so(self, site):
         signup(site, "early", NOW - timedelta(hours=10))
         signup(site, "late", NOW - timedelta(hours=10))
         for n in range(3):
@@ -206,41 +220,53 @@ class TestBuildReport:
         for n in range(4):
             write(site, "late", f"/works/OL2{n}W", NOW - timedelta(hours=1, minutes=-n))
 
-        report = build_report(site, now=NOW, max_changes=4, page_size=2)
+        report = build_report(site, now=NOW, max_changes=4)
 
-        assert report.scan_capped
-        assert report.changes_scanned == 4
-        assert report.scanned_back_to_label == "2100-01-01 11:00"
-        # `early` only wrote before the scan's reach.
-        assert [(row.username, row.edits_in_window_label) for row in report.rows] == [("late", "4")]
-        assert not build_report(site, now=NOW, max_changes=100, page_size=2).scan_capped
+        assert report.capped
+        assert report.changes_loaded == 4
+        assert report.loaded_back_to_label == "2100-01-01 11:00"
+        # `early` only wrote before the cut.
+        assert [(row.username, row.edits_in_window_label, row.total_edits_label) for row in report.rows] == [("late", "4+", "4+")]
+        assert row_is_inexact(report.rows[0])
+        assert not build_report(site, now=NOW, max_changes=100).capped
 
-    def test_an_account_with_more_history_than_is_loaded_shows_minimums(self, site):
-        signup(site, "prolific", NOW - timedelta(days=3))
-        for n in range(4):
-            write(site, "prolific", f"/works/OL{n}W", NOW - timedelta(days=2, minutes=-n))
-        write(site, "prolific", "/works/OL9W", NOW - timedelta(hours=1))
+    def test_a_wider_window_finds_older_edits(self, site):
+        signup(site, "earlier", NOW - timedelta(days=4))
+        write(site, "earlier", "/works/OL1W", NOW - timedelta(days=3))
 
-        [row] = build_report(site, now=NOW, history_limit=3).rows
+        assert build_report(site, now=NOW).rows == []
+        [row] = build_report(site, now=NOW, hours=7 * 24).rows
+        assert row.edits_in_window == 1
+        assert build_report(site, now=NOW, hours=7 * 24).window_label == "7 days"
 
-        assert not row.exact
-        assert (row.edits_in_window_label, row.total_edits_label) == ("1", "3+")
-        assert row.first_write_label.startswith("at most ")
+    def test_a_slow_query_empties_the_page(self, site, monkeypatch):
+        signup(site, "spammer", NOW - timedelta(hours=1))
+        write(site, "spammer", "/works/OL1W", NOW - timedelta(minutes=58))
+        monkeypatch.setattr(new_accounts, "load_records_sync", Mock(side_effect=new_accounts.TooSlow))
 
-    def test_accounts_inside_the_scan_cost_no_calls_of_their_own(self, site, monkeypatch):
+        report = build_report(site, now=NOW)
+
+        assert report.timed_out
+        assert report.rows == []
+
+    def test_calls(self, site, monkeypatch):
         for n in range(3):
             signup(site, f"user{n}", NOW - timedelta(hours=2))
             write(site, f"user{n}", f"/works/OL{n}W", NOW - timedelta(hours=1))
-        recentchanges = Mock(side_effect=site.recentchanges)
+        load_records = Mock(return_value={})
         get_many = Mock(side_effect=site.get_many)
-        monkeypatch.setattr(site, "recentchanges", recentchanges)
+        monkeypatch.setattr(new_accounts, "load_records_sync", load_records)
         monkeypatch.setattr(site, "get_many", get_many)
 
         assert len(build_report(site, now=NOW).rows) == 3
 
-        # One page of the scan, then one batch each of profiles, records checked for signals, and titles.
-        assert recentchanges.call_count == 1
-        assert get_many.call_count == 3
+        # One query for the records checked for signals, and one batch each of profiles and titles.
+        assert load_records.call_count == 1
+        assert get_many.call_count == 2
+
+
+def row_is_inexact(row) -> bool:
+    return not row.exact and row.first_write_label.startswith("at most ")
 
 
 class TestSignals:
@@ -405,26 +431,46 @@ class TestSignals:
         assert sorted((row.username, row.review) for row in reviewed) == [("author", "trusted"), ("spammer", "blocked")]
 
 
-class TestScanRecentChanges:
-    def test_pages_until_the_window_is_exhausted(self, site):
-        signup(site, "writer", NOW - timedelta(hours=2))
-        for n in range(5):
-            write(site, "writer", f"/works/OL{n}W", NOW - timedelta(minutes=50 - n))
+class TestQueries:
+    """The SQL, its parameters, and how rows become changes and records. Its plan was checked on a dev database."""
 
-        changes, capped = scan_recent_changes(site, NOW - timedelta(hours=1), max_changes=10, page_size=2)
+    @pytest.fixture
+    def rows(self, monkeypatch):
+        fetch = AsyncMock()
+        monkeypatch.setattr(new_accounts, "_fetch_all_within_timeout", fetch)
+        return fetch
 
-        assert [c.changes[0]["key"] for c in changes] == [f"/works/OL{n}W" for n in (4, 3, 2, 1, 0)]
-        assert not capped
+    def test_young_account_changes(self, rows):
+        rows.return_value = [
+            {"id": 7, "kind": "add-book", "author": "/people/a", "timestamp": NOW, "comment": None, "changes": '[{"key": "/works/OL1W", "revision": 1}]'}
+        ]
 
-    def test_changes_seen_twice_are_kept_once(self):
-        first, second, third = (Mock(id=n) for n in range(3))
-        # A change arriving mid-scan pushes `second` onto the next page too.
-        site = Mock(recentchanges=Mock(side_effect=[[first, second], [second, third], []]))
+        changes, capped = new_accounts.load_young_account_changes_sync(NOW - timedelta(days=7), limit=1)
 
-        changes, capped = scan_recent_changes(site, NOW, max_changes=10, page_size=2)
+        (query, params), _ = rows.await_args
+        assert "a.created >= %(signup_cutoff)s" in query
+        assert "t.bot IS NOT TRUE" in query
+        assert params == {"signup_cutoff": NOW - timedelta(days=7), "limit": 1}
+        assert capped
+        [change] = changes
+        assert (change.id, change.kind, change.author.key, change.timestamp, change.comment) == (7, "add-book", "/people/a", NOW, "")
+        assert change.changes[0]["key"] == change.changes[0].key == "/works/OL1W"
 
-        assert changes == [first, second, third]
-        assert not capped
+    def test_records(self, rows):
+        rows.return_value = [
+            {"key": "/works/OL1W", "type": "/type/work", "fields": {"title": "Call 1-888-314-1997"}},
+            {"key": "/works/OL2W", "type": "/type/delete", "fields": None},
+        ]
+
+        docs = new_accounts.load_records_sync(["/works/OL1W", "/works/OL2W"])
+
+        (query, params), _ = rows.await_args
+        assert params == {"keys": ["/works/OL1W", "/works/OL2W"], "fields": list(new_accounts.TEXT_FIELDS)}
+        assert "t.key = ANY(%(keys)s)" in query
+        assert (docs["/works/OL1W"].type.key, docs["/works/OL1W"].get("title")) == ("/type/work", "Call 1-888-314-1997")
+        assert docs["/works/OL2W"].type.key == "/type/delete"
+        assert new_accounts.load_records_sync([]) == {}
+        assert rows.await_count == 1
 
 
 @pytest.mark.parametrize(
@@ -480,8 +526,10 @@ class TestTemplate:
         assert 'value="spammer"' in html
         for action in ("block_account", "block_account_and_revert", "mark_trusted"):
             assert f'value="{action}"' in html
-        assert html.count("<form") == 1
-        assert 'method="post"' in html
+        assert html.count('method="post"') == 1
+        # The window control, on the current window.
+        assert 'name="hours"' in html
+        assert 'value="24"' in html
 
     def test_user_text_is_escaped_and_not_linked(self, site, render):
         signup(site, "spammer", NOW - timedelta(hours=1))
@@ -522,9 +570,9 @@ class TestTemplate:
             write(site, "one", f"/works/OL1{minutes}W", NOW - timedelta(minutes=minutes))
             write(site, "two", f"/works/OL2{minutes}W", NOW - timedelta(minutes=minutes))
 
-        html = render(max_changes=3, page_size=3, max_accounts=1)
+        html = render(max_changes=3, max_accounts=1)
 
-        assert "Only the newest 3 edits were scanned, back to 2100-01-01 11:00." in html
+        assert "Only the newest 3 edits by new accounts were read, back to 2100-01-01 11:00." in html
         assert "Showing the 1 busiest of 2 accounts." in html
 
 

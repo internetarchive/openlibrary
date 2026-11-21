@@ -1,29 +1,37 @@
 """New accounts writing fast: the data behind /admin/new-accounts.
 
 Spam waves come from accounts that are days old at most and start writing within minutes of signing up.
-`build_report` finds them from one bounded scan of recent changes and returns plain values for the template.
+`build_report` reads every edit by accounts that young in one SQL query, and the text of what they wrote in a
+second, and returns plain values for the template.
 Most young accounts are not spam, so each one is checked for signs of it (`Signal`). Strong signs make an account
 "likely spam", the default view; weak ones only make it "worth a look". The rules come from the accounts admins
 reverted as spam (see `find_signals`).
 """
 
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
+import web
+from psycopg.errors import QueryCanceled
+
+from openlibrary.core.async_db import connection
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
+from openlibrary.utils.async_utils import async_bridge
 
 # Defaults, to be tuned. The first two can be overridden per request with ?days= and ?hours=.
 MAX_ACCOUNT_AGE_DAYS = 7
 WINDOW_HOURS = 24
 MAX_ACCOUNT_AGE_DAYS_LIMIT = 30
-WINDOW_HOURS_LIMIT = 72
+WINDOW_HOURS_LIMIT = 7 * 24
+WINDOW_CHOICES = (24, 48, 72, 7 * 24)  # the page's "Edited in the last" control
 
 MAX_ACCOUNTS = 50  # rows shown
-MAX_CHANGES_SCANNED = 5000  # hard cap on the scan of the window; the page says when it was hit
-SCAN_PAGE_SIZE = 1000  # changes per Infobase call during the scan
-ACCOUNT_HISTORY_LIMIT = 200  # changes loaded for an account whose history the scan doesn't cover
+# Every edit by young accounts is read at once; the window only filters them. The cost follows `days`, not `hours`.
+MAX_CHANGES_LOADED = 50_000  # the page says when it was hit
+QUERY_TIMEOUT_MS = 10_000  # each of the two queries; the page says when one gave up
 RECENT_EDITS_SHOWN = 3
 FAST_FIRST_WRITE_MINUTES = 10  # a first write sooner than this after signup is highlighted
 
@@ -163,10 +171,10 @@ class Report:
     reviewed_accounts: int
     show: str  # LIKELY, LOOK, REVIEWED or "all"
     max_accounts: int
-    changes_scanned: int
-    scan_capped: bool
-    scanned_back_to: datetime | None  # the oldest change the scan reached
-    scanned_back_to_label: str
+    changes_loaded: int
+    capped: bool  # MAX_CHANGES_LOADED was hit: the oldest edits are missing
+    loaded_back_to_label: str  # the oldest edit read, when capped
+    timed_out: bool = False  # a query gave up; there are no rows
     fast_minutes: int = FAST_FIRST_WRITE_MINUTES
 
 
@@ -200,24 +208,77 @@ def format_duration(delta: timedelta) -> str:
     return _("%(n)s d", n=amount(seconds / 86400))
 
 
-def scan_recent_changes(site, since: datetime, max_changes: int = MAX_CHANGES_SCANNED, page_size: int = SCAN_PAGE_SIZE) -> tuple[list, bool]:
-    """Human changes since `since`, newest first, stopping at `max_changes`.
+class TooSlow(Exception):
+    """A query ran past QUERY_TIMEOUT_MS."""
 
-    :return: the changes, and whether the cap was reached before the window was exhausted
+
+# Infobase's own tables, read directly: `thing` (one row per record), `transaction` (one per changeset) and `data`
+# (one per revision). Both queries go through the indexes on thing.created, thing.key and transaction.author_id.
+YOUNG_ACCOUNT_CHANGES = """
+    SELECT t.id, t.action AS kind, a.key AS author, t.created AS timestamp, t.comment, t.changes
+    FROM thing a
+    JOIN transaction t ON t.author_id = a.id
+    WHERE a.type = (SELECT id FROM thing WHERE key = '/type/user')
+      AND a.created >= %(signup_cutoff)s
+      AND t.bot IS NOT TRUE
+    ORDER BY t.created DESC
+    LIMIT %(limit)s
+"""
+# Only the fields the signals read, from each record's latest revision.
+RECORD_TEXTS = """
+    SELECT t.key, type.key AS type,
+           (SELECT jsonb_object_agg(f.key, f.value) FROM jsonb_each(d.data::jsonb) f WHERE f.key = ANY(%(fields)s)) AS fields
+    FROM thing t
+    JOIN thing type ON type.id = t.type
+    LEFT JOIN data d ON d.thing_id = t.id AND d.revision = t.latest_revision
+    WHERE t.key = ANY(%(keys)s)
+"""
+
+
+async def _fetch_all_within_timeout(query: str, params: dict) -> list[dict]:
+    try:
+        async with connection() as conn:
+            await conn.execute(f"SET LOCAL statement_timeout = {QUERY_TIMEOUT_MS}")
+            cursor = await conn.execute(query, params)
+            return await cursor.fetchall()
+    except QueryCanceled as e:
+        raise TooSlow from e
+
+
+async def load_young_account_changes(signup_cutoff: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
+    """Every human changeset by accounts created since `signup_cutoff`, newest first, shaped like `site.recentchanges`.
+
+    :return: the changes, and whether `limit` cut off the oldest
     """
-    changes: list = []
-    seen: set = set()
-    offset = 0
-    while offset < max_changes:
-        limit = min(page_size, max_changes - offset)
-        page = site.recentchanges({"begin_date": since.isoformat(), "bot": False, "limit": limit, "offset": offset})
-        # New changes arriving mid-scan push older ones onto the next page a second time.
-        changes.extend(c for c in page if c.id not in seen)
-        seen.update(c.id for c in page)
-        if len(page) < limit:
-            return changes, False
-        offset += limit
-    return changes, True
+    rows = await _fetch_all_within_timeout(YOUNG_ACCOUNT_CHANGES, {"signup_cutoff": signup_cutoff, "limit": limit})
+    changes = [
+        web.storage(
+            id=row["id"],
+            kind=row["kind"],
+            author=web.storage(key=row["author"]),
+            timestamp=row["timestamp"],
+            comment=row["comment"] or "",
+            changes=[web.storage(c) for c in json.loads(row["changes"] or "[]")],
+        )
+        for row in rows
+    ]
+    return changes, len(rows) >= limit
+
+
+async def load_records(keys: list[str]) -> dict:
+    """The records at `keys`, holding only their type and TEXT_FIELDS, by key. Missing keys are left out."""
+    if not keys:
+        return {}
+    rows = await _fetch_all_within_timeout(RECORD_TEXTS, {"keys": keys, "fields": list(TEXT_FIELDS)})
+    return {row["key"]: web.storage(row["fields"] or {}, key=row["key"], type=web.storage(key=row["type"])) for row in rows}
+
+
+def load_young_account_changes_sync(signup_cutoff: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
+    return async_bridge.run(load_young_account_changes(signup_cutoff, limit))
+
+
+def load_records_sync(keys: list[str]) -> dict:
+    return async_bridge.run(load_records(keys))
 
 
 def _writes(changes) -> list:
@@ -307,7 +368,7 @@ def tier_of(signals: list[Signal]) -> str:
     return LOOK if signals else NONE
 
 
-def find_signals(site, accounts: dict[str, tuple[datetime, list]], spam_words: list[str]) -> dict[str, list[Signal]]:
+def find_signals(accounts: dict[str, tuple[datetime, list]], spam_words: list[str]) -> dict[str, list[Signal]]:
     """Signs of spam for each account, from what it wrote: `accounts` maps a profile key to (signup time, writes newest first).
 
     Tuned on the 861 accounts admins reverted as spam from Aug 2025 to Nov 2026, against new accounts that weren't:
@@ -317,10 +378,7 @@ def find_signals(site, accounts: dict[str, tuple[datetime, list]], spam_words: l
     """
     written = {key: _written_keys(writes) for key, (_, writes) in accounts.items()}
     checked = {key: (created[:MAX_RECORDS_CHECKED], edited[:MAX_RECORDS_CHECKED]) for key, (created, edited) in written.items()}
-    wanted = sorted({k for created, edited in checked.values() for k in created + edited} | set(accounts))
-    docs: dict = {}
-    for start in range(0, len(wanted), 100):
-        docs.update((doc.key, doc) for doc in site.get_many(wanted[start : start + 100]))
+    docs = load_records_sync(sorted({k for created, edited in checked.values() for k in created + edited} | set(accounts)))
 
     def live(keys) -> list:
         return [docs[k] for k in keys if k in docs and docs[k].type.key != "/type/delete"]
@@ -412,15 +470,19 @@ def _accounts_with(site, name: str, value: str) -> set[str]:
     return {"/people/" + key.removeprefix("account/") for key in keys}
 
 
+def _window_label(hours: int) -> str:
+    if hours > 24 and hours % 24 == 0:
+        return ungettext("%(count)s day", "%(count)s days", hours // 24, count=hours // 24)
+    return ungettext("%(count)s hour", "%(count)s hours", hours, count=hours)
+
+
 def build_report(
     site,
     now: datetime | None = None,
     days: int = MAX_ACCOUNT_AGE_DAYS,
     hours: int = WINDOW_HOURS,
     max_accounts: int = MAX_ACCOUNTS,
-    max_changes: int = MAX_CHANGES_SCANNED,
-    page_size: int = SCAN_PAGE_SIZE,
-    history_limit: int = ACCOUNT_HISTORY_LIMIT,
+    max_changes: int = MAX_CHANGES_LOADED,
     show: str = "all",
     spam_words: list[str] | None = None,
 ) -> Report:
@@ -429,35 +491,53 @@ def build_report(
     `show` limits the rows to one queue: LIKELY or LOOK, the accounts of that tier still waiting for review;
     REVIEWED, those blocked or trusted; or "all".
 
-    Cost, in Infobase calls: the scan (at most max_changes / page_size), one `get_many` per 100 authors seen in it,
-    and then for the `max_accounts` rows shown: one store read each for status and email, one `recentchanges` for
-    each account that signed up before the scan's reach, and one `get_many` for the titles of the last edits.
-    Two store queries find the blocked and trusted accounts.
-    The signals add one `get_many` per 100 records read: at most 2 * MAX_RECORDS_CHECKED + 1 per young account.
+    Cost: two SQL queries, one for every edit by young accounts and one for the text of the records they wrote
+    (up to 2 * MAX_RECORDS_CHECKED + 1 per account); one `get_many` per 100 young accounts for their profiles; two
+    store queries for the blocked and trusted accounts; and for the `max_accounts` rows shown, one store read each
+    and one `get_many` for the titles of their last edits.
     """
     now = now or utcnow()
     since = now - timedelta(hours=hours)
     signup_cutoff = now - timedelta(days=days)
+    labels = {
+        "days": days,
+        "hours": hours,
+        "age_label": ungettext("%(count)s day", "%(count)s days", days, count=days),
+        "window_label": _window_label(hours),
+        "show": show,
+        "max_accounts": max_accounts,
+    }
 
-    changes, scan_capped = scan_recent_changes(site, since, max_changes=max_changes, page_size=page_size)
-    scanned_back_to = changes[-1].timestamp if changes else None
+    try:
+        changes, capped = load_young_account_changes_sync(signup_cutoff, max_changes)
+    except TooSlow:
+        return Report(**labels, rows=[], matching_accounts=0, likely_accounts=0, look_accounts=0, reviewed_accounts=0,
+                      changes_loaded=0, capped=False, loaded_back_to_label="", timed_out=True)  # fmt: skip
+    loaded_back_to = changes[-1].timestamp if changes else None
 
-    scanned_by_author: dict[str, list] = {}
+    # Each young account's whole history, newest first: they are too new to have more than was loaded, unless capped.
+    history: dict[str, list] = {}
     for change in _writes(changes):
-        if change.author is not None:
-            scanned_by_author.setdefault(change.author.key, []).append(change)
+        history.setdefault(change.author.key, []).append(change)
+    active = sorted(key for key, writes in history.items() if writes[0].timestamp >= since)
 
-    # Account age comes from the profile, so every author seen is loaded once, in batches.
+    # Bot accounts and display names come from the profile, loaded in batches.
     young = {}
-    for user in site.get_many(sorted(scanned_by_author)):
-        created = _as_datetime(getattr(user, "created", None))
-        if user.type.key == "/type/user" and not user.get("bot") and created and created >= signup_cutoff:
-            young[user.key] = (user, created)
+    for start in range(0, len(active), 100):
+        for user in site.get_many(active[start : start + 100]):
+            created = _as_datetime(getattr(user, "created", None))
+            if user.type.key == "/type/user" and not user.get("bot") and created and created >= signup_cutoff:
+                young[user.key] = (user, created)
+    in_window = {key: [c for c in history[key] if c.timestamp >= since] for key in young}
 
     def first_delay(key: str) -> timedelta:
-        return scanned_by_author[key][-1].timestamp - young[key][1]
+        return max(history[key][-1].timestamp - young[key][1], timedelta(0))
 
-    signals = find_signals(site, {key: (young[key][1], scanned_by_author[key]) for key in young}, spam_words or [])
+    try:
+        signals = find_signals({key: (young[key][1], in_window[key]) for key in young}, spam_words or [])
+    except TooSlow:
+        return Report(**labels, rows=[], matching_accounts=len(young), likely_accounts=0, look_accounts=0, reviewed_accounts=0,
+                      changes_loaded=len(changes), capped=capped, loaded_back_to_label="", timed_out=True)  # fmt: skip
     tiers = {key: tier_of(signals[key]) for key in young}
     order = {LIKELY: 0, LOOK: 1, NONE: 2}
     reviewed = (_accounts_with(site, "status", "blocked") | _accounts_with(site, "tags", TRUSTED_TAG)) & young.keys()
@@ -468,34 +548,17 @@ def build_report(
         return show == "all" or (tiers[key] == show and key not in reviewed)
 
     def rank(key: str):
-        return (order[tiers[key]], -sum(s.strong for s in signals[key]), -_ranked_writes(scanned_by_author[key]), first_delay(key))
+        return (order[tiers[key]], -sum(s.strong for s in signals[key]), -_ranked_writes(in_window[key]), first_delay(key))
 
-    ranked = sorted(filter(in_queue, young), key=rank)
-    shown = ranked[:max_accounts]
-
-    # The scan holds an account's whole history only if it signed up within the scan's reach.
-    scan_reach = scanned_back_to if scan_capped and scanned_back_to else since
-    writes_by_author: dict[str, list] = {}
-    exact_authors: set[str] = set()
-    for key in shown:
-        writes = scanned_by_author[key]
-        if young[key][1] >= scan_reach:
-            exact_authors.add(key)
-        else:
-            history = site.recentchanges({"author": key, "limit": history_limit})
-            # Both lists are the account's newest writes, so the longer one holds the other.
-            writes = max(_writes(history), writes, key=len)
-            if len(history) < history_limit:
-                exact_authors.add(key)
-        writes_by_author[key] = writes
-
-    recent_edits = _recent_edits(site, writes_by_author, now)
+    shown = sorted(filter(in_queue, young), key=rank)[:max_accounts]
+    recent_edits = _recent_edits(site, {key: history[key] for key in shown}, now)
 
     rows = []
     for key in shown:
         user, created = young[key]
-        writes = writes_by_author[key]
-        exact = key in exact_authors
+        writes, window = history[key], in_window[key]
+        # A capped load is missing the oldest edits, so an account that signed up before them may have more.
+        exact = not capped or loaded_back_to is None or created >= loaded_back_to
         username = key.split("/")[-1]
         account = site.store.get(f"account/{username}") or {}
         status = account.get("status") or "unknown"
@@ -505,13 +568,11 @@ def build_report(
         else:
             review = TRUSTED if TRUSTED_TAG in (account.get("tags") or []) else ""
 
-        in_window = [c for c in writes if c.timestamp >= since]
-        books_added = sum(c.kind in BOOK_ADD_KINDS for c in in_window)
-        lists_created = sum(c.kind in LIST_CREATE_KINDS for c in in_window)
-        list_additions = sum(c.kind in LIST_SEED_KINDS for c in in_window)
-        # The loaded history may stop inside the window only if the scan did too.
-        window_is_minimum = not exact and scan_capped and writes[-1].timestamp >= since
-        delay = max(writes[-1].timestamp - created, timedelta(0))
+        books_added = sum(c.kind in BOOK_ADD_KINDS for c in window)
+        lists_created = sum(c.kind in LIST_CREATE_KINDS for c in window)
+        list_additions = sum(c.kind in LIST_SEED_KINDS for c in window)
+        window_is_minimum = not exact and loaded_back_to is not None and loaded_back_to >= since
+        delay = first_delay(key)
         delay_label = format_duration(delay)
 
         rows.append(
@@ -525,12 +586,12 @@ def build_report(
                 created=created,
                 created_label=_timestamp_label(created),
                 age=format_duration(now - created),
-                edits_in_window=len(in_window),
-                edits_in_window_label=f"{len(in_window)}+" if window_is_minimum else str(len(in_window)),
+                edits_in_window=len(window),
+                edits_in_window_label=f"{len(window)}+" if window_is_minimum else str(len(window)),
                 books_added=books_added,
                 lists_created=lists_created,
                 list_additions=list_additions,
-                other_edits=len(in_window) - books_added - lists_created - list_additions,
+                other_edits=len(window) - books_added - lists_created - list_additions,
                 total_edits=len(writes),
                 total_edits_label=str(len(writes)) if exact else f"{len(writes)}+",
                 exact=exact,
@@ -544,21 +605,14 @@ def build_report(
             )
         )
 
-    rows.sort(key=lambda row: (order[row.tier], -sum(s.strong for s in row.signals), -(row.edits_in_window - row.list_additions), row.first_write_delay))
     return Report(
-        days=days,
-        hours=hours,
-        age_label=ungettext("%(count)s day", "%(count)s days", days, count=days),
-        window_label=ungettext("%(count)s hour", "%(count)s hours", hours, count=hours),
+        **labels,
         rows=rows,
         matching_accounts=len(young),
         likely_accounts=sum(t == LIKELY and k not in reviewed for k, t in tiers.items()),
         look_accounts=sum(t == LOOK and k not in reviewed for k, t in tiers.items()),
         reviewed_accounts=len(reviewed),
-        show=show,
-        max_accounts=max_accounts,
-        changes_scanned=len(changes),
-        scan_capped=scan_capped,
-        scanned_back_to=scanned_back_to,
-        scanned_back_to_label=_timestamp_label(scanned_back_to) if scanned_back_to else "",
+        changes_loaded=len(changes),
+        capped=capped,
+        loaded_back_to_label=_timestamp_label(loaded_back_to) if capped and loaded_back_to else "",
     )

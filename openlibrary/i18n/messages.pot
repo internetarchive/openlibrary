@@ -2390,8 +2390,36 @@ msgid "Reviewed"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
+msgid "Edited in the last"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "24 hours"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "2 days"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "3 days"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "7 days"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Show"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Loading the edits took too long and was stopped. Try again, or look at fewer days of signups with ?days=."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
 #, python-format
-msgid "Only the newest %(count)s edits were scanned, back to %(time)s. Edits before then are not counted, and accounts that only wrote before then are missing."
+msgid "Only the newest %(count)s edits by new accounts were read, back to %(time)s. Older edits are not counted."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -10440,11 +10468,6 @@ msgstr ""
 
 #: openlibrary/plugins/admin/new_accounts.py
 #, python-format
-msgid "at most %(duration)s"
-msgstr ""
-
-#: openlibrary/plugins/admin/new_accounts.py
-#, python-format
 msgid "%(count)s day"
 msgid_plural "%(count)s days"
 msgstr[0] ""
@@ -10456,6 +10479,11 @@ msgid "%(count)s hour"
 msgid_plural "%(count)s hours"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/plugins/admin/new_accounts.py
+#, python-format
+msgid "at most %(duration)s"
+msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"

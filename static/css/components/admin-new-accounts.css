@@ -185,11 +185,32 @@
   color: var(--color-warning-fg);
 }
 
+/* The queue tabs, and the window control at the far end of the same row. */
+.new-accounts__views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-block-end: var(--spacing-stack-md);
+}
+
 .new-accounts__tabs {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-2xs);
-  margin-block-end: var(--spacing-stack-md);
+}
+
+.new-accounts__window {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+
+.new-accounts__window-label {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
 }
 
 .new-accounts__tab-count {

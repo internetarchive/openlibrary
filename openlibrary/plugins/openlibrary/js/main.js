@@ -284,7 +284,8 @@ $(function () {
     const adminLinks = document.getElementById('adminLinks');
     const confirmButtons = document.querySelectorAll('.do-confirm');
     const newAccountsForm = document.querySelector('.new-accounts__form');
-    if (adminLinks || anonymizationButton || confirmButtons.length || newAccountsForm) {
+    const newAccountsWindow = document.querySelector('.new-accounts__window');
+    if (adminLinks || anonymizationButton || confirmButtons.length || newAccountsForm || newAccountsWindow) {
         import('./admin').then(module => {
             if (adminLinks) {
                 module.initAdmin();
@@ -297,6 +298,9 @@ $(function () {
             }
             if (newAccountsForm) {
                 module.initNewAccountsReview(newAccountsForm);
+            }
+            if (newAccountsWindow) {
+                module.initNewAccountsWindow(newAccountsWindow);
             }
         });
     }

@@ -93,3 +93,16 @@ export function initNewAccountsReview(form) {
     });
     update();
 }
+
+/**
+ * /admin/new-accounts: picking a window in the "Edited in the last" control reloads the page with it.
+ * @param {HTMLFormElement} form
+ */
+export function initNewAccountsWindow(form) {
+    // The event fires before the control's form value updates, so the URL is built from the event.
+    form.addEventListener('ol-segmented-control-change', event => {
+        const params = new URLSearchParams(new FormData(form));
+        params.set('hours', event.detail.value);
+        location.search = params.toString();
+    });
+}
