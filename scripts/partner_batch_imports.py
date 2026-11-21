@@ -418,7 +418,7 @@ def main(ol_config: str, batch_path: str):
     required_fields = requests.get(SCHEMA_URL).json()["required"]
 
     # Partner data is offset ~15 days from start of month
-    date = dt.date.today() - dt.timedelta(days=15)
+    date = dt.datetime.now(dt.UTC).date() - dt.timedelta(days=15)
     batch_name = "%s-%04d%02d" % ("bwb", date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(batch_path, batch)

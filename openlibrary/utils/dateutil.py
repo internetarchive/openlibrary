@@ -22,7 +22,7 @@ def days_in_current_month() -> int:
 
 
 def todays_date_minus(**kwargs) -> dt.date:
-    return dt.date.today() - dt.timedelta(**kwargs)
+    return dt.datetime.now(dt.UTC).date() - dt.timedelta(**kwargs)
 
 
 def date_n_days_ago(n: int | None = None, start=None) -> dt.date | None:
@@ -33,7 +33,7 @@ def date_n_days_ago(n: int | None = None, start=None) -> dt.date | None:
     Returns:
         A (datetime.date) of `n` days ago if n is provided, else None
     """
-    _start = start or dt.date.today()
+    _start = start or dt.datetime.now(dt.UTC).date()
     return (_start - dt.timedelta(days=n)) if n else None
 
 

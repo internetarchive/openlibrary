@@ -2,7 +2,7 @@
 
 import calendar
 import random
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import requests
 
@@ -180,7 +180,7 @@ class VisitorStats(Stats):
 def read_count_docs(site, ndays: int) -> list[dict]:
     """The daily count docs `scripts/store_counts.py` writes, oldest first, for the last `ndays` up to today. Days with no
     doc are left out. Takes the current site (`site.get()`) for both FastAPI and web.py callers."""
-    today = date.today()
+    today = datetime.now(UTC).date()
     dates = [today - timedelta(days=i) for i in reversed(range(ndays))]
     docs = [site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
     return [d for d in docs if d]
@@ -298,7 +298,7 @@ def mock_get_stats(ndays=30):
         "authors": 1_500,
         "subjects": 500,
     }
-    today = date.today()
+    today = datetime.now(UTC).date()
     days = [today - timedelta(days=n) for n in range(ndays, 0, -1)]
     docs = [{"_key": day.strftime("counts-%Y-%m-%d")} for day in days]
     for key, scale in daily_scale.items():

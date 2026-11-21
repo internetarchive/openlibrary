@@ -5,7 +5,7 @@ import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, TypeVar
 from urllib.parse import urlencode
 
@@ -784,7 +784,7 @@ class Work(Thing):
         """
         fixed = 0
         total = 0
-        current_date = datetime.today() - timedelta(days=grace_period_days)
+        current_date = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=grace_period_days)
         cutoff_date = (current_date - timedelta(days)) if days else cutoff_date
 
         while current_date > cutoff_date:
