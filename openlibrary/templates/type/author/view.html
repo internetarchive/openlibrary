@@ -228,7 +228,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $if page.links:
                 <ul class="booklinks sansserif">
                 $for link in page.links:
-                    <li><a href="$link.url">$link.title</a></li>
+                    <li><a href="$link.url" rel="ugc nofollow">$link.title</a></li>
                 </ul>
             $else:
                 <p class="sansserif small">$_('No links yet.') <a href="$page.url('/edit')#web">$_('Add one')</a>?</p>

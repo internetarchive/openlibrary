@@ -44,8 +44,8 @@ def test_sanitize():
     # script tags must be stripped
     assert h.sanitize('<script>alert("dhoom")</script>hello') == "hello"
 
-    # rel="nofollow" must be added absolute links
-    assert h.sanitize('<a href="https://example.com">hello</a>') == '<a href="https://example.com" rel="nofollow">hello</a>'
+    # rel="ugc nofollow" must be added to absolute links
+    assert h.sanitize('<a href="https://example.com">hello</a>') == '<a href="https://example.com" rel="ugc nofollow">hello</a>'
     # relative links should pass through
     assert h.sanitize('<a href="relpath">hello</a>') == '<a href="relpath">hello</a>'
 
