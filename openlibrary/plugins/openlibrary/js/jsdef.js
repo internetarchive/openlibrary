@@ -164,6 +164,7 @@ export function jsdef_get(obj, key, def = null) {
 
 export function exposeGlobally() {
     // Extend existing prototypes
+    // oxlint-disable-next-line no-extend-native -- Templetor-compiled templates call "str".join(...)
     String.prototype.join = join;
 
     window.commify = commify;

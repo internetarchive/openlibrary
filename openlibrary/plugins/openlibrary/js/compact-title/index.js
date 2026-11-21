@@ -66,27 +66,23 @@ function onScroll(navbar, title) {
                 },
                 { once: true }
             );
-        } else {
-            if (navbarBounds.top < compactTitleBounds.bottom) {
-                // We've scrolled to the bottom of the container, and the navbar is unstuck
-                title.classList.add('hidden');
-            } else {
-                title.classList.remove('hidden');
-            }
-        }
-    } else {
-        // At least some of the main title is below the navbar
-        if (!title.classList.contains('hidden')) {
+        } else if (navbarBounds.top < compactTitleBounds.bottom) {
+            // We've scrolled to the bottom of the container, and the navbar is unstuck
             title.classList.add('hidden');
-            navbar.classList.add('nav-bar-wrapper--slideup');
-            navbar.addEventListener(
-                'animationend',
-                () => {
-                    navbar.classList.remove('sticky--lowest');
-                    navbar.classList.remove('nav-bar-wrapper--slideup');
-                },
-                { once: true }
-            );
+        } else {
+            title.classList.remove('hidden');
         }
+    } else if (!title.classList.contains('hidden')) {
+        // At least some of the main title is below the navbar
+        title.classList.add('hidden');
+        navbar.classList.add('nav-bar-wrapper--slideup');
+        navbar.addEventListener(
+            'animationend',
+            () => {
+                navbar.classList.remove('sticky--lowest');
+                navbar.classList.remove('nav-bar-wrapper--slideup');
+            },
+            { once: true }
+        );
     }
 }

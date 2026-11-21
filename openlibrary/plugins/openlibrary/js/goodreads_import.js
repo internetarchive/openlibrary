@@ -109,7 +109,7 @@ export function initGoodreadsImport() {
                                     url: `${obj['works'][0].key}/ratings.json`,
                                     type: 'POST',
                                     data: {
-                                        rating: parseInt(value['My Rating']),
+                                        rating: parseInt(value['My Rating'], 10),
                                         edition_id: obj['key'],
                                         bookshelf_id: shelf_id
                                     },
@@ -129,9 +129,9 @@ export function initGoodreadsImport() {
                                     data: JSON.stringify({
                                         edition_key: obj['key'],
                                         event_type: 3, // BookshelfEvent.FINISH
-                                        year: parseInt(date_read[0]),
-                                        month: parseInt(date_read[1]),
-                                        day: parseInt(date_read[2])
+                                        year: parseInt(date_read[0], 10),
+                                        month: parseInt(date_read[1], 10),
+                                        day: parseInt(date_read[2], 10)
                                     }),
                                     dataType: 'json',
                                     contentType: 'application/json',

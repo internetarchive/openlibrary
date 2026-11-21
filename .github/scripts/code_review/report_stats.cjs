@@ -213,7 +213,7 @@ function checkThresholds({ runs, reviews }, t = THRESHOLDS, fixed = new Set()) {
     return alerts;
 }
 
-// What a PR changed in the review bot's files, as one diff, cut to `max` characters. PR descriptions
+// What a PR changed in the review bot's files, as one diff, cut to `limit` characters. PR descriptions
 // often don't say which failures a change fixes; the diff does (a removed error message, a new catch).
 const MAX_CHANGES = 5000;
 const botDiff = files =>
@@ -221,9 +221,9 @@ const botDiff = files =>
         .filter(f => BOT_PATHS.some(p => f.filename === p || f.filename.startsWith(`${p}/`)))
         .map(f => `--- ${f.filename}\n${f.patch || '(no textual diff)'}`)
         .join('\n');
-const botChanges = (files, max = MAX_CHANGES) => {
+const botChanges = (files, limit = MAX_CHANGES) => {
     const diff = botDiff(files);
-    return diff.length > max ? `${diff.slice(0, max)}\n[cut at ${max} characters]` : diff;
+    return diff.length > limit ? `${diff.slice(0, limit)}\n[cut at ${limit} characters]` : diff;
 };
 
 // The start of an error message, as it would appear in the code that raised it, or null if too

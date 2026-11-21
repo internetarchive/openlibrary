@@ -62,7 +62,12 @@ function mockGitHub() {
                     return { data: { id: 999 } };
                 }
             },
-            issues: { get: async () => (calls.issuesGet++, { data: {} }) },
+            issues: {
+                get: async () => {
+                    calls.issuesGet++;
+                    return { data: {} };
+                }
+            },
             repos: { compareCommitsWithBasehead: async () => ({ data: 'diff --git a/a.py b/a.py\n' }) }
         },
         paginate: async (method, params) => (await method(params)).data,

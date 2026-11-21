@@ -117,7 +117,6 @@ function displayIdentifierError(event, errorMessage) {
     errorDiv.classList.remove('hidden');
     errorDiv.textContent = errorMessage;
     event.preventDefault();
-    return;
 }
 
 function clearErrors() {
@@ -218,7 +217,7 @@ function validatePublishDate() {
     // if it doesn't have even three digits then it can't be a future date
     const tokens = /(\d{3,})/.exec(publish_date);
     const year = new Date().getFullYear();
-    const isValidDate = tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+    const isValidDate = tokens && tokens[1] && parseInt(tokens[1], 10) <= year + 1; // allow one year in future.
 
     const errorDiv = document.getElementById('publish-date-errors');
 

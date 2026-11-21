@@ -104,7 +104,7 @@ export default class SelectionManager {
                 } else {
                     affectedElements = siblingSet.slice(elIndex, lastClickedIndex);
                 }
-                const stateChange = this.lastClicked.classList.contains('ile-selected') ? true : false;
+                const stateChange = this.lastClicked.classList.contains('ile-selected');
                 for (const element of affectedElements) this.toggleSelected(element, stateChange);
             } else {
                 this.toggleSelected(el);
@@ -163,7 +163,7 @@ export default class SelectionManager {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img')
                 .toArray()
-                .find(el => el.src === img_src);
+                .find(img => img.src === img_src);
             $(img_el).remove();
         } else {
             this.addSelectedItem(olid);

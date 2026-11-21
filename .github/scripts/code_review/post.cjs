@@ -560,7 +560,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     const deletePending = id => github.rest.pulls.deletePendingReview({ owner, repo, pull_number: prNumber, review_id: id });
     const createWithFileThreads = async () => {
         const existing = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
-        for (const r of existing.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.state === 'PENDING')) {
+        for (const r of existing.filter(rev => rev.user && rev.user.login === 'openlibrary-bot' && rev.state === 'PENDING')) {
             core.warning(`Deleting pending review ${r.id} left by an earlier run.`);
             // A failed delete must not stop the review. If the pending review is still there, the
             // createReview below gets a 422, and the retry loop posts the review in one call.

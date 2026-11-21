@@ -335,7 +335,7 @@ function prepareAssignedPullRequests(pullRequests, leads) {
                 statusText += `<${searchResultsUrl}+label%3A"Priority%3A+2"|P2:${p2Count}>`;
             } else {
                 // Remove the trailing `, ` characters:
-                statusText = statusText.substring(0, statusText.length - 3);
+                statusText = statusText.slice(0, -3);
             }
             statusText += ']';
         }

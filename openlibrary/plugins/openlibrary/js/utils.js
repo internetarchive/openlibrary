@@ -15,7 +15,7 @@ export function closePopup() {
 // used in templates/admin/imports.html
 export function truncate(text, limit) {
     if (text.length > limit) {
-        return `${text.substr(0, limit)}...`;
+        return `${text.slice(0, limit)}...`;
     }
     return text;
 }
