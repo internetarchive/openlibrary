@@ -164,11 +164,20 @@ Every review covers five areas:
 
 | Area | What it looks for |
 |---|---|
-| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path |
+| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path, submodule pointers changed by accident |
 | Security | Anything touching auth, sessions, redirects, user input in SQL, shell, files or templates |
 | Accessibility | Templates, JS and CSS against WCAG 2.1 AA: alt text, labels, keyboard access, contrast |
 | Test coverage | A missing test that would catch a real bug, a test that can't fail, and tests that aren't worth keeping |
 | Styleguide | Material problems only: unrelated edits, error-prone patterns, speculative abstractions |
+
+For database code, FastAPI, CSS and web components, it also checks the PR against the rules in
+[`docs/core/database.md`](core/database.md), [`docs/core/fastapi-pages.md`](core/fastapi-pages.md),
+[`docs/frontend/css.md`](frontend/css.md) and [`docs/frontend/web-components.md`](frontend/web-components.md).
+It reads master's copy of each doc, so to change what the bot checks in those areas, update the doc.
+
+It checks that the PR's title and description still match what the diff does, since maintainers read
+the description and the title becomes the squash commit's message. When they don't, it leaves a note
+that doesn't block merging. Edit the PR to fix it.
 
 It also checks the PR against the issues it links to and lists which of their requirements the
 PR meets, doesn't meet, or needs a person to verify.
