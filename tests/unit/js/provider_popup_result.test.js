@@ -6,8 +6,8 @@
  * refuses to navigate, and the script touches only `window.*`, `document.*`
  * and `screen.*`.
  */
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const TEMPLATE = resolve(__dirname, '../../../openlibrary/templates/borrow/provider_popup_result.html.jinja');
 const READ_URL = 'https://lennyforlibraries.org/v1/api/items/51008637/read';

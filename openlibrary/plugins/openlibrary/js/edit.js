@@ -24,8 +24,8 @@ function error(errordiv, input, message) {
 }
 
 function update_len() {
-    var len = $('#excerpts-excerpt').val().length;
-    var color;
+    const len = $('#excerpts-excerpt').val().length;
+    let color;
     if (len > 2000) {
         color = '#e44028';
     } else {
@@ -44,14 +44,13 @@ function update_len() {
  * @return {boolean} is character number below or equal to limit
  */
 function limitChars(textid, limit) {
-    var text = $(`#${textid}`).val();
-    var textlength = text.length;
+    const text = $(`#${textid}`).val();
+    const textlength = text.length;
     if (textlength > limit) {
-        $(`#${textid}`).val(text.substr(0, limit));
+        $(`#${textid}`).val(text.slice(0, limit));
         return false;
-    } else {
-        return true;
     }
+    return true;
 }
 
 /**

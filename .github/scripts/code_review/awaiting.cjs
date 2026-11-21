@@ -1,3 +1,4 @@
+// If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 // code_review_awaiting.yml: on a new or pushed-to PR, mark a head that has no review yet as
 // code-review=pending with what happens next, and with handle_push_trigger on, re-request the
 // review once no more commits arrive for push_review_delay_minutes.
@@ -5,7 +6,19 @@
 
 const BOT = 'openlibrary-bot';
 const TEAM = 'openlibrary-agentic-code-reviewer';
-const WAITING = 'New commits. A review starts after';
+// The status while a push review waits for pushes to stop. requestAfterQuiet checks the status still
+// starts with it, so a hand-started review (which replaces it with "Review in progress.") isn't
+// followed by a second one. The older wording is still recognised for runs started before the change.
+const WAITING = 'Waiting for pushes to stop.';
+const OLD_WAITING = 'New commits. A review starts after';
+const isWaiting = description => [WAITING, OLD_WAITING].some(p => String(description || '').startsWith(p));
+// "Review starts ~21:36 UTC": when the wait ends if no more commits arrive. A status shows the
+// same yellow dot while waiting and while reviewing, so the text has to say which, and how to skip
+// the wait. Kept under GitHub's 140-character limit for a status description.
+const waitingText = (minutes, now) => {
+    const at = new Date(now + minutes * 60 * 1000).toISOString().slice(11, 16);
+    return `${WAITING} Review starts ~${at} UTC, or comment @openlibrary-bot review to start now.`;
+};
 
 // True when the push only merged the base branch into the previous head, as "Update branch" does.
 // Same test as PR-Agent's is_base_branch_merge.
@@ -21,10 +34,15 @@ async function mergesOnlyBase({ github, owner, repo, payload }) {
     return cmp.status === 'ahead' || cmp.status === 'identical';
 }
 
+// A PR into a branch other than the default one, such as another PR's branch.
+const stacked = payload => Boolean(payload.repository && payload.pull_request.base.ref !== payload.repository.default_branch);
+
 // Whether this push should start a review after the quiet period, and why not if it shouldn't.
 async function pushReview({ github, owner, repo, payload, settings, reviewedBefore }) {
     const cfg = settings.github_action_config;
     if (payload.action !== 'synchronize' || !cfg.handle_push_trigger) return 'push reviews are off';
+    // A review request on a stacked PR starts nothing (see code_review_action.yml's analyze job).
+    if (stacked(payload)) return 'the PR is stacked on another branch';
     // The first review is a maintainer's call (or auto_assign_reviewer.yml's): it is the spend gate.
     if (!reviewedBefore) return 'the PR has not been reviewed yet';
     if ((payload.pull_request.labels || []).some(l => l.name === 'no-automation')) return 'the PR has the no-automation label';
@@ -33,7 +51,7 @@ async function pushReview({ github, owner, repo, payload, settings, reviewedBefo
     return null;
 }
 
-async function markAwaiting({ github, context, core, settings, runUrl }) {
+async function markAwaiting({ github, context, core, settings, runUrl, now = Date.now() }) {
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const { payload } = context;
@@ -54,7 +72,8 @@ async function markAwaiting({ github, context, core, settings, runUrl }) {
     else core.setOutput('review_after_minutes', String(minutes));
 
     let description = 'Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer.';
-    if (!skip) description = `${WAITING} ${minutes} minutes with no more pushes.`;
+    if (!skip) description = waitingText(minutes, now);
+    else if (stacked(payload)) description = 'Stacked on another branch. Comment @openlibrary-bot review to review it.';
     else if (reviewedBefore) description = 'New commits since the last review. Re-request review from openlibrary-bot to review them.';
     await github.rest.repos.createCommitStatus({
         owner,
@@ -84,7 +103,7 @@ async function requestAfterQuiet({ github, context, core, minutes, sleep = ms =>
     // Someone requested a review by hand while we waited: its status replaced ours.
     const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, { owner, repo, ref: pr.head.sha, per_page: 100 });
     const current = statuses.find(s => s.context === 'code-review');
-    if (!current || !String(current.description || '').startsWith(WAITING)) {
+    if (!current || !isWaiting(current.description)) {
         core.info('A review already started on this commit; not requesting another.');
         return;
     }

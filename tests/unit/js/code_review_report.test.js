@@ -91,6 +91,16 @@ test('suggestionCount: bullets under the suggestions heading', () => {
     assert.equal(stats.suggestionCount("Sum.\n\n### Suggestions (won't block)\n\n- **A** x\n- **B** y\n\n> [!NOTE]\n> bot"), 2);
     assert.equal(stats.suggestionCount('Sum.'), 0);
 });
+test('suggestionCount: reads the status line of the short summary', () => {
+    const body = (status, bullets) =>
+        `${status}\n\n### Suggestions (won't block)\n\n${bullets}\n\n<details>\n<summary>Prompt for AI agents (2 open items)</summary>\n\n- **not a suggestion**\n\n</details>\n\n<sub>Please address the feedback above</sub>`;
+    assert.equal(stats.suggestionCount(body('**No blocking findings** · 2 suggestions on `4e3eb02`', '- **A** · `a.py:1`\n  x\n\n- **B**\n  y')), 2);
+    assert.equal(stats.suggestionCount(body('**1 finding** · 1 suggestion on `4e3eb02`', '- **A**\n  x')), 1);
+    assert.equal(stats.suggestionCount('**2 findings** on `4e3eb02`\n\n<sub>x</sub>'), 0);
+    assert.equal(stats.suggestionCount('**No issues found** on `4e3eb02`.'), 0);
+    // Without the status line, the section ends at the agent prompt rather than running on.
+    assert.equal(stats.suggestionCount(body('Old summary.', '- **A** x')), 1);
+});
 
 const pr = (number, { reviews = [], threads = [], merged = false } = {}) => ({
     number,
@@ -280,7 +290,7 @@ async function runPublish({ statsObj, report, env, existing = [] }) {
         const fs = load('fs');
         const at = p => join(dir, p);
         const wrappedFs = { readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), existsSync: p => fs.existsSync(at(p)) };
-        const require = id => (id === 'fs' ? wrappedFs : load(id));
+        const require = id => (id === 'node:fs' ? wrappedFs : load(id));
         await post.publish({ github, context: { repo: { owner: 'o', repo: 'r' } }, core, require, process: { env: { RUN_URL: 'RUN', ...env } } });
     } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -326,6 +336,51 @@ test('attachCandidates: ids, and only bot PRs merged after the failure', () => {
         ]
     );
 });
+test('attachCandidates: removed_by is a candidate whose diff removed the failure message', () => {
+    const prs = [
+        { number: 1, merged_at: '2026-11-12T00:00:00Z' },
+        { number: 2, merged_at: '2026-11-12T00:00:00Z' },
+        { number: 3, merged_at: '2026-11-10T00:00:00Z' }
+    ];
+    const gone = "-        core.setFailed('Review not published: the analysis did not pass the pre-publication gate.');";
+    const patches = new Map([
+        [1, `@@ -1,2 +1 @@\n${gone}\n+        core.info('withheld');`],
+        [2, `@@ +1 @@\n+// Review not published: the analysis did not pass the pre-publication gate.`],
+        [3, `@@ -1 @@\n${gone}`]
+    ]);
+    const failure = {
+        at: '2026-11-11T00:00:00Z',
+        message: 'Unhandled error: Error: Review not published: the analysis did not pass the pre-publication gate, and'
+    };
+    const [f] = stats.attachCandidates([failure], prs, patches);
+    assert.deepEqual(f.candidate_fixes, [1, 2]);
+    assert.deepEqual(f.removed_by, [1], 'only a removed line counts, and only from a candidate');
+    assert.deepEqual(stats.attachCandidates([{ ...failure, message: 'boom' }], prs, patches)[0].removed_by, [], 'too short to match');
+});
+test('messageKey: strips the error prefixes', () => {
+    assert.equal(
+        stats.messageKey('Unhandled error: HttpError: Unprocessable Entity: "Line could not be resolved"'),
+        'Unprocessable Entity: "Line could not be'
+    );
+    assert.equal(stats.messageKey(''), null);
+});
+
+test('botChanges: only the review bot files, cut to the limit', () => {
+    const files = [
+        { filename: '.github/scripts/code_review/post.cjs', patch: "@@ -1 +1 @@\n-core.setFailed('did not pass the gate')" },
+        { filename: '.github/workflows/code_review.md', patch: '@@ +1 @@\n+text' },
+        { filename: '.github/scripts/code_review_other/x.cjs', patch: 'not ours' },
+        { filename: 'openlibrary/app.py', patch: 'not ours' },
+        { filename: '.github/workflows/code_review_action.yml' }
+    ];
+    const out = stats.botChanges(files);
+    assert.match(out, /--- \.github\/scripts\/code_review\/post\.cjs\n@@ -1 \+1 @@\n-core\.setFailed/);
+    assert.match(out, /--- \.github\/workflows\/code_review\.md/);
+    assert.match(out, /--- \.github\/workflows\/code_review_action\.yml\n\(no textual diff\)/);
+    assert.doesNotMatch(out, /not ours/);
+    assert.equal(stats.botChanges(files, 20), `${out.slice(0, 20)}\n[cut at 20 characters]`);
+    assert.equal(stats.botChanges([]), '');
+});
 
 // A week with one lost review (failure 0, fixed by #14527 later) and one turn-limit hit (failure 1).
 const withFailures = () => {
@@ -341,7 +396,7 @@ const withFailures = () => {
     s.bot_prs = [{ number: 14527, url: 'pr14527', merged_at: '2026-11-17T09:31:00Z' }];
     return s;
 };
-const fix = (failure_id, pr = 14527, status = 'fixed') => ({ failure_id, pr, status, why: 'Handles @RayBB the rejected line.' });
+const fix = (failure_id, prNumber = 14527, status = 'fixed') => ({ failure_id, pr: prNumber, status, why: 'Handles @RayBB the rejected line.' });
 test('verifyFixes: only a candidate PR for a real failure counts, once per failure', () => {
     const v = post.verifyFixes(withFailures(), [fix(0), fix(0, 14527, 'probably_fixed'), fix(1, 999), fix(7)]);
     assert.deepEqual([...v.keys()], [0]);
@@ -355,7 +410,7 @@ test('render: a fixed failure stops counting and is listed as already fixed', ()
     assert.doesNotMatch(after.issue, /`post` or `resolve` job/);
     assert.match(
         after.issue,
-        /## Already fixed \(not counted\)\n\n- 2026-11-17 `post` \(line_not_resolved\): \[run\]\(r0\) — fixed by \[#14527\]\(pr14527\): Handles @\u200bRayBB/
+        /## Already fixed \(not counted\)\n\n- 2026-11-17 `post` \(line_not_resolved\): \[run\]\(r0\) — fixed by \[#14527\]\(pr14527\): Handles @\u200BRayBB/
     );
     assert.match(after.issue, /turn limit/, 'the unfixed failure still alerts');
     assert.equal(after.open, true);

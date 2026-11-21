@@ -97,9 +97,8 @@ export async function initSearchFacets(facetsElem) {
             .catch(() => {
                 showSearchFacetsError(facetsElem);
             });
-    } else {
-        hydrateFacets();
     }
+    hydrateFacets();
 }
 
 /**

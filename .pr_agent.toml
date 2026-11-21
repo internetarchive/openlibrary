@@ -1,3 +1,4 @@
+# If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 # Settings for the @openlibrary-bot code reviewer (.github/workflows/code_review_action.yml).
 # Open Library does not run PR-Agent. Our reviewer reads this file using PR-Agent's format and
 # key names (https://docs.pr-agent.ai/usage-guide/configuration_options/), so we can reuse its
@@ -22,8 +23,10 @@ inline_key_issues = true
 # push_review_delay_minutes. Off by default in PR-Agent.
 handle_push_trigger = true
 push_trigger_ignore_bot_commits = true
-# Skip a push that only merges the base branch in ("Update branch").
-push_trigger_ignore_merge_commits = true
+# Don't skip a push that only merges the base branch in ("Update branch"). It waits like any push,
+# then range.cjs carries the last verdict over without running the model, or re-reviews only the
+# files where a merge conflict was fixed by hand. Skipping it left the check pending (#14495).
+push_trigger_ignore_merge_commits = false
 
 # Settings PR-Agent does not have.
 [openlibrary_reviewer]

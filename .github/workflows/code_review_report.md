@@ -13,7 +13,8 @@ You have no shell. Read `stats.json`; the only file you can write is `report.jso
   - `runs`: workflow runs by conclusion, per-job counts, failures and median/max durations in
     seconds, and `failures`. Skipped runs are comment triggers that were not review requests; they
     are noise. In `current`, each failure has an `id`, the job, a `cause`, the first error
-    `message`, when it happened (`at`), and `candidate_fixes`: the review bot PRs merged after it.
+    `message`, when it happened (`at`), `candidate_fixes`: the review bot PRs merged after it, and
+    `removed_by`: those of them whose diff removed a line containing the start of that message.
   - `reviews`: the bot's reviews and their states, `blocking_findings` and `suggestions`, and the
     findings posted as review threads with their type, severity and `outcomes`:
     - `fixed` / `dismissed`: the bot re-checked and the workflow resolved the thread.
@@ -24,7 +25,8 @@ You have no shell. Read `stats.json`; the only file you can write is `report.jso
     - `left_open_on_closed_pr`: the PR merged or closed with the thread still open; ignored.
   - `current.reviews.prs`: each PR with its findings, their outcomes and, where someone replied,
     the first `human_reply`.
-- `bot_prs`: the merged PRs that changed the review bot, with their title and description.
+- `bot_prs`: the merged PRs that changed the review bot, with their title, description and
+  `changes`: their diff to the review bot's files, cut to 5,000 characters.
 - `alerts`: thresholds the numbers tripped, before counting any fixes. An issue opens for the ones
   still tripped once fixed failures are left out, whatever you decide.
 
@@ -46,7 +48,13 @@ Keep it under 300 words. No preamble, no restating these instructions.
 ## Matching failures to fixes
 
 For each failure in `current.runs.failures`, decide whether one of its `candidate_fixes` fixed
-it, from the PR's title and description in `bot_prs` against the failure's job, cause and message.
+it. Compare the failure's job, cause and message with each candidate in `bot_prs`. Read the PR's
+`changes`, not only its title and description: a description often doesn't mention every failure a
+change fixes. For example, a diff that removes the code that raised a failure's error message, or
+that now catches the error it failed on, fixed it even if the description never says so.
+`changes` is cut at 5,000 characters, so it may not reach the relevant part of a large PR. A PR in
+`removed_by` deleted the code that raised the failure's message: count it as `fixed` unless its
+`changes` show the same message added back elsewhere.
 
 - `fixed`: the PR clearly addresses this failure. For example, a failure with "Line could not be
   resolved" and a PR that handles a rejected line by moving the inline comments into the summary.
