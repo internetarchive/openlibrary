@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from math import ceil
 from typing import Annotated, Any, Literal, Self
@@ -46,6 +46,7 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.sort_menu import SortMenu, SortScheme
 from openlibrary.utils.request_context import req_context, site
 
@@ -787,6 +788,53 @@ async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> Site
         total_pages=ceil((response.num_found or 0) / limit) if response else 0,
     )
     return SitePage(body, page=PageMeta(title=subjects_search_title(q)))
+
+
+@dataclass(frozen=True)
+class PublisherResult:
+    """One row of /search/publishers: a publisher's name, page link and book count."""
+
+    name: str
+    key: str
+    count: int
+
+
+def publisher_search_query(q: str) -> dict[str, Any]:
+    """The facet-only Solr query behind /search/publishers, shared with web.py's handler.
+    ``select`` and ``select_async`` take the same arguments, so this splats into either.
+    """
+    return {
+        "query": {"publisher": q, "type": "work"},
+        "facets": ["publisher_facet"],
+        "facet_mincount": 1,
+        "facet_limit": 25,
+        "facet_contains": q,
+        "facet_contains_ignoreCase": "true",
+        "rows": 0,
+    }
+
+
+def publisher_results(facet_values: Iterable[Any]) -> list[PublisherResult]:
+    """Map Solr's ``publisher_facet`` values to the page's rows."""
+    return [PublisherResult(name=p.value, key="/publishers/" + p.value.replace(" ", "_"), count=p.count) for p in facet_values]
+
+
+def publisher_search_title(q: str) -> str:
+    """Page title for /search/publishers: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Publisher search", query=q) if q else _("Publisher search")
+
+
+@pages.get("/search/publishers")
+async def search_publishers(q: str = "") -> SitePage:
+    # TODO: Retire the web.py `publisher_search` handler (it still serves
+    # /search/publishers in production) once production routes it here.
+    result = await get_solr().select_async(**publisher_search_query(q))
+    body = render_jinja_template(
+        "search/publishers.html.jinja",
+        q=q,
+        publishers=publisher_results((result.get("facets") or {}).get("publisher_facet", [])),
+    )
+    return SitePage(body, page=PageMeta(title=publisher_search_title(q)))
 
 
 def authors_search_title(q: str) -> str:
