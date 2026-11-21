@@ -1,0 +1,337 @@
+/* /admin/new-accounts — openlibrary/templates/admin/new_accounts.html.jinja */
+.new-accounts__lede,
+.new-accounts__notice,
+.new-accounts__empty {
+  margin: 0 0 var(--spacing-stack-md);
+  font-size: var(--font-size-body-medium);
+}
+
+.new-accounts__lede {
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__notice {
+  padding: var(--spacing-inset-sm);
+  border: var(--border-width-thin) solid var(--color-warning-border);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.new-accounts__scroll {
+  overflow-x: auto;
+  margin-block-end: var(--spacing-stack-xl);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+}
+
+.new-accounts__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+.new-accounts__table :is(th, td) {
+  padding: var(--spacing-inset-sm);
+  text-align: start;
+  vertical-align: top;
+  font-weight: var(--font-weight-regular);
+}
+
+.new-accounts__table :is(th, td):first-child {
+  padding-inline-start: var(--spacing-inset-md);
+}
+
+.new-accounts__table :is(th, td):last-child {
+  padding-inline-end: var(--spacing-inset-md);
+}
+
+.new-accounts__table thead th {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.new-accounts__table tbody tr + tr :is(th, td) {
+  border-block-start: var(--border-width-thin) solid
+    var(--color-border-extra-subtle);
+}
+
+/* The two columns compared down the page: right-aligned, on one line. */
+.new-accounts__table :is(th, td).new-accounts__num,
+.new-accounts__table td.new-accounts__nowrap {
+  text-align: end;
+  white-space: nowrap;
+}
+
+.new-accounts__table td.new-accounts__nowrap {
+  text-align: start;
+}
+
+/* One line, cut short with an ellipsis; the full text is in the title attribute. */
+.new-accounts__clip {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-accounts__account .new-accounts__clip {
+  max-width: 11rem;
+}
+
+.new-accounts__figure {
+  display: block;
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A first edit within minutes of signup: worth noticing, not alarming, since most real new users edit fast too. */
+.new-accounts__fast {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.new-accounts__name {
+  font-weight: var(--font-weight-medium);
+}
+
+.new-accounts__minor {
+  display: block;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__status,
+.new-accounts__kind {
+  display: inline-block;
+  padding-inline: var(--spacing-inset-xs);
+  border-radius: var(--border-radius-badge);
+  background-color: var(--color-surface-sunken);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__edits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.new-accounts__edits li + li {
+  margin-block-start: var(--spacing-stack-sm);
+}
+
+.new-accounts__edit-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2xs);
+  max-width: 16rem;
+}
+
+.new-accounts__edit-head > * {
+  flex-shrink: 0;
+}
+
+.new-accounts__edit-head > .new-accounts__title {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.new-accounts__edits .new-accounts__minor {
+  max-width: 16rem;
+}
+
+.new-accounts__signals {
+  max-width: 10rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.new-accounts__signal {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__signal--strong {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-error-fg);
+}
+
+.new-accounts__tier {
+  display: inline-block;
+  margin-block-end: var(--spacing-3xs);
+  padding-inline: var(--spacing-inset-xs);
+  border-radius: var(--border-radius-badge);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.new-accounts__tier--likely {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.new-accounts__tier--look {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.new-accounts__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xs);
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.new-accounts__tab-count {
+  font-weight: var(--font-weight-regular);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.new-accounts__rules {
+  margin-block-end: var(--spacing-stack-md);
+  font-size: var(--font-size-body-medium);
+}
+
+.new-accounts__rules summary {
+  cursor: pointer;
+  color: var(--color-link);
+}
+
+.new-accounts__rules h3 {
+  margin: var(--spacing-stack-sm) 0 var(--spacing-2xs);
+  font-size: var(--font-size-title-small);
+}
+
+.new-accounts__rules :is(p, ul) {
+  max-width: 70ch;
+  margin: 0;
+}
+
+.new-accounts__rules ul {
+  padding-inline-start: var(--spacing-lg);
+}
+
+.new-accounts__rules ul > * {
+  list-style: disc;
+}
+
+/* Bulk actions: stays in view while ticking rows down a long list. */
+.new-accounts__bulk {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-index-raised);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2xs) var(--spacing-sm);
+  margin-block-end: var(--spacing-stack-sm);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-md)
+    var(--spacing-inset-xs) 0;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+}
+
+.new-accounts__selected {
+  min-width: 7rem;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+/* The checkbox column. The label fills the cell, so anywhere in it toggles the row. */
+.new-accounts__table :is(th, td).new-accounts__select {
+  position: relative;
+  width: 3rem;
+  padding: 0;
+}
+
+.new-accounts__check {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block-start: var(--spacing-inset-sm);
+  cursor: pointer;
+}
+
+.new-accounts__select .new-accounts__check {
+  position: absolute;
+  inset: 0;
+}
+
+.new-accounts__check--all {
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding-block-start: 0;
+  padding-inline-start: var(--spacing-inset-md);
+}
+
+.new-accounts__check input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.new-accounts__check:hover {
+  background-color: var(--color-control-hover);
+}
+
+.new-accounts__check--all:hover {
+  background-color: transparent;
+}
+
+/* Row state, readable at a glance: a tint, a stripe down the checkbox column, and a labelled icon. */
+.new-accounts__table tr.new-accounts__row--selected > * {
+  background-color: var(--color-control-selected-surface);
+}
+
+.new-accounts__table
+  :is(tr.new-accounts__row--blocked, tr.new-accounts__row--reverted)
+  > * {
+  background-color: var(--color-error-bg);
+}
+
+.new-accounts__table tr.new-accounts__row--trusted > * {
+  background-color: var(--color-success-bg);
+}
+
+.new-accounts__table
+  :is(.new-accounts__row--blocked, .new-accounts__row--reverted)
+  > :first-child {
+  box-shadow: inset var(--border-width-heavy) 0 0 var(--color-error-object);
+}
+
+.new-accounts__table .new-accounts__row--trusted > :first-child {
+  box-shadow: inset var(--border-width-heavy) 0 0 var(--color-success-object);
+}
+
+.new-accounts__review {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3xs);
+  margin-block-end: var(--spacing-3xs);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.new-accounts__review--blocked {
+  color: var(--color-error-fg);
+}
+
+.new-accounts__review--trusted {
+  color: var(--color-success-fg);
+}
