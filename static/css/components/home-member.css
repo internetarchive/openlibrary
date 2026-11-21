@@ -169,6 +169,25 @@ body[data-user-key] .home-welcome {
   color: var(--color-text-secondary);
 }
 
+/* Under the row of covers, a sentence naming the shelves the books come from. The
+   shelf names are links in the sentence's own colour, underlined only on hover. */
+.home-now__source {
+  display: block;
+  color: var(--color-text-secondary);
+}
+
+.home-now__source-link:link,
+.home-now__source-link:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-now__source-link:hover {
+    text-decoration: underline;
+  }
+}
+
 /* The loans card --------------------------------------------------------------- */
 
 /* Grows to the row's height, and is built to fit inside it. With no row beside

@@ -127,10 +127,14 @@
             <ul class="home-now__wall">
                 {% for item in shelves %}<li>{{ cover(item, "", "small", kind=item.shelf) }}</li>{% endfor %}
             </ul>
-            <nav class="home-now__links" aria-label="{{ _('Your shelves') }}">
-                {{ link("/account/books/currently-reading", "CurrentlyReading", _("Currently Reading")) }}
-                {{ link("/account/books/want-to-read", "WantToRead", _("Want to Read")) }}
-            </nav>
+            {# Where the books come from, in words readers know from the shelf button, each a link to that shelf. #}
+            {% set source_link = "<a class=\"home-now__source-link\" href=\"/account/books/%s\" data-ol-link-track=\"HomeMember|%s\">" %}
+            {# Newstyle gettext escapes its arguments, so the link markup is marked safe going in. #}
+            {% set reading = source_link | format("currently-reading", "CurrentlyReading") | safe %}
+            {% set want = source_link | format("want-to-read", "WantToRead") | safe %}
+            <p class="home-now__links home-now__source">
+                {{ _("From your %(reading_start)sCurrently Reading%(link_end)s and %(want_start)sWant to Read%(link_end)s lists", reading_start=reading, want_start=want, link_end="</a>" | safe) }}
+            </p>
         </div>
     {% endif %}
 {% endif %}

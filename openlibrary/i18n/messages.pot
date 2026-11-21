@@ -836,12 +836,12 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html home/member.html.jinja openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
+#: account/mybooks.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html home/member.html.jinja openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -5096,7 +5096,8 @@ msgid "From Your Shelves"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Your shelves"
+#, python-format
+msgid "From your %(reading_start)sCurrently Reading%(link_end)s and %(want_start)sWant to Read%(link_end)s lists"
 msgstr ""
 
 #: home/member_skeleton.html.jinja
