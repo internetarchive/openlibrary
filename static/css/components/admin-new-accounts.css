@@ -60,11 +60,27 @@
     var(--color-border-extra-subtle);
 }
 
-/* The two columns compared down the page: right-aligned, digits in fixed columns. */
-.new-accounts__table :is(th, td).new-accounts__num {
+/* The two columns compared down the page: right-aligned, on one line. */
+.new-accounts__table :is(th, td).new-accounts__num,
+.new-accounts__table td.new-accounts__nowrap {
   text-align: end;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+}
+
+.new-accounts__table td.new-accounts__nowrap {
+  text-align: start;
+}
+
+/* One line, cut short with an ellipsis; the full text is in the title attribute. */
+.new-accounts__clip {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-accounts__account .new-accounts__clip {
+  max-width: 11rem;
 }
 
 .new-accounts__figure {
@@ -73,8 +89,9 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* A first edit within minutes of signup. The figure itself says how fast; the colour only draws the eye. */
-.new-accounts__figure--fast {
+/* A first edit within minutes of signup. The text says how fast; the colour only draws the eye. */
+.new-accounts__fast {
+  font-weight: var(--font-weight-semibold);
   color: var(--color-error-fg);
 }
 
@@ -86,7 +103,6 @@
   display: block;
   font-size: var(--font-size-body-small);
   color: var(--color-text-secondary);
-  overflow-wrap: anywhere;
 }
 
 .new-accounts__status,
@@ -114,9 +130,24 @@
   margin-block-start: var(--spacing-stack-sm);
 }
 
-/* Titles are how spam is recognised, so they wrap in full rather than truncate. */
-.new-accounts__title {
-  overflow-wrap: anywhere;
+.new-accounts__edit-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2xs);
+  max-width: 16rem;
+}
+
+.new-accounts__edit-head > * {
+  flex-shrink: 0;
+}
+
+.new-accounts__edit-head > .new-accounts__title {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.new-accounts__edits .new-accounts__minor {
+  max-width: 16rem;
 }
 
 .new-accounts__actions {
@@ -127,6 +158,7 @@
 }
 
 .new-accounts__signals {
+  max-width: 10rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

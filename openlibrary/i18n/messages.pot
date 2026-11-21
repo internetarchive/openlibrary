@@ -2412,10 +2412,6 @@ msgid "Signed up"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
-msgid "Signup to first edit"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
 #, python-format
 msgid "Edits, last %(window)s"
 msgstr ""
@@ -2435,6 +2431,11 @@ msgstr ""
 #: admin/new_accounts.html.jinja
 #, python-format
 msgid "%(duration)s ago"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(duration)s to first edit"
 msgstr ""
 
 #: admin/new_accounts.html.jinja

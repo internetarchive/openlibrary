@@ -65,7 +65,6 @@
                         <th scope="col">{{ _("Account") }}</th>
                         <th scope="col">{{ _("Signs of spam") }}</th>
                         <th scope="col">{{ _("Signed up") }}</th>
-                        <th scope="col" class="new-accounts__num">{{ _("Signup to first edit") }}</th>
                         <th scope="col" class="new-accounts__num">{{ _("Edits, last %(window)s", window=report.window_label) }}</th>
                         <th scope="col">{{ _("Last edits") }}</th>
                         <th scope="col">{{ _("Actions") }}</th>
@@ -74,10 +73,14 @@
                 <tbody>
                     {% for row in report.rows %}
                         <tr>
-                            <th scope="row">
-                                <a class="new-accounts__name" href="{{ row.key }}">{{ row.username }}</a>
-                                <span class="new-accounts__minor">{{ row.displayname }}</span>
-                                {% if row.email %}<span class="new-accounts__minor">{{ row.email }}</span>{% endif %}
+                            <th scope="row" class="new-accounts__account">
+                                <a class="new-accounts__name new-accounts__clip"
+                                   href="{{ row.key }}"
+                                   title="{{ row.username }}">{{ row.username }}</a>
+                                <span class="new-accounts__minor new-accounts__clip"
+                                      title="{{ row.displayname }}">{{ row.displayname }}</span>
+                                {% if row.email %}<span class="new-accounts__minor new-accounts__clip"
+      title="{{ row.email }}">{{ row.email }}</span>{% endif %}
                                 <span class="new-accounts__minor">
                                     <span class="new-accounts__status{% if not row.can_block %} new-accounts__status--inactive{% endif %}">{{ row.status }}</span>
                                     <a href="/admin/people/{{ row.username }}">{{ _("Admin page") }}</a>
@@ -95,12 +98,10 @@
                                     <span class="new-accounts__minor">{{ _("None") }}</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="new-accounts__nowrap">
                                 {{ _("%(duration)s ago", duration=row.age) }}
                                 <span class="new-accounts__minor">{{ row.created_label }}</span>
-                            </td>
-                            <td class="new-accounts__num">
-                                <span class="new-accounts__figure{% if row.first_write_is_fast %} new-accounts__figure--fast{% endif %}">{{ row.first_write_label }}</span>
+                                <span class="new-accounts__minor{% if row.first_write_is_fast %} new-accounts__fast{% endif %}">{{ _("%(duration)s to first edit", duration=row.first_write_label) }}</span>
                             </td>
                             <td class="new-accounts__num">
                                 <span class="new-accounts__figure">{{ row.edits_in_window_label }}</span>
@@ -118,17 +119,22 @@
                             </td>
                             <td>
                                 <ol class="new-accounts__edits">
+                                    {#- One line for the record, one for when and why; long text is cut short, in full on hover. -#}
                                     {% for edit in row.recent_edits %}
+                                        {%- set when = _("%(duration)s ago", duration=edit.ago) ~ (" · " ~ edit.comment if edit.comment else "") -%}
                                         <li>
-                                            <span class="new-accounts__kind">{{ edit.kind }}</span>
-                                            {% if edit.key %}<a class="new-accounts__title" href="{{ edit.key }}">{{ edit.title or edit.key }}</a>{% endif %}
-                                            {% if edit.deleted %}
-                                                <span class="new-accounts__status new-accounts__status--inactive">{{ _("deleted") }}</span>
-                                            {% endif %}
-                                            <span class="new-accounts__minor">
-                                                {{ _("%(duration)s ago", duration=edit.ago) }}
-                                                {% if edit.comment %}· {{ edit.comment }}{% endif %}
+                                            <span class="new-accounts__edit-head">
+                                                <span class="new-accounts__kind">{{ edit.kind }}</span>
+                                                {% if edit.key %}
+                                                    <a class="new-accounts__title new-accounts__clip"
+                                                       href="{{ edit.key }}"
+                                                       title="{{ edit.title or edit.key }}">{{ edit.title or edit.key }}</a>
+                                                {% endif %}
+                                                {% if edit.deleted %}
+                                                    <span class="new-accounts__status new-accounts__status--inactive">{{ _("deleted") }}</span>
+                                                {% endif %}
                                             </span>
+                                            <span class="new-accounts__minor new-accounts__clip" title="{{ when }}">{{ when }}</span>
                                         </li>
                                     {% endfor %}
                                 </ol>

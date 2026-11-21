@@ -445,12 +445,13 @@ class TestTemplate:
 
         html = render()
 
-        assert '<a class="new-accounts__name" href="/people/spammer">spammer</a>' in html
+        assert 'href="/people/spammer"\n' in html
+        assert 'title="spammer">spammer</a>' in html
         assert 'href="/admin/people/spammer"' in html
         assert 'href="/admin/people/spammer/edits"' in html
         assert "spammer@example.org" in html
-        assert '<span class="new-accounts__figure new-accounts__figure--fast">2.0 min</span>' in html
-        assert '<a class="new-accounts__title" href="/works/OL1W">BingX referral code</a>' in html
+        assert '<span class="new-accounts__minor new-accounts__fast">2.0 min to first edit</span>' in html
+        assert 'title="BingX referral code">BingX referral code</a>' in html
         assert "Created new book" in html
         assert '<input type="hidden" name="username" value="spammer">' in html
         assert 'value="block_account"' in html
