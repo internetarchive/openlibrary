@@ -6,7 +6,12 @@
     <p>{{ _("We couldn't find any books published by %(publisher)s.", publisher=name) }}</p>
     <h3 class="collapse">{{ _("Try something else?") }}</h3>
     <form action="/search/publishers" class="olform">
-        <input type="text" name="q" size="100" class="larger" value="" />
+        <input type="text"
+               name="q"
+               size="100"
+               class="larger"
+               value=""
+               aria-label="{{ _('Search publishers') }}" />
         <button type="submit" class="larger">{{ _("Search") }}</button>
     </form>
 </div>

@@ -99,6 +99,8 @@ def test_publisher_without_works_is_404(client, monkeypatch):
     assert response.status_code == 404
     html = response.text
     assert "find any books published by Penguin Books" in html
+    # The "Try something else?" search box has an accessible name
+    assert 'aria-label="Search publishers"' in html
     # No explicit title, so the shell uses the path, as web.py does
     assert "<title>publishers/Penguin_Books | Open Library</title>" in html
 

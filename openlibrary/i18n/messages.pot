@@ -5737,6 +5737,10 @@ msgstr ""
 msgid "Try something else?"
 msgstr ""
 
+#: publishers/notfound.html.jinja
+msgid "Search publishers"
+msgstr ""
+
 #: RelatedSubjects.html.jinja publishers/view.html.jinja
 msgid "None found."
 msgstr ""
