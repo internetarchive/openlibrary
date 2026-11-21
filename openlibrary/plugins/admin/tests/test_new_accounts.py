@@ -42,12 +42,14 @@ def site(mock_site, request_context_fixture, monkeypatch):
     """The mock site, answering the page's two SQL queries too."""
     request_context_fixture(lang="en")
 
-    def load_young_account_changes(signup_cutoff, limit=new_accounts.MAX_CHANGES_LOADED):
+    def load_young_account_changes(signup_cutoff, since, limit=new_accounts.MAX_CHANGES_LOADED):
         def young(change) -> bool:
             created = new_accounts._as_datetime(mock_site.get(change.author.key).get("created"))
             return created is not None and created >= signup_cutoff
 
         changes = [c for c in mock_site.recentchanges({"bot": False, "limit": 10**6}) if c.author and young(c)]
+        active = {c.author.key for c in changes if c.timestamp >= since}
+        changes = [c for c in changes if c.author.key in active]
         return changes[:limit], len(changes) >= limit
 
     def load_records(keys):
@@ -463,12 +465,13 @@ class TestQueries:
             {"id": 7, "kind": "add-book", "author": "/people/a", "timestamp": NOW, "comment": None, "changes": '[{"key": "/works/OL1W", "revision": 1}]'}
         ]
 
-        changes, capped = new_accounts.load_young_account_changes_sync(NOW - timedelta(days=7), limit=1)
+        changes, capped = new_accounts.load_young_account_changes_sync(NOW - timedelta(days=7), NOW - timedelta(hours=24), limit=1)
 
         (query, params), _ = rows.await_args
         assert "a.created >= %(signup_cutoff)s" in query
+        assert "created >= %(since)s" in query
         assert "t.bot" not in query  # production has no such column
-        assert params == {"signup_cutoff": NOW - timedelta(days=7), "limit": 1}
+        assert params == {"signup_cutoff": NOW - timedelta(days=7), "since": NOW - timedelta(hours=24), "limit": 1}
         assert capped
         [change] = changes
         assert (change.id, change.kind, change.author.key, change.timestamp, change.comment) == (7, "add-book", "/people/a", NOW, "")

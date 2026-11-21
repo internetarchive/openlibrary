@@ -33,7 +33,7 @@ WINDOW_HOURS_LIMIT = 7 * 24
 WINDOW_CHOICES = (24, 48, 72, 7 * 24)  # the page's "Edited in the last" control
 
 MAX_ACCOUNTS = 50  # rows shown
-# Every edit by young accounts is read at once; the window only filters them. The cost follows `days`, not `hours`.
+# Every edit by young accounts that edited in the window is read at once. The cost follows `hours`: the window's edits are scanned.
 MAX_CHANGES_LOADED = 50_000  # the page says when it was hit
 QUERY_TIMEOUT_MS = 10_000  # each of the two queries; the page says when one gave up
 RECENT_EDITS_SHOWN = 3
@@ -217,15 +217,22 @@ class TooSlow(Exception):
     """A query ran past QUERY_TIMEOUT_MS."""
 
 
-# Production's `transaction` has no `bot` column; bot accounts are dropped by their profile's `bot` flag instead.
 # Infobase's own tables, read directly: `thing` (one row per record), `transaction` (one per changeset) and `data`
-# (one per revision). Both queries go through the indexes on thing.created, thing.key and transaction.author_id.
+# (one per revision). Production's `transaction` has no `bot` column; bots are dropped by their profile's `bot` flag.
+# Authors come from the window's edits (transaction.created index), not from thing.created: that would scan every
+# record created since the cutoff, imports included, to find the users. MATERIALIZED keeps the planner from walking
+# all of `transaction` newest first instead.
 YOUNG_ACCOUNT_CHANGES = """
-    SELECT t.id, t.action AS kind, a.key AS author, t.created AS timestamp, t.comment, t.changes
-    FROM thing a
-    JOIN transaction t ON t.author_id = a.id
-    WHERE a.type = (SELECT id FROM thing WHERE key = '/type/user')
-      AND a.created >= %(signup_cutoff)s
+    WITH young AS MATERIALIZED (
+        SELECT a.id, a.key
+        FROM thing a
+        WHERE a.id IN (SELECT DISTINCT author_id FROM transaction WHERE created >= %(since)s AND author_id IS NOT NULL)
+          AND a.type = (SELECT id FROM thing WHERE key = '/type/user')
+          AND a.created >= %(signup_cutoff)s
+    )
+    SELECT t.id, t.action AS kind, y.key AS author, t.created AS timestamp, t.comment, t.changes
+    FROM young y
+    JOIN transaction t ON t.author_id = y.id
     ORDER BY t.created DESC
     LIMIT %(limit)s
 """
@@ -250,12 +257,13 @@ async def _fetch_all_within_timeout(query: str, params: dict) -> list[dict]:
         raise TooSlow from e
 
 
-async def load_young_account_changes(signup_cutoff: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
-    """Every changeset by accounts created since `signup_cutoff`, newest first, shaped like `site.recentchanges`.
+async def load_young_account_changes(signup_cutoff: datetime, since: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
+    """Every changeset by accounts created since `signup_cutoff` that changed something since `since`, newest first,
+    shaped like `site.recentchanges`.
 
     :return: the changes, and whether `limit` cut off the oldest
     """
-    rows = await _fetch_all_within_timeout(YOUNG_ACCOUNT_CHANGES, {"signup_cutoff": signup_cutoff, "limit": limit})
+    rows = await _fetch_all_within_timeout(YOUNG_ACCOUNT_CHANGES, {"signup_cutoff": signup_cutoff, "since": since, "limit": limit})
     changes = [
         web.storage(
             id=row["id"],
@@ -278,8 +286,8 @@ async def load_records(keys: list[str]) -> dict:
     return {row["key"]: web.storage(row["fields"] or {}, key=row["key"], type=web.storage(key=row["type"])) for row in rows}
 
 
-def load_young_account_changes_sync(signup_cutoff: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
-    return async_bridge.run(load_young_account_changes(signup_cutoff, limit))
+def load_young_account_changes_sync(signup_cutoff: datetime, since: datetime, limit: int = MAX_CHANGES_LOADED) -> tuple[list, bool]:
+    return async_bridge.run(load_young_account_changes(signup_cutoff, since, limit))
 
 
 def load_records_sync(keys: list[str]) -> dict:
@@ -525,7 +533,7 @@ def _build_report(
     }
 
     try:
-        changes, capped = load_young_account_changes_sync(signup_cutoff, max_changes)
+        changes, capped = load_young_account_changes_sync(signup_cutoff, since, max_changes)
     except TooSlow:
         return Report(**labels, rows=[], matching_accounts=0, likely_accounts=0, look_accounts=0, reviewed_accounts=0,
                       changes_loaded=0, capped=False, loaded_back_to_label="", timed_out=True)  # fmt: skip
