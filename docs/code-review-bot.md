@@ -168,7 +168,7 @@ Every review covers five areas:
 | Security | Anything touching auth, sessions, redirects, user input in SQL, shell, files or templates |
 | Accessibility | Templates, JS and CSS against WCAG 2.1 AA: alt text, labels, keyboard access, contrast |
 | Test coverage | A missing test that would catch a real bug, a test that can't fail, and tests that aren't worth keeping |
-| Styleguide | Material problems only: unrelated edits, error-prone patterns, speculative abstractions |
+| Styleguide | Material problems only: unrelated edits, error-prone patterns, speculative abstractions, code comments that restate the code or narrate its history |
 
 For database code, FastAPI, CSS and web components, it also checks the PR against the rules in
 [`docs/core/database.md`](core/database.md), [`docs/core/fastapi-pages.md`](core/fastapi-pages.md),
@@ -211,7 +211,10 @@ The full instructions the bot follows are in
   with no line in the diff to sit on, is a comment on the file instead. Every finding that blocks
   has one of these threads, so you can always reply to it there.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
-  sure about, and every test-coverage finding.
+  sure about, and every test-coverage finding. When the bot has a change for one, such as deleting
+  a comment that restates the code, it also comments on the lines with the change, headed
+  **Suggestion (won't block)**, so you can apply it in one click. These comments never block
+  merging, and you don't need to resolve them.
 - **Notes (won't block)** in the summary, for findings about code outside the PR's changes, which
   have no thread. Reply in a comment on the PR if one doesn't apply.
 - **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
@@ -249,7 +252,8 @@ The full instructions the bot follows are in
 
 The check passes only when the latest commit has a clean review with no blocking findings, **and**
 no review thread on the PR is unresolved, including threads people opened. A thread on lines that
-a later push changed (GitHub marks it "outdated") doesn't count. After each new push, the check
+a later push changed (GitHub marks it "outdated") doesn't count, and neither does one of the bot's
+**Suggestion (won't block)** comments. After each new push, the check
 waits for that commit's review.
 
 ## Responding to a finding
