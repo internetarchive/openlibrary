@@ -1,5 +1,5 @@
-"""What the home page shows a signed-in reader above everything else: the book they have in hand, whatever else
-is in progress, and the books on their Want to Read list they could start today.
+"""What the home page shows a signed-in reader above everything else: the books they have out on loan or a hold
+ready to borrow, and the books on their Currently Reading and Want to Read shelves they could open today.
 
 The home page itself is cached and the same for everyone, so this is fetched after load by
 HomeMemberPartial (partials.py) and rendered with home/member.html.jinja, in two halves.
@@ -11,8 +11,6 @@ import time
 from datetime import UTC, datetime
 from urllib.parse import urlencode
 
-import web
-
 from openlibrary.core import cache, lending
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.i18n import gettext as _
@@ -23,11 +21,12 @@ from openlibrary.utils.request_context import get_request_lang, req_context, sit
 
 logger = logging.getLogger("openlibrary.home")
 
-# Want to Read books checked for a free copy, and how many of those are shown (two rows of covers).
-WANT_CHECKED = 40
-WANT_SHOWN = 14
-# How many books are listed under the one in hand.
-AGENDA_SIDE = 2
+# Books of each shelf checked for a free copy, and how many of those are sent: one row of covers, clipped to the width.
+READING_CHECKED = 6
+WANT_CHECKED = 30
+ROW_SHOWN = 14
+# How many loans and ready holds the card lists.
+LOANS_SHOWN = 2
 # Editions of a work checked for a free copy, after the one the reader shelved.
 COPIES_CHECKED = 5
 # How many of a work's ebook editions search hands over to choose those from, the reader's language first.
@@ -107,14 +106,6 @@ def _resolve(book):
     return book
 
 
-def _work_key(book) -> str:
-    """The key of the work a book is, or is an edition of. "" when it has none."""
-    if getattr(getattr(book, "type", None), "key", None) == "/type/work":
-        return book.key
-    works = getattr(book, "works", None) or []
-    return (getattr(works[0], "key", "") or "") if works else ""
-
-
 def get_loans(user_key: str) -> list[dict]:
     """Active loans, soonest due first."""
     loans = []
@@ -132,8 +123,6 @@ def get_loans(user_key: str) -> list[dict]:
         loans.append(
             brief_from_book(book)
             | {
-                # The work it's an edition of, to match it against the Currently Reading shelf.
-                "work_key": _work_key(book),
                 "ocaid": loan.get("ocaid"),
                 "can_read_here": loan.get("resource_type") == "bookreader" and bool(loan.get("ocaid")),
                 "days_left": days_left,
@@ -162,13 +151,9 @@ def get_holds(user) -> list[dict]:
     return sorted(holds, key=lambda hold: not hold["ready"])
 
 
-def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> list[dict]:
-    """Loans, holds and Currently Reading books as one list of cards, each with a status line and one action.
-
-    The first is the large card: the book in hand (the loan due soonest, else the newest Currently Reading
-    book with a free copy, else the newest), since that's what most visits are for. After it comes whatever
-    has a clock on it: ready holds, then the other loans.
-    """
+def build_loans(loans: list[dict], holds: list[dict]) -> list[dict]:
+    """Loans, soonest due first, then holds ready to borrow, each with a status line and one button.
+    A hold still in line has nothing to do yet and is left to the loans page."""
 
     def card(book: dict, kind: str, status: str, tone: str, label: str, form: dict | None = None) -> dict:
         return {
@@ -194,26 +179,9 @@ def build_agenda(loans: list[dict], holds: list[dict], reading: list[dict]) -> l
         )
         for loan in loans
     ]
-    ready = [
-        card(hold, "ready", _("Your hold is ready"), "ready", _("Borrow now"), {"action": hold["borrow_url"], "value": "borrow"}) | {"note": hold["note"]}
-        for hold in holds
-        if hold["ready"]
-    ]
-    # A hold still in line has nothing to do yet; its title and cover already go to the book.
-    waiting = [card(hold, "waiting", hold["note"], "plain", "") | {"action": None} for hold in holds if not hold["ready"]]
-    # A Currently Reading book says nothing about itself and has no button of ours: the template gives it a
-    # Read or Borrow button when a copy is free (`cta`), and the control that moves it off the shelf (`shelf`).
-    reading_cards = [
-        card(book, "reading", "", "plain", "") | {"action": None} | {key: book.get(key, "") for key in ("cta", "shelf", "work_key")} for book in reading
-    ]
-    if not loan_cards:
-        # The large card should have something to press: the newest book with a free copy, else the newest.
-        lead = next((book for book in reading_cards if book["cta"]), None)
-        if lead:
-            reading_cards = [lead] + [book for book in reading_cards if book is not lead]
-    in_hand = loan_cards[:1] or reading_cards[:1]
-    rest = ready + loan_cards[1:] + (reading_cards if loan_cards else reading_cards[1:]) + waiting
-    return in_hand + rest
+    # A ready hold's status is how long it is kept: the heading already says it is ready.
+    ready = [card(hold, "ready", hold["note"], "ready", _("Borrow now"), {"action": hold["borrow_url"], "value": "borrow"}) for hold in holds if hold["ready"]]
+    return loan_cards + ready
 
 
 def availability_known(docs: list) -> bool:
@@ -318,60 +286,33 @@ class AvailabilityBudget:
         return availability_known(checked)
 
 
-def want_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
-    """Want to Read, narrowed twice: to works Solr says can be borrowed at all, then to the ones with a copy
-    free at this moment. When availability can't be read the second narrowing is skipped, and False is returned
-    with the books so the row doesn't promise "now"."""
+def shelves_available(readlog, budget: AvailabilityBudget) -> tuple[list, bool]:
+    """Currently Reading then Want to Read, narrowed twice: to works Solr says can be borrowed at all, then to
+    the ones with a copy free at this moment. A work on both shelves is shown once, as Currently Reading. When
+    availability can't be read the second narrowing is skipped, and False is returned with the books so the
+    row doesn't promise "now". Each doc gets `shelf`, the one it came from."""
     from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 
-    works = readlog.get_works("want-to-read", limit=WANT_CHECKED, fq=[f"ebook_access:[{get_fulltext_min()} TO *]"])
-    docs = [doc for doc in works.docs if doc.get("title")]
+    fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
+    docs, seen = [], set()
+    for shelf, limit in (("currently-reading", READING_CHECKED), ("want-to-read", WANT_CHECKED)):
+        for doc in readlog.get_works(shelf, limit=limit, fq=fq).docs:
+            if doc.get("title") and doc["key"] not in seen:
+                seen.add(doc["key"])
+                doc["shelf"] = "reading" if shelf == "currently-reading" else "want"
+                docs.append(doc)
     if not budget.add(docs):
-        return docs[:WANT_SHOWN], False
-    return [doc for doc in docs if is_free(doc.get("availability"))][:WANT_SHOWN], True
+        return docs[:ROW_SHOWN], False
+    return [doc for doc in docs if is_free(doc.get("availability"))][:ROW_SHOWN], True
 
 
 def want_brief(doc: dict, checked: bool) -> dict:
     """A card for a shelved book. A book found free links to the copy that was checked, since the work page
     picks its edition by other rules and can land on one that isn't."""
-    brief = brief_from_doc(doc)
+    brief = brief_from_doc(doc) | {"shelf": doc.get("shelf", "want")}
     if checked and brief["url"] and (ocaid := (doc.get("availability") or {}).get("identifier") or lending.get_ocaid(doc)):
         brief["url"] += f"?edition=ia:{ocaid}"
     return brief
-
-
-def reading_now(readlog, budget: AvailabilityBudget) -> tuple[list[dict], bool]:
-    """The newest of the Currently Reading shelf, as many as the card can hold. Each book carries a Read or Borrow button when a copy is
-    free right now, and the shelf control that moves it to Already Read or off the list. False is returned with
-    the books when availability can't be read, which leaves them all without a button."""
-    from markupsafe import Markup
-
-    from openlibrary.plugins.openlibrary.partials import _render_carousel_card_loan_status
-    from openlibrary.plugins.upstream.mybooks import shelf_button_for
-
-    # A few more than the card holds: a shelved work that search doesn't know comes back without a title.
-    docs = [doc for doc in readlog.get_works("currently-reading", limit=AGENDA_SIDE + 3).docs if doc.get("title")][: AGENDA_SIDE + 1]
-    known = budget.add(docs)
-    books = []
-    for doc in docs:
-        free = is_free(doc.get("availability"))
-        # Without `editions` the button is for the work, whose availability names the copy to offer.
-        work = web.storage({k: v for k, v in doc.items() if k != "editions"})
-
-        # `ol-carousel` is the layout that gets the small button.
-        cta = _render_carousel_card_loan_status(work, work_key=work.get("key"), key="home-reading", layout="ol-carousel") if free else ""
-
-        books.append(
-            # The title and cover go to the copy the button offers.
-            want_brief(doc, free)
-            | {
-                "work_key": doc.get("key", ""),
-                "cta": cta,
-                # A caret button that opens the shelf menu.
-                "shelf": Markup(shelf_button_for(doc, variant="menu", size="small", async_load=True)),
-            }
-        )
-    return books, known
 
 
 def greeting_name(user) -> str:
@@ -382,14 +323,14 @@ def greeting_name(user) -> str:
 
 
 # The section's two halves, each fetched and kept on its own so the quicker one doesn't wait for the other.
-PARTS = ("reading", "want")
+PARTS = ("loans", "shelves")
 
 
 def build_part(user, part: str) -> dict:
-    """One half of what the home page shows of the reader's own: `reading` is the book in hand with their
-    loans, holds and Currently Reading books, `want` their Want to Read books with a copy free.
-    Each piece fails on its own, so a lending outage costs the loans and not the half. Without availability
-    the Want to Read row is the shelf as it stands and no book offers a Read or Borrow button."""
+    """One half of what the home page shows of the reader's own: `loans` is their loans and ready holds,
+    `shelves` their Currently Reading and Want to Read books with a copy free. Each piece fails on its own,
+    so a lending outage costs the loans and not the holds. Without availability the row is the shelves as
+    they stand."""
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
     failed = []
@@ -402,21 +343,16 @@ def build_part(user, part: str) -> dict:
             failed.append(what)
             return fallback
 
-    readlog = ReadingLog(user)
-    budget = AvailabilityBudget()
     member: dict = {"name": greeting_name(user), "part": part}
-    if part == "want":
-        want, known = attempt("want to read", lambda: want_available(readlog, budget), ([], True))
-        # `want_checked` is false when `want` is the shelf as it stands, not checked for a free copy.
-        member |= {"want": [want_brief(doc, known) for doc in want], "want_checked": known}
+    known = True
+    if part == "shelves":
+        books, known = attempt("shelves", lambda: shelves_available(ReadingLog(user), AvailabilityBudget()), ([], True))
+        # `shelves_checked` is false when the row is the shelves as they stand, not checked for a free copy.
+        member |= {"shelves": [want_brief(doc, known) for doc in books], "shelves_checked": known}
     else:
         loans = attempt("loans", lambda: get_loans(user.key), [])
         holds = attempt("holds", lambda: get_holds(user), [])
-        reading, known = attempt("currently reading", lambda: reading_now(readlog, budget), ([], True))
-        # A borrowed book is usually on Currently Reading too; it is shown once, as the loan.
-        on_loan = {key for loan in loans if (key := loan.get("work_key"))}
-        reading = [brief for brief in reading if brief["work_key"] not in on_loan]
-        member |= {"agenda": build_agenda(loans, holds, reading), "side": AGENDA_SIDE}
+        member |= {"loans": build_loans(loans, holds)[:LOANS_SHOWN]}
     # A half built without availability is shown, and built again on the next view.
     return member | {"complete": not failed and known}
 

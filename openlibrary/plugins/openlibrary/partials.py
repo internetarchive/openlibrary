@@ -1213,7 +1213,7 @@ class HomeMemberPartial:
     same for everyone, so the reader's own part is fetched after load, each half on its own."""
 
     @classmethod
-    def generate(cls, username: str, part: str = "reading") -> dict:
+    def generate(cls, username: str, part: str = "loans") -> dict:
         # FastAPI runs this sync handler on a threadpool worker with no web.ctx; the lending calls need one.
         # Only web.ctx: the request context FastAPI set (language, bot or not) must stay as it is, or
         # availability takes its bot shortcut and reports every borrowable book as free.

@@ -1,8 +1,9 @@
 {#
-  The signed-in reader's section before their books arrive, in the shape of it at its fullest: the card with
-  the book in hand and two lines under it, and two rows of covers beside it.
-  home-member.js fetches the two halves (home/member.html.jinja) and puts each in place of its skeleton as
-  it arrives, or takes the skeleton away when that half has nothing to show.
+  The signed-in reader's section before their books arrive, in the shape it most often takes: one row of
+  covers across the width. The loans card is less common, so it has no skeleton: it arrives in the hidden
+  `.home-now__loans`, at the row's height, and the row narrows to make room (home-member.css).
+  home-member.js fetches the two halves (home/member.html.jinja) and puts each in place of its placeholder as
+  it arrives, or takes the placeholder away when that half has nothing to show.
   Signed out it is not displayed (home-member.css).
 #}
 <section class="home-now home-now--skeleton">
@@ -11,34 +12,8 @@
         <span class="skeleton home-now__sk-title"></span>
     </div>
     <div class="home-now__body">
-        <div class="home-now__reading" aria-hidden="true">
-            <div class="home-now__label-row">
-                <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
-            </div>
-            <div class="home-now__main">
-                <span class="skeleton home-now__cover home-now__sk-cover"></span>
-                <div class="home-now__text">
-                    <span class="skeleton home-now__sk-line home-now__sk-line--book"></span>
-                    <span class="skeleton home-now__sk-line home-now__sk-line--author"></span>
-                </div>
-                <span class="skeleton home-now__sk-button"></span>
-            </div>
-            <ul class="home-now__rest">
-                {% for _line in range(2) %}
-                    <li class="home-now__item">
-                        <span class="skeleton home-now__thumb home-now__sk-cover"></span>
-                        <div class="home-now__item-text">
-                            <span class="skeleton home-now__sk-line home-now__sk-line--item"></span>
-                            <span class="skeleton home-now__sk-line home-now__sk-line--item-author"></span>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-            <p class="home-now__more">
-                <span class="skeleton home-now__sk-line home-now__sk-line--more"></span>
-            </p>
-        </div>
-        <div class="home-now__want" aria-hidden="true">
+        <div class="home-now__loans" hidden></div>
+        <div class="home-now__shelves" aria-hidden="true">
             <div class="home-now__label-row">
                 <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
             </div>
@@ -49,7 +24,7 @@
                     </li>
                 {% endfor %}
             </ul>
-            <p class="home-now__more">
+            <p class="home-now__links">
                 <span class="skeleton home-now__sk-line home-now__sk-line--more"></span>
             </p>
         </div>

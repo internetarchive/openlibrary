@@ -1,9 +1,10 @@
 /**
- * The top of the home page for a signed-in reader: one section about now. The
- * book in hand as a small card with what else is in progress under it, and the
- * covers of their Want to Read books that have a copy free.
+ * The top of the home page for a signed-in reader: one section about now. A
+ * card of their loans and ready holds, and one row of covers of their Currently
+ * Reading and Want to Read books that have a copy free.
  * Defined in:
  *  - openlibrary/templates/home/member.html.jinja
+ *  - openlibrary/templates/home/member_skeleton.html.jinja
  *  - openlibrary/templates/home/welcome.html (hidden when signed in)
  */
 
@@ -43,33 +44,9 @@ body[data-user-key] .home-welcome {
   --sk-leading: var(--line-height-meta);
 }
 
-.home-now__sk-line--book {
-  --sk-width: 10em;
-  --sk-size: var(--font-size-title-medium);
-  --sk-leading: var(--line-height-heading);
-}
-
-.home-now__sk-line--author {
-  --sk-width: 7em;
-  --sk-size: var(--font-size-body-medium);
-  --sk-leading: var(--line-height-meta);
-}
-
-.home-now__sk-line--item {
-  --sk-width: 11em;
-  --sk-size: var(--font-size-body-medium);
-  --sk-leading: var(--line-height-tight);
-}
-
-.home-now__sk-line--item-author {
-  --sk-width: 7em;
-  --sk-size: var(--font-size-label-medium);
-  --sk-leading: var(--line-height-tight);
-}
-
 .home-now__sk-line--more {
-  --sk-width: 12em;
-  --sk-size: var(--font-size-body-medium);
+  --sk-width: 16em;
+  --sk-size: var(--font-size-body-small);
   --sk-leading: var(--line-height-meta);
 }
 
@@ -77,15 +54,11 @@ body[data-user-key] .home-welcome {
   aspect-ratio: 2 / 3;
 }
 
-.home-now__sk-button {
-  flex: none;
-  width: var(--home-now-button-width);
-  height: var(--control-height-small);
-  border-radius: var(--border-radius-button);
-}
-
 /* Sections are separated by their own bottom margin; gap is kept for things inside one. */
 .home-now {
+  /* The width of a cover in the row; the card is held to the row's height from it. */
+  --home-now-cover: 80px;
+
   margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
 }
 
@@ -107,182 +80,32 @@ body[data-user-key] .home-welcome {
   color: var(--color-text-heading);
 }
 
-/* In progress on one side, the list's covers on the other. */
+/* The row of covers takes the width; the card, when there is one, takes the
+   left column beside it. Both columns are one height, the row's, so the card
+   arriving narrows the row and moves nothing below. */
 .home-now__body {
   display: grid;
-  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
-  gap: var(--spacing-inline-xl);
-  align-items: start;
-}
-
-.home-now--no-reading .home-now__body,
-.home-now--no-want .home-now__body {
   grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-inline-xl);
 }
 
-/* One card for everything in progress. */
-.home-now__reading {
-  /* Every Read or Borrow button on the card is at least as wide as "Borrow", so they stack as one column. */
-  --home-now-button-width: 4.75rem;
-
-  padding: var(--spacing-inset-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface-sunken);
+.home-now__body:has(> .home-now__loans:not([hidden])) {
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
 }
 
-/* The book in hand. */
-.home-now__main {
+.home-now__loans,
+.home-now__shelves {
   display: flex;
-  gap: var(--spacing-inset-md);
-}
-
-/* ol-book-cover is as tall as its artwork (`fit`), so the text beside it runs top to bottom of the image. */
-.home-now__cover {
-  flex: none;
-  width: 72px;
-}
-
-.home-now__text {
-  display: flex;
-  flex: 1;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-3xs);
   min-width: 0;
 }
 
-.home-now__book {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-subheading);
-  line-height: var(--line-height-heading);
-  text-wrap: balance;
+/* The skeleton's place for the card, until a card arrives. */
+.home-now__loans[hidden] {
+  display: none;
 }
 
-.home-now__book a:link,
-.home-now__book a:visited {
-  color: var(--color-text-heading);
-  text-decoration: none;
-}
-
-.home-now__author,
-.home-now__note {
-  margin: 0;
-  font-size: var(--font-size-body-medium);
-  line-height: var(--line-height-meta);
-  color: var(--color-text-secondary);
-}
-
-.home-now__author {
-  overflow: hidden;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* The button sits at the card's right edge, in line with the buttons of the lines under it. */
-.home-now__main-action {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--spacing-stack-xs);
-}
-
-.home-now__action {
-  flex: none;
-  margin: 0;
-}
-
-.home-now__action,
-.home-now__cta {
-  min-width: var(--home-now-button-width);
-}
-
-/* The legacy button's wrapper takes the width, and the button fills it. */
-.home-now__cta > * {
-  flex: 1;
-}
-
-/* One status line by a book: plain, urgent (a loan nearly due) or ready (a hold to collect). */
-.home-status {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  margin: 0;
-  font-size: var(--font-size-label-medium);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-meta);
-  color: var(--color-text-secondary);
-}
-
-.home-status--urgent {
-  color: var(--color-warning-fg);
-}
-
-.home-status--ready {
-  color: var(--color-success-fg);
-}
-
-/* What else is in progress: a line each, under a rule. With the first line's
-   own padding, the rule has the same room under it as over it. */
-.home-now__rest {
-  margin-top: var(--spacing-inset-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-border-subtle);
-}
-
-.home-now__item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  min-height: var(--control-height-medium);
-  padding-block: var(--spacing-stack-xs);
-}
-
-.home-now__thumb {
-  flex: none;
-  width: 24px;
-}
-
-/* Title over author, as under a carousel cover; a loan's due date or a hold's
-   place in line goes under them, so the title keeps the line's width. */
-.home-now__item-text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--spacing-3xs);
-  min-width: 0;
-}
-
-.home-now__item-title {
-  overflow: hidden;
-  font-size: var(--font-size-body-medium);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-tight);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-now__item-author {
-  overflow: hidden;
-  font-size: var(--font-size-label-medium);
-  line-height: var(--line-height-tight);
-  color: var(--color-text-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-now__item-title:link,
-.home-now__item-title:visited {
-  color: var(--color-text-heading);
-  text-decoration: none;
-}
-
-/* A part's small heading, and the way to the rest of it at the line's end. */
+/* A part's small heading. */
 .home-now__label-row {
   display: flex;
   align-items: center;
@@ -306,177 +129,278 @@ body[data-user-key] .home-welcome {
   color: var(--color-icon-muted);
 }
 
-/* With no list to show, the card takes the width and the other books sit beside the one in hand. */
-.home-now--no-want .home-now__reading {
+/* The way to the rest of a part's books: quiet text under them, in link blue only on hover. */
+.home-now__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--spacing-inline-xl);
-  align-items: flex-start;
+  align-items: center;
+  gap: 0 var(--spacing-inline-sm);
+  margin: auto 0 0;
+  padding-top: var(--spacing-stack-sm);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-meta);
 }
 
-.home-now--no-want .home-now__label-row {
-  flex: none;
-  width: 100%;
+.home-now__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  white-space: nowrap;
 }
 
-.home-now--no-want .home-now__main {
-  flex: 0 1 22rem;
+.home-now__link:link,
+.home-now__link:visited {
+  color: var(--color-text-secondary);
+  text-decoration: none;
 }
 
-.home-now--no-want .home-now__rest {
+@media (hover: hover) and (pointer: fine) {
+  .home-now__link:hover {
+    color: var(--color-link);
+  }
+
+  .home-now__link:hover > span {
+    text-decoration: underline;
+  }
+}
+
+.home-now__link + .home-now__link::before {
+  content: "·";
+  color: var(--color-text-secondary);
+}
+
+/* The loans card --------------------------------------------------------------- */
+
+/* Grows to the row's height, and is built to fit inside it. With no row beside
+   it, it keeps the row's height anyway: the skeleton was that tall. */
+.home-now__card {
+  display: flex;
   flex: 1;
-  margin-top: 0;
-  padding-top: 0;
-  padding-inline-start: var(--spacing-inline-xl);
-  border-top: 0;
-  border-inline-start: 1px solid var(--color-border-subtle);
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(var(--home-now-cover) * 1.5);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
 }
 
-/* The way to the rest of a part's books, under the last of them. */
-.home-now__more {
-  margin: var(--spacing-stack-sm) 0 0;
+/* One book: its cover, and beside it the title, author, and the button with its status. */
+.home-now__main {
+  display: flex;
+  gap: var(--spacing-inset-md);
 }
 
-.home-now--no-want .home-now__more {
-  width: 100%;
+/* ol-book-cover is as tall as its artwork (`fit`). */
+.home-now__cover {
+  flex: none;
+  width: 56px;
 }
 
-/* Covers only, two rows at most: the rows past them have no height and are
-   clipped. Each cover carries the row gap as its own top margin, so a hidden
-   row starts clear of the padding that holds the shadows and focus rings. */
+.home-now__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.home-now__book {
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-subheading);
+  line-height: var(--line-height-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__book a:link,
+.home-now__book a:visited {
+  color: var(--color-text-heading);
+  text-decoration: none;
+}
+
+.home-now__author {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__main-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md) var(--spacing-inline-lg);
+  margin-top: auto;
+  padding-top: var(--spacing-stack-xs);
+}
+
+.home-now__action {
+  flex: none;
+  margin: 0;
+}
+
+/* One status line by a book: plain, urgent (a loan nearly due) or ready (a hold to collect). */
+.home-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  min-width: 0;
+  margin: 0;
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.home-status--urgent {
+  color: var(--color-warning-fg);
+}
+
+.home-status--ready {
+  color: var(--color-success-fg);
+}
+
+/* Two books: a line each, cover, title over status, then the button. */
+.home-now__rest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+}
+
+.home-now__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+}
+
+.home-now__thumb {
+  flex: none;
+  width: 28px;
+}
+
+.home-now__item-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.home-now__item-title {
+  overflow: hidden;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__item-title:link,
+.home-now__item-title:visited {
+  color: var(--color-text-heading);
+  text-decoration: none;
+}
+
+.home-now__item .home-status {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The row of covers ------------------------------------------------------------ */
+
+/* One row, as many covers as fit whole: a cover past the width is not drawn,
+   so the keyboard doesn't land on one out of sight. The negative margin and
+   padding leave room for the covers' shadows and focus rings. */
+.home-now__shelves {
+  container-type: inline-size;
+}
+
 .home-now__wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  grid-template-rows: auto auto;
-  grid-auto-rows: 0;
-  column-gap: var(--spacing-inline-md);
-  overflow: hidden;
-  margin: calc(-1 * var(--spacing-md)) calc(-1 * var(--spacing-xs))
-    calc(-1 * var(--spacing-xs));
-  padding: 0 var(--spacing-xs) var(--spacing-xs);
+  grid-template-columns: repeat(auto-fill, var(--home-now-cover));
+  column-gap: var(--spacing-lg);
+  margin: calc(-1 * var(--spacing-xs));
+  padding: var(--spacing-xs);
 }
 
-.home-now__wall > li {
-  margin-top: var(--spacing-md);
+/* A cover and its gap are 96px: k covers need 96k − 16px. */
+@container (width < 1328px) {
+  .home-now__wall > li:nth-child(n + 14) {
+    display: none;
+  }
 }
 
-/* With nothing in progress the list has the full width: one row, a little larger. */
-.home-now--no-reading .home-now__wall {
-  grid-template-columns: repeat(auto-fill, 80px);
-  grid-template-rows: auto;
+@container (width < 1232px) {
+  .home-now__wall > li:nth-child(n + 13) {
+    display: none;
+  }
+}
+
+@container (width < 1136px) {
+  .home-now__wall > li:nth-child(n + 12) {
+    display: none;
+  }
+}
+
+@container (width < 1040px) {
+  .home-now__wall > li:nth-child(n + 11) {
+    display: none;
+  }
+}
+
+@container (width < 944px) {
+  .home-now__wall > li:nth-child(n + 10) {
+    display: none;
+  }
+}
+
+@container (width < 848px) {
+  .home-now__wall > li:nth-child(n + 9) {
+    display: none;
+  }
+}
+
+@container (width < 752px) {
+  .home-now__wall > li:nth-child(n + 8) {
+    display: none;
+  }
+}
+
+@container (width < 656px) {
+  .home-now__wall > li:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+@container (width < 560px) {
+  .home-now__wall > li:nth-child(n + 6) {
+    display: none;
+  }
+}
+
+@container (width < 464px) {
+  .home-now__wall > li:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+@container (width < 368px) {
+  .home-now__wall > li:nth-child(n + 4) {
+    display: none;
+  }
 }
 
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
-  .home-now__body {
+  .home-now__body,
+  .home-now__body:has(> .home-now__loans:not([hidden])) {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .home-now--no-want .home-now__reading {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .home-now--no-want .home-now__main {
-    flex: none;
-  }
-
-  .home-now--no-want .home-now__rest {
-    margin-top: var(--spacing-inset-md);
-    padding-top: var(--spacing-md);
-    padding-inline-start: 0;
-    border-top: 1px solid var(--color-border-subtle);
-    border-inline-start: 0;
-  }
-}
-
-/* The buttons on a book in progress ------------------------------------------- */
-
-.home-now__cta,
-.home-now__shelf {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-}
-
-/* The legacy button takes the small control height,
-   as it does on a carousel card (buttonCta.css). */
-.home-now__cta .cta-btn {
-  display: block;
-  margin: 0;
-  height: var(--control-height-small);
-  min-height: var(--control-height-small);
-  padding-block: 0;
-  padding-inline: var(--spacing-sm);
-  font-size: var(--font-size-label-medium);
-  line-height: calc(var(--control-height-small) - 2px);
-}
-
-/* Where a book went once it has left Currently Reading; empty until then. */
-.home-now__moved {
-  margin: 0;
-  font-size: var(--font-size-label-medium);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-}
-
-.home-now__moved:empty {
-  display: none;
-}
-
-.is-moved .home-now__cta {
-  display: none;
-}
-
-.is-moved
-  :is(ol-book-cover, .home-now__book, .home-now__author, .home-now__item-text) {
-  opacity: 0.5;
-}
-
-/* A line: cover, title, then its buttons at the right edge. The body's
-   children sit on the line itself. */
-.home-now__item-body {
-  display: contents;
-}
-
-.home-now__item-actions {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-}
-
-/* On a line the shelf menu waits for the pointer, and until then takes no
-   room: the title runs the full line, and gives way only while the button is
-   showing. It is clipped, not removed, so the keyboard still reaches it. Touch
-   has no hover and keeps it. */
-@media (hover: hover) and (pointer: fine) {
-  /* The book in hand keeps the button's place, so nothing moves when it shows. */
-  .home-now__main .home-now__shelf {
-    opacity: 0;
-  }
-
-  .home-now__item .home-now__shelf {
-    max-width: 0;
-    overflow: hidden;
-    margin-inline-end: calc(-1 * var(--spacing-inline-sm));
-    opacity: 0;
-  }
-
-  .home-now__shelf:focus-within,
-  .home-now__shelf:has([open]),
-  .is-moved .home-now__shelf,
-  :is(.home-now__main, .home-now__item):hover .home-now__shelf {
-    max-width: none;
-    overflow: visible;
-    margin-inline-end: 0;
-    opacity: 1;
-  }
-}
-
-/* A line with no button of ours ends in the menu alone. */
-.home-now__item-actions:not(:has(.home-now__cta, .home-now__action))
-  .home-now__shelf {
-  margin-inline-end: 0;
 }

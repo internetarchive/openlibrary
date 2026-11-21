@@ -43,45 +43,19 @@ def test_logged_out_renders_nothing(fastapi_client):
     assert response.json() == {"partials": ""}
 
 
-def test_agenda_leads_with_the_loan_then_what_has_a_clock(request_context_fixture):
+def test_loans_card_lists_loans_then_ready_holds(request_context_fixture):
     request_context_fixture(lang="en")
-    agenda = _home_member().build_agenda(
+    cards = _home_member().build_loans(
         loans=[_loan("soon", 1), _loan("later", 9)],
         holds=[_hold("waiting", ready=False), _hold("ready", ready=True)],
-        reading=[_book("shelf")],
     )
-    assert [(card["title"], card["kind"]) for card in agenda] == [
-        ("soon", "loan"),
-        ("ready", "ready"),
-        ("later", "loan"),
-        ("shelf", "reading"),
-        ("waiting", "waiting"),
-    ]
-    assert agenda[0]["tone"] == "urgent"
-    assert agenda[0]["action"]["form"] == {"action": "/borrow/ia/ia_soon", "value": "read"}
-    assert agenda[1]["action"]["form"] == {"action": "/books/ready/borrow", "value": "borrow"}
-    assert agenda[-1]["action"] is None
-
-
-def test_agenda_without_a_loan_leads_with_currently_reading(request_context_fixture):
-    request_context_fixture(lang="en")
-    agenda = _home_member().build_agenda(loans=[], holds=[_hold("ready", ready=True)], reading=[_book("first", cta="<read>"), _book("second")])
-    assert [card["title"] for card in agenda] == ["first", "ready", "second"]
-    # A Currently Reading book has no button or status of ours, only what the shelf gave it.
-    assert agenda[0]["action"] is None
-    assert agenda[0]["status"] == ""
-    assert agenda[0]["cta"] == "<read>"
-    assert agenda[2]["cta"] == ""
-
-
-def test_agenda_without_a_loan_leads_with_a_book_that_has_a_free_copy(request_context_fixture):
-    request_context_fixture(lang="en")
-    reading = [_book("newest"), _book("free", cta="<borrow>"), _book("also free", cta="<borrow>"), _book("oldest")]
-    agenda = _home_member().build_agenda(loans=[], holds=[], reading=reading)
-    assert [card["title"] for card in agenda] == ["free", "newest", "also free", "oldest"]
-    # With no free copy anywhere the shelf order stands.
-    agenda = _home_member().build_agenda(loans=[], holds=[], reading=[_book("newest"), _book("oldest")])
-    assert [card["title"] for card in agenda] == ["newest", "oldest"]
+    # A hold still in line has nothing to do yet, and is left to the loans page.
+    assert [(card["title"], card["kind"]) for card in cards] == [("soon", "loan"), ("later", "loan"), ("ready", "ready")]
+    assert cards[0]["tone"] == "urgent"
+    assert cards[0]["action"]["form"] == {"action": "/borrow/ia/ia_soon", "value": "read"}
+    assert cards[2]["action"]["form"] == {"action": "/books/ready/borrow", "value": "borrow"}
+    # A ready hold says how long it is kept.
+    assert cards[2]["status"] == "note for ready"
 
 
 def test_greeting_name_skips_usernames_and_long_names():
@@ -92,47 +66,34 @@ def test_greeting_name_skips_usernames_and_long_names():
     assert name(SimpleNamespace(key="/people/mek", displayname="x" * 31)) == ""
 
 
-def test_reading_now_offers_a_button_only_for_a_free_copy(request_context_fixture):
+def test_shelves_lead_with_currently_reading_and_show_a_work_once(request_context_fixture):
     request_context_fixture(lang="en")
-    docs = [
-        web.storage(key="/works/OL1W", title="free", ia=["free00"], editions={"docs": [{"key": "/books/OL1M"}]}),
-        web.storage(key="/works/OL9W"),  # not in search: no title, dropped
-        web.storage(key="/works/OL2W", title="out", ia=["out00"]),
-    ]
-    statuses = {"free": "borrow_available", "out": "borrow_unavailable"}
+    shelves = {
+        "currently-reading": [web.storage(key="/works/OL1W", title="reading", ia=["r00"]), web.storage(key="/works/OL9W")],
+        "want-to-read": [web.storage(key="/works/OL2W", title="wanted", ia=["w00"]), web.storage(key="/works/OL1W", title="reading", ia=["r00"])],
+    }
+    asked = []
 
     def add_availability(items):
         for item in items:
-            item["availability"] = {"status": statuses[item["title"]]}
+            item["availability"] = {"status": "borrow_available"}
 
     class ReadLog:
-        def get_works(self, key, limit):
-            assert (key, limit) == ("currently-reading", 5)
-            return web.storage(docs=docs)
+        def get_works(self, key, limit, fq):
+            asked.append((key, limit))
+            return web.storage(docs=shelves[key])
 
-    with (
-        patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability),
-        patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", side_effect=lambda book, **kw: f"<{kw['layout']}>") as cta,
-        patch("openlibrary.plugins.upstream.mybooks.shelf_button_for", side_effect=lambda doc, **kw: f"<shelf {kw.get('size')}>"),
-    ):
-        # Availability that answers for no book: the same books, none with a button.
-        with patch("openlibrary.core.lending.add_availability_async"):
-            unchecked, unchecked_known = _home_member().reading_now(ReadLog(), _home_member().AvailabilityBudget())
-        books, known = _home_member().reading_now(ReadLog(), _home_member().AvailabilityBudget())
+    with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
+        books, known = _home_member().shelves_available(ReadLog(), _home_member().AvailabilityBudget())
 
     assert known
-    assert not unchecked_known
-    assert [(b["title"], b["cta"]) for b in unchecked] == [("free", ""), ("out", "")]
-    assert [(b["title"], b["cta"]) for b in books] == [("free", "<ol-carousel>"), ("out", "")]
-    assert [b["shelf"] for b in books] == ["<shelf small>"] * 2
-    # A book with a button links to the copy the button offers; the others to the work.
-    assert [b["url"] for b in books] == ["/works/OL1W?edition=ia:free00", "/works/OL2W"]
-    assert [b["url"] for b in unchecked] == ["/works/OL1W", "/works/OL2W"]
-    # The button is for the work, whose availability names the copy to offer.
-    assert "editions" not in cta.call_args.args[0]
+    assert asked == [("currently-reading", _home_member().READING_CHECKED), ("want-to-read", _home_member().WANT_CHECKED)]
+    # The work not in search (no title) is dropped; the one on both shelves is shown once, as Currently Reading.
+    assert [(doc["title"], doc["shelf"]) for doc in books] == [("reading", "reading"), ("wanted", "want")]
+    assert [_home_member().want_brief(doc, checked=True)["shelf"] for doc in books] == ["reading", "want"]
 
 
-def test_want_available_keeps_only_copies_free_now(request_context_fixture):
+def test_shelves_available_keeps_only_copies_free_now(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [
         web.storage(key="/works/OL1W", title="free", ia=["free00"]),
@@ -148,11 +109,10 @@ def test_want_available_keeps_only_copies_free_now(request_context_fixture):
 
     class ReadLog:
         def get_works(self, key, limit, fq):
-            assert key == "want-to-read"
-            return web.storage(docs=docs)
+            return web.storage(docs=docs if key == "want-to-read" else [])
 
     with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
-        free, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+        free, known = _home_member().shelves_available(ReadLog(), _home_member().AvailabilityBudget())
 
     assert known
     assert [doc["title"] for doc in free] == ["free", "open"]
@@ -182,22 +142,17 @@ def test_print_disabled_readers_can_open_print_disabled_copies(request_context_f
             return web.storage(docs=docs)
 
     def shelves():
-        with (
-            patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability),
-            patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value="<read>"),
-            patch("openlibrary.plugins.upstream.mybooks.shelf_button_for", return_value=""),
-        ):
-            want, _known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
-            reading, _known = _home_member().reading_now(ReadLog(), _home_member().AvailabilityBudget())
-        return [doc["title"] for doc in want], [book["title"] for book in reading if book["cta"]]
+        with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
+            books, _known = _home_member().shelves_available(ReadLog(), _home_member().AvailabilityBudget())
+        return [doc["title"] for doc in books]
 
     request_context_fixture(lang="en", print_disabled=True)
-    assert shelves() == (["free", "pd only", "pd, all lent out"], ["free", "pd only", "pd, all lent out"])
+    assert shelves() == ["free", "pd only", "pd, all lent out"]
     request_context_fixture(lang="en", print_disabled=False)
-    assert shelves() == (["free"], ["free"])
+    assert shelves() == ["free"]
 
 
-def test_want_available_shows_the_shelf_when_availability_cannot_be_read(request_context_fixture):
+def test_shelves_available_shows_the_shelf_when_availability_cannot_be_read(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [web.storage(key="/works/OL1W", title="one", ia=["one00"]), web.storage(key="/works/OL2W", title="two", ia=["two00"])]
 
@@ -212,12 +167,12 @@ def test_want_available_shows_the_shelf_when_availability_cannot_be_read(request
     # The service answers with nothing (`success: false`), or with an error for every book (a timeout).
     for add_availability in (lambda items: None, errors):
         with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
-            want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+            want, known = _home_member().shelves_available(ReadLog(), _home_member().AvailabilityBudget())
         assert not known
         assert [doc["title"] for doc in want] == ["one", "two"]
 
 
-def test_want_available_prefers_the_shelved_edition_when_it_is_free(request_context_fixture):
+def test_shelves_available_prefers_the_shelved_edition_when_it_is_free(request_context_fixture):
     request_context_fixture(lang="en")
     docs = [
         # The shelved edition is free: it is the copy offered, even with the work's own copy free too.
@@ -240,7 +195,7 @@ def test_want_available_prefers_the_shelved_edition_when_it_is_free(request_cont
             return web.storage(docs=docs)
 
     with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
-        want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+        want, known = _home_member().shelves_available(ReadLog(), _home_member().AvailabilityBudget())
 
     assert known
     assert calls == [6]  # works and shelved editions in one request
@@ -249,7 +204,7 @@ def test_want_available_prefers_the_shelved_edition_when_it_is_free(request_cont
     assert [_home_member().brief_from_doc(doc)["cover_url"].rsplit("/", 1)[-1] for doc in want] == ["11-M.jpg", "2-M.jpg"]
 
 
-def test_want_available_offers_only_copies_the_reader_could_read(request_context_fixture, no_search):
+def test_shelves_available_offers_only_copies_the_reader_could_read(request_context_fixture, no_search):
     request_context_fixture(lang="en")
     docs = [
         # The work's own lending copy is a translation, and free. An English edition is free too: that one is offered.
@@ -282,7 +237,7 @@ def test_want_available_offers_only_copies_the_reader_could_read(request_context
             return web.storage(docs=docs)
 
     with patch("openlibrary.core.lending.add_availability_async", side_effect=add_availability):
-        want, known = _home_member().want_available(ReadLog(), _home_member().AvailabilityBudget())
+        want, known = _home_member().shelves_available(ReadLog(), _home_member().AvailabilityBudget())
 
     assert known
     # No translation the reader didn't choose is even asked about.
@@ -403,26 +358,26 @@ def test_cached_section_is_served_until_the_shelves_change(request_context_fixtu
         def put(part, html):
             home_member.cache_html("reader", part, html, home_member.cache_variant("reader"))
 
-        assert get("reading") is None
-        put("reading", "<section>")
-        assert get("reading") == "<section>"
+        assert get("loans") is None
+        put("loans", "<section>")
+        assert get("loans") == "<section>"
         # The halves are kept apart.
-        assert get("want") is None
-        put("want", "<wall>")
-        assert get("reading") == "<section>"
+        assert get("shelves") is None
+        put("shelves", "<wall>")
+        assert get("loans") == "<section>"
         version[0] = "v2"  # a book was shelved
-        assert get("reading") is None
-        assert get("want") is None
-        put("reading", "<new>")
-        put("want", "<new wall>")
+        assert get("loans") is None
+        assert get("shelves") is None
+        put("loans", "<new>")
+        put("shelves", "<new wall>")
         home_member.invalidate_cache("reader")  # a borrow or return
-        assert get("reading") is None
-        assert get("want") is None
+        assert get("loans") is None
+        assert get("shelves") is None
         # A shelf change while a half is being built: it is stored under the version it was built from.
         variant = home_member.cache_variant("reader")
         version[0] = "v3"
-        home_member.cache_html("reader", "reading", "<built from v2>", variant)
-        assert get("reading") is None
+        home_member.cache_html("reader", "loans", "<built from v2>", variant)
+        assert get("loans") is None
 
 
 def test_due_dates_count_calendar_days(request_context_fixture):
@@ -447,20 +402,19 @@ def test_due_dates_count_calendar_days(request_context_fixture):
         assert [loan["days_left"] for loan in home_member.get_loans("/people/reader")] == [1, 2]
 
 
-def test_a_card_holding_only_holds_is_labelled_as_holds(request_context_fixture):
+def test_the_card_is_labelled_by_what_it_holds(request_context_fixture):
     request_context_fixture(lang="en")
     from openlibrary.core.jinja import get_jinja_env, render_jinja_template  # noqa: PLC0415
 
     def label(**books):
-        agenda = _home_member().build_agenda(**{"loans": [], "holds": [], "reading": []} | books)
+        cards = _home_member().build_loans(**{"loans": [], "holds": []} | books)
         with patch.dict(get_jinja_env().globals, {"icon": lambda *args, **kwargs: ""}):
-            html = render_jinja_template("home/member.html.jinja", member={"name": "", "complete": True, "part": "reading", "agenda": agenda, "side": 2})
+            html = render_jinja_template("home/member.html.jinja", member={"name": "", "complete": True, "part": "loans", "loans": cards})
         return html.split('class="home-now__label">', 1)[1].split("</h3>", 1)[0].strip()
 
-    assert label(holds=[_hold("waiting", ready=False)]) == "Your holds"
-    assert label(holds=[_hold("ready", ready=True)]) == "Your holds"
-    assert label(holds=[_hold("ready", ready=True)], reading=[_book("shelf")]) == "Currently reading"
-    assert label(loans=[_loan("borrowed", 5)]) == "Currently reading"
+    assert label(loans=[_loan("borrowed", 5)]) == "Checked Out"
+    assert label(holds=[_hold("ready", ready=True)]) == "Ready to Borrow"
+    assert label(loans=[_loan("borrowed", 5)], holds=[_hold("ready", ready=True)]) == "Loans and Holds"
 
 
 def test_each_half_builds_only_its_own_books(request_context_fixture):
@@ -469,32 +423,24 @@ def test_each_half_builds_only_its_own_books(request_context_fixture):
     user = SimpleNamespace(key="/people/mek", displayname="Mek K")
     with (
         patch("openlibrary.plugins.upstream.mybooks.ReadingLog"),
-        patch.object(home_member, "get_loans", return_value=[_loan("borrowed", 5)]) as loans,
-        patch.object(home_member, "get_holds", return_value=[]),
-        # The loan is on the shelf too, and shown once; a different work of the same title is still shown.
-        patch.object(
-            home_member,
-            "reading_now",
-            return_value=(
-                [_book("borrowed", work_key="/works/borrowed"), _book("borrowed", work_key="/works/other"), _book("shelf", work_key="/works/shelf")],
-                True,
-            ),
-        ) as reading,
-        patch.object(home_member, "want_available", return_value=([{"key": "/works/OL1W", "title": "wanted"}], False)) as want,
+        patch.object(home_member, "get_loans", return_value=[_loan(str(n), n) for n in range(4)]) as loans,
+        patch.object(home_member, "get_holds", return_value=[_hold("ready", ready=True)]),
+        patch.object(home_member, "shelves_available", return_value=([{"key": "/works/OL1W", "title": "wanted", "shelf": "want"}], False)) as shelves,
     ):
-        member = home_member.build_part(user, "reading")
-        assert [(card["title"], card["kind"]) for card in member["agenda"]] == [("borrowed", "loan"), ("borrowed", "reading"), ("shelf", "reading")]
+        member = home_member.build_part(user, "loans")
+        # As many as the card holds, soonest due first.
+        assert [card["title"] for card in member["loans"]] == ["0", "1"]
         assert member["complete"]
-        assert "want" not in member
-        want.assert_not_called()
+        assert "shelves" not in member
+        shelves.assert_not_called()
 
-        member = home_member.build_part(user, "want")
-        assert [book["title"] for book in member["want"]] == ["wanted"]
-        assert "agenda" not in member
+        member = home_member.build_part(user, "shelves")
+        assert [book["title"] for book in member["shelves"]] == ["wanted"]
+        assert "loans" not in member
         # Built without availability: shown, and not kept.
-        assert not member["want_checked"]
+        assert not member["shelves_checked"]
         assert not member["complete"]
-        assert loans.call_count == reading.call_count == 1
+        assert loans.call_count == shelves.call_count == 1
 
 
 def test_a_half_renders_the_heading_and_itself_or_nothing(request_context_fixture):
@@ -506,17 +452,20 @@ def test_a_half_renders_the_heading_and_itself_or_nothing(request_context_fixtur
         with patch.dict(get_jinja_env().globals, {"icon": lambda *args, **kwargs: ""}):
             return render_jinja_template("home/member.html.jinja", member={"name": "Mek K", "complete": True} | member).strip()
 
-    want = render({"part": "want", "want": [_book("wanted")], "want_checked": True})
-    assert "Welcome back, Mek K" in want
-    assert 'class="home-now__want"' in want
-    assert "home-now__reading" not in want
-    assert "available now" in want
+    shelves = render({"part": "shelves", "shelves": [_book("wanted", shelf="want")], "shelves_checked": True})
+    assert "Welcome back, Mek K" in shelves
+    assert 'class="home-now__shelves"' in shelves
+    assert "home-now__loans" not in shelves
+    assert "Ready to Read Now" in shelves
+    assert "/account/books/currently-reading" in shelves
+    assert "/account/books/want-to-read" in shelves
 
-    agenda = _home_member().build_agenda(loans=[_loan("borrowed", 5)], holds=[], reading=[])
-    reading = render({"part": "reading", "agenda": agenda, "side": 2})
-    assert "Welcome back, Mek K" in reading
-    assert 'class="home-now__reading"' in reading
-    assert "home-now__want" not in reading
+    cards = _home_member().build_loans(loans=[_loan("borrowed", 5)], holds=[])
+    loans = render({"part": "loans", "loans": cards})
+    assert "Welcome back, Mek K" in loans
+    assert 'class="home-now__loans"' in loans
+    assert "home-now__shelves" not in loans
+    assert "See All Loans" in loans
 
-    assert render({"part": "want", "want": [], "want_checked": True}) == ""
-    assert render({"part": "reading", "agenda": [], "side": 2}) == ""
+    assert render({"part": "shelves", "shelves": [], "shelves_checked": True}) == ""
+    assert render({"part": "loans", "loans": []}) == ""

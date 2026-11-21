@@ -841,7 +841,7 @@ msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html home/member.html.jinja openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -3217,7 +3217,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/member.html.jinja
+#: books/custom_carousel.html.jinja
 #, python-format
 msgid "See all %(title)s"
 msgstr ""
@@ -5068,40 +5068,35 @@ msgid "Welcome back"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Moved to Want to Read"
+msgid "Ready to Borrow"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Moved to Already Read"
+msgid "Loans and Holds"
+msgstr ""
+
+#: LoanStatus.html home/member.html.jinja
+msgid "Checked Out"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Moved to Stopped Reading"
+msgid "Your loans"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Removed from your shelves"
+msgid "See All Loans"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "Your holds"
-msgstr ""
-
-#. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
-#: StarRatingsStats.html home/member.html.jinja
-msgid "Currently reading"
+msgid "Ready to Read Now"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "See all loans and holds"
+msgid "From Your Shelves"
 msgstr ""
 
 #: home/member.html.jinja
-msgid "See all currently reading"
-msgstr ""
-
-#: home/member.html.jinja
-msgid "Want to Read, available now"
+msgid "Your shelves"
 msgstr ""
 
 #: home/member_skeleton.html.jinja
@@ -7847,10 +7842,6 @@ msgstr ""
 msgid "All copies are checked out."
 msgstr ""
 
-#: LoanStatus.html
-msgid "Checked Out"
-msgstr ""
-
 #: NotInLibrary.html
 msgid "Not in Library"
 msgstr ""
@@ -8057,6 +8048,11 @@ msgstr[1] ""
 #. Short label displayed next to the count of readers who want to read this book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
+msgstr ""
+
+#. Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
+#: StarRatingsStats.html
+msgid "Currently reading"
 msgstr ""
 
 #. Short label displayed next to the count of readers who have finished this book, shown in the stats bar on a book page. Example: "15,420 Have read". This refers to the same shelf as the "Already Read" button.
@@ -10657,10 +10653,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_member.py
 msgid "Continue reading"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/home_member.py
-msgid "Your hold is ready"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_member.py

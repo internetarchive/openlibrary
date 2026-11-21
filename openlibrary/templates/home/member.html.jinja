@@ -1,19 +1,16 @@
 {#
-  One half of the top of the home page for a signed-in reader, a section about now: `reading` is a card
-  holding the book they have in hand and a line for each other book in progress, `want` the covers of their
+  One half of the top of the home page for a signed-in reader, a section about now: `loans` is a card of the
+  books they have out and the holds ready to borrow, `shelves` one row of covers of their Currently Reading and
   Want to Read books that have a copy free. Each is fetched on its own by home-member.js (HomeMemberPartial)
   and put in its place in home/member_skeleton.html.jinja. Each carries the section's heading, which the
   first to arrive supplies. A half with nothing to show renders nothing.
-  A Currently Reading book gets a Read or Borrow button only when a copy is free, and a caret button that
-  opens the shelf menu, the way to mark it finished or take it off the list. On a line that button shows on
-  hover or focus (always on touch); home-member.js marks a book that has left the shelf.
-  `member` is home_member.build_part(): `member.agenda` is their loans, holds and Currently Reading books
-  as one list, the book in hand first; `member.want` is the free Want to Read books, or when
-  availability can't be read (`member.want_checked` is false) the shelf's borrowable books, free or not.
+  The card is made to fit the height of the row of covers beside it, so its arrival moves nothing below.
+  `member` is home_member.build_part(): `member.loans` is the cards, loans first; `member.shelves` the free
+  books, or when availability can't be read (`member.shelves_checked` is false) the shelves' borrowable books.
 #}
 {% set member = member | default(none) %}
-{% set agenda = (member.agenda | default([])) if member else [] %}
-{% set want = (member.want | default([])) if member else [] %}
+{% set loans = (member.loans | default([])) if member else [] %}
+{% set shelves = (member.shelves | default([])) if member else [] %}
 {# `tip=false` drops the cover's hover card where the title and author are already written beside it.
    `kind` labels its click, which home-member.js reports: the link is in the cover's shadow root. #}
 {% macro cover(item, cls="", size="", tip=true, fit=false, kind="") %}
@@ -48,22 +45,13 @@
         {{ item.status }}
     </p>
 {% endmacro %}
-{# A loan or hold has its own button; a Currently Reading book gets Read or Borrow when a copy is free, else none. #}
-{% macro read_button(item, variant="secondary") %}
-    {% if item.action %}
-        {{ action(item, variant) }}
-    {% elif item.cta is defined and item.cta %}
-        <div class="home-now__cta">{{ item.cta }}</div>
-    {% endif %}
+{# A way to the rest of a part's books. #}
+{% macro link(href, track, text) %}
+    <a class="home-now__link"
+       href="{{ href }}"
+       data-ol-link-track="HomeMember|{{ track }}"><span>{{ text }}</span></a>
 {% endmacro %}
-{# The caret button that opens the shelf menu: the way to mark a book finished, stopped or off the list. #}
-{% macro shelf_menu(item) %}
-    {% if item.shelf is defined and item.shelf %}
-        <div class="home-now__shelf">{{ item.shelf }}</div>
-    {% endif %}
-{% endmacro %}
-{% if agenda or want %}
-    {% set first = agenda[0] if agenda else none %}
+{% if loans or shelves %}
     <div class="home-now__head">
         <h2 class="home-now__title" id="home-now-title">
             {% if member.name %}
@@ -73,95 +61,76 @@
             {% endif %}
         </h2>
     </div>
-    {% if first %}
-        {# One card for everything in progress: the book in hand, then a line for each of the others. #}
-        <div class="home-now__reading"
-             data-moved-labels="{{ {'1': _('Moved to Want to Read') , '3': _('Moved to Already Read'), '4': _('Moved to Stopped Reading'), 'none': _('Removed from your shelves')} | tojson | forceescape }}">
+    {% if loans %}
+        {% set kinds = loans | map(attribute="kind") | unique | list %}
+        <div class="home-now__loans">
             <div class="home-now__label-row">
                 <h3 class="home-now__label">
                     {{ icon("book-open", size="sm", extra_class="home-now__label-icon") }}
-                    {# With no loans or Currently Reading books, the card holds only holds. #}
-                    {% if first.kind in ("ready", "waiting") %}
-                        {{ _("Your holds") }}
+                    {% if kinds == ["ready"] %}
+                        {{ _("Ready to Borrow") }}
+                    {% elif "ready" in kinds %}
+                        {{ _("Loans and Holds") }}
                     {% else %}
-                        {{ _("Currently reading") }}
+                        {{ _("Checked Out") }}
                     {% endif %}
                 </h3>
             </div>
-            <article class="home-now__main"
-                     data-work-key="{{ first.work_key | default('') }}">
-                {{ cover(first, "home-now__cover", tip=false, fit=true) }}
-                <div class="home-now__text">
-                    <h4 class="home-now__book">
-                        <a href="{{ first.url }}"
-                           data-ol-link-track="HomeMember|TitleClick|{{ first.kind }}">{{ first.title }}</a>
-                    </h4>
-                    <p class="home-now__author">{{ first.author }}</p>
-                    {% if first.note is defined %}<p class="home-now__note">{{ first.note }}</p>{% endif %}
-                    <p class="home-now__moved" role="status"></p>
-                    {% if first.status %}{{ status(first) }}{% endif %}
-                </div>
-                {# At the card's right edge, over the lines' buttons; the shelf menu shows under it. #}
-                <div class="home-now__main-action">
-                    {{ read_button(first, "primary") }}
-                    {{ shelf_menu(first) }}
-                </div>
-            </article>
-            {% if agenda[1:] %}
-                <ul class="home-now__rest">
-                    {% for item in agenda[1:member.side + 1] %}
-                        <li class="home-now__item"
-                            data-work-key="{{ item.work_key | default('') }}">
-                            <ol-book-cover class="home-now__thumb" size="small" no-tip src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}" data-cover-track="HomeMember|CoverClick|{{ item.kind }}">
-                            </ol-book-cover>
-                            <div class="home-now__item-body">
+            <div class="home-now__card">
+                {% if loans | length == 1 %}
+                    {% set item = loans[0] %}
+                    <article class="home-now__main">
+                        {{ cover(item, "home-now__cover", tip=false, fit=true) }}
+                        <div class="home-now__text">
+                            <h4 class="home-now__book">
+                                <a href="{{ item.url }}"
+                                   data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
+                            </h4>
+                            {% if item.author %}<p class="home-now__author">{{ item.author }}</p>{% endif %}
+                            <div class="home-now__main-foot">
+                                {{ action(item, "primary") }}
+                                {{ status(item) }}
+                            </div>
+                        </div>
+                    </article>
+                {% else %}
+                    <ul class="home-now__rest">
+                        {% for item in loans %}
+                            <li class="home-now__item">
+                                <ol-book-cover class="home-now__thumb" size="small" no-tip src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}" data-cover-track="HomeMember|CoverClick|{{ item.kind }}">
+                                </ol-book-cover>
                                 <div class="home-now__item-text">
                                     <a class="home-now__item-title"
                                        href="{{ item.url }}"
                                        data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
-                                    {% if item.author %}<span class="home-now__item-author">{{ item.author }}</span>{% endif %}
-                                    {% if item.status %}{{ status(item) }}{% endif %}
+                                    {{ status(item) }}
                                 </div>
-                                <p class="home-now__moved" role="status"></p>
-                                <div class="home-now__item-actions">
-                                    {{ shelf_menu(item) }}
-                                    {{ read_button(item) }}
-                                </div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            {# The card leads with loans and holds when the reader has any; otherwise it is only their shelf. #}
-            <p class="home-now__more">
-                {% if agenda | rejectattr("kind", "equalto", "reading") | list %}
-                    <a class="carousel-see-all"
-                       href="/account/loans"
-                       data-ol-link-track="HomeMember|Loans">{{ _("See all loans and holds") }}{{ icon("chevron-right", size="sm") }}</a>
-                {% else %}
-                    <a class="carousel-see-all"
-                       href="/account/books/currently-reading"
-                       data-ol-link-track="HomeMember|CurrentlyReading">{{ _("See all currently reading") }}{{ icon("chevron-right", size="sm") }}</a>
+                                {{ action(item) }}
+                            </li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
-            </p>
+            </div>
+            <nav class="home-now__links" aria-label="{{ _('Your loans') }}">
+                {{ link("/account/loans", "Loans", _("See All Loans")) }}
+            </nav>
         </div>
     {% endif %}
-    {% if want %}
-        <div class="home-now__want">
+    {% if shelves %}
+        <div class="home-now__shelves">
             <div class="home-now__label-row">
                 <h3 class="home-now__label">
                     {{ icon("bookmark", size="sm", extra_class="home-now__label-icon") }}
-                    {{ _("Want to Read, available now") if member.want_checked else _("Want to Read") }}
+                    {{ _("Ready to Read Now") if member.shelves_checked else _("From Your Shelves") }}
                 </h3>
             </div>
             <ul class="home-now__wall">
-                {% for item in want %}<li>{{ cover(item, "", "small", kind="want") }}</li>{% endfor %}
+                {% for item in shelves %}<li>{{ cover(item, "", "small", kind=item.shelf) }}</li>{% endfor %}
             </ul>
-            <p class="home-now__more">
-                <a class="carousel-see-all"
-                   href="/account/books/want-to-read"
-                   data-ol-link-track="HomeMember|WantToRead">{{ _('See all %(title)s', title=_('Want to Read')) }}{{ icon("chevron-right", size="sm") }}</a>
-            </p>
+            <nav class="home-now__links" aria-label="{{ _('Your shelves') }}">
+                {{ link("/account/books/currently-reading", "CurrentlyReading", _("Currently Reading")) }}
+                {{ link("/account/books/want-to-read", "WantToRead", _("Want to Read")) }}
+            </nav>
         </div>
     {% endif %}
 {% endif %}
