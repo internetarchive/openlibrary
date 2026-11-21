@@ -171,3 +171,45 @@ describe('IntegratedLibrarianEnvironment.reset', () => {
         }
     });
 });
+
+describe('SelectionManager toolbar: merge works limit (#10010)', () => {
+    function toolbarWithWorks(count) {
+        const ile = new IntegratedLibrarianEnvironment();
+        ile.bulkTagger = { hideTaggingMenu: vi.fn() };
+        const sm = ile.selectionManager;
+        sm.getSelectedItems();
+        sm.selectedItems.work = Array.from({ length: count }, (_, i) => `OL${i + 1}W`);
+        sm.updateToolbar();
+        return ile.$actions;
+    }
+
+    afterEach(() => {
+        window.sessionStorage.clear();
+    });
+
+    test('links to the merge page for up to 50 works', () => {
+        const $actions = toolbarWithWorks(50);
+        const mergeLink = $actions.find('a').filter((_, el) => el.textContent === 'Merge Works...');
+
+        expect(mergeLink).toHaveLength(1);
+        expect(mergeLink.attr('href')).toBe(`/works/merge?records=${Array.from({ length: 50 }, (_, i) => `OL${i + 1}W`).join(',')}`);
+        expect($actions.find('.ile-action--disabled')).toHaveLength(0);
+    });
+
+    test('shows a disabled button with the reason instead of a link past 50 works', () => {
+        const $actions = toolbarWithWorks(51);
+        const disabled = $actions.find('.ile-action--disabled');
+
+        expect($actions.find('a').filter((_, el) => el.textContent.startsWith('Merge Works'))).toHaveLength(0);
+        expect(disabled).toHaveLength(1);
+        expect(disabled.text()).toBe('Merge Works... (max 50)');
+        expect(disabled.attr('aria-disabled')).toBe('true');
+        expect(disabled.attr('title')).toBe('Merging is limited to 50 works at a time, and 51 are selected. Deselect some works first.');
+    });
+
+    test('keeps the other actions available past 50 works', () => {
+        const $actions = toolbarWithWorks(51);
+
+        expect($actions.find('a').filter((_, el) => el.textContent === 'Create list...')).toHaveLength(1);
+    });
+});
