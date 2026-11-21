@@ -500,7 +500,10 @@ def build_initiative_cards(current: initiatives.Initiative) -> list[dict]:
                     (
                         _("%(percent)s%% done, goal reached", percent=p["percent"])
                         if p["reached"]
-                        else _("%(percent)s%% done, goal %(goal)s%%", percent=p["percent"], goal=p["goal"])
+                        # The goal goes in already formatted ("90%"), through the "%(percent)s%%" string the
+                        # figure uses, so this string has one %% and each language places its own % sign.
+                        # Weblate counts a second %% as an unnamed placeholder and flags the string.
+                        else _("%(percent)s%% done, goal %(goal)s", percent=p["percent"], goal=_("%(percent)s%%", percent=p["goal"]))
                     )
                     if p
                     else ""

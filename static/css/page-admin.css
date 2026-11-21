@@ -4,14 +4,19 @@
  * - openlibrary/templates/admin/people/view.html
  * - openlibrary/templates/admin/ip/index.html
  * - openlibrary/templates/admin/index.html
+ * - openlibrary/templates/admin/new_accounts.html.jinja
  * Pages:
  * - /admin
  */
 
+@import "components/admin-new-accounts.css";
 @import "components/admin-table.css";
+@import "components/batch-import-list.css";
+@import "components/flash-messages.css";
 /* Import all common components */
 @import "legacy.css";
 @import "components/stats-bar-chart.css";
+@import "components/stats-head.css";
 @import "components/tasks-stats.css";
 /* Import styles specific to the BorrowTable for user pages */
 @import "legacy-borrowTable-adminUser.css";

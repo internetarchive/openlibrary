@@ -87,7 +87,9 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
     def POST(self, key):
-        if re.compile("/(people/[^/]+)").match(key) and spamcheck.is_spam(web.input()):
+        # A direct POST to ?m=edit saves any page, skipping the checks on the /edit forms.
+        is_profile = re.match("/people/[^/]+", key)
+        if spamcheck.is_spam(web.input(), allow_privileged_edits=not is_profile):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         return core.edit.POST(self, key)
 

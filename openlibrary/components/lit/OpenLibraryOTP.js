@@ -290,8 +290,8 @@ export class OpenLibraryOTP extends LitElement {
                 if (!errorEl) {
                     errorEl = document.createElement('p');
                     errorEl.className = 'ol-otp-error';
-                    const submitBtn = this._contentContainer.querySelector('button[type="submit"]');
-                    this._contentContainer.querySelector('.ol-otp-email-form').insertBefore(errorEl, submitBtn);
+                    const formSubmitBtn = this._contentContainer.querySelector('button[type="submit"]');
+                    this._contentContainer.querySelector('.ol-otp-email-form').insertBefore(errorEl, formSubmitBtn);
                 }
                 errorEl.textContent = this._issueError;
             } else if (errorEl) {

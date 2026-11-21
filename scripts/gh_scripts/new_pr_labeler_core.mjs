@@ -21,7 +21,7 @@ export function getLinkedIssueMetadata(issue) {
             if (!leadName && label.name.startsWith('Lead: @')) {
                 leadName = label.name.split('@')[1];
             }
-            if (!priority && label.name.match(/Priority: [012]/)) {
+            if (!priority && /Priority: [012]/.test(label.name)) {
                 priority = label.name;
             }
         }
@@ -195,9 +195,11 @@ export function decideGfiAction({ pr, issue, kind, hasCommented }) {
     const labels = item => item.labels.map(label => (typeof label === 'string' ? label : label.name));
     const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
     if (kind !== 'closing') return skip('no closing reference');
-    if (issue.pull_request || issue.state !== 'open' || !labels(issue).includes('Good First Issue')) return skip('not an open Good First Issue');
+    const issueLabels = labels(issue);
+    if (issue.pull_request || issue.state !== 'open' || !issueLabels.includes('Good First Issue')) return skip('not an open Good First Issue');
     if (pr.state !== 'open' || pr.draft) return skip('PR is closed or draft');
-    if (labels(pr).includes('no-automation') || labels(issue).includes('no-automation')) return skip('no-automation');
+    if (labels(pr).includes('no-automation') || issueLabels.includes('no-automation')) return skip('no-automation');
+    if (issueLabels.includes('Needs: Triage') || !issueLabels.some(label => /^Priority: \d+$/.test(label))) return skip('issue still needs triage');
     if (['MEMBER', 'OWNER', 'COLLABORATOR'].includes(pr.author_association)) return skip('staff author');
     const author = pr.user.login;
     if (sameName(author, 'openlibrary-bot') || /\[bot\]$/i.test(author)) return skip('bot author');

@@ -4,7 +4,17 @@
 'use strict';
 
 const gate = require('./gate.cjs');
-const { filterDiff, headIsCurrent, supersededMarker } = require('./shared.cjs');
+const {
+    filterDiff,
+    headIsCurrent,
+    supersededMarker,
+    supersededCommit,
+    reviewMarker,
+    heldBackReview,
+    heldBackBlocking,
+    diffAnchors,
+    threadKind
+} = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
 // leaves it pending. Findings request changes. A clean review approves only when none of the bot's
@@ -36,6 +46,41 @@ const threadsToResolve = ({ threads, resolvedIds, botLogin }) => {
     return out;
 };
 
+// Once every finding a review raised is fixed or dismissed, `post` edits that review to say so, as
+// cubic does, so scrolling back through a PR shows no stale problems. Only the visible opening line
+// changes: it is struck through under a new first line. The hidden markers that range, status and
+// the weekly report read stay as they are, and this marker keeps a review from being edited twice.
+const ADDRESSED_MARKER = '<!-- ol-pr-review-bot addressed -->';
+const addressedBody = (body, { held = false } = {}) => {
+    const text = String(body || '');
+    if (text.includes(ADDRESSED_MARKER)) return null;
+    const [first, ...rest] = text.split('\n');
+    if (!first.trim() || first.startsWith('<!--')) return null;
+    const note = held
+        ? '✅ **Every finding in this review was fixed or dismissed.** The held-back part still needs a maintainer.'
+        : '✅ **Every finding in this review was fixed or dismissed.**';
+    return [note, '', `~~${first}~~`, ...rest, ADDRESSED_MARKER].join('\n');
+};
+// The bot's earlier reviews to mark: each blocking finding has a thread (so the marker's f= count
+// matches its threads), every one of those threads is resolved or being closed by this run, and this
+// run closed at least one of them, so reviews from before this change aren't edited in bulk.
+// `threads` carry the id of the review their first comment belongs to.
+const reviewsToMark = ({ reviews, threads, closing, botLogin, exclude }) => {
+    const closingSet = new Set(closing || []);
+    const out = [];
+    for (const r of reviews || []) {
+        if (!r || !r.user || r.user.login !== botLogin || r.id === exclude || r.state === 'PENDING') continue;
+        const m = /<!-- ol-pr-review-bot f=(\d+)/.exec(String(r.body || ''));
+        if (!m || !Number(m[1]) || String(r.body).includes(ADDRESSED_MARKER)) continue;
+        const own = (threads || []).filter(t => t && t.reviewId === r.id);
+        if (own.length < Number(m[1])) continue;
+        if (!own.every(t => t.isResolved || closingSet.has(t.id))) continue;
+        if (!own.some(t => closingSet.has(t.id))) continue;
+        out.push(r);
+    }
+    return out;
+};
+
 // The commit to credit in the "Addressed in" note: the newest commit in this run's range that touched
 // the thread's file (the fix is usually there), else the reviewed head. rangeShas is newest-first.
 const fixedInSha = ({ rangeShas, pathShas, headSha }) => {
@@ -55,6 +100,27 @@ const agentPrompt = (f, inThread) => {
     return `\n\n<details>\n<summary>Prompt for AI agents</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
 };
 
+// ` · `path:line`` after a finding's title in the summary, when it has a path.
+const location = f => (f.path ? ` · \`${f.path}${f.line ? `:${f.line}` : ''}\`` : '');
+
+// One collapsed "Prompt for AI agents" block in the summary covering every published finding, in
+// the shape Cubic uses, so a reader can hand them all to a coding agent at once. Gate fields only.
+const combinedAgentPrompt = findings => {
+    if (!findings.length) return '';
+    const byFile = new Map();
+    for (const f of findings) {
+        const key = f.path || '';
+        if (!byFile.has(key)) byFile.set(key, []);
+        byFile.get(key).push(f);
+    }
+    const item = f => `<item${f.line ? ` location="${f.line}"` : ''}>${f.title}: ${String(f.body).replace(/\s*\n\s*/g, ' ')}</item>`;
+    const files = [...byFile].map(([path, fs]) => (path ? `<file name="${path}">\n${fs.map(item).join('\n')}\n</file>` : fs.map(item).join('\n')));
+    const text = `Check if each issue is valid — if so, understand the root cause and fix it. If one isn't valid or won't be fixed in this PR, say why in its thread, or in a comment on the PR if it has none.\n\n${files.join('\n\n')}`;
+    // A fence longer than any run of backticks inside, so the text can't close it.
+    const fence = '`'.repeat(Math.max(3, ...(text.match(/`+/g) || []).map(run => run.length + 1)));
+    return `\n\n<details>\n<summary>Prompt for AI agents (${findings.length} open item${findings.length === 1 ? '' : 's'})</summary>\n\n${fence}text\n${text}\n${fence}\n\n</details>`;
+};
+
 // The line a re-review's summary opens with: what happened to the bot's earlier threads.
 const threadStateLine = ({ addressed, dismissed, open }) => {
     const parts = [];
@@ -68,10 +134,12 @@ const threadStateLine = ({ addressed, dismissed, open }) => {
 // The ticket compliance section, as PR-Agent's ticket_markdown_logic (pr_agent/algo/utils.py)
 // renders it. Each issue's level is computed from the model's lists, not chosen by the model.
 // Only this repo's issues are shown. It does not affect the verdict or the status.
+const MARKS = { 'Fully compliant': '✅', 'PR Code Verified': '✅', 'Partially compliant': '🔶', 'Not compliant': '❌' };
 const renderTicketCompliance = (entries, owner, repo) => {
     const prefix = `https://github.com/${owner}/${repo}/issues/`.toLowerCase();
     const bullets = list => list.map(s => `- ${String(s).replace(/\s*\n\s*/g, ' ')}`).join('\n');
-    const levels = [];
+    const levels = [],
+        heads = [];
     let out = '';
     for (const t of entries || []) {
         if (!String(t.ticket_url).toLowerCase().startsWith(prefix)) continue;
@@ -89,7 +157,9 @@ const renderTicketCompliance = (entries, owner, repo) => {
               ? 'Not compliant'
               : 'PR Code Verified';
         levels.push(level);
-        out += `\n\n**[#${t.ticket_url.split('/').pop()}](${t.ticket_url}) - ${level}**`;
+        const n = t.ticket_url.split('/').pop();
+        heads.push(`#${n} ${MARKS[level]}`);
+        out += `\n\n**[#${n}](${t.ticket_url}) - ${level}**`;
         if (met.length) out += `\n\nCompliant requirements:\n\n${bullets(met)}`;
         if (notMet.length) out += `\n\nNon-compliant requirements:\n\n${bullets(notMet)}`;
         if (human.length) out += `\n\nRequires further human verification:\n\n${bullets(human)}`;
@@ -99,7 +169,8 @@ const renderTicketCompliance = (entries, owner, repo) => {
     let mark = '✅';
     if (levels.includes('Not compliant')) mark = levels.every(l => l === 'Not compliant') ? '❌' : '🔶';
     else if (levels.includes('Partially compliant')) mark = '🔶';
-    return `\n\n### 🎫 Ticket compliance analysis ${mark}${out}`;
+    // Collapsed: one line names each issue and its level, the requirements are folded underneath.
+    return `\n\n<details>\n<summary>🎫 Linked issues ${mark}: ${heads.join(' · ')}</summary>${out}\n\n</details>`;
 };
 
 async function refetchDiff({ github, context, core, require, process }) {
@@ -122,12 +193,14 @@ async function refetchDiff({ github, context, core, require, process }) {
         basehead: `${base}...${head}`,
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
-    // A re-review covers only the files analyze listed, before the model ran.
-    require('fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
+    // A re-review covers only the files analyze listed, before the model ran. The gate checks
+    // review.diff; anchors are checked against the whole PR's diff.
+    require('node:fs').writeFileSync('review.diff', paths ? filterDiff(diff, paths) : diff);
+    require('node:fs').writeFileSync('pr.diff', diff);
 }
 
-async function validateAndPost({ github, context, core, require, process }) {
-    const fs = require('fs');
+async function validateAndPost({ github, context, core, require, process, sleep = ms => new Promise(r => setTimeout(r, ms)) }) {
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber = Number(process.env.PR);
@@ -141,47 +214,41 @@ async function validateAndPost({ github, context, core, require, process }) {
     } catch (e) {
         review = null;
     }
-    const verdict = gate.check(review);
+    const verdict = gate.check(review, fs.readFileSync('review.diff', 'utf8'));
     if (!verdict.publish) {
         // Return without failing: the status job decides pass or fail from analyze's outputs. Log no
         // reason, count or text, because the log is public.
         core.info('Nothing public to post for this commit; the code-review status job decides the gate.');
         return;
     }
+    // analyze already took out anything held back, so the gate must hold back nothing more. If it
+    // would (this diff differs from analyze's), post nothing: `status` doesn't know about it.
+    if (verdict.heldBack) {
+        core.setFailed('The review did not pass the gate again; not posting.');
+        return;
+    }
     // Everything below renders from the allowlisted copy only.
     review = verdict.clean;
+    // From analyze's gate: whether part of the review was held back, and whether that part blocks.
+    const heldBack = process.env.HELD_BACK === 'true';
+    const heldBackBlocks = heldBack && process.env.WITHHELD_BLOCKING === 'true';
 
-    // Lines a comment can anchor to: the right side (added and context lines) of the diff.
-    // GitHub doesn't document what happens with an anchor outside the diff, so findings with one
-    // go in the summary instead.
-    const anchorable = new Map();
-    {
-        let file = null,
-            newLn = 0;
-        for (const raw of fs.readFileSync('review.diff', 'utf8').split(/\r?\n/)) {
-            if (raw.startsWith('+++ ')) {
-                const p = raw.slice(4).trim();
-                file = p === '/dev/null' ? null : p.replace(/^b\//, '');
-                if (file) anchorable.set(file, new Map());
-                continue;
-            }
-            const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-            if (h) {
-                newLn = Number(h[1]);
-                continue;
-            }
-            if (!file) continue;
-            if (raw.startsWith('+') || raw.startsWith(' ')) {
-                anchorable.get(file).set(newLn++, raw.slice(1));
-            }
-        }
-    }
+    // Where comments can go: the whole PR's diff, so a re-review can still put a finding on a file
+    // changed before the last review. GitHub rejects an anchor outside the PR's diff.
+    const anchors = diffAnchors(fs.readFileSync(fs.existsSync('pr.diff') ? 'pr.diff' : 'review.diff', 'utf8'));
+    const anchorable = anchors.lines;
 
-    // Low severity findings are listed as suggestions in the summary, not as threads, which block.
+    // Every finding that blocks gets a thread, so the author can reply to it and a later review can
+    // resolve it (see threadKind): a line comment, or a comment on the whole file when there's no line
+    // to use. Low severity findings are suggestions in the summary. A finding about no file the PR
+    // changes is a note in the summary that doesn't block (analyze counts it the same way).
     const inline = [],
         inlineFindings = [],
+        fileLevel = [],
         orphaned = [],
+        notes = [],
         suggestions = [];
+    const heading = f => `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
     for (const f of review.findings || []) {
         if (f.severity === 'low') {
             suggestions.push(f);
@@ -192,20 +259,26 @@ async function validateAndPost({ github, context, core, require, process }) {
             orphaned.push(f);
             continue;
         }
-        const hasAnchor = f.path && f.line;
-        const start = f.start_line || f.line;
-        const ok =
-            hasAnchor &&
-            anchorable.has(f.path) &&
-            anchorable.get(f.path).has(Number(f.line)) &&
-            anchorable.get(f.path).has(Number(start)) &&
-            Number(start) <= Number(f.line);
-        if (!ok) {
-            orphaned.push(f);
+        const kind = threadKind(f, anchors);
+        if (!kind) {
+            notes.push(f);
             continue;
         }
+        if (kind === 'file') {
+            // No line of it in the diff: a comment on the whole file, or, if GitHub won't take that,
+            // on the first line of the file's first hunk.
+            const onFile = { ...f, start_line: undefined, line: undefined };
+            fileLevel.push({
+                finding: onFile,
+                path: f.path,
+                body: heading(onFile) + agentPrompt(onFile, true),
+                fallback: anchors.firstHunk.get(f.path) || null
+            });
+            continue;
+        }
+        const start = f.start_line || f.line;
 
-        let body = `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+        let body = heading(f);
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         if (f.suggestion != null) {
             // A suggestion must replace exactly start..line, and change something, or it is no use.
@@ -228,59 +301,93 @@ async function validateAndPost({ github, context, core, require, process }) {
         inlineFindings.push(f);
     }
 
-    // Summary. Findings without a valid anchor go here rather than on an approximate line.
-    const findingCount = inline.length + orphaned.length; // blocking findings only (LOW excluded)
+    // Blocking findings only: threads, and summary findings when inline comments are off or GitHub
+    // rejected the threads. Suggestions and notes don't count.
+    const blockingCount = () => inline.length + fileLevel.length + orphaned.length;
+    const findingCount = blockingCount();
     const baseSha = process.env.BASE_SHA;
     // Set once the earlier threads are handled; the summary opens with it.
     let stateLine = '';
     // Set when the PR moved on during the review; the summary opens with it.
     let supersededLine = '';
+    // An earlier review whose held-back part still blocks: it keeps this review's verdict at
+    // REQUEST_CHANGES, so the summary says why (#14495 got "No issues found" with changes requested).
+    let earlierHold = null;
     // A function, so a rejected post can render it again with every finding in the summary.
     const renderSummary = () => {
-        let summary = review.summary || '';
-        // The range comes from analyze's job outputs, set before the model ran.
-        if (process.env.INCREMENTAL === 'true') {
-            summary = `*Re-reviewing only the files changed since my last pass. Merges of the base branch are skipped.*\n\n${summary}`;
+        // Short, like the other review bots: a status line, the findings that have no inline thread,
+        // one agent prompt for everything open, and a one-line footer. What the PR does is the
+        // author's to say, so the model's summary appears only when it has something else to add.
+        const short = headSha.slice(0, 7);
+        const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+        const blocking = blockingCount();
+        let status;
+        if (!blocking && !suggestions.length && !notes.length)
+            status = heldBack ? `**No published findings** on \`${short}\`.` : `**No issues found** on \`${short}\`.`;
+        else {
+            const counts = [
+                blocking ? `**${plural(blocking, 'finding')}**` : '**No blocking findings**',
+                suggestions.length && plural(suggestions.length, 'suggestion'),
+                notes.length && plural(notes.length, 'note')
+            ];
+            status = `${counts.filter(Boolean).join(' · ')} on \`${short}\``;
         }
-        if (stateLine) summary = `${stateLine}\n\n${summary}`;
-        if (supersededLine) summary = `${supersededLine}\n\n${summary}`;
+        const lines = [supersededLine, status, stateLine];
+        // The range comes from analyze's job outputs, set before the model ran.
+        if (process.env.INCREMENTAL === 'true') lines.push('*Re-reviewed only the files changed since my last review, skipping merges of the base branch.*');
+        if (review.summary && review.summary.trim()) lines.push(review.summary.trim());
+        let summary = lines.filter(Boolean).join('\n\n');
 
-        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
-
-        // State every dimension, because leaving one out reads the same as having checked it.
-        // Security is a fixed line: a review with a security finding never gets this far.
-        const count = {};
-        for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
-        summary += `\n\n<details>\n<summary>Dimensions</summary>\n\n${Object.entries(gate.dimensions)
-            .map(([k, label]) => {
-                if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
-                if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
-                return `- **${label}** — no findings. ${review.dimensions[k].note}`;
-            })
-            .join('\n')}\n\n</details>`;
+        // Fixed text only: no count, and nothing about what was held back or why.
+        if (heldBack) {
+            summary += heldBackBlocks
+                ? '\n\n> [!IMPORTANT]\n> Part of this review was held back because it may be security-sensitive. A maintainer needs to look at this PR before it can merge.'
+                : '\n\n> [!NOTE]\n> Part of this review was held back because it may be security-sensitive. None of it blocks this PR.';
+        }
+        // Fixed text and a link only, like the note above: nothing about what was held back.
+        if (earlierHold) {
+            const which = earlierHold.commit_id ? ` of \`${String(earlierHold.commit_id).slice(0, 7)}\`` : '';
+            const link = String(earlierHold.html_url || '').startsWith('https://github.com/')
+                ? `[earlier review${which}](${earlierHold.html_url})`
+                : `earlier review${which}`;
+            summary += `\n\n> [!IMPORTANT]\n> Changes are still requested because part of an ${link} was held back as possibly security-sensitive. A maintainer needs to look at it, then dismiss that review.`;
+        }
 
         if (orphaned.length) {
             summary += `\n\n### ${inlineKeyIssues ? 'Findings without an in-diff anchor' : 'Findings'}\n\n${orphaned
                 .map(
                     f =>
-                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body + agentPrompt(f, false)).replace(/\n/g, '\n  ')}`
+                        `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${location(f)}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
                 )
                 .join('\n\n')}`;
         }
         if (suggestions.length) {
-            summary += `\n\n### Suggestions (won't block)\n\n${suggestions
-                .map(
-                    f =>
-                        `- **${f.title}**${f.path ? ` (\`${f.path}${f.line ? `:${f.line}` : ''}\`)` : ''}: ${String(f.body).replace(/\n/g, ' ')}${agentPrompt(f, false).replace(/\n/g, '\n  ')}`
-                )
+            summary += `\n\n### Suggestions (won't block)\n\n${suggestions.map(f => `- **${f.title}**${location(f)}\n  ${String(f.body).replace(/\n/g, ' ')}`).join('\n\n')}`;
+        }
+        if (notes.length) {
+            summary += `\n\n### Notes (won't block)\n\nAbout code outside this PR's changes, so there's no thread to reply in. Reply in a comment on the PR if one doesn't apply.\n\n${notes
+                .map(f => `- **${gate.dimensions[f.dimension]} — ${f.title}**${location(f)}\n  ${String(f.body).replace(/\n/g, '\n  ')}`)
                 .join('\n\n')}`;
         }
-        // A contributor without write access can't re-request a review, but can comment.
+        // After a rejected post the threads have moved into `orphaned`, so count them once.
+        summary += combinedAgentPrompt([...(inline.length ? inlineFindings : []), ...fileLevel.map(x => x.finding), ...orphaned, ...suggestions, ...notes]);
+
+        summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
+
+        // One small line instead of callouts. Comments and re-requests are in the doc: most authors
+        // just push, and a push gets its own review. "Not a security audit" is in the doc too.
+        // The first part is the next step, which also says this isn't an approval. Suggestions count
+        // as feedback: we want it taken seriously, and the author can judge what applies.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
-        summary += /^\d+$/.test(minutes || '')
-            ? `\n\n---\n> [!TIP]\n> A new review starts automatically about ${minutes} minutes after your last push. To start it sooner, a maintainer can re-request a review, or you can comment \`@openlibrary-bot review\` on this PR.`
-            : `\n\n---\n> [!TIP]\n> When you've addressed the feedback and pushed your changes, comment \`@openlibrary-bot review\` on this PR to run a fresh review.`;
-        summary += `\n\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md). This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot f=${findingCount} -->`;
+        const feedback = blocking || suggestions.length || notes.length;
+        const next = feedback
+            ? 'Please address the feedback above before a maintainer reviews this PR'
+            : earlierHold
+              ? 'Waiting for a maintainer to check the held-back review'
+              : 'A maintainer will review this PR next';
+        const footer = [next, '[How this bot works](https://github.com/internetarchive/openlibrary/blob/master/docs/code-review-bot.md)'];
+        if (feedback && /^\d+$/.test(minutes || '')) footer.push(`Reviews new pushes after ${minutes} minutes`);
+        summary += `\n\n<sub>${footer.join(' · ')}</sub>\n\n${reviewMarker(findingCount, heldBackBlocks)}`;
         if (supersededLine) summary += `\n${supersededMarker(headSha)}`;
         return summary;
     };
@@ -320,6 +427,8 @@ async function validateAndPost({ github, context, core, require, process }) {
     let unresolvedOwnThreads = null;
     const toResolveIds = [];
     const noteEdits = [];
+    // The bot's threads with the review each came from, for marking earlier reviews addressed.
+    let ownThreads = null;
     if (!superseded) {
         try {
             let allThreads = [],
@@ -330,7 +439,7 @@ async function validateAndPost({ github, context, core, require, process }) {
              repository(owner:$owner,name:$repo){
                pullRequest(number:$pr){
                  reviewThreads(first:100, after:$cursor){
-                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { id author { login } body } } }
+                   nodes { id isResolved isOutdated path line comments(first:1){ nodes { id author { login } body pullRequestReview { databaseId } } } }
                    pageInfo { hasNextPage endCursor }
                  }
                }
@@ -343,6 +452,15 @@ async function validateAndPost({ github, context, core, require, process }) {
                 if (!rt.pageInfo.hasNextPage) break;
                 tCursor = rt.pageInfo.endCursor;
             }
+            ownThreads = allThreads
+                .filter(t => {
+                    const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
+                    return c && c.author && c.author.login === 'openlibrary-bot';
+                })
+                .map(t => {
+                    const r = t.comments.nodes[0].pullRequestReview;
+                    return { id: t.id, isResolved: t.isResolved, reviewId: r ? r.databaseId : null };
+                });
             const toResolve = threadsToResolve({ threads: allThreads, resolvedIds: review.resolved, botLogin: 'openlibrary-bot' });
             // A thread listed as both counts as fixed.
             const toDismiss = threadsToResolve({ threads: allThreads, resolvedIds: review.dismissed, botLogin: 'openlibrary-bot' }).filter(
@@ -401,14 +519,22 @@ async function validateAndPost({ github, context, core, require, process }) {
 
     // A human's open thread doesn't stop APPROVE, though it keeps the status red. The status, not
     // the verdict, is what merging requires.
-    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount, unresolvedOwnThreads });
+    // Never approve while a blocking part is held back, from this review or an earlier one a
+    // maintainer hasn't dismissed: count it as one more finding.
+    let blocked = heldBackBlocks;
+    if (!blocked && !superseded) {
+        const earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        earlierHold = heldBackReview(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
+        blocked = earlierHold !== null;
+    }
+    let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount: findingCount + (blocked ? 1 : 0), unresolvedOwnThreads });
     let summary = renderSummary();
 
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
     // in practice (cli/cli#13358), while the same anchors in a batched review work. On a 422,
     // first move the inline comments into the summary (GitHub rejects a line it can't find in the
     // PR's diff), then fall back from a verdict to COMMENT, rather than fail and lose the review.
-    const postReview = () =>
+    const createReview = () =>
         github.rest.pulls.createReview({
             owner,
             repo,
@@ -418,17 +544,126 @@ async function validateAndPost({ github, context, core, require, process }) {
             body: summary,
             comments: inline
         });
+    // createReview takes no file-level comments (422, "subjectType ... not defined"). With any, the
+    // review is created pending, each file-level thread is added with GraphQL, and the review is
+    // submitted with the verdict. Each failed thread falls back to the first line of the file's first
+    // hunk, then to the summary, where it still blocks. GitHub allows one pending review per user per
+    // PR, so a pending review left by an earlier failed run is deleted first, and so is this one if
+    // anything fails before it is submitted.
+    const addThread = async (reviewNodeId, input) => {
+        const res = await github.graphql(`mutation($input:AddPullRequestReviewThreadInput!){ addPullRequestReviewThread(input:$input){ thread { id } } }`, {
+            input: { pullRequestReviewId: reviewNodeId, ...input }
+        });
+        // On a file outside the PR's diff GitHub returns a null thread and no error.
+        return (res && res.addPullRequestReviewThread && res.addPullRequestReviewThread.thread) || null;
+    };
+    const deletePending = id => github.rest.pulls.deletePendingReview({ owner, repo, pull_number: prNumber, review_id: id });
+    const createWithFileThreads = async () => {
+        const existing = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        for (const r of existing.filter(rev => rev.user && rev.user.login === 'openlibrary-bot' && rev.state === 'PENDING')) {
+            core.warning(`Deleting pending review ${r.id} left by an earlier run.`);
+            // A failed delete must not stop the review. If the pending review is still there, the
+            // createReview below gets a 422, and the retry loop posts the review in one call.
+            try {
+                await deletePending(r.id);
+            } catch (e) {
+                core.warning(`Could not delete pending review ${r.id} (${e.message}).`);
+            }
+        }
+        const { data: pending } = await github.rest.pulls.createReview({
+            owner,
+            repo,
+            pull_number: prNumber,
+            commit_id: headSha,
+            body: summary,
+            comments: inline
+        });
+        try {
+            const failed = [];
+            for (const x of fileLevel) {
+                let thread = null;
+                try {
+                    thread = await addThread(pending.node_id, { path: x.path, subjectType: 'FILE', body: x.body });
+                } catch (e) {
+                    core.warning(`Could not add a file-level thread on ${x.path} (${e.message}).`);
+                }
+                if (!thread && x.fallback) {
+                    try {
+                        thread = await addThread(pending.node_id, { path: x.path, line: x.fallback.line, side: x.fallback.side, body: x.body });
+                    } catch (e) {
+                        core.warning(`Could not add a thread on ${x.path}:${x.fallback.line} either (${e.message}).`);
+                    }
+                }
+                if (!thread) failed.push(x);
+            }
+            if (failed.length) {
+                core.warning(`${failed.length} file-level finding(s) got no thread; they go in the summary.`);
+                for (const x of failed) {
+                    fileLevel.splice(fileLevel.indexOf(x), 1);
+                    orphaned.push(x.finding);
+                }
+                summary = renderSummary();
+            }
+            return await github.rest.pulls.submitReview({ owner, repo, pull_number: prNumber, review_id: pending.id, event, body: summary });
+        } catch (e) {
+            try {
+                await deletePending(pending.id);
+            } catch (deleteError) {
+                core.warning(`Could not delete pending review ${pending.id} (${deleteError.message}).`);
+            }
+            throw e;
+        }
+    };
+    const postReview = () => (fileLevel.length ? createWithFileThreads() : createReview());
+    // A 5xx can come back after GitHub created the review (#14292 got a 500 and no review), so
+    // before posting again, look for it: a bot review on this commit, posted since we started,
+    // that opens with this summary's first line.
+    const startedAt = Date.now();
+    const alreadyPosted = async () => {
+        const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        const first = summary.split('\n')[0];
+        return reviews.find(
+            r =>
+                r.user &&
+                r.user.login === 'openlibrary-bot' &&
+                r.commit_id === headSha &&
+                Date.parse(r.submitted_at) >= startedAt - 60 * 1000 &&
+                String(r.body || '').startsWith(first)
+        );
+    };
+    const MAX_SERVER_RETRIES = 2;
+    let serverErrors = 0;
     let posted;
     for (;;) {
         try {
             ({ data: posted } = await postReview());
             break;
         } catch (e) {
+            if (e && e.status >= 500 && serverErrors < MAX_SERVER_RETRIES) {
+                serverErrors++;
+                await sleep(10 * 1000 * serverErrors);
+                // GitHub may be failing reads too. Treat a failed check as "not found" so the retry
+                // still runs: a rare duplicate review beats losing the review.
+                let found;
+                try {
+                    found = await alreadyPosted();
+                } catch (checkError) {
+                    core.warning(`Could not check whether the review was posted (${checkError.message}); trying again anyway.`);
+                }
+                if (found) {
+                    core.info(`GitHub returned ${e.status}, but review ${found.id} was posted; using it.`);
+                    posted = found;
+                    break;
+                }
+                core.warning(`GitHub returned ${e.status} posting the review; trying again (${serverErrors} of ${MAX_SERVER_RETRIES}).`);
+                continue;
+            }
             if (!e || e.status !== 422) throw e;
-            if (inline.length) {
+            if (inline.length || fileLevel.length) {
                 core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);
-                orphaned.push(...inlineFindings);
+                orphaned.push(...(inline.length ? inlineFindings : []), ...fileLevel.map(x => x.finding));
                 inline.length = 0;
+                fileLevel.length = 0;
                 summary = renderSummary();
             } else if (event !== 'COMMENT') {
                 core.warning(`Verdict ${event} was rejected (422); posting as COMMENT instead.`);
@@ -450,7 +685,9 @@ async function validateAndPost({ github, context, core, require, process }) {
         core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
         return;
     }
-    core.info(`Posted ${event} review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
+    core.info(
+        `Posted ${event} review ${posted.id}: ${inline.length} inline, ${fileLevel.length} file-level, ${orphaned.length} in summary, ${notes.length} notes.`
+    );
     // Only once the review is up, so a failed post leaves the threads and their comments as they were.
     // A failed edit still hands the thread on.
     for (const { threadId, commentId, body } of noteEdits) {
@@ -464,6 +701,28 @@ async function validateAndPost({ github, context, core, require, process }) {
         }
     }
     core.setOutput('resolve_thread_ids', JSON.stringify(toResolveIds));
+
+    // Earlier reviews whose findings this run closed the last of: say so at the top of each, as if
+    // the resolve job succeeds (as unresolvedOwnThreads does). Never fails the job, and never edits
+    // anything but the review's text: its verdict can't be edited, and the bot never dismisses a
+    // review, since a dismissal is how a maintainer lifts a held-back part.
+    if (ownThreads && toResolveIds.length) {
+        try {
+            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+            for (const r of reviewsToMark({ reviews, threads: ownThreads, closing: toResolveIds, botLogin: 'openlibrary-bot', exclude: posted.id })) {
+                const body = addressedBody(r.body, { held: r.state !== 'DISMISSED' && heldBackBlocking(r.body) });
+                if (!body) continue;
+                try {
+                    await github.rest.pulls.updateReview({ owner, repo, pull_number: prNumber, review_id: r.id, body });
+                    core.info(`Marked review ${r.id} as addressed.`);
+                } catch (e) {
+                    core.warning(`Could not mark review ${r.id} as addressed: ${e.message}`);
+                }
+            }
+        } catch (e) {
+            core.warning(`Could not list reviews to mark as addressed: ${e.message}`);
+        }
+    }
 
     // See shouldDismissTeamRequest. Never fails the job. A superseded review leaves the request for the new head.
     if (!superseded && shouldDismissTeamRequest({ selfAuthored, event })) {
@@ -491,5 +750,8 @@ module.exports = {
     fixedInSha,
     renderTicketCompliance,
     agentPrompt,
-    threadStateLine
+    threadStateLine,
+    addressedBody,
+    reviewsToMark,
+    ADDRESSED_MARKER
 };

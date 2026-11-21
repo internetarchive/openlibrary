@@ -79,7 +79,7 @@ export function initCoversSaved() {
     const coverstore_url = data_config_json['url'];
     const cover_selector = data_config_json['selector'];
     const image = $('.imageSaved').data('imageId');
-    var cover_url;
+    let cover_url;
 
     $('.popClose').on('click', closePopup);
 

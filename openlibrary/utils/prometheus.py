@@ -18,6 +18,9 @@ So when porting a parameterized route, use the ``handler`` web.py reports for it
 Parameters are named ``work_id``, ``edition_id``, ``author_id`` and ``tag_id`` (``OL{work_id}W``),
 ``list_id`` (``{list_id}``, the whole ``OL1L``), ``username`` after ``/people/``, ``title`` for the
 readable-URL slug, and ``key`` otherwise, with ``:path`` if it can contain a ``/``.
+
+Both servers also record how long each request spent in each backend service (see ``record_backend_times``):
+``ol_request_backend_seconds{server, backend}`` and ``ol_request_backend_calls_total{server, backend}``.
 """
 
 from __future__ import annotations
@@ -38,12 +41,13 @@ from starlette.responses import Response
 
 from infogami.utils import app as infogami_app
 from infogami.utils import types
+from openlibrary.utils import server_timing
 from openlibrary.utils.prometheus_multiprocess import metrics_registry
 from openlibrary.utils.request_context import visitor
 from openlibrary.utils.sentry import InfogamiRoute, find_infogami_route
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from fastapi import FastAPI
 
@@ -56,6 +60,18 @@ LATENCY_BUCKETS = (0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60
 LATENCY_HIGHR_BUCKETS = (0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 7.5, 10, 30, 60)
 # Regexes, searched for in the handler name, as the instrumentator does
 EXCLUDED_HANDLERS = ("/health", "/metrics")
+
+# A request's total time in one backend, from a single cache hit up to many slow queries
+BACKEND_BUCKETS = (0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5)
+# No handler label, to keep the series few. The calls counter gives the mean time per call:
+# rate(ol_request_backend_seconds_sum) / rate(ol_request_backend_calls_total)
+BACKEND_SECONDS = Histogram(
+    "ol_request_backend_seconds",
+    "Time each request spent in a backend service, all its calls to it together. Only requests that called it.",
+    ("server", "backend"),
+    buckets=BACKEND_BUCKETS,
+)
+BACKEND_CALLS = Counter("ol_request_backend_calls_total", "Calls to a backend service.", ("server", "backend"))
 
 
 def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegistry = REGISTRY) -> Callable[[metrics.Info], None] | None:
@@ -117,6 +133,46 @@ def response_type(status: str, content_type: str) -> Literal["redirect", "html",
     if "json" in content_type:
         return "json"
     return "other"
+
+
+def backend(name: str) -> str | None:
+    """The backend service a timing is for: ``infobase``, ``memcache``, ``db``, ``solr`` or ``ia``; None if it isn't one.
+
+    ``name`` is a web.py infogami stat (``memcache.get``, ``infobase``, ``db``) or a Server-Timing metric
+    (``solr``, ``db-legacy``, ``ia-loans``). ``archive.org`` is None: ``ia.get_api_response`` times its
+    request as ``ia-metadata`` too. So is ``db-checkout``, waiting for a pool connection, which isn't a query.
+
+    >>> backend("memcache.get_multi"), backend("db-legacy"), backend("ia-loans"), backend("render-jinja")
+    ('memcache', 'db', 'ia', None)
+    """
+    name = name.split(".", maxsplit=1)[0]
+    if name in ("infobase", "memcache", "solr", "db"):
+        return name
+    if name == "db-legacy":
+        return "db"
+    if name == "ia" or name.startswith("ia-"):
+        return "ia"
+    return None
+
+
+def record_backend_times(server: Literal["fastapi", "webpy"], timings: Iterable[tuple[str, int, float]]) -> None:
+    """Record one request's time in each backend it called, from its ``(name, calls, seconds)`` timings."""
+    calls_by_backend: dict[str, int] = {}
+    seconds_by_backend: dict[str, float] = {}
+    for name, calls, seconds in timings:
+        if service := backend(name):
+            calls_by_backend[service] = calls_by_backend.get(service, 0) + calls
+            seconds_by_backend[service] = seconds_by_backend.get(service, 0.0) + seconds
+    for service, seconds in seconds_by_backend.items():
+        BACKEND_SECONDS.labels(server, service).observe(seconds)
+        BACKEND_CALLS.labels(server, service).inc(calls_by_backend[service])
+
+
+def webpy_backend_times(timings: server_timing.RequestTimings) -> list[tuple[str, int, float]]:
+    """A web.py request's timings: infogami's stats (infobase, memcache, legacy DB) in ``web.ctx.stats``,
+    and the Server-Timing ones (Solr, the async DB pool, archive.org), which record into ``timings``."""
+    stats = [(s.name, 1, s.time) for s in web.ctx.get("stats", [])]
+    return stats + [(name, calls, seconds) for name, (calls, seconds, _) in timings.snapshot().items()]
 
 
 @functools.cache
@@ -359,6 +415,8 @@ class WebPyPrometheusProcessor:
     def __call__(self, handler):
         requested_path = web.ctx.path  # before e.g. ReadableUrlProcessor rewrites it
         visitor.set(None)  # so a request that ends before setup_contextvars, like a redirect, doesn't reuse the previous request's
+        # Collects the timings of the code that records Server-Timing in FastAPI, e.g. Solr calls
+        timings, token = server_timing.start_request()
         start = default_timer()
         body = None
         try:
@@ -366,12 +424,13 @@ class WebPyPrometheusProcessor:
             return body
         finally:
             duration = max(default_timer() - start, 0.0)
+            server_timing.end_request(token)
             try:
-                self._record(requested_path, body, duration)
+                self._record(requested_path, body, duration, timings)
             except Exception:
                 logger.exception("Failed to record Prometheus request metrics")
 
-    def _record(self, requested_path: str, body, duration: float) -> None:
+    def _record(self, requested_path: str, body, duration: float, timings: server_timing.RequestTimings) -> None:
         handler = webpy_route_name(requested_path)
         if any(re.search(pattern, handler) for pattern in EXCLUDED_HANDLERS):
             return
@@ -393,6 +452,7 @@ class WebPyPrometheusProcessor:
                 modified_duration_without_streaming=duration,
             )
         )
+        record_backend_times("webpy", webpy_backend_times(timings))
 
 
 def _response_header(name: str) -> str | None:

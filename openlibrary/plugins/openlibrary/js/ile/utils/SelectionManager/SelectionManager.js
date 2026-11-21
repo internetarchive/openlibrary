@@ -104,7 +104,7 @@ export default class SelectionManager {
                 } else {
                     affectedElements = siblingSet.slice(elIndex, lastClickedIndex);
                 }
-                const stateChange = this.lastClicked.classList.contains('ile-selected') ? true : false;
+                const stateChange = this.lastClicked.classList.contains('ile-selected');
                 for (const element of affectedElements) this.toggleSelected(element, stateChange);
             } else {
                 this.toggleSelected(el);
@@ -141,9 +141,8 @@ export default class SelectionManager {
         }
         if (commonParent) {
             return $(commonParent).find('.ile-selectable');
-        } else {
-            return $(clicked);
         }
+        return $(clicked);
     }
 
     /**
@@ -164,7 +163,7 @@ export default class SelectionManager {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img')
                 .toArray()
-                .find(el => el.src === img_src);
+                .find(img => img.src === img_src);
             $(img_el).remove();
         } else {
             this.addSelectedItem(olid);
@@ -397,7 +396,7 @@ SelectionManager.TYPES = [
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
                 return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
-            else return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
+            return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
         }
     },
     {

@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>10.3</luceneMatchVersion>
+  <luceneMatchVersion>10.4</luceneMatchVersion>
 
   <!-- Data Directory
 

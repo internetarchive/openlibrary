@@ -14,7 +14,7 @@ export async function initSubjectRows(lists) {
         const fit = () => {
             chips.forEach(chip => (chip.hidden = false));
             more.hidden = true;
-            const lines = parseInt(getComputedStyle(list).getPropertyValue('--subject-row-lines')) || 1;
+            const lines = parseInt(getComputedStyle(list).getPropertyValue('--subject-row-lines'), 10) || 1;
             const tops = [...new Set(chips.map(chip => chip.offsetTop))];
             if (tops.length <= lines) return;
             const lastLine = tops[lines - 1];

@@ -8,7 +8,7 @@ This guide covers everything Docker-related for local Open Library development. 
 
 - Docker Engine: <https://docs.docker.com/engine/install/#server>
 
-**Windows** and **macOS** users should use `Docker Desktop`.
+**Windows** and **macOS** users should use `Docker Desktop`. On Windows, turn on WSL2 integration and [clone the repository inside WSL2](https://docs.openlibrary.org/developers/tools/git.html#windows-clone-inside-wsl2-recommended).
 
 - Docker Desktop: <https://docs.docker.com/get-docker/>
 
@@ -29,7 +29,7 @@ Linux users, note the lack of `sudo` before `docker run hello-world`. See the [L
 ## Prepare your system
 
 > [!IMPORTANT]
-> **Windows** users should see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
+> **Windows** users should [clone and run Open Library inside WSL2](https://docs.openlibrary.org/developers/tools/git.html#windows-clone-inside-wsl2-recommended), not from a Windows folder. If you already cloned with Git for Windows, see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Otherwise the containers will likely not come up.
 
 We recommend adjusting Docker's resource settings to use at least 4GB of RAM and 2GB of swap. The defaults of 2GB RAM and 1GB swap are likely to cause the error `Killed` when running `build-assets` to build JS dependencies.
 
@@ -137,7 +137,7 @@ bash scripts/fully_reset_environment.sh
 
 These errors may appear in different containers or with different file names, but look for file-not-found type errors where `\r` is in the filename, or there's `exec`, a path that seems to exist, and a `no such file or directory` error, e.g. `openlibrary-web-1 | exec docker/ol-web-start.sh: no such file or directory`
 
-The likely cause here is that text files were given CRLF line endings during cloning+checkout. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
+The likely cause here is that text files were given CRLF line endings during cloning+checkout, usually by Git for Windows. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm), or [clone again inside WSL2](https://docs.openlibrary.org/developers/tools/git.html#windows-clone-inside-wsl2-recommended).
 
 Note: after fixing this error, be on the lookout for another error that will appear almost immediately after running `docker compose up` that mentions something about the `role` of `openlibrary` not existing. Read on for how to address that.
 
@@ -162,7 +162,7 @@ cd path/to/your/cloned/openlibrary
 git submodule init; git submodule sync; git submodule update
 ```
 
-Windows users may need to see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
+On Windows, this can also mean the `infogami` symlink was checked out as a text file. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
 ### "no configuration file provided: not found" when running `docker compose <command>`
 
