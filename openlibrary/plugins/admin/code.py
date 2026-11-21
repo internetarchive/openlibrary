@@ -34,6 +34,7 @@ from openlibrary.core import (
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.models import Work
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.admin import new_accounts
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
@@ -423,15 +424,12 @@ class people_edits:
         raise web.seeother(web.ctx.fullpath)
 
 
-# The people_view actions offered on each row of /admin/new-accounts.
-NEW_ACCOUNT_ACTIONS = {
-    "block_account": "POST_block_account",
-    "block_account_and_revert": "POST_block_account_and_revert",
-}
+# The actions offered on the accounts ticked on /admin/new-accounts.
+NEW_ACCOUNT_ACTIONS = ("block_account", "block_account_and_revert", "mark_trusted")
 
 
 class new_accounts_view:
-    """New accounts writing fast: young accounts ranked by recent edits, with block actions on each row."""
+    """Spam review: young accounts ranked by signs of spam, blocked or marked trusted in bulk."""
 
     def GET(self):
         i = web.input(days=None, hours=None, show=None)
@@ -444,20 +442,32 @@ class new_accounts_view:
             spam_words=spamcheck.get_spam_words(),
         )
         body = render_jinja_template("admin/new_accounts.html.jinja", report=report)
-        return web.template.TemplateResult(__body__=body, title=_("[Admin Center] New accounts"))
+        return web.template.TemplateResult(__body__=body, title=_("[Admin Center] Spam review"))
 
     def POST(self):
-        i = web.input(username="", action="")
+        i = web.input(username=[], action="")
         if i.action not in NEW_ACCOUNT_ACTIONS:
             raise web.badrequest()
-        if not (account := accounts.find(username=i.username)):
-            raise web.notfound()
-        try:
-            getattr(people_view(), NEW_ACCOUNT_ACTIONS[i.action])(account)
-        except web.SeeOther:
-            # The action redirects to the account's own page; drop that and return to this list.
-            web.ctx.headers = [(name, value) for name, value in web.ctx.headers if name.lower() != "location"]
-        # fullpath keeps ?days= and ?hours=
+        found = [account for name in dict.fromkeys(i.username) if name and (account := accounts.find(username=name))]
+        if not found:
+            add_flash_message("error", _("Select at least one account."))
+        elif i.action == "mark_trusted":
+            for account in found:
+                account.add_tag(new_accounts.TRUSTED_TAG)
+            add_flash_message("info", ungettext("Marked %(count)d account trusted.", "Marked %(count)d accounts trusted.", len(found), count=len(found)))
+        else:
+            edits = deleted = 0
+            for account in found:
+                if not account.is_blocked():
+                    account.block()
+                if i.action == "block_account_and_revert":
+                    reverted, removed = revert_all_user_edits(account)
+                    edits, deleted = edits + reverted, deleted + removed
+            message = ungettext("Blocked %(count)d account.", "Blocked %(count)d accounts.", len(found), count=len(found))
+            if i.action == "block_account_and_revert":
+                message += " " + _("Reverted %(edits)d edits and deleted %(deleted)d records.", edits=edits, deleted=deleted)
+            add_flash_message("info", message)
+        # fullpath keeps ?days=, ?hours= and ?show=
         raise web.seeother(web.ctx.fullpath)
 
 
@@ -766,7 +776,7 @@ def setup():
     register_admin_page("/admin/git-pull", gitpull, label="git-pull")
     register_admin_page("/admin/reload", reload, label="Reload Templates")
     register_admin_page("/admin/people", people, label="People")
-    register_admin_page("/admin/new-accounts", new_accounts_view, label="New accounts")
+    register_admin_page("/admin/new-accounts", new_accounts_view, label="Spam review")
     register_admin_page("/admin/people/([^/]*)", people_view, label="View People")
     register_admin_page("/admin/people/([^/]*)/edits", people_edits, label="Edits")
     register_admin_page("/admin/ip", ipaddress, label="IP")

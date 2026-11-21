@@ -37,6 +37,10 @@ RECORD_PRIORITY = ("/works/", "/books/", "/lists/", "/series/", "/authors/")
 BLOCKABLE_STATUSES = ("active", "verified")
 # Adding catalog books to one's own list is what new readers do most; it never counts towards the ranking.
 LIST_SEED_KINDS = ("edit-list-seeds",)
+# The page is a queue: an account leaves it once an admin blocks it or tags it trusted (which also skips the captcha).
+TRUSTED_TAG = "trusted-user"
+# Blocked and trusted accounts are looked up newest-changed first; a young account blocked recently is near the top.
+REVIEW_LOOKUP_LIMIT = 1000
 
 # Signals. The records an account created or edited are read, newest first, up to this many, plus its profile.
 MAX_RECORDS_CHECKED = 20
@@ -92,6 +96,7 @@ class RecentEdit:
     key: str | None
     title: str | None  # None when the record has no title or is deleted; the template shows the key
     deleted: bool
+    undone: bool  # deleted, or changed again since, as a revert does
     timestamp: datetime
     ago: str  # "3.5 h"
     comment: str
@@ -107,7 +112,12 @@ class Signal:
 LIKELY = "likely"
 LOOK = "look"
 NONE = "none"
-SHOW_CHOICES = (LIKELY, LOOK, "all")
+REVIEWED = "reviewed"
+SHOW_CHOICES = (LIKELY, LOOK, REVIEWED, "all")
+# An account's review, once an admin has acted on it.
+BLOCKED = "blocked"
+REVERTED = "reverted"  # blocked, and its last edits undone
+TRUSTED = "trusted"
 
 
 @dataclass
@@ -137,6 +147,7 @@ class AccountRow:
     recent_edits: list[RecentEdit] = field(default_factory=list)
     signals: list[Signal] = field(default_factory=list)
     tier: str = NONE  # LIKELY, LOOK or NONE
+    review: str = ""  # BLOCKED, REVERTED, TRUSTED, or "" while it waits for review
 
 
 @dataclass
@@ -149,7 +160,8 @@ class Report:
     matching_accounts: int  # before the cut to `max_accounts`
     likely_accounts: int
     look_accounts: int
-    show: str  # LIKELY, LOOK or "all"
+    reviewed_accounts: int
+    show: str  # LIKELY, LOOK, REVIEWED or "all"
     max_accounts: int
     changes_scanned: int
     scan_capped: bool
@@ -378,18 +390,26 @@ def _recent_edits(site, writes_by_author: dict[str, list], now: datetime) -> dic
         key = _primary_key(change)
         doc = docs.get(key)
         deleted = doc is not None and doc.type.key == "/type/delete"
+        revision = next((item.get("revision") for item in change.changes if item.get("key") == key), None)
         title = doc is not None and not deleted and (doc.get("title") or doc.get("name") or doc.get("displayname"))
         return RecentEdit(
             kind=change.kind,
             key=key,
             title=str(title) if title else None,
             deleted=deleted,
+            undone=deleted or bool(doc is not None and revision and doc.revision > revision),
             timestamp=change.timestamp,
             ago=format_duration(now - change.timestamp),
             comment=change.comment or "",
         )
 
     return {author: [edit(c) for c in writes] for author, writes in newest.items()}
+
+
+def _accounts_with(site, name: str, value: str) -> set[str]:
+    """Profile keys of the accounts whose store record has `name` equal to, or holding, `value`."""
+    keys = site.store.keys(type="account", name=name, value=value, limit=REVIEW_LOOKUP_LIMIT)
+    return {"/people/" + key.removeprefix("account/") for key in keys}
 
 
 def build_report(
@@ -406,11 +426,13 @@ def build_report(
 ) -> Report:
     """Accounts under `days` days old that wrote in the last `hours` hours, likely spam first, then most writes.
 
-    `show` limits the rows to one tier: LIKELY, LOOK, or "all".
+    `show` limits the rows to one queue: LIKELY or LOOK, the accounts of that tier still waiting for review;
+    REVIEWED, those blocked or trusted; or "all".
 
     Cost, in Infobase calls: the scan (at most max_changes / page_size), one `get_many` per 100 authors seen in it,
     and then for the `max_accounts` rows shown: one store read each for status and email, one `recentchanges` for
     each account that signed up before the scan's reach, and one `get_many` for the titles of the last edits.
+    Two store queries find the blocked and trusted accounts.
     The signals add one `get_many` per 100 records read: at most 2 * MAX_RECORDS_CHECKED + 1 per young account.
     """
     now = now or utcnow()
@@ -438,11 +460,17 @@ def build_report(
     signals = find_signals(site, {key: (young[key][1], scanned_by_author[key]) for key in young}, spam_words or [])
     tiers = {key: tier_of(signals[key]) for key in young}
     order = {LIKELY: 0, LOOK: 1, NONE: 2}
+    reviewed = (_accounts_with(site, "status", "blocked") | _accounts_with(site, "tags", TRUSTED_TAG)) & young.keys()
+
+    def in_queue(key: str) -> bool:
+        if show == REVIEWED:
+            return key in reviewed
+        return show == "all" or (tiers[key] == show and key not in reviewed)
 
     def rank(key: str):
         return (order[tiers[key]], -sum(s.strong for s in signals[key]), -_ranked_writes(scanned_by_author[key]), first_delay(key))
 
-    ranked = sorted((key for key in young if show == "all" or tiers[key] == show), key=rank)
+    ranked = sorted(filter(in_queue, young), key=rank)
     shown = ranked[:max_accounts]
 
     # The scan holds an account's whole history only if it signed up within the scan's reach.
@@ -471,6 +499,11 @@ def build_report(
         username = key.split("/")[-1]
         account = site.store.get(f"account/{username}") or {}
         status = account.get("status") or "unknown"
+        edits = recent_edits[key]
+        if status == "blocked":
+            review = REVERTED if edits and all(e.undone for e in edits) else BLOCKED
+        else:
+            review = TRUSTED if TRUSTED_TAG in (account.get("tags") or []) else ""
 
         in_window = [c for c in writes if c.timestamp >= since]
         books_added = sum(c.kind in BOOK_ADD_KINDS for c in in_window)
@@ -504,9 +537,10 @@ def build_report(
                 first_write_delay=delay,
                 first_write_label=delay_label if exact else _("at most %(duration)s", duration=delay_label),
                 first_write_is_fast=delay < timedelta(minutes=FAST_FIRST_WRITE_MINUTES),
-                recent_edits=recent_edits[key],
+                recent_edits=edits,
                 signals=signals[key],
                 tier=tiers[key],
+                review=review,
             )
         )
 
@@ -518,8 +552,9 @@ def build_report(
         window_label=ungettext("%(count)s hour", "%(count)s hours", hours, count=hours),
         rows=rows,
         matching_accounts=len(young),
-        likely_accounts=sum(t == LIKELY for t in tiers.values()),
-        look_accounts=sum(t == LOOK for t in tiers.values()),
+        likely_accounts=sum(t == LIKELY and k not in reviewed for k, t in tiers.items()),
+        look_accounts=sum(t == LOOK and k not in reviewed for k, t in tiers.items()),
+        reviewed_accounts=len(reviewed),
         show=show,
         max_accounts=max_accounts,
         changes_scanned=len(changes),

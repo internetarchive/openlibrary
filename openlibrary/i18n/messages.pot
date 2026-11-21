@@ -1369,7 +1369,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html admin/new_accounts.html.jinja
+#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
 msgid "Actions"
 msgstr ""
 
@@ -2080,8 +2080,8 @@ msgstr ""
 msgid "Tasks"
 msgstr ""
 
-#: admin/index.html admin/menu.html
-msgid "New accounts"
+#: admin/index.html admin/menu.html admin/new_accounts.html.jinja
+msgid "Spam review"
 msgstr ""
 
 #: admin/index.html
@@ -2307,12 +2307,8 @@ msgid "Inspect memcache"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
-msgid "New accounts writing fast"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
 #, python-format
-msgid "Accounts under %(age)s old that edited in the last %(window)s. Times are in UTC."
+msgid "Accounts under %(age)s old that edited in the last %(window)s. Blocked and trusted accounts move to Reviewed. Times are in UTC."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2390,6 +2386,10 @@ msgid "Likely spam"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
+msgid "Reviewed"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
 #, python-format
 msgid "Only the newest %(count)s edits were scanned, back to %(time)s. Edits before then are not counted, and accounts that only wrote before then are missing."
 msgstr ""
@@ -2397,6 +2397,43 @@ msgstr ""
 #: admin/new_accounts.html.jinja
 #, python-format
 msgid "Showing the %(shown)s busiest of %(total)s accounts."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Select all accounts"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Select all"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "%(count)s selected"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Block the selected accounts?"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Block"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Block the selected accounts and revert all their edits?"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Block and revert"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Mark the selected accounts trusted? They leave this queue and skip the captcha when adding books."
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Mark trusted"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2418,6 +2455,23 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 msgid "Last edits"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+#, python-format
+msgid "Select %(username)s"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Blocked, edits reverted"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Blocked"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
+msgid "Trusted"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2473,14 +2527,6 @@ msgstr ""
 
 #: admin/new_accounts.html.jinja
 msgid "deleted"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "Block"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "Block and revert"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -10290,7 +10336,30 @@ msgid "The project is deleted."
 msgstr ""
 
 #: openlibrary/plugins/admin/code.py
-msgid "[Admin Center] New accounts"
+msgid "[Admin Center] Spam review"
+msgstr ""
+
+#: openlibrary/plugins/admin/code.py
+msgid "Select at least one account."
+msgstr ""
+
+#: openlibrary/plugins/admin/code.py
+#, python-format
+msgid "Marked %(count)d account trusted."
+msgid_plural "Marked %(count)d accounts trusted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/code.py
+#, python-format
+msgid "Blocked %(count)d account."
+msgid_plural "Blocked %(count)d accounts."
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/admin/code.py
+#, python-format
+msgid "Reverted %(edits)d edits and deleted %(deleted)d records."
 msgstr ""
 
 #: openlibrary/plugins/admin/new_accounts.py

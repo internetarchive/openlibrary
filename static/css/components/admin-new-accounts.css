@@ -115,11 +115,6 @@
   color: var(--color-text-secondary);
 }
 
-.new-accounts__status--inactive {
-  background-color: var(--color-error-bg);
-  color: var(--color-error-fg);
-}
-
 .new-accounts__edits {
   margin: 0;
   padding: 0;
@@ -148,13 +143,6 @@
 
 .new-accounts__edits .new-accounts__minor {
   max-width: 16rem;
-}
-
-.new-accounts__actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-stack-sm);
 }
 
 .new-accounts__signals {
@@ -236,4 +224,113 @@
 
 .new-accounts__rules ul > * {
   list-style: disc;
+}
+
+/* Bulk actions: stays in view while ticking rows down a long list. */
+.new-accounts__bulk {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-index-raised);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2xs) var(--spacing-sm);
+  margin-block-end: var(--spacing-stack-sm);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-md)
+    var(--spacing-inset-xs) 0;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+}
+
+.new-accounts__selected {
+  min-width: 7rem;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+/* The checkbox column. The label fills the cell, so anywhere in it toggles the row. */
+.new-accounts__table :is(th, td).new-accounts__select {
+  position: relative;
+  width: 3rem;
+  padding: 0;
+}
+
+.new-accounts__check {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block-start: var(--spacing-inset-sm);
+  cursor: pointer;
+}
+
+.new-accounts__select .new-accounts__check {
+  position: absolute;
+  inset: 0;
+}
+
+.new-accounts__check--all {
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding-block-start: 0;
+  padding-inline-start: var(--spacing-inset-md);
+}
+
+.new-accounts__check input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.new-accounts__check:hover {
+  background-color: var(--color-control-hover);
+}
+
+.new-accounts__check--all:hover {
+  background-color: transparent;
+}
+
+/* Row state, readable at a glance: a tint, a stripe down the checkbox column, and a labelled icon. */
+.new-accounts__table tr.new-accounts__row--selected > * {
+  background-color: var(--color-control-selected-surface);
+}
+
+.new-accounts__table
+  :is(tr.new-accounts__row--blocked, tr.new-accounts__row--reverted)
+  > * {
+  background-color: var(--color-error-bg);
+}
+
+.new-accounts__table tr.new-accounts__row--trusted > * {
+  background-color: var(--color-success-bg);
+}
+
+.new-accounts__table
+  :is(.new-accounts__row--blocked, .new-accounts__row--reverted)
+  > :first-child {
+  box-shadow: inset var(--border-width-heavy) 0 0 var(--color-error-object);
+}
+
+.new-accounts__table .new-accounts__row--trusted > :first-child {
+  box-shadow: inset var(--border-width-heavy) 0 0 var(--color-success-object);
+}
+
+.new-accounts__review {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3xs);
+  margin-block-end: var(--spacing-3xs);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.new-accounts__review--blocked {
+  color: var(--color-error-fg);
+}
+
+.new-accounts__review--trusted {
+  color: var(--color-success-fg);
 }

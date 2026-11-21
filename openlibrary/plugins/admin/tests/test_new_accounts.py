@@ -3,8 +3,9 @@ from unittest.mock import Mock
 
 import pytest
 import web
+from markupsafe import Markup
 
-from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin import new_accounts
 from openlibrary.plugins.admin.new_accounts import build_report, clamp_param, format_duration, scan_recent_changes
@@ -28,6 +29,12 @@ def signup(site, username: str, when: datetime, bot: bool = False) -> str:
 def write(site, username: str, key: str, when: datetime, title: str = "A title", kind: str = "add-book", comment: str = ""):
     doc = {"key": key, "type": {"key": "/type/work"}, "title": title}
     site.save(doc, timestamp=when, action=kind, comment=comment, author=web.storage(key=f"/people/{username}"))
+
+
+@pytest.fixture(autouse=True)
+def stub_icon(monkeypatch):
+    """The icon sprite macro isn't loaded in tests."""
+    monkeypatch.setitem(get_jinja_env().globals, "icon", lambda name, **kwargs: Markup(f'<svg class="ol-icon" data-icon="{name}"></svg>'))
 
 
 @pytest.fixture
@@ -381,6 +388,22 @@ class TestSignals:
         assert [row.username for row in build_report(site, now=NOW, show="likely").rows] == ["spammer"]
         assert [row.username for row in build_report(site, now=NOW, show="look").rows] == ["author"]
 
+    def test_reviewed_accounts_leave_the_queue(self, site):
+        for name in ("spammer", "author", "other"):
+            signup(site, name, NOW - timedelta(hours=2))
+        self.save(site, "spammer", self.work(1, title="Promo code SAVE10"), 100)
+        self.save(site, "author", self.work(2, description="More at author.example.com"), 100)
+        self.save(site, "other", self.work(3, title="Promo code SAVE20"), 100)
+        site.update_account("spammer", status="blocked")
+        site.store["account/author"]["tags"] = ["trusted-user"]
+
+        report = build_report(site, now=NOW, show="likely")
+
+        assert [row.username for row in report.rows] == ["other"]
+        assert (report.likely_accounts, report.look_accounts, report.reviewed_accounts) == (1, 0, 2)
+        reviewed = build_report(site, now=NOW, show="reviewed").rows
+        assert sorted((row.username, row.review) for row in reviewed) == [("author", "trusted"), ("spammer", "blocked")]
+
 
 class TestScanRecentChanges:
     def test_pages_until_the_window_is_exhausted(self, site):
@@ -437,7 +460,7 @@ class TestTemplate:
         html = render()
         assert "No accounts under 7 days old have made edits in the last 24 hours." in html
         assert "<table" not in html
-        assert "<strong>New accounts</strong>" in html  # the admin menu, on its current page
+        assert "<strong>Spam review</strong>" in html  # the admin menu, on its current page
 
     def test_rows_carry_what_an_admin_needs(self, site, render):
         signup(site, "spammer", NOW - timedelta(hours=1))
@@ -453,10 +476,11 @@ class TestTemplate:
         assert '<span class="new-accounts__minor new-accounts__fast">2.0 min to first edit</span>' in html
         assert 'title="BingX referral code">BingX referral code</a>' in html
         assert "Created new book" in html
-        assert '<input type="hidden" name="username" value="spammer">' in html
-        assert 'value="block_account"' in html
-        assert 'value="block_account_and_revert"' in html
-        assert html.count('class="do-confirm"') == 2
+        assert 'name="username"' in html
+        assert 'value="spammer"' in html
+        for action in ("block_account", "block_account_and_revert", "mark_trusted"):
+            assert f'value="{action}"' in html
+        assert html.count("<form") == 1
         assert 'method="post"' in html
 
     def test_user_text_is_escaped_and_not_linked(self, site, render):
@@ -473,15 +497,23 @@ class TestTemplate:
         assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
         assert 'href="https://spam.example"' not in html
 
-    def test_blocked_accounts_get_no_buttons(self, site, render):
-        signup(site, "spammer", NOW - timedelta(hours=1))
-        write(site, "spammer", "/works/OL1W", NOW - timedelta(minutes=58))
-        site.update_account("spammer", status="blocked")
+    def test_reviewed_accounts_say_how(self, site, render):
+        for n, name in enumerate(("blocked", "reverted", "trusted")):
+            signup(site, name, NOW - timedelta(hours=1))
+            write(site, name, f"/works/OL{n}W", NOW - timedelta(minutes=58))
+        site.update_account("blocked", status="blocked")
+        site.update_account("reverted", status="blocked")
+        # A revert saves the record again.
+        site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Reverted"}, timestamp=NOW, action="revert")
+        site.store["account/trusted"]["tags"] = ["trusted-user"]
 
-        html = render()
+        html = render(show="reviewed")
 
-        assert "<form" not in html
-        assert "new-accounts__status--inactive" in html
+        assert 'class="new-accounts__row--blocked"' in html
+        assert 'class="new-accounts__row--reverted"' in html
+        assert 'class="new-accounts__row--trusted"' in html
+        assert "Blocked, edits reverted" in html
+        assert ">Trusted<" in html
 
     def test_notices_when_capped(self, site, render):
         for name in ("one", "two"):
@@ -531,7 +563,7 @@ class TestNewAccountsView:
         monkeypatch.setattr(new_accounts, "build_report", build)
         monkeypatch.setattr(admin_code, "revert_all_user_edits", revert)
 
-        result = request_as(user_key, method=method, username="spammer", action="block_account_and_revert")
+        result = request_as(user_key, method=method, username=["spammer"], action="block_account_and_revert")
 
         admin_code.render.permission_denied.assert_called_once_with("/admin/new-accounts", "Permission denied.")
         assert result is admin_code.render.permission_denied.return_value
@@ -546,7 +578,7 @@ class TestNewAccountsView:
         write(site, "veteran", "/works/OL1W", NOW - timedelta(hours=1))
 
         page = request_as("/people/admin")
-        assert page["title"] == "[Admin Center] New accounts"
+        assert page["title"] == "[Admin Center] Spam review"
         # By default only likely spam is listed; ?show=all lists the rest.
         assert "None of the 1 accounts under 7 days old" in page["__body__"]
         assert "How accounts are flagged" in page["__body__"]
@@ -561,33 +593,45 @@ class TestNewAccountsView:
         signup(site, "spammer", NOW - timedelta(hours=1))
 
         with pytest.raises(web.SeeOther):
-            request_as("/people/admin", method="POST", fullpath="/admin/new-accounts?days=3", username="spammer", action="block_account")
+            request_as("/people/admin", method="POST", fullpath="/admin/new-accounts?days=3", username=["spammer"], action="block_account")
 
         assert site.store["account/spammer"]["status"] == "blocked"
         assert [value for name, value in web.ctx.headers if name == "Location"] == ["http://localhost/admin/new-accounts?days=3"]
+        admin_code.add_flash_message.assert_called_once_with("info", "Blocked 1 account.")
 
-    def test_block_and_revert_runs_the_existing_action(self, site, request_as, monkeypatch):
-        signup(site, "spammer", NOW - timedelta(hours=1))
+    def test_block_and_revert_many(self, site, request_as, monkeypatch):
+        for name in ("one", "two"):
+            signup(site, name, NOW - timedelta(hours=1))
         revert = Mock(return_value=(4, 2))
         monkeypatch.setattr(admin_code, "revert_all_user_edits", revert)
 
         with pytest.raises(web.SeeOther):
-            request_as("/people/admin", method="POST", username="spammer", action="block_account_and_revert")
+            request_as("/people/admin", method="POST", username=["one", "two", "one", "nobody"], action="block_account_and_revert")
 
-        assert site.store["account/spammer"]["status"] == "blocked"
-        assert revert.call_args.args[0].username == "spammer"
-        admin_code.add_flash_message.assert_called_once_with("info", "Blocked the account and reverted all 4 edits. 2 records deleted.")
-        assert [value for name, value in web.ctx.headers if name == "Location"] == ["http://localhost/admin/new-accounts"]
+        assert site.store["account/one"]["status"] == site.store["account/two"]["status"] == "blocked"
+        assert [call.args[0].username for call in revert.call_args_list] == ["one", "two"]
+        admin_code.add_flash_message.assert_called_once_with("info", "Blocked 2 accounts. Reverted 8 edits and deleted 4 records.")
+
+    def test_mark_trusted(self, site, request_as):
+        signup(site, "author", NOW - timedelta(hours=1))
+
+        with pytest.raises(web.SeeOther):
+            request_as("/people/admin", method="POST", username=["author"], action="mark_trusted")
+
+        assert site.store["account/author"]["tags"] == ["trusted-user"]
+        assert site.store["account/author"]["status"] == "active"
 
     @pytest.mark.parametrize("action", ["", "su", "unblock_account", "anonymize_account", "update_password", "POST_su"])
     def test_other_people_actions_are_refused(self, site, request_as, action):
         signup(site, "spammer", NOW - timedelta(hours=1))
 
         with pytest.raises(web.HTTPError, match="400"):
-            request_as("/people/admin", method="POST", username="spammer", action=action)
+            request_as("/people/admin", method="POST", username=["spammer"], action=action)
 
         assert site.store["account/spammer"]["status"] == "active"
 
-    def test_unknown_account(self, site, request_as):
-        with pytest.raises(web.HTTPError, match="404"):
-            request_as("/people/admin", method="POST", username="nobody", action="block_account")
+    def test_nothing_selected(self, site, request_as):
+        with pytest.raises(web.SeeOther):
+            request_as("/people/admin", method="POST", username=["nobody"], action="block_account")
+
+        admin_code.add_flash_message.assert_called_once_with("error", "Select at least one account.")

@@ -388,7 +388,8 @@ class MockStore(dict):
         for doc in dict.values(self):
             if type is not None and doc.get("type", "") != type:
                 continue
-            if name is not None and doc.get(name) != value:
+            # A list is indexed by each of its items, as in Infobase.
+            if name is not None and doc.get(name) != value and not (isinstance(doc.get(name), list) and value in doc[name]):
                 continue
 
             yield doc
