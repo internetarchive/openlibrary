@@ -13,8 +13,7 @@
  * downloads the ranges a page actually uses. Licensed under the SIL Open Font
  * License; see static/fonts/schibsted-grotesk/OFL.txt.
  *
- * Import this only from the page bundles that use it, so pages that don't
- * reference it never pay for the download.
+ * Imported by static/css/fonts.css, which every page loads after first paint.
  */
 
 /* stylelint-disable scale-unlimited/declaration-strict-value --

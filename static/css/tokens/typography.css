@@ -16,9 +16,9 @@
 /**
  * Font families
  * =============
- * Schibsted Grotesk and Literata are self-hosted webfonts (static/css/fonts/)
- * that only render on pages whose bundle imports them; everywhere else the
- * stacks fall through to the system fonts they always used. Schibsted covers
+ * Schibsted Grotesk and Literata are self-hosted webfonts (static/css/fonts.css)
+ * loaded site-wide after first paint, so each stack renders its system
+ * fallback until the faces arrive. Schibsted covers
  * Latin and Latin Extended only, so Greek, Cyrillic and the rest fall through
  * to the system sans, with Noto Sans behind that.
  */

@@ -57,6 +57,10 @@
       "maxSize": "8KB"
     },
     {
+      "path": "static/build/css/fonts.css",
+      "maxSize": "3KB"
+    },
+    {
       "path": "static/build/css/page-admin.css",
       "maxSize": "29KB"
     },
