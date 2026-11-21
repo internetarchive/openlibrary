@@ -422,4 +422,14 @@ body[data-user-key] .home-welcome {
   .home-now__body:has(> .home-now__loans:not([hidden])) {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .home-now__source {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .home-now__source-short {
+    display: none;
+  }
 }

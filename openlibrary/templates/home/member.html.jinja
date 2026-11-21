@@ -133,8 +133,14 @@
             {% set reading = source_link | format("currently-reading", "CurrentlyReading") | safe %}
             {% set want = source_link | format("want-to-read", "WantToRead") | safe %}
             <p class="home-now__links home-now__source">
-                {{ _("From your %(reading_start)sCurrently Reading%(link_end)s and %(want_start)sWant to Read%(link_end)s lists", reading_start=reading, want_start=want, link_end="</a>" | safe) }}
+                {{ _("From %(reading_start)sCurrently Reading%(link_end)s and %(want_start)sWant to Read%(link_end)s", reading_start=reading, want_start=want, link_end="</a>" | safe) }}
             </p>
+            {# On a phone the sentence is too long for the line: just the two links. #}
+            <nav class="home-now__links home-now__source-short"
+                 aria-label="{{ _('Your shelves') }}">
+                {{ link("/account/books/currently-reading", "CurrentlyReading", _("Currently Reading")) }}
+                {{ link("/account/books/want-to-read", "WantToRead", _("Want to Read")) }}
+            </nav>
         </div>
     {% endif %}
 {% endif %}
