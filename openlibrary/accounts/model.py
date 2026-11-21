@@ -715,7 +715,7 @@ class OpenLibraryAccount(Account):
             key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
             site.get().store[key] = doc
-            cls(username=username).activate()
+            cls(_key=f"account/{username}").activate()
 
         ol_account = cls.get_by_email(email)
 
