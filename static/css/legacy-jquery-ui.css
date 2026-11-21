@@ -20,7 +20,3 @@
 .ui-sortable-placeholder::after {
   visibility: hidden;
 }
-.ui-sortable--covers {
-  max-height: 270px;
-  overflow: auto;
-}
