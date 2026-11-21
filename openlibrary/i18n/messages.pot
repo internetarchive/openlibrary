@@ -2503,6 +2503,10 @@ msgid "Trusted"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
+msgid "Profile"
+msgstr ""
+
+#: admin/new_accounts.html.jinja
 msgid "Admin page"
 msgstr ""
 

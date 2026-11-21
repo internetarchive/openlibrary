@@ -89,10 +89,10 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* A first edit within minutes of signup. The text says how fast; the colour only draws the eye. */
+/* A first edit within minutes of signup: worth noticing, not alarming, since most real new users edit fast too. */
 .new-accounts__fast {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-error-fg);
+  color: var(--color-text);
 }
 
 .new-accounts__name {

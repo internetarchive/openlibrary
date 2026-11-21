@@ -517,6 +517,7 @@ class TestTemplate:
         assert 'href="/people/spammer"\n' in html
         assert 'title="spammer">spammer</a>' in html
         assert 'href="/admin/people/spammer"' in html
+        assert '<a href="/people/spammer">Profile</a>' in html
         assert 'href="/admin/people/spammer/edits"' in html
         assert "spammer@example.org" in html
         assert '<span class="new-accounts__minor new-accounts__fast">2.0 min to first edit</span>' in html

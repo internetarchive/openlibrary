@@ -33,7 +33,7 @@ MAX_ACCOUNTS = 50  # rows shown
 MAX_CHANGES_LOADED = 50_000  # the page says when it was hit
 QUERY_TIMEOUT_MS = 10_000  # each of the two queries; the page says when one gave up
 RECENT_EDITS_SHOWN = 3
-FAST_FIRST_WRITE_MINUTES = 10  # a first write sooner than this after signup is highlighted
+FAST_FIRST_WRITE_MINUTES = 3  # a first write sooner than this after signup is highlighted, though it isn't a signal
 
 # The changeset that creates the profile is the signup itself, not a write.
 NON_WRITE_KINDS = ("new-account",)

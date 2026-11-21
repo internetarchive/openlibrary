@@ -145,7 +145,7 @@
       title="{{ row.email }}">{{ row.email }}</span>{% endif %}
                                     <span class="new-accounts__minor">
                                         {% if row.status not in ("active", "verified", "blocked") %}<span class="new-accounts__status">{{ row.status }}</span>{% endif %}
-                                        <a href="/admin/people/{{ row.username }}">{{ _("Admin page") }}</a>
+                                        <a href="{{ row.key }}">{{ _("Profile") }}</a> · <a href="/admin/people/{{ row.username }}">{{ _("Admin page") }}</a>
                                     </span>
                                 </th>
                                 <td>
