@@ -375,31 +375,21 @@ class Account(web.storage):
         site.get().update_account(self.username, email=email)
 
     def activate(self) -> None:
-        """Activate the account, handling concurrent activation races.
+        """Activate the account.
 
-        The underlying Infogami ``activate_account`` RPC may raise a ``ClientException``
-        (e.g. due to a unique-violation or lock conflict) when another request has
-        already activated the same account. In that case the user profile will exist
-        (``/people/<username>``). This wrapper treats such a situation as a successful
-        activation.
+        When several requests activate one account at once, Infogami fails all but one with a 409
+        conflict or a 500. Activating again is safe (an existing profile is kept), so retry.
         """
-        try:
-            site.get().activate_account(username=self.username)
-            return
-        except ClientException as e:
-            # Infogami raises a duplicate insert, a lock it can't take, or a changed account doc as error="conflict".
-            error = e.get_data().get("error")
-            if error != "conflict":
-                raise
-
-            # Verify that the profile and an active account already exist.
-            profile = site.get().get(f"/people/{self.username}")
-            account_doc = site.get().store.get(f"account/{self.username}")
-            if profile and isinstance(account_doc, dict) and account_doc.get("status") == "active":
-                # Activation succeeded elsewhere.
+        attempts = 4
+        for attempt in range(attempts):
+            try:
+                site.get().activate_account(username=self.username)
                 return
-
-            raise
+            except ClientException as e:
+                if attempt == attempts - 1 or not str(e.status).startswith(("409", "5")):
+                    raise
+                # Random, so the requests that lost don't collide again.
+                time.sleep(random.uniform(0.1, 0.5))
 
     def block(self) -> None:
         """Blocks this account."""
@@ -667,6 +657,7 @@ class OpenLibraryAccount(Account):
                 displayname=displayname,
                 test=True,
             )
+        lost_race = False
         try:
             site.get().register(
                 username=username,
@@ -688,8 +679,7 @@ class OpenLibraryAccount(Account):
                 if existing:
                     if existing.get("username") == username and (existing.get("email") or "").strip().lower() == email.strip().lower():
                         # The competing request registered the same account.
-                        # Continue with the normal post-registration setup.
-                        pass
+                        lost_race = True
                     else:
                         # The username belongs to a different account.
                         ve = ValueError("username_registered")
@@ -709,19 +699,23 @@ class OpenLibraryAccount(Account):
                 # We couldn't verify whether the competing request succeeded.
                 raise ValueError("something_went_wrong")
 
+        # The request that registered the account writes its verify link and preferences. The same
+        # inserts from a request that lost the race would fail.
         if verified:
-            key = f"account/{username}/verify"
-            doc = create_link_doc(key, username, email)
-            site.get().store[key] = doc
+            if not lost_race:
+                key = f"account/{username}/verify"
+                doc = create_link_doc(key, username, email)
+                site.get().store[key] = doc
             cls(_key=f"account/{username}").activate()
 
         ol_account = cls.get_by_email(email)
 
-        # Update user preferences; reading log public by default
-        from openlibrary.accounts import RunAs
+        if not lost_race:
+            # Update user preferences; reading log public by default
+            from openlibrary.accounts import RunAs
 
-        with RunAs(username):
-            ol_account.get_user().save_preferences({"public_readlog": "yes"})
+            with RunAs(username):
+                ol_account.get_user().save_preferences({"public_readlog": "yes"})
 
         return ol_account
 
