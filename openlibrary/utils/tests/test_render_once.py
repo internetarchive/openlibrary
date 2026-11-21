@@ -19,7 +19,7 @@ def start_request(mock_site, monkeypatch):
 
     def start(kind):
         if kind == "fastapi":
-            request = Request({"type": "http", "path": "/", "headers": [], "query_string": b""})
+            request = Request({"type": "http", "headers": [], "query_string": b""})
             request.state.lang = "en"
             request_context.set_context_from_fastapi(request)
         else:

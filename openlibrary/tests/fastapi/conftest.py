@@ -21,7 +21,7 @@ from openlibrary.fastapi.auth import (
     require_authenticated_user,
 )
 from openlibrary.plugins.worksearch.code import SearchResponse
-from openlibrary.utils.request_context import RequestContextVars, RequestURL, req_context, request_url, site
+from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 
 @pytest.fixture(scope="session")
@@ -301,7 +301,6 @@ def site_page_app(monkeypatch) -> Callable[..., FastAPI]:
         async def set_context(request: Request, call_next):
             site.set(FakeSite(request.headers.get("x-user")))  # type: ignore[arg-type]
             req_context.set(RequestContextVars(None, "test", "en", True, False, is_recognized_bot=request.headers.get("x-recognized-bot") == "1"))
-            request_url.set(RequestURL(path=request.url.path, query_string=request.url.query))
             await asyncio.sleep(0)  # let concurrent requests interleave between here and the page
             return await call_next(request)
 

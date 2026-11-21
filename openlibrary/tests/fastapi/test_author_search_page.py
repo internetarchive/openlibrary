@@ -247,11 +247,11 @@ def test_concurrent_requests_each_get_their_own_sort_links(site_page_app, webpy_
         responses = fetch_concurrently(site_page_app(pages), [(f"/search/authors?q=query-{i}", {}) for i in range(n)])
     for i, response in enumerate(responses):
         assert response.status_code == 200
-        # The sort items are JSON in an attribute, so "&" is \u0026 once the attribute is unescaped
+        # The sort items are JSON in an attribute; unescape the attribute to read it
         text = unescape(response.text)
         assert webpy_leftovers not in text
-        assert f'"url": "/search/authors?q=query-{i}\\u0026sort=name"' in text
-        assert not any(f"q=query-{j}\\u0026" in text for j in range(n) if j != i)
+        assert f'"url": "/search/authors?q=query-{i}&sort=name"' in text
+        assert not any(f"q=query-{j}&" in text for j in range(n) if j != i)
 
 
 def test_authors_page_strips_query_and_titles_it(client):

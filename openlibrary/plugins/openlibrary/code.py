@@ -31,7 +31,6 @@ from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
     req_context,
-    request_url,
     set_context_from_legacy_web_py,
     site,
 )
@@ -1045,14 +1044,8 @@ api and api.add_hook("new", new)
 
 @public
 def changequery(query=None, _path=None, **kw):
-    """The current URL with ``kw`` changed in its query (``None`` removes a key).
-
-    Reads the request from the ``request_url`` ContextVar, which web.py and FastAPI both set,
-    so it builds the right links in Jinja and Templetor templates rendered from either.
-    """
-    url = request_url.get()
     if query is None:
-        query = url.params if url else web.input(_method="get", _unicode=False)
+        query = web.input(_method="get", _unicode=False)
     for k, v in kw.items():
         if v is None:
             query.pop(k, None)
@@ -1060,7 +1053,7 @@ def changequery(query=None, _path=None, **kw):
             query[k] = v
 
     query = {k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v) for k, v in query.items()}
-    out = _path or (url.path if url else web.ctx.get("readable_path", web.ctx.path))
+    out = _path or web.ctx.get("readable_path", web.ctx.path)
     if query:
         out += "?" + urllib.parse.urlencode(query, doseq=True)
     return out

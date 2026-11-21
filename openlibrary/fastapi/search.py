@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from math import ceil
 from typing import Annotated, Any, Literal, Self
 from urllib.parse import parse_qsl, urlencode
@@ -47,6 +48,7 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.sort_menu import SortMenu, SortScheme
 from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
@@ -572,6 +574,33 @@ class SearchNav:
 SearchNavDep = Annotated[SearchNav, Depends(SearchNav.from_request)]
 
 
+@dataclass(frozen=True)
+class SortLinks:
+    """What the sort menu (``SortMenu``) needs from the request: the page's path and query, to build its links, and whether a bot is asking."""
+
+    path: str
+    params: Mapping[str, str]  # one value per key, the last if repeated
+    is_bot: bool
+
+    @classmethod
+    def from_request(cls, request: Request) -> Self:
+        return cls(request.url.path, dict(request.query_params), req_context.get().is_bot)
+
+    def menu(self, selected_sort: str | None, *, scheme: SortScheme, can_see_beta_sorts: bool) -> SortMenu:
+        return SortMenu.build(
+            selected_sort,
+            path=self.path,
+            params=self.params,
+            scheme=scheme,
+            can_see_beta_sorts=can_see_beta_sorts,
+            is_bot=self.is_bot,
+            now=datetime.now(),
+        )
+
+
+SortLinksDep = Annotated[SortLinks, Depends(SortLinks.from_request)]
+
+
 class AdvancedSearchForm(BaseModel):
     """Pre-fill for the /advancedsearch form. A ``*_facet`` param fills its field when that is empty."""
 
@@ -772,7 +801,7 @@ def authors_search_title(q: str) -> str:
 
 
 @pages.get("/search/authors")
-async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1, sort: AuthorSortOption = "") -> SitePage:  # type: ignore[valid-type]
+async def search_authors(nav: SearchNavDep, sort_links: SortLinksDep, q: str = "", page: int = 1, sort: AuthorSortOption = "") -> SitePage:  # type: ignore[valid-type]
     # TODO: Retire the web.py `author_search` handler (it still serves /search/authors
     # in production) once production routes /search/authors here.
     q = q.strip()
@@ -793,14 +822,15 @@ async def search_authors(nav: SearchNavDep, q: str = "", page: int = 1, sort: Au
     )
     # num_found is None when Solr errors; the template shows the error instead of results.
     num_found = (response.num_found or 0) if response else 0
+    user = get_current_user()
 
     body = render_jinja_template(
         "search/authors.html.jinja",
         nav=nav,
         q=q,
-        sort=sort,
+        sort_menu=sort_links.menu(sort, scheme="authors", can_see_beta_sorts=bool(user and (user.is_admin() or user.is_librarian()))),
         search_response=response,
-        user=get_current_user(),
+        user=user,
         urlsafe=urlsafe,
         coverstore_url=get_coverstore_public_url(),
         commified_num_found=commify(num_found),

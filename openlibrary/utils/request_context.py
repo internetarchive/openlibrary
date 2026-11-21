@@ -12,7 +12,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
-from urllib.parse import parse_qsl, unquote
+from urllib.parse import unquote
 
 import web
 
@@ -51,23 +51,6 @@ site: ContextVar[Site] = ContextVar("site")
 
 # Each request owns a fresh set; copied worker/task contexts share that set.
 rendered_keys: ContextVar[set[str] | None] = ContextVar("rendered_keys", default=None)
-
-
-@dataclass(frozen=True)
-class RequestURL:
-    """The path and query string of the request being served, for helpers that build links from it (``changequery``)."""
-
-    path: str
-    query_string: str  # without the leading "?"
-
-    @property
-    def params(self) -> dict[str, str]:
-        """GET params; a repeated key keeps its last value, like ``web.input``."""
-        return dict(parse_qsl(self.query_string, keep_blank_values=True))
-
-
-# Set by both set_context_from_* functions; None outside a request (scripts, tests).
-request_url: ContextVar[RequestURL | None] = ContextVar("request_url", default=None)
 
 
 @dataclass
@@ -186,9 +169,6 @@ def set_context_from_legacy_web_py() -> None:
 
     site.set(web.ctx.site)
     rendered_keys.set(set())
-    # setup_contextvars runs before ReadableUrlProcessor, which redirects a GET whose path isn't
-    # the readable one, so web.ctx.path is still the readable path the visitor asked for.
-    request_url.set(RequestURL(path=web.ctx.get("path") or "/", query_string=(web.ctx.get("env") or {}).get("QUERY_STRING", "")))
     visitor.set(_visitor(web.cookies().get(config.get("login_cookie_name", "session")), is_bot))
     req_context.set(
         RequestContextVars(
@@ -258,7 +238,6 @@ def set_context_from_fastapi(request: Request) -> None:
 
     site.set(s)
     rendered_keys.set(set())
-    request_url.set(RequestURL(path=request.url.path, query_string=request.url.query))
     visitor.set(_visitor(cookie_value, is_bot))
     req_context.set(
         RequestContextVars(

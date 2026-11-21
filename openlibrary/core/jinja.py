@@ -123,30 +123,9 @@ def get_jinja_env() -> Environment:
     # system primitive any template may need.
     env.globals["icon"] = _icon
 
-    # Request-scoped helpers a Jinja partial needs but no caller can supply: the
-    # sort menu (search/sort_options.html.jinja) builds links with changequery()
-    # and hides the shuffle control from bots. All three read ContextVars set on
-    # both web.py and FastAPI. Imports are deferred so importing this module stays
-    # safe at plugin load time.
-    def _changequery(*args: Any, **kwargs: Any) -> str:
-        from openlibrary.plugins.openlibrary.code import changequery
-
-        return changequery(*args, **kwargs)
-
-    def _is_bot() -> bool:
-        from openlibrary.plugins.openlibrary.code import is_bot
-
-        return is_bot()
-
-    def _today() -> Any:
-        from openlibrary.plugins.upstream.utils import today
-
-        return today()
-
-    env.globals["changequery"] = _changequery
-    env.globals["is_bot"] = _is_bot
-    env.globals["today"] = _today
-
+    # static_url is used by many templates (site shell, nav, macros) so it
+    # is a true Jinja global, like icon. Import here to avoid circular
+    # import at module load time.
     from openlibrary.plugins.upstream.code import static_url
 
     env.globals["static_url"] = static_url

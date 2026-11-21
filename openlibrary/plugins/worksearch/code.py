@@ -8,6 +8,7 @@ import time
 import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime
 from math import ceil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -47,6 +48,7 @@ from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
 )
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.sort_menu import SortMenu
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
@@ -1139,6 +1141,24 @@ class subject_search(delegate.page):
         return response
 
 
+@public
+def sort_menu(selected_sort: str | None, **kwargs) -> SortMenu:
+    """The sort menu for the web.py page being served; Templetor renders it with search/sort_options.html.jinja.
+
+    ``kwargs`` go to ``SortMenu.build`` (``scheme``, ``default_sort``, ``exclude``).
+    """
+    user = site.get().get_user()
+    return SortMenu.build(
+        selected_sort,
+        path=web.ctx.get("readable_path", web.ctx.path),
+        params=web.input(_method="get"),
+        can_see_beta_sorts=bool(user and (user.is_admin() or user.is_librarian())),
+        is_bot=req_context.get().is_bot,
+        now=datetime.now(),
+        **kwargs,
+    )
+
+
 class author_search(delegate.page):
     path = "/search/authors"
 
@@ -1171,7 +1191,7 @@ class author_search(delegate.page):
             "search/authors.html.jinja",
             nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
             q=q,
-            sort=sort,
+            sort_menu=sort_menu(sort, scheme="authors"),
             search_response=resp,
             user=site.get().get_user(),
             urlsafe=urlsafe,
