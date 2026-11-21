@@ -287,7 +287,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
             </div>
 
-          $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
+          $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
                 <h3>$_("Edition Notes")</h3>
                 $if edition.notes:
@@ -298,7 +298,6 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
                     $:display_value(_("Published in"), edition.publish_places)
                     $:display_value(_("Series"), edition.series)
                     $:display_value(_("Volume"), edition.volume)
-                    $:display_value(_("Genre"), edition.genres)
                     $:display_value(_("Other Titles"), edition.other_titles)
                     $:display_value(_("Copyright Date"), edition.copyright_date)
                     $:display_value(_("Translation Of"), edition.translation_of)

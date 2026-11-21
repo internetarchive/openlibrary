@@ -26,7 +26,7 @@ from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
-from openlibrary.core.reading_state import ReadingState, get_reading_state_sync
+from openlibrary.core.reading_state import ReadingState, get_reading_state, get_reading_state_sync
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from web.template import TemplateResult
 
     from openlibrary.core.lists.model import List
+    from openlibrary.core.shell.user import ShellUser
     from openlibrary.plugins.upstream.models import Work
 
 logger = logging.getLogger("openlibrary.mybooks")
@@ -736,18 +737,41 @@ def shelf_button_for(
     )
 
 
-@public
-def get_reading_states(user: User | None, docs) -> dict[str, ReadingState]:
-    """`user`'s shelf, rating and last finish date for the works in `docs`, keyed by work key.
+def _work_ids_by_key(docs) -> dict[int, str]:
+    """Numeric work ids -> work keys, for the works `docs` carry."""
+    keys = {key for doc in docs if (key := work_key_of(doc))}
+    return {int(extract_numeric_id_from_olid(key)): key for key in keys}
 
-    Empty when `user` is None (signed out). Call once per page of rows and pass the result down.
+
+def _keyed_reading_states(by_id: dict[int, str], states: dict[int, ReadingState]) -> dict[str, ReadingState]:
+    return {by_id[work_id]: state for work_id, state in states.items()}
+
+
+async def get_reading_states_async(user: User | ShellUser | None, docs) -> dict[str, ReadingState]:
+    """`get_reading_states`, awaited: for a caller already on an event loop (FastAPI).
+
+    The sync one waits on `async_bridge`'s own loop thread, which from a coroutine
+    stalls every other request the worker is serving for the round trip.
     """
     if not user:
         return {}
-    keys = {key for doc in docs if (key := work_key_of(doc))}
-    by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
+    by_id = _work_ids_by_key(docs)
+    states = await get_reading_state(user.key.split("/")[-1], list(by_id))
+    return _keyed_reading_states(by_id, states)
+
+
+@public
+def get_reading_states(user: User | ShellUser | None, docs) -> dict[str, ReadingState]:
+    """`user`'s shelf, rating and last finish date for the works in `docs`, keyed by work key.
+
+    Empty when `user` is None (signed out). Call once per page of rows and pass the result down.
+    Never call from a coroutine: this blocks (see `get_reading_states_async`).
+    """
+    if not user:
+        return {}
+    by_id = _work_ids_by_key(docs)
     states = get_reading_state_sync(user.key.split("/")[-1], list(by_id))
-    return {by_id[work_id]: state for work_id, state in states.items()}
+    return _keyed_reading_states(by_id, states)
 
 
 class PatronBooknotes:

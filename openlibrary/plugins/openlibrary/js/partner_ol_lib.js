@@ -26,8 +26,8 @@ async function getAvailabilityDataFromOpenLibrary(isbnList) {
     const olDocs = jsonResponse.docs;
     const isbnToAvailabilityDataMap = {};
     olDocs.forEach(doc => {
-        const isbnList = doc.isbn;
-        isbnList.forEach(isbn => {
+        const docIsbns = doc.isbn;
+        docIsbns.forEach(isbn => {
             isbnToAvailabilityDataMap[isbn] = doc?.availability;
         });
     });
@@ -54,7 +54,7 @@ async function addOpenLibraryButtons(options) {
     }
     const foundIsbnElementsMap = getIsbnToElementMap(bookContainer);
     const availabilityResults = await getAvailabilityDataFromOpenLibrary(Object.keys(foundIsbnElementsMap));
-    Object.keys(foundIsbnElementsMap).map(isbn => {
+    Object.keys(foundIsbnElementsMap).forEach(isbn => {
         const availability = availabilityResults[isbn];
         if (availability && availability.status !== 'error') {
             const e = foundIsbnElementsMap[isbn];

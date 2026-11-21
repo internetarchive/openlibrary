@@ -42,13 +42,13 @@ export default function initAnalytics() {
 }
 
 function setUpAthena(startTime) {
-    var vs, i;
+    let vs, i;
     if (window.archive_analytics) {
         // Setup analytics, depends on script loaded from CDN
         window.archive_analytics.set_up_event_tracking();
 
         window.archive_analytics.ol_send_event_ping = function (values) {
-            var endTime = new Date();
+            const endTime = new Date();
             window.archive_analytics.send_ping({
                 service: 'ol',
                 kind: 'event',

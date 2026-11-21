@@ -4,8 +4,8 @@
 // PR head is extracted, so a PR cannot change the settings that review it.
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const bool = v => typeof v === 'boolean';
 // Supported keys and their checks. A value that fails its check keeps the default.

@@ -2,7 +2,7 @@
 // The `analyze` job's "Fetch linked issues" step: writes the issues a PR links to into
 // linked-issues.json for the model. Follows PR-Agent's ticket_pr_compliance_check.py: issues
 // referenced in the PR body, then the branch name, then the title; this repo's issues only, no
-// pull requests; title, body and labels; at most 3 issues of 10,000 characters each.
+// pull requests; title, body, issue type and labels; at most 3 issues of 10,000 characters each.
 'use strict';
 
 // Issue numbers referenced in `text`, in order of appearance. Only this repo's issues count.
@@ -44,7 +44,7 @@ const branchIssueNumbers = branch => {
 };
 
 async function fetchLinkedIssues({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber = Number(process.env.PR);
@@ -95,6 +95,7 @@ async function fetchLinkedIssues({ github, context, core, require, process }) {
                     ticket_url: `https://github.com/${owner}/${repo}/issues/${issue.number}`,
                     title: String(issue.title || ''),
                     body,
+                    type: (issue.type && issue.type.name) || null,
                     labels: (issue.labels || []).map(l => (typeof l === 'string' ? l : l && l.name)).filter(Boolean)
                 });
             }

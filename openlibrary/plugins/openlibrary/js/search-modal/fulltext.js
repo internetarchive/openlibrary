@@ -36,7 +36,7 @@ const OVERLAP_STOPWORDS = new Set([
 /** Mirror of _normalize_quotes in core/fulltext.py: straight quotes, single spaces, a stray quote closed or dropped. */
 function normalizeQuotes(query) {
     let q = (query || '')
-        .replace(/[\u201c\u201d\u201e\u201f]/g, '"')
+        .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
         .split(/\s+/)
         .filter(Boolean)
         .join(' ');
@@ -93,7 +93,7 @@ function fold(s) {
     return (s || '')
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
+        .replace(/[\u0300-\u036F]/g, '');
 }
 
 /**

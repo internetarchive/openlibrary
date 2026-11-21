@@ -300,6 +300,22 @@ class TestGetNotes:
         assert "My notes for this work" in html
         assert "work-level note" in html
 
+    def test_edition_note_page_links_the_edition_in_one_sentence(self, mock_site, render_template, request_context_fixture):
+        """'My notes for an edition of %(title)s' renders the edition link inside the sentence, escaped."""
+        request_context_fixture(lang="en")
+        macro.load_macros("openlibrary", lazy=True)
+        _save_fixtures(mock_site)
+        mock_site.save({"key": "/books/OL789M", "type": {"key": "/type/edition"}, "title": "Fish & <Chips>"})
+        notes = _make_notes_data((1, [{"edition_id": 123, "notes": "n1"}, {"edition_id": 789, "notes": "n2"}]))
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
+            entries = _make_patron_booknotes(mock_site).get_notes()
+
+        html = render_template("account/notes", entries, _make_user(mock_site), 1)
+
+        assert 'My notes for an edition of <a href="/books/OL123M/Edition_123">Edition 123</a>' in html
+        assert "Fish &amp; &lt;Chips&gt;</a>" in html
+        assert "<Chips>" not in html
+
     def test_edition_not_in_store_is_none(self, mock_site):
         """An edition referenced in notes but absent from the store is represented as None."""
         mock_site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "W"})

@@ -36,7 +36,7 @@ export function localizeAvailabilityOptions(i18nStrings) {
     return AVAILABILITY_OPTIONS.map(opt => {
         const t = i18nStrings[opt.value];
         if (!t) return opt;
-        return { ...opt, label: t.label || opt.label };
+        return Object.assign({}, opt, { label: t.label || opt.label });
     });
 }
 

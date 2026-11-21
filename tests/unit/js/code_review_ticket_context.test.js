@@ -49,7 +49,7 @@ async function runScript(stepFn, { github, env, cwd }) {
             return target[prop];
         }
     });
-    await stepFn({ github, context, core, require: id => (id === 'fs' ? fs : realRequire(id)), process: { env: { ...env } } });
+    await stepFn({ github, context, core, require: id => (id === 'node:fs' ? fs : realRequire(id)), process: { env: { ...env } } });
     return recorded;
 }
 
@@ -124,13 +124,17 @@ function fetchGitHub({ pr, issues = {}, prThrows = false }) {
 }
 const issue = (n, extra = {}) => ({ number: n, html_url: URL(n), title: `Issue ${n}`, body: `Body ${n}`, labels: [], ...extra });
 
-test('fetch step: writes up to 3 linked issues with title, body and labels; skips PRs, missing and moved issues', () =>
+test('fetch step: writes up to 3 linked issues with title, body, type and labels; skips PRs, missing and moved issues', () =>
     withDir(async d => {
         const { github, asked } = fetchGitHub({
             pr: { title: 'Fix the thing (#16)', body: 'Closes #10\nCloses #11, #12, #13, #14, #15', head: { ref: '17/fix/thing' } },
             issues: {
                 10: issue(10, { pull_request: { url: 'x' } }), // a PR, not an issue
-                11: issue(11, { body: `<!-- template hint -->Real ask.${'x'.repeat(20000)}`, labels: [{ name: 'Type: Bug' }, 'Priority: 2'] }),
+                11: issue(11, {
+                    body: `<!-- template hint -->Real ask.${'x'.repeat(20000)}`,
+                    type: { name: 'Bug' },
+                    labels: [{ name: 'Good First Issue' }, 'Priority: 2']
+                }),
                 12: 410, // deleted
                 13: issue(13, { html_url: 'https://github.com/elsewhere/repo/issues/99' }), // transferred
                 14: issue(14, { body: null }),
@@ -150,11 +154,13 @@ test('fetch step: writes up to 3 linked issues with title, body and labels; skip
         const [first, second] = out;
         assert.equal(first.ticket_url, URL(11));
         assert.equal(first.title, 'Issue 11');
-        assert.deepEqual(first.labels, ['Type: Bug', 'Priority: 2']);
+        assert.equal(first.type, 'Bug');
+        assert.deepEqual(first.labels, ['Good First Issue', 'Priority: 2']);
         assert.ok(first.body.startsWith('Real ask.'), 'HTML comments are dropped');
         assert.equal(first.body.length, 10000 + 3, 'body capped at 10,000 characters plus "..."');
         assert.ok(first.body.endsWith('...'));
         assert.equal(second.body, '');
+        assert.equal(second.type, null, 'an issue with no type');
     }));
 
 test('fetch step: the branch name comes after the body and before the title', () =>
@@ -256,14 +262,16 @@ test('gate: a malformed ticket_compliance withholds the whole review', () => {
 });
 
 test('gate: published compliance text goes through the security scan; the unpublished requirements do not', () => {
-    const tripped = gate.check(reviewWith([ticket({ not_compliant_requirements: ['The password reset token is never checked'] })]));
-    assert.equal(tripped.publish, false);
+    const tripped = gate.check(reviewWith([ticket({ not_compliant_requirements: ['The password reset token is never checked', 'Hide the count'] })]));
+    assert.equal(tripped.publish, true);
+    assert.equal(tripped.heldBack, true);
     assert.equal(tripped.blocking, false, 'a backstop hit with no findings does not block (unchanged D3a rule)');
+    assert.deepEqual(tripped.clean.ticket_compliance[0].not_compliant_requirements, ['Hide the count'], 'only the tripped item is held back');
     const internal = gate.check(reviewWith([ticket({ ticket_requirements: ['Rotate the password reset token'] })]));
     assert.equal(internal.publish, true, 'ticket_requirements is never published, so it is not scanned');
     assert.ok(!JSON.stringify(internal.clean).includes('password'));
     // A secret shape in a published list withholds too.
-    assert.equal(gate.check(reviewWith([ticket({ fully_compliant_requirements: [`ghp_${'a'.repeat(36)}`] })])).publish, false);
+    assert.equal(gate.check(reviewWith([ticket({ fully_compliant_requirements: [`ghp_${'a'.repeat(36)}`] })])).heldBack, true);
 });
 
 test('gate: the allowlisted copy passes the gate again (post re-checks it)', () => {
@@ -312,12 +320,12 @@ test('render: overall mark follows PR-Agent', () => {
         verified = entry(2, ['a'], [], ['c']),
         partial = entry(3, ['a'], ['b'], []),
         none = entry(4, [], ['b'], []);
-    const mark = es => render(es, OWNER, REPO).split('\n')[2];
-    assert.equal(mark([full]), '### 🎫 Ticket compliance analysis ✅');
-    assert.equal(mark([full, verified]), '### 🎫 Ticket compliance analysis ✅');
-    assert.equal(mark([full, partial]), '### 🎫 Ticket compliance analysis 🔶');
-    assert.equal(mark([full, none]), '### 🎫 Ticket compliance analysis 🔶');
-    assert.equal(mark([none]), '### 🎫 Ticket compliance analysis ❌');
+    const mark = es => render(es, OWNER, REPO).split('\n')[3];
+    assert.equal(mark([full]), '<summary>🎫 Linked issues ✅: #1 ✅</summary>');
+    assert.equal(mark([full, verified]), '<summary>🎫 Linked issues ✅: #1 ✅ · #2 ✅</summary>');
+    assert.equal(mark([full, partial]), '<summary>🎫 Linked issues 🔶: #1 ✅ · #3 🔶</summary>');
+    assert.equal(mark([full, none]), '<summary>🎫 Linked issues 🔶: #1 ✅ · #4 ❌</summary>');
+    assert.equal(mark([none]), '<summary>🎫 Linked issues ❌: #4 ❌</summary>');
 });
 
 test('render: lists as bullets on one line each; skips empty entries and other repos', () => {
@@ -358,7 +366,7 @@ function postGitHub() {
     return { github, calls };
 }
 
-test('post: the compliance section sits before Dimensions and does not change the verdict', () =>
+test('post: the compliance section is collapsed, sits before the footer and does not change the verdict', () =>
     withDir(async d => {
         writeFileSync(join(d, 'review.json'), JSON.stringify(gate.check(reviewWith([ticket()])).clean));
         writeFileSync(join(d, 'review.diff'), '');
@@ -369,8 +377,8 @@ test('post: the compliance section sits before Dimensions and does not change th
         assert.equal(calls.createReview.length, 1);
         const { body, event } = calls.createReview[0];
         assert.equal(event, 'APPROVE', 'a not-compliant requirement is information, not a blocking finding');
-        const at = body.indexOf('### 🎫 Ticket compliance analysis 🔶');
-        assert.ok(at > 0 && at < body.indexOf('<summary>Dimensions</summary>'), body);
+        const at = body.indexOf('<details>\n<summary>🎫 Linked issues 🔶: #123 🔶</summary>');
+        assert.ok(at > 0 && at < body.indexOf('<sub>'), body);
         assert.ok(body.includes(`**[#123](${URL(123)}) - Partially compliant**`));
         assert.ok(body.includes('<!-- ol-pr-review-bot f=0 -->'), 'the findings marker is unchanged');
     }));
@@ -382,5 +390,5 @@ test('post: a review without ticket_compliance renders no compliance section', (
         const { github, calls } = postGitHub();
         const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: d };
         await runScript(POST, { github, env, cwd: d });
-        assert.ok(!calls.createReview[0].body.includes('Ticket compliance'));
+        assert.ok(!calls.createReview[0].body.includes('Linked issues'));
     }));

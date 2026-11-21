@@ -56,9 +56,8 @@ export function testLuceneSyntax(pattern, string) {
     } else if (pattern.endsWith(']')) {
         const [lo, hi] = pattern.slice(1, -1).split(' TO ');
         return string >= lo && string <= hi;
-    } else {
-        throw new Error(`Unsupported lucene syntax: ${pattern}`);
     }
+    throw new Error(`Unsupported lucene syntax: ${pattern}`);
 }
 
 /**
