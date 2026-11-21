@@ -1,5 +1,6 @@
 import pytest
 import web
+from pydantic import ValidationError
 
 from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
 
@@ -120,3 +121,29 @@ def test_get_ia_record_handles_very_short_books(tc, exp) -> None:
 
     result = code.ia_importapi.get_ia_record(ia_metadata)
     assert result.get("number_of_pages") == exp
+
+
+SPARSE_IA_METADATA = {
+    "date": "1963",
+    "identifier": "bwb_KS-054-861",
+    "title": "The Weirdstone of Brisingamen",
+}
+
+
+def test_get_ia_record_named_edition_is_not_required_to_be_complete() -> None:
+    result = code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, "openlibrary_edition": "OL1M"})
+
+    assert result["openlibrary"] == "OL1M"
+    assert result["authors"] == []
+
+
+def test_get_ia_record_validates_without_a_named_edition() -> None:
+    with pytest.raises(ValidationError):
+        code.ia_importapi.get_ia_record(SPARSE_IA_METADATA)
+
+
+def test_get_ia_record_named_edition_still_drops_suspect_date_and_author() -> None:
+    result = code.ia_importapi.get_ia_record({**SPARSE_IA_METADATA, "creator": "Unknown", "date": "1900", "openlibrary_edition": "OL1M"})
+
+    assert result["authors"] == []
+    assert "publish_date" not in result

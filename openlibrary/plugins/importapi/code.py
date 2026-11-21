@@ -406,7 +406,7 @@ class ia_importapi(importapi):
         :param dict metadata: metadata retrieved from metadata API
         :return: Edition record
         """
-        authors = [{"name": name} for name in metadata.get("creator", "").split(";")]
+        authors = [{"name": name} for name in metadata.get("creator", "").split(";") if name]
         description = metadata.get("description")
         unparsed_isbns = metadata.get("isbn")
         language = metadata.get("language")
@@ -472,6 +472,8 @@ class ia_importapi(importapi):
                 d["publishers"] = publishers
 
         d["source_records"] = ["ia:" + metadata["identifier"]]
+        if ol_edition := metadata.get("openlibrary_edition"):
+            d["openlibrary"] = ol_edition
         import_validator.import_validator().validate(d)
         return d
 
