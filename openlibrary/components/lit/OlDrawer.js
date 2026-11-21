@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
@@ -21,6 +21,13 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * Content is projected via the default slot (light DOM), so it can be
  * server-rendered and styled with your existing stylesheets.
  *
+ * With `modeless` the drawer is a side panel instead: no scrim, no focus trap,
+ * no scroll lock, and the page beside it stays in use. It opens with
+ * `<dialog>.show()`, which is not the top layer, so mount a modeless drawer on
+ * `<body>` (see "Overlays and the top layer" in the same doc). Under 768px it
+ * rises from the bottom edge as a sheet, since a side panel would cover a
+ * phone's whole page.
+ *
  * @element ol-drawer
  *
  * @prop {Boolean} open - Whether the drawer is currently visible.
@@ -31,6 +38,9 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  *     drawer. Default `true`. Attribute: `close-on-scrim-click`.
  * @prop {Boolean} closeOnEscape - Whether Escape closes the drawer. Default
  *     `true`. Attribute: `close-on-escape`.
+ * @prop {Boolean} modeless - Leaves the page usable beside the drawer: no
+ *     scrim, focus trap or scroll lock, and Escape closes it only while focus
+ *     is inside. Default `false`.
  *
  * @cssprop [--ol-drawer-width=300px] - Width of the drawer panel.
  * @cssprop [--ol-drawer-scrim-color=var(--overlay-backdrop-color)] - Scrim color.
@@ -41,12 +51,15 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * @cssprop [--ol-drawer-exit-duration=var(--duration-slow)] - Slide-out duration.
  * @cssprop [--ol-drawer-scroll-padding=0] - Inset kept clear when Tab scrolls a
  *     focused element into view, for drawers with a sticky header or footer.
+ * @cssprop [--ol-drawer-sheet-max-height=85dvh] - Tallest a modeless drawer
+ *     grows as a bottom sheet, so some of the page stays in view above it.
  *
  * @fires ol-drawer-show - Fired when the drawer begins opening.
  * @fires ol-drawer-after-show - Fired after the enter transition completes.
  * @fires ol-drawer-hide - Fired when a close is requested, before the exit
  *     transition. Cancelable — `event.preventDefault()` keeps the drawer open.
  *     detail: { reason: 'escape' | 'scrim' | 'swipe' | 'programmatic' }
+ *     A modeless drawer has no scrim or swipe, so it never gives those two.
  * @fires ol-drawer-after-hide - Fired after the exit transition completes.
  *
  * @slot - Default slot for drawer content.
@@ -69,7 +82,8 @@ export class OlDrawer extends LitElement {
         placement: { type: String, reflect: true },
         label: { type: String },
         closeOnScrimClick: { type: Boolean, attribute: 'close-on-scrim-click' },
-        closeOnEscape: { type: Boolean, attribute: 'close-on-escape' }
+        closeOnEscape: { type: Boolean, attribute: 'close-on-escape' },
+        modeless: { type: Boolean, reflect: true }
     };
 
     static styles = css`
@@ -81,6 +95,7 @@ export class OlDrawer extends LitElement {
             --ol-drawer-exit-duration: var(--duration-slow);
             --ol-drawer-easing: var(--ease-enter);
             --ol-drawer-scroll-padding: 0;
+            --ol-drawer-sheet-max-height: 85dvh;
 
             display: contents;
         }
@@ -192,6 +207,50 @@ export class OlDrawer extends LitElement {
             box-shadow: var(--box-shadow-overlay);
         }
 
+        /* ── Modeless ── */
+
+        /* The page stays live, so the viewport-filling dialog must not take
+           its clicks; only the panel does. Not in the top layer (show(), not
+           showModal()), hence the z-index. */
+        :host([modeless]) dialog {
+            z-index: var(--z-index-modal);
+            pointer-events: none;
+        }
+
+        /* No scrim separates it from the page, so the shared overlay edge does. */
+        :host([modeless]) .panel {
+            pointer-events: auto;
+            background: var(--color-surface);
+        }
+
+        :host([modeless]:not([placement='start'])) .panel {
+            border-inline-start: var(--border-overlay);
+        }
+
+        :host([modeless][placement='start']) .panel {
+            border-inline-end: var(--border-overlay);
+        }
+
+        /* --width-breakpoint-tablet: a side panel would cover a phone's whole
+           page, so it becomes a sheet that leaves the top of the page in view. */
+        @media (max-width: 767px) {
+            :host([modeless]) .panel {
+                top: auto;
+                right: 0;
+                left: 0;
+                width: auto;
+                max-height: var(--ol-drawer-sheet-max-height);
+                border: var(--border-overlay);
+                border-bottom: none;
+                border-radius: var(--border-radius-overlay) var(--border-radius-overlay) 0 0;
+                transform: translateY(100%);
+            }
+
+            :host([modeless]) .panel.is-open {
+                transform: translateY(0);
+            }
+        }
+
         /* Resolved transition-duration is what drives the JS lifecycle, so
            zeroing it here is enough — no matchMedia check in the component. */
         @media (prefers-reduced-motion: reduce) {
@@ -211,6 +270,7 @@ export class OlDrawer extends LitElement {
         this.label = '';
         this.closeOnScrimClick = true;
         this.closeOnEscape = true;
+        this.modeless = false;
 
         /** @type {HTMLElement|null} Element that had focus before the drawer opened */
         this._previouslyFocusedElement = null;
@@ -243,6 +303,7 @@ export class OlDrawer extends LitElement {
 
         this._handleCancel = this._handleCancel.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
+        this._handleModelessKeyDown = this._handleModelessKeyDown.bind(this);
         this._onTouchStart = this._onTouchStart.bind(this);
         this._onTouchMove = this._onTouchMove.bind(this);
         this._onTouchEnd = this._onTouchEnd.bind(this);
@@ -250,8 +311,14 @@ export class OlDrawer extends LitElement {
 
     render() {
         return html`
-            <dialog role="dialog" aria-modal="true" aria-label=${ifDefined(this.label || undefined)} @cancel=${this._handleCancel}>
-                <div class="scrim" @click=${this._handleScrimClick}></div>
+            <dialog
+                role="dialog"
+                aria-modal=${ifDefined(this.modeless ? undefined : 'true')}
+                aria-label=${ifDefined(this.label || undefined)}
+                @cancel=${this._handleCancel}
+                @keydown=${this._handleModelessKeyDown}
+            >
+                ${this.modeless ? nothing : html`<div class="scrim" @click=${this._handleScrimClick}></div>`}
                 <!-- tabindex so an empty drawer still has somewhere to put focus. -->
                 <div class="panel" tabindex="-1">
                     <slot></slot>
@@ -310,31 +377,36 @@ export class OlDrawer extends LitElement {
             })
         );
 
-        // Calling showModal() on an open dialog throws.
-        if (!reopening) dialog.showModal();
-
-        // showModal() blocks background scroll on desktop but not touch-scroll
-        // on iOS Safari, so pin <body> as well. The lock reserves the scrollbar
-        // width, so nothing shifts on platforms with classic scrollbars.
-        if (!this._scrollLocked) {
-            lockBodyScroll();
-            this._scrollLocked = true;
-        }
-
         const panel = this._panel;
-        panel.addEventListener('touchstart', this._onTouchStart, { passive: true });
-        panel.addEventListener('touchmove', this._onTouchMove, { passive: false });
-        panel.addEventListener('touchend', this._onTouchEnd, { passive: true });
+        if (this.modeless) {
+            // show() leaves the page live: nothing is inerted, locked or trapped.
+            if (!reopening) dialog.show();
+        } else {
+            // Calling showModal() on an open dialog throws.
+            if (!reopening) dialog.showModal();
 
-        // Capture phase to intercept Tab before Safari's native handling.
-        document.addEventListener('keydown', this._handleKeyDown, true);
+            // showModal() blocks background scroll on desktop but not touch-scroll
+            // on iOS Safari, so pin <body> as well. The lock reserves the scrollbar
+            // width, so nothing shifts on platforms with classic scrollbars.
+            if (!this._scrollLocked) {
+                lockBodyScroll();
+                this._scrollLocked = true;
+            }
+
+            panel.addEventListener('touchstart', this._onTouchStart, { passive: true });
+            panel.addEventListener('touchmove', this._onTouchMove, { passive: false });
+            panel.addEventListener('touchend', this._onTouchEnd, { passive: true });
+
+            // Capture phase to intercept Tab before Safari's native handling.
+            document.addEventListener('keydown', this._handleKeyDown, true);
+        }
 
         // Flush style so the panel paints at its off-screen start position
         // before `.is-open` arms the slide; without this the browser coalesces
         // both into one style pass and there's nothing to transition from.
         panel.getBoundingClientRect();
         panel.classList.add('is-open');
-        this._scrim.classList.add('is-open');
+        this._scrim?.classList.add('is-open');
 
         this._setInitialFocus();
 
@@ -408,7 +480,7 @@ export class OlDrawer extends LitElement {
         // transition run from wherever the finger left the panel.
         this._clearDragStyles();
         panel.classList.remove('is-open');
-        this._scrim.classList.remove('is-open');
+        this._scrim?.classList.remove('is-open');
 
         this._afterTransition(panel, () => {
             if (cycle !== this._cycle) return;
@@ -585,6 +657,17 @@ export class OlDrawer extends LitElement {
         if (this.closeOnEscape) {
             this._requestClose('escape');
         }
+    }
+
+    /**
+     * Escape for a modeless drawer. show() dialogs get no cancel event, and
+     * the page is live, so Escape closes the drawer only from inside it.
+     */
+    _handleModelessKeyDown(event) {
+        if (!this.modeless || event.key !== 'Escape' || event.defaultPrevented || !this.closeOnEscape) return;
+        // A popover opened from inside the drawer takes its own Escape first.
+        if (this._isInsideOpenOverlay(getDeepActiveElement())) return;
+        this._requestClose('escape');
     }
 
     _handleScrimClick() {

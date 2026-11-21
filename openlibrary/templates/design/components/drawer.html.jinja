@@ -76,4 +76,26 @@
             })();
         </script>
     {% endcall %}
+    {% call ex.example("Modeless side panel", "modeless leaves the page in use beside the drawer: no scrim, no focus trap, no scroll lock. Escape closes it while focus is inside. Under 768px it rises from the bottom as a sheet. It is not in the top layer, so mount it on <body>.",
+        code='<ol-drawer modeless label="Add a detail">…</ol-drawer>') %}
+        <ol-button id="demo-drawer-modeless-trigger" variant="secondary">
+            Open side panel…
+        </ol-button>
+        <ol-drawer id="demo-drawer-modeless" modeless label="Add a detail">
+            <div class="ds-demo-menu">
+                <p>The page beside this panel still scrolls and takes clicks.</p>
+                <ol-button id="demo-drawer-modeless-close" variant="secondary" size="small">
+                    Close
+                </ol-button>
+            </div>
+        </ol-drawer>
+        <script>
+            (function () {
+                const drawer = document.getElementById('demo-drawer-modeless');
+                document.body.appendChild(drawer);
+                document.getElementById('demo-drawer-modeless-trigger').addEventListener('click', () => { drawer.open = true; });
+                document.getElementById('demo-drawer-modeless-close').addEventListener('click', () => { drawer.open = false; });
+            })();
+        </script>
+    {% endcall %}
 {% endmacro %}

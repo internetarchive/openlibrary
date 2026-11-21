@@ -138,7 +138,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Options Popover | `ol-options-popover` | Pick one value from a list | Multiple selections belong in a Select Popover. |
 | Menu Popover | `ol-menu-popover` | Pick one action from a list | A choice that is read or submitted later is a value, not an action — use Options Popover. |
 | Dialog | `ol-dialog` | A centered modal interruption | For a task with its own scrolling content, use Drawer. For a passive message, use Toast or Banner. |
-| Drawer | `ol-drawer` | A modal panel that slides in from a viewport edge | A centered interruption is a Dialog. A panel anchored to its trigger is a Popover. |
+| Drawer | `ol-drawer` | A panel that slides in from a viewport edge: modal by default, or `modeless` as a side panel for a task done beside the page | A centered interruption is a Dialog. A panel anchored to its trigger is a Popover. |
 | Toast | `ol-toast` | Transient confirmation of something that just happened (`ol-toast-region` hosts them) | Anything the reader must act on belongs in a Dialog or a Banner. |
 | Banner | `ol-banner` | A persistent page-level announcement | Page-level and persistent. For confirmation of an action the user just took, use Toast. |
 | Message | `.ol-message` | An inline notice next to the thing it describes (CSS classes, no tag) | Inline, next to the thing it describes. For page-level notices use Banner. |
@@ -333,9 +333,13 @@ is a lie.
 |---|---|---|
 | `ol-dialog` | yes — native `showModal()` | yes |
 | `ol-drawer` | yes — `showModal()` + focus trap | yes |
+| `ol-drawer[modeless]` | no — `show()`, Tab leaves, page stays live | no |
 | `ol-popover` mobile tray | yes — `aria-modal`, scrim, scroll lock | yes |
 | `ol-popover` desktop panel | no — Tab leaves, page stays live | no |
 | `ol-tooltip` | no | no |
+
+A modeless drawer turns into a bottom sheet under 768px and still gets no scrim:
+the sheet stops short of the top, so the page above it is still in reach.
 
 The one pair that looks like a viewport rule is `ol-popover`, whose tray blurs
 and whose desktop panel doesn't. **That is not a mobile rule.** The 767px check

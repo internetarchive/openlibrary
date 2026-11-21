@@ -60,6 +60,11 @@ $(function () {
         import('./contribute').then(module => module.init());
     }
 
+    // Empty fields a reader can fill in from the book page
+    if (document.querySelector('[data-book-fill-drawer]')) {
+        import('./book-fill').then(module => module.init());
+    }
+
     // hide all images in .no-img
     $('.no-img img').hide();
 

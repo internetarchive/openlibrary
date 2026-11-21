@@ -1,0 +1,7 @@
+{#- The drawer an empty field's "Add" opens on the book page. book-fill.js moves it to <body> and loads each field's form into it.
+    Takes `olid` (the edition's) and `url` (book_page.URL). -#}
+{% if olid is defined %}
+    <ol-drawer class="book-fill-drawer" modeless label="{{ _('Add to this edition') }}" data-book-fill-drawer data-url="{{ url }}/{{ olid }}" data-msg-error="{{ _('Something went wrong. Please try again.') }}" data-msg-login="{{ _('Please log in again to continue.') }}">
+        <div class="book-fill-drawer__body" data-book-fill-body></div>
+    </ol-drawer>
+{% endif %}

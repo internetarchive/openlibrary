@@ -162,13 +162,15 @@ def change_data(fld: str, initiative: str, **more) -> dict:
     return {"source": SOURCE, "field": fld} | ({"initiative": initiative} if initiative else {}) | more
 
 
-def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "", shared_ok: str = "") -> None:
+def save_answer(edition, fld: str, raw: str, label: str, note: str = "", initiative: str = "", shared_ok: str = "", door: str = "") -> None:
     """Write the answer to the edition as a normal edit by the current user. ``shared_ok`` is an ISBN the librarian
-    saved knowing other editions carry it; the edit names them, so the pairs can be found and merged or corrected."""
+    saved knowing other editions carry it; the edit names them, so the pairs can be found and merged or corrected.
+    ``door`` names where the answer was given when that wasn't a Tasks page (``book_page.DOOR``), and goes in the save's data."""
     doc = edition.dict() | answer_changes(edition, fld, raw, shared_ok)
-    comment = note.strip() or _("Filled in %(field)s from Open Library Tasks", field=label)
+    default = _("Filled in %(field)s from the book page", field=label) if door else _("Filled in %(field)s from Open Library Tasks", field=label)
+    comment = note.strip() or default
     shared = other_editions_with_isbn(edition, shared_ok) if fld == "isbn" and shared_ok == normalize_isbn_value(raw) else []
-    data = change_data(fld, initiative, **({"isbn_shared_with": shared} if shared else {}))
+    data = change_data(fld, initiative, **({"isbn_shared_with": shared} if shared else {}), **({"door": door} if door else {}))
     site.get().save(doc, comment=comment, action=ACTION, data=data)
 
 

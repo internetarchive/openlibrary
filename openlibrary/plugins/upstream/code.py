@@ -26,6 +26,8 @@ from infogami.utils.view import (
     safeint,
 )
 from openlibrary import accounts  # noqa: F401 side effects may be needed
+from openlibrary.contribute import book_page
+from openlibrary.contribute.field_guides import get_field_guides
 from openlibrary.core import lending
 from openlibrary.plugins.upstream import (
     addbook,
@@ -331,6 +333,8 @@ class BookPageContext:
     previews: list
     show_observations: bool
     lending_state: str
+    # The empty fields this page offers the reader to fill in, each with its "Add" button's name. See contribute/book_page.py.
+    fill_slots: dict[str, str]
 
 
 def _resolve_work(page):
@@ -475,7 +479,19 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         previews=previews,
         show_observations=show_observations,
         lending_state=lending_state,
+        fill_slots=_fill_slots(page, edition, query_params, user),
     )
+
+
+def _fill_slots(page, edition, query_params, user) -> dict[str, str]:
+    """The fields a signed-in reader is asked to fill in, on an edition's own page at its latest revision.
+
+    A work page shows an edition the reader didn't choose, and an answer from their own copy would be wrong on it.
+    """
+    if not user or page.type.key != "/type/edition" or not edition or edition.key != page.key or page.is_fake_record() or query_params.get("v"):
+        return {}
+    field_guides = get_field_guides()
+    return {fld: field_guides[fld].action for fld in book_page.open_fields(edition, site.get(), user.key)}
 
 
 class revert(delegate.mode):
