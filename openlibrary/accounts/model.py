@@ -387,7 +387,7 @@ class Account(web.storage):
             site.get().activate_account(username=self.username)
             return
         except ClientException as e:
-            # Infogami exposes concurrency conflicts as error="conflict".
+            # Infogami raises a duplicate insert, a lock it can't take, or a changed account doc as error="conflict".
             error = e.get_data().get("error")
             if error != "conflict":
                 raise
