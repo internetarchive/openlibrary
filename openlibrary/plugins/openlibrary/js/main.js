@@ -283,7 +283,8 @@ $(function () {
     const anonymizationButton = document.querySelector('.account-anonymization-button');
     const adminLinks = document.getElementById('adminLinks');
     const confirmButtons = document.querySelectorAll('.do-confirm');
-    if (adminLinks || anonymizationButton || confirmButtons.length) {
+    const newAccountsForm = document.querySelector('.new-accounts__form');
+    if (adminLinks || anonymizationButton || confirmButtons.length || newAccountsForm) {
         import('./admin').then(module => {
             if (adminLinks) {
                 module.initAdmin();
@@ -293,6 +294,9 @@ $(function () {
             }
             if (confirmButtons.length) {
                 module.initConfirmationButtons(confirmButtons);
+            }
+            if (newAccountsForm) {
+                module.initNewAccountsReview(newAccountsForm);
             }
         });
     }
