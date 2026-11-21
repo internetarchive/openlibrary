@@ -1,0 +1,222 @@
+name: e2e (run)
+
+# ============================================================================
+# The RUN half of the e2e action (epic #14461). READ scripts/e2e/run-e2e.sh's
+# header and the SECURITY block below before editing — the two-workflow split is
+# the whole fork-safety design.
+#
+# THREE NON-NEGOTIABLES:
+#   1. This job EXECUTES untrusted PR code (docker + Playwright). Its isolation —
+#      a read-only GITHUB_TOKEN, NO secrets, an ephemeral runner — is the PRIMARY
+#      control. The changed-paths denylist in run-e2e.sh is DEFENSE-IN-DEPTH, not
+#      the primary control: never weaken the sandbox trusting the denylist.
+#   2. This job holds NO secret and NO write token, so it CANNOT post to GitHub.
+#      Its only output is an artifact. The trusted e2e_post.yml does all writes.
+#      Do NOT add a PAT or a write permission here.
+#   3. e2e NEVER auto-runs on untrusted code. The trigger is the maintainer-only
+#      label (outside contributors cannot label a PR), plus an auto-run path for
+#      openlibrary-bot's own (same-repo, trusted) PRs while the label is present.
+# ============================================================================
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+
+# A newer push supersedes an in-flight run for the same PR.
+concurrency:
+  group: e2e-run-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Minimal, read-only. No write scope, no secrets are referenced anywhere below.
+# statuses:read is a READ — it lets the authorization gate re-check the SHA-bound
+# `code-review` status on this head; it grants no ability to post.
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+
+jobs:
+  run:
+    # Label path: anyone who can add the label already has triage/write access,
+    # so the label event itself is the trust gate. Synchronize path: only
+    # openlibrary-bot's own PRs auto-re-run on a push, and only while labeled.
+    if: >
+      (github.event.action == 'labeled' && github.event.label.name == 'Needs: e2e testing') ||
+      (github.event.action == 'synchronize' &&
+       github.event.pull_request.user.login == 'openlibrary-bot' &&
+       contains(github.event.pull_request.labels.*.name, 'Needs: e2e testing'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      # Ruling #A: audit mode for v1 — egress visibility without risking the
+      # docker/npm pulls the e2e target needs. Promote to block mode once we
+      # have an egress baseline.
+      - name: Harden runner (audit)
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      # THE AUTHORIZATION GATE — read AND ENFORCED here, in TRUSTED workflow code,
+      # BEFORE any fork code is checked out or run (read before editing).
+      #
+      # The `Needs: e2e testing` label is only a TRIGGER; the SHA-bound
+      # `code-review` commit status is the GATE. This step reads that status on THIS
+      # exact head sha with the read-only token (no secret) and, unless it is
+      # `success`, writes a terminal `failure` result and FAILS THE JOB — so the
+      # checkout and every fork-controlled step below are skipped and no PR code
+      # ever executes on an unverified head.
+      #
+      # WHY ENFORCE HERE, NOT IN run-e2e.sh: for a `pull_request` event the
+      # workflow YAML is the trusted base-repo copy, but any script invoked from
+      # the checked-out tree (run-e2e.sh included) is FORK-CONTROLLED. A malicious
+      # fork could rewrite run-e2e.sh to neuter its internal gate. The gate that
+      # actually stops execution must therefore live in this trusted step, ahead of
+      # checkout. (run-e2e.sh keeps its own gate purely as defense-in-depth and for
+      # host/standalone runs — it is NOT the control relied on here.)
+      #
+      # Fail-SAFE / default-deny: absent / pending / failure / error (API threw) —
+      # anything but an exact `success` — blocks. The context string is exactly
+      # `code-review` (plain; Mek's required-check name, produced by #14455 — do NOT
+      # rename once required). DEPENDENCY: this can only pass once #14455 posts that
+      # status, so #14454 stays parked for GO-LIVE behind the code-review piece.
+      - name: Code-review gate (read + enforce)
+        id: codereview
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            let state = 'absent';
+            try {
+              // Newest-first; the first hit for the context is its latest state.
+              const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, {
+                owner: context.repo.owner, repo: context.repo.repo, ref: sha, per_page: 100,
+              });
+              const cr = statuses.find(s => s.context === 'code-review');
+              state = cr ? cr.state : 'absent';
+            } catch (e) {
+              core.warning(`could not read code-review status (fail-safe to non-green): ${e.message}`);
+              state = 'error';
+            }
+            core.info(`code-review status on ${sha}: ${state}`);
+            core.setOutput('state', state);
+
+            if (state !== 'success') {
+              // Trusted gate enforcement: write a clean terminal result (so POST
+              // reports a precise reason, not a generic "no artifact") and stop the
+              // job BEFORE checkout. The upload step (if:always) ships this file.
+              const fs = require('fs');
+              const result = {
+                schema: 'ol-e2e-result/1',
+                pr: context.payload.pull_request.number,
+                head_sha: sha,
+                result: 'failure',
+                reason: `code-review is not green on this commit (code-review=${state}): the SHA-bound code-review status is the e2e gate, not the label`,
+                ran: false,
+              };
+              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/e2e-result.json`, JSON.stringify(result) + '\n');
+              core.setFailed(`code-review gate not satisfied (code-review=${state}); refusing to execute PR code`);
+            }
+
+      # The PR's changed files, from the API — not a local git diff, so it is
+      # correct for fork PRs and needs no base fetch. Feeds the denylist.
+      - name: List changed paths
+        id: files
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number, per_page: 100,
+            });
+            core.setOutput('paths', files.map(f => f.filename).join('\n'));
+
+      # Pin the exact head sha. persist-credentials:false so no token is left in
+      # the checkout the PR's own code then runs against.
+      - name: Checkout PR head (sha-pinned)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24' # match the repo's Dockerfile / javascript_tests.yml
+
+      # Ruling #B: PR#-keyed caches, persisted across this PR's runs. A PR that
+      # changes compose/docker/lockfiles is blocked by the denylist before it can
+      # run, so it can never poison the cache it would key into.
+      - name: Cache node_modules + Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: e2e-npm-${{ github.event.pull_request.number }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            e2e-npm-${{ github.event.pull_request.number }}-
+
+      - name: Cache docker images
+        id: imgcache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/ol-e2e-images
+          key: e2e-images-${{ github.event.pull_request.number }}-${{ hashFiles('compose*.yaml', 'docker/**/Dockerfile*', '**/package-lock.json') }}
+          restore-keys: |
+            e2e-images-${{ github.event.pull_request.number }}-
+
+      - name: Load cached docker images
+        if: steps.imgcache.outputs.cache-hit == 'true'
+        run: |
+          if [ -f /tmp/ol-e2e-images/images.tar ]; then
+            docker load -i /tmp/ol-e2e-images/images.tar || true
+          fi
+
+      # The execution core. Writes e2e-result.json (success|failure, never
+      # absent — an EXIT trap guarantees it even on crash/kill/timeout). It makes
+      # NO GitHub writes; the trusted post workflow reads this artifact.
+      - name: Run e2e
+        # Explicit, auditable enforcement point: the fork's harness runs ONLY when
+        # the trusted gate above saw `code-review`==success. Belt to the gate step's
+        # setFailed (which already skips this) and to run-e2e.sh's own gate.
+        if: steps.codereview.outputs.state == 'success'
+        env:
+          RESULT_FILE: ${{ github.workspace }}/e2e-result.json
+          CHANGED_PATHS: ${{ steps.files.outputs.paths }}
+          # Fail the denylist CLOSED if the changed-paths lookup glitched to empty
+          # or produced no source, instead of silently skipping the gate.
+          DENYLIST_REQUIRED: "1"
+          # Enforce the code-review authorization gate: only a `success` status on
+          # this head authorises execution; anything else fail-safes to skip.
+          REQUIRE_CODE_REVIEW: "1"
+          CODE_REVIEW_STATUS: ${{ steps.codereview.outputs.state }}
+        run: bash scripts/e2e/run-e2e.sh
+
+      # Save images for the next run of THIS PR (only needed on a cache miss).
+      - name: Save docker images to cache
+        # Only after an actual run (gate passed); never on a gate-blocked job.
+        if: always() && steps.codereview.outputs.state == 'success' && steps.imgcache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/ol-e2e-images
+          imgs="$(docker compose config --images 2>/dev/null | sort -u || true)"
+          if [ -n "$imgs" ]; then
+            # shellcheck disable=SC2086
+            docker save $imgs -o /tmp/ol-e2e-images/images.tar 2>/dev/null || true
+          fi
+
+      # if:always() — the artifact MUST be uploaded even when the run step failed
+      # or timed out, so POST always has the result to read. Fixed name (no PR
+      # suffix): artifacts are per-run, and POST fetches by run id.
+      - name: Upload e2e result + report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-result
+          path: |
+            e2e-result.json
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 7

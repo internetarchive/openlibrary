@@ -1,0 +1,166 @@
+name: e2e (post)
+
+# ============================================================================
+# The POST half of the e2e action (epic #14461). Pairs with e2e_run.yml.
+#
+# SECURITY — this job is TRUSTED (base-repo context, holds the write token) and
+# must stay that way:
+#   * It NEVER checks out fork code. It checks out the base repo's default branch
+#     only, to get the (trusted) decision script.
+#   * It treats the RUN job's artifact as PURE DATA. scripts/e2e/e2e-post.sh
+#     validates it (sha regex, pr int, result enum; missing/malformed/mismatch
+#     => failure) and emits a decision; this job's github-script is only a thin
+#     GitHub-API wrapper around that decision. Nothing from the artifact is ever
+#     executed, and no artifact field reaches an API call unvalidated.
+#   * FAIL-SAFE: because RUN always uploads a result (if:always) and anything
+#     short of a clean success artifact becomes `failure` here, a stuck/absent
+#     e2e state is structurally impossible. There is no `pending` in this model.
+# ============================================================================
+
+on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout below has NO `ref:`, so only base-branch code runs; the RUN job's artifact is consumed as data by a validating script and never executed; see the SECURITY note above
+  workflow_run:
+    workflows: ["e2e (run)"]
+    types: [completed]
+
+concurrency:
+  group: e2e-post-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read          # download the RUN artifact from the triggering run
+  contents: read
+  statuses: write        # post the commit status (fallback GITHUB_TOKEN path)
+  pull-requests: write   # remove the label / comment (fallback path)
+  issues: write          # PR comment via the issues endpoint (fallback path)
+
+jobs:
+  post:
+    # Only PR-triggered runs produce a reportable e2e result.
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Single swap point for the writer identity. Prefer the openlibrary-bot PAT
+      # (statuses:write + pull-requests:write + issues:write) so the status and
+      # failure comment are authored by the bot; fall back to GITHUB_TOKEN so the
+      # workflow is fully functional before the PAT is minted. The PAT is the same
+      # Locke/#14455 dependency and blocks GO-LIVE polish, not the build.
+      GH_WRITE_TOKEN: ${{ secrets.OL_BOT_ACTIONS_PAT || secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Harden runner (audit)
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      # Default branch of the BASE repo only — the trusted copy of the decision
+      # script. Never the PR head.
+      - name: Checkout base (trusted) scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # From the triggering RUN. May be absent if RUN crashed before upload — the
+      # decision script fail-safes to failure in that case.
+      - name: Download e2e result artifact
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: e2e-result
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: artifact
+
+      # Resolve the AUTHORITATIVE PR number from the TRUSTED event — never from
+      # the artifact (the sandbox runs PR code that writes the artifact, so its
+      # `pr` field is attacker-controlled; trusting it would let a PR aim the
+      # label-clear / comment at any issue). Same-repo PRs are in the event
+      # payload; fork PRs need a commit->pulls lookup. This is trusted-data
+      # retrieval, not validation — the targeting decision stays in e2e-post.sh.
+      - name: Resolve authoritative PR
+        id: pr
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            let pr = '';
+            const fromEvent = (context.payload.workflow_run.pull_requests || [])
+              .find(p => p.head && p.head.sha === sha);
+            if (fromEvent) pr = String(fromEvent.number);
+            if (!pr) {
+              try {
+                const { data } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner, repo, commit_sha: sha,
+                });
+                const m = data.find(p => p.head && p.head.sha === sha && p.state === 'open');
+                if (m) pr = String(m.number);
+              } catch (e) { core.info(`PR lookup failed: ${e.message}`); }
+            }
+            core.setOutput('number', pr);
+
+      # Validate the artifact and decide what to post. Thin wrapper follows.
+      - name: Decide
+        env:
+          ARTIFACT_FILE: ${{ github.workspace }}/artifact/e2e-result.json
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          EVENT_PR: ${{ steps.pr.outputs.number }}
+          # Status context is plain `tested-e2e` — the check/ prefix was dropped
+          # fleet-wide (matches the unprefixed required `code-review`). The prefix
+          # stays a single swappable constant in e2e-post.sh (CHECK_PREFIX, default
+          # ""); do NOT re-inject it here, or the live context drifts from the docs.
+          LABEL: "Needs: e2e testing"
+        run: bash scripts/e2e/e2e-post.sh > "${{ github.workspace }}/decision.json" || true
+
+      - name: Post status, clear label, comment on failure
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ env.GH_WRITE_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const sha40 = /^[0-9a-f]{40}$/;
+            const eventSha = context.payload.workflow_run.head_sha;
+
+            // Read the decision; fail-safe to a failure on the authoritative sha
+            // if the decider produced nothing parseable.
+            let d = null;
+            try { d = JSON.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/decision.json`, 'utf8')); }
+            catch (e) { d = null; }
+            if (!d || typeof d !== 'object') {
+              d = { state: 'failure', head_sha: eventSha, pr: null,
+                    status_context: 'tested-e2e',
+                    description: 'e2e could not be reported', remove_label: false,
+                    label: 'Needs: e2e testing', comment: false, comment_body: '' };
+            }
+
+            // Re-assert the shape before any write (defense in depth over the
+            // already-tested decider).
+            const state = (d.state === 'success' || d.state === 'failure') ? d.state : 'failure';
+            const sha = sha40.test(d.head_sha) ? d.head_sha : eventSha;
+            const ctx = (typeof d.status_context === 'string' && d.status_context) ? d.status_context : 'tested-e2e';
+            const desc = (typeof d.description === 'string') ? d.description.slice(0, 140) : '';
+            const pr = Number.isInteger(d.pr) && d.pr > 0 ? d.pr : null;
+
+            // NON-REQUIRED INVARIANT: the sandbox runs untrusted PR code that
+            // writes the result, so a `success` here is forgeable by any PR
+            // allowed to run. This status MUST stay OPTIONAL — never a required
+            // merge check — or a labeled malicious PR could self-certify green.
+            await github.rest.repos.createCommitStatus({
+              owner, repo, sha, state, context: ctx, description: desc,
+            });
+            core.info(`Posted ${ctx}=${state} on ${sha.slice(0,8)}`);
+
+            if (pr && d.remove_label === true && typeof d.label === 'string') {
+              try {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: pr, name: d.label });
+                core.info(`Removed label "${d.label}" from #${pr}`);
+              } catch (e) {
+                // 404 just means the label was already gone.
+                core.info(`Label remove skipped (${e.status || e.message}).`);
+              }
+            }
+
+            if (pr && d.comment === true && typeof d.comment_body === 'string' && d.comment_body.trim()) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: pr, body: d.comment_body });
+              core.info(`Commented on #${pr}`);
+            }
