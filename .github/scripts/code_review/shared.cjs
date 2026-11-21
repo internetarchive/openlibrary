@@ -25,8 +25,10 @@ const heldBackBlocking = body => {
 };
 // A blocking held-back part keeps the PR blocked across later reviews, which may cover other files,
 // until a maintainer has looked and dismissed the review that held it back. These read that from the
-// bot's reviews (with superseded ones already left out).
-const heldBackOpen = reviews => reviews.some(r => r.state !== 'DISMISSED' && heldBackBlocking(r.body));
+// bot's reviews (with superseded ones already left out). heldBackReview returns the first such review,
+// so `post` can point at it.
+const heldBackReview = reviews => reviews.find(r => r.state !== 'DISMISSED' && heldBackBlocking(r.body)) || null;
+const heldBackOpen = reviews => heldBackReview(reviews) !== null;
 // The findings a review's marker counts toward the verdict: its own, plus the held-back part unless
 // a maintainer dismissed the review.
 const verdictFindings = review => {
@@ -49,8 +51,9 @@ const unresolvedThreadCount = threads => {
     return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated ? 1 : 0), 0);
 };
 
-// The parts of a unified diff for the given paths (old or new name). A re-review sees only these,
-// and `post` validates anchors against the same cut.
+// The parts of a unified diff for the given paths (old or new name). A re-review sees only these.
+// Anchors are checked against the whole PR's diff (pr.diff), so a finding can sit on any line the PR
+// changed, not only on the files changed since the last review.
 const filterDiff = (diff, paths) => {
     const want = new Set(paths);
     return String(diff)
@@ -62,12 +65,74 @@ const filterDiff = (diff, paths) => {
         .join('');
 };
 
+// Where a comment can go in a unified diff. `lines`: for each file, the right-side lines (added and
+// context) a line comment can sit on, with their text for suggestions. A file with no such lines
+// (deleted, binary) is still listed: it can take a file-level thread. `firstHunk`: the first line
+// of each file's first hunk, the fallback when a file-level thread fails. It is on the new side, or
+// on the old side when the file has no new side (deleted or emptied). Line 1 is no fallback: GitHub
+// rejects a line outside the diff ("Line could not be resolved").
+const diffAnchors = diff => {
+    const lines = new Map(),
+        firstHunk = new Map();
+    let file = null,
+        newLn = 0,
+        inHunk = false,
+        deleted = false;
+    for (const raw of String(diff || '').split(/\r?\n/)) {
+        const g = /^diff --git a\/(.*) b\/(.*)$/.exec(raw);
+        if (g) {
+            file = g[2];
+            inHunk = false;
+            deleted = false;
+            if (!lines.has(file)) lines.set(file, new Map());
+            continue;
+        }
+        if (!file) continue;
+        if (!inHunk && raw.startsWith('+++ ')) {
+            const p = raw.slice(4).trim();
+            if (p === '/dev/null') deleted = true;
+            else {
+                file = p.replace(/^b\//, '');
+                if (!lines.has(file)) lines.set(file, new Map());
+            }
+            continue;
+        }
+        const h = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(raw);
+        if (h) {
+            inHunk = true;
+            newLn = Number(h[3]);
+            const newCount = h[4] === undefined ? 1 : Number(h[4]);
+            if (!firstHunk.has(file)) firstHunk.set(file, deleted || newCount === 0 ? { line: Number(h[1]), side: 'LEFT' } : { line: newLn, side: 'RIGHT' });
+            continue;
+        }
+        if (!inHunk || deleted) continue;
+        if (raw.startsWith('+') || raw.startsWith(' ')) lines.get(file).set(newLn++, raw.slice(1));
+    }
+    return { lines, firstHunk };
+};
+
+// The thread a finding gets: 'line' when its range is on right-side lines of the PR's diff, 'file'
+// when its file is in the diff but the range isn't (or it gives no line), and null when its file
+// isn't in the diff. Only findings with a thread block: a finding nobody can reply to or resolve
+// would block with no way to clear it, or stop counting silently on the next pass (#14471).
+const threadKind = (f, anchors) => {
+    if (!f || !f.path || !anchors.lines.has(f.path)) return null;
+    const ln = anchors.lines.get(f.path);
+    const end = Number(f.line),
+        start = Number(f.start_line || f.line);
+    if (f.line && ln.has(end) && ln.has(start) && start <= end) return 'line';
+    return 'file';
+};
+
 module.exports = {
+    diffAnchors,
+    threadKind,
     headIsCurrent,
     reviewMarker,
     parseReviewMarker,
     heldBackBlocking,
     heldBackOpen,
+    heldBackReview,
     verdictFindings,
     unresolvedThreadCount,
     filterDiff,

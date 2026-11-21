@@ -49,7 +49,7 @@ async function runScript(stepFn, { github, env, cwd }) {
             return target[prop];
         }
     });
-    await stepFn({ github, context, core, require: id => (id === 'fs' ? fs : realRequire(id)), process: { env: { ...env } } });
+    await stepFn({ github, context, core, require: id => (id === 'node:fs' ? fs : realRequire(id)), process: { env: { ...env } } });
     return recorded;
 }
 

@@ -290,7 +290,7 @@ async function runPublish({ statsObj, report, env, existing = [] }) {
         const fs = load('fs');
         const at = p => join(dir, p);
         const wrappedFs = { readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), existsSync: p => fs.existsSync(at(p)) };
-        const require = id => (id === 'fs' ? wrappedFs : load(id));
+        const require = id => (id === 'node:fs' ? wrappedFs : load(id));
         await post.publish({ github, context: { repo: { owner: 'o', repo: 'r' } }, core, require, process: { env: { RUN_URL: 'RUN', ...env } } });
     } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -396,7 +396,7 @@ const withFailures = () => {
     s.bot_prs = [{ number: 14527, url: 'pr14527', merged_at: '2026-11-17T09:31:00Z' }];
     return s;
 };
-const fix = (failure_id, pr = 14527, status = 'fixed') => ({ failure_id, pr, status, why: 'Handles @RayBB the rejected line.' });
+const fix = (failure_id, prNumber = 14527, status = 'fixed') => ({ failure_id, pr: prNumber, status, why: 'Handles @RayBB the rejected line.' });
 test('verifyFixes: only a candidate PR for a real failure counts, once per failure', () => {
     const v = post.verifyFixes(withFailures(), [fix(0), fix(0, 14527, 'probably_fixed'), fix(1, 999), fix(7)]);
     assert.deepEqual([...v.keys()], [0]);
@@ -410,7 +410,7 @@ test('render: a fixed failure stops counting and is listed as already fixed', ()
     assert.doesNotMatch(after.issue, /`post` or `resolve` job/);
     assert.match(
         after.issue,
-        /## Already fixed \(not counted\)\n\n- 2026-11-17 `post` \(line_not_resolved\): \[run\]\(r0\) — fixed by \[#14527\]\(pr14527\): Handles @\u200bRayBB/
+        /## Already fixed \(not counted\)\n\n- 2026-11-17 `post` \(line_not_resolved\): \[run\]\(r0\) — fixed by \[#14527\]\(pr14527\): Handles @\u200BRayBB/
     );
     assert.match(after.issue, /turn limit/, 'the unfixed failure still alerts');
     assert.equal(after.open, true);

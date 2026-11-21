@@ -28,7 +28,7 @@ import web
 
 from openlibrary.core import db as core_db
 from openlibrary.core.db import get_db
-from openlibrary.core.imports import Batch
+from openlibrary.core.imports import Batch, ImportItem
 
 IMPORT_BATCH_DDL: Final = "CREATE TABLE import_batch (id integer primary key, name text, submitter text, submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
 IMPORT_ITEM_DDL: Final = """
@@ -453,3 +453,31 @@ class TestRetryFailed:
         batch = Batch.new("clean")
         batch.add_items([item("isbn:1", 1.0)])
         assert batch.retry_failed() == 0
+
+
+class TestPause:
+    def test_pending_items_move_to_needs_review(self, import_db):
+        batch = Batch.new("busy")
+        other = Batch.new("other")
+        batch.add_items([item("isbn:1", 1.0), item("isbn:2", 1.0)])
+        other.add_items([item("isbn:3", 1.0)])
+        import_db.update("import_item", where="ia_id='isbn:2'", status="created", ol_key="/books/OL1M", data=None)
+
+        assert batch.pause() == 1
+
+        r = rows(import_db)
+        assert r["isbn:1"].status == "needs_review"
+        assert json.loads(r["isbn:1"].data)["source_records"] == ["isbn:1"]
+        # Other statuses, and other batches' pending items, are left alone.
+        assert r["isbn:2"].status == "created"
+        assert r["isbn:3"].status == "pending"
+
+    def test_paused_item_is_no_longer_pending(self, import_db):
+        batch = Batch.new("busy")
+        batch.add_items([item("isbn:1", 1.0)])
+        fetched = ImportItem(next(iter(import_db.select("import_item"))))
+        assert fetched.is_pending()
+
+        batch.pause()
+
+        assert not fetched.is_pending()

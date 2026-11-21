@@ -3,8 +3,8 @@
  * Parses static/css/tokens/colors.css, resolves var() chains, and asserts
  * contrast ratios so a palette tweak can't silently break accessibility.
  */
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { contrastRatio, relativeLuminance } from '../../../openlibrary/plugins/openlibrary/js/design-system/contrast.js';
 
 const css = fs.readFileSync(path.join(__dirname, '../../../static/css/tokens/colors.css'), 'utf8');

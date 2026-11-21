@@ -3,7 +3,12 @@
 fastapiRoutes:
   # Pages (SitePageRoute)
   - GET /advancedsearch
+  - GET /publishers
+  - GET /publishers/{name}
+  - GET /search/authors
+  - GET /search/inside
   - GET /search/lists
+  - GET /search/publishers
   - GET /search/subjects
   - GET /tasks/admin
   - GET POST /tasks/admin/new
@@ -61,6 +66,7 @@ fastapiRoutes:
   - GET /partials/CarouselLoadMore.json
   - GET /partials/FulltextSearchSuggestion.json
   - GET /partials/HomeGenre.json
+  - GET /partials/HomeMember.json
   - GET /partials/LazyCarousel.json
   - GET /partials/MyBooksDropperLists.json
   - GET /partials/NearbyBooks.json

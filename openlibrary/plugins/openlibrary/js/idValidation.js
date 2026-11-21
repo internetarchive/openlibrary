@@ -28,7 +28,7 @@ export function isChecksumValidIsbn10(isbn) {
     const chars = isbn.replace('X', 'A').split('');
 
     chars.reverse();
-    const sum = chars.map((char, idx) => (idx + 1) * parseInt(char, 16)).reduce((acc, sum) => acc + sum, 0);
+    const sum = chars.map((char, idx) => (idx + 1) * parseInt(char, 16)).reduce((acc, term) => acc + term, 0);
 
     // The ISBN 10 is valid if the checksum mod 11 is 0.
     return sum % 11 === 0;
@@ -53,7 +53,7 @@ export function isFormatValidIsbn13(isbn) {
  */
 export function isChecksumValidIsbn13(isbn) {
     const chars = isbn.split('');
-    const sum = chars.map((char, idx) => ((idx % 2) * 2 + 1) * parseInt(char, 10)).reduce((sum, num) => sum + num, 0);
+    const sum = chars.map((char, idx) => ((idx % 2) * 2 + 1) * parseInt(char, 10)).reduce((total, num) => total + num, 0);
 
     // The ISBN 13 is valid if the checksum mod 10 is 0.
     return sum % 10 === 0;

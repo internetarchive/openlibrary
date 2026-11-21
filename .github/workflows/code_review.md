@@ -20,7 +20,7 @@ whether to approve and merge. Never phrase the review as "looks good" or "approv
 Read `$GITHUB_WORKSPACE/review-range.json`, written for you by an earlier step:
 
 ```json
-{ "pr": 13548, "base_sha": "...", "head_sha": "...", "incremental": true, "prior_review_sha": "...", "prior_review_at": "...", "files": ["..."] }
+{ "pr": 13548, "base_sha": "...", "head_sha": "...", "incremental": true, "full_review": false, "prior_review_sha": "...", "prior_review_at": "...", "files": ["..."] }
 ```
 
 - `incremental: true` — you are re-reviewing. `review.diff` is the PR's diff (`base_sha..head_sha`)
@@ -28,10 +28,16 @@ Read `$GITHUB_WORKSPACE/review-range.json`, written for you by an earlier step:
   Merges of the base branch are left out. Review what changed since that pass. Do not re-report
   findings on code you already reviewed; the author has seen them.
 - `incremental: false` — first pass. Review the whole PR diff.
+- `full_review: true` — a maintainer asked for a fresh review of the whole PR, usually because this
+  bot changed. Review the whole PR diff, as on a first pass, but you have reviewed it before: re-check
+  your earlier threads in Step 4 rather than reporting them again as new findings.
 
 The diff for your range is already on disk at `$GITHUB_WORKSPACE/review.diff`. Read that file
-rather than regenerating it — it is the exact diff the posting step validates anchors against,
-and generating your own risks a mismatch. Do not modify `review-range.json` or `review.diff`.
+rather than regenerating it. Next to it, `$GITHUB_WORKSPACE/pr.diff` is the whole PR's diff
+(`base_sha..head_sha`, every file). It is the exact diff the posting step validates anchors
+against. On a re-review it also covers files changed before your last pass. Don't read it in
+full: look up only the lines you need to anchor a finding (Step 6). Do not modify
+`review-range.json`, `review.diff` or `pr.diff`.
 
 ### Repository settings
 
@@ -313,15 +319,27 @@ Field rules:
 - `title` and `body` — required, non-empty strings. Keep the `body` to two or three short
   sentences: the problem and the fix. Skip what the reader can see in the diff. Keys not shown
   in the schema are discarded before anything is posted, so do not put content anywhere else.
-- `path` — repository-relative, exactly as it appears in `review.diff` (`openlibrary/core/models.py`),
+- `path` — repository-relative, exactly as it appears in `pr.diff` (`openlibrary/core/models.py`),
   never with a `pr-head/` prefix. A path containing spaces, markdown, `..` or a leading `/` makes
   the review unpublishable.
 - `path`, `start_line`, `line` — the anchor. `line` is the **last** line of the range;
   `start_line` the first. **Both must be lines that appear as added or context lines on the
-  RIGHT side of `review.diff`.** If a finding's real evidence is in a file the diff does not
-  touch, **omit `path`/`start_line`/`line`** (or set them to `null`) and write it into the finding `body` —
-  the posting step will fold it into the summary. Do not invent a nearby anchor to make a
-  finding postable; a misplaced comment is worse than a summarised one.
+  RIGHT side of `pr.diff`.** On a re-review, `pr.diff` also has the files outside `review.diff`,
+  so a finding about code the PR changed before your last pass can still go inline.
+
+  A finding blocks only if it gets a thread, because the thread is where the author replies and
+  where your next review marks it fixed. Anchor each finding at the first of these that fits:
+  1. The lines the finding is about.
+  2. If the problem is in code `pr.diff` doesn't touch, the line in `pr.diff` that introduces it
+     or relies on it: the call, the import, the changed signature. Say in the `body` where the
+     problem itself is.
+  3. If it's about a changed file as a whole (it needs a docstring, no test covers it), give its
+     `path` and leave out `start_line`/`line`. It's posted on the whole file.
+  4. Only if nothing in `pr.diff` relates to it, omit `path`, `start_line` and `line` (or set
+     them to `null`). It's posted in the summary as a note that doesn't block.
+
+  Never anchor on an unrelated nearby line just to get a thread. A comment in the wrong place is
+  worse than a note.
 - `resolved` — the `id`s from `prior-threads.json` that the PR head fixes (Step 4), copied
   exactly. Any other id is ignored; a value that is not an id string makes the review
   unpublishable.

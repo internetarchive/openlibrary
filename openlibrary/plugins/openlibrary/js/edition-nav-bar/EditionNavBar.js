@@ -60,7 +60,7 @@ export default class EdtionNavBar {
             });
 
             // Add this nav item's target anchor to array:
-            this.targetAnchors.push(document.getElementById(this.navItems[i].children[0].hash.substring(1)));
+            this.targetAnchors.push(document.getElementById(this.navItems[i].children[0].hash.slice(1)));
 
             // Set selectedIndex to the correct value:
             if (this.navItems[i].classList.contains('selected')) {

@@ -134,9 +134,8 @@ export function initTeamFilter() {
                 return -1;
             } else if (aLastName > bLastName) {
                 return 1;
-            } else {
-                return 0;
             }
+            return 0;
         });
     };
     sortByLastName(team);
@@ -221,7 +220,7 @@ export function initTeamFilter() {
     };
 
     const createCards = array => {
-        array.map(member => {
+        array.forEach(member => {
             // create
             const teamCardContainer = document.createElement('div');
             const teamCard = document.createElement('div');
@@ -414,9 +413,8 @@ export function initTeamFilter() {
         const firstLetter = text[0].toUpperCase();
         if (text === 'fellow' || text === 'volunteer' || text === 'lead') {
             return `${firstLetter + text.slice(1)}s`;
-        } else {
-            return firstLetter + text.slice(1);
         }
+        return firstLetter + text.slice(1);
     };
 
     // Deep-link on load from ?contributor=<slug> or #<slug>.
