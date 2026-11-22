@@ -3,10 +3,42 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { filterDiff, parseReviewMarker, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
+const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
+
+// The paths to review once files identical to the base branch's tip are left out, or null to
+// change nothing: when no file matches, or GitHub's lists are cut short (300 files in a compare, a
+// truncated tree). `files` is the re-review's list, or null for the whole PR. A file matches when
+// its blob in the PR equals the base branch's, or the PR deletes a file the base branch lacks.
+async function withoutFilesOnBase({ github, owner, repo, baseRef, base, head, files, core }) {
+    try {
+        const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${base}...${head}` });
+        const changed = (cmp && cmp.files) || [];
+        if (!changed.length || changed.length >= 300) return null;
+        const { data: tree } = await github.rest.git.getTree({ owner, repo, tree_sha: baseRef, recursive: 'true' });
+        if (!tree || tree.truncated || !Array.isArray(tree.tree)) return null;
+        const onBase = new Map(tree.tree.map(e => [e.path, e.sha]));
+        const same = f => (f.status === 'removed' ? !onBase.has(f.filename) : onBase.get(f.filename) === f.sha);
+        const kept = new Set();
+        for (const f of changed) {
+            if (same(f)) continue;
+            kept.add(f.filename);
+            if (f.previous_filename) kept.add(f.previous_filename);
+        }
+        const all = new Set(changed.flatMap(f => [f.filename, f.previous_filename].filter(Boolean)));
+        // A path outside the compare's list (shouldn't happen) is kept rather than dropped.
+        const out = (files || [...all]).filter(p => kept.has(p) || !all.has(p)).sort();
+        const dropped = changed.length - changed.filter(f => !same(f)).length;
+        if (!dropped) return null;
+        core.info(`Leaving out ${dropped} file(s) that already match ${baseRef}.`);
+        return out;
+    } catch (e) {
+        core.info(`Could not compare the PR's files with ${baseRef} (${e.message}) -- reviewing them all.`);
+        return null;
+    }
+}
 
 async function resolveRange({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber =
@@ -50,7 +82,12 @@ async function resolveRange({ github, context, core, require, process }) {
     let base = pr.base.sha,
         incremental = false,
         files = null;
-    if (prior && priorSha !== head) {
+    // A maintainer asked to review the whole PR again (see FULL_REVIEW in the workflow), e.g. after a
+    // change to the bot: no incremental range, and no skip for a commit already reviewed.
+    const full = process.env.FULL_REVIEW === 'true';
+    if (full) {
+        core.info('Full review requested: reviewing the whole PR, even if this commit was reviewed before.');
+    } else if (prior && priorSha !== head) {
         // Use the prior SHA only if it is an ancestor of head. After a force-push it may not be,
         // and diffing from it would review the wrong changes.
         try {
@@ -133,7 +170,7 @@ async function resolveRange({ github, context, core, require, process }) {
                repository(owner:$owner,name:$repo){
                  pullRequest(number:$pr){
                    reviewThreads(first:100, after:$cursor){
-                     nodes { isResolved isOutdated }
+                     nodes { isResolved isOutdated comments(first:1){ nodes { author { login } body } } }
                      pageInfo { hasNextPage endCursor }
                    }
                  }
@@ -158,7 +195,8 @@ async function resolveRange({ github, context, core, require, process }) {
         // The same pass rule as status.cjs's decideStatus.
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         const postSucceeded = reviewForVerdict != null;
-        const findings = reviewForVerdict ? parseReviewMarker(reviewForVerdict.body) : null;
+        let findings = reviewForVerdict ? verdictFindings(reviewForVerdict) : null;
+        if (findings === 0 && heldBackOpen(ours)) findings = 1;
         const unresolved = unresolvedThreadCount(threads);
         const expectedState = postSucceeded && findings === 0 && unresolved === 0 ? 'success' : 'failure';
 
@@ -188,6 +226,23 @@ async function resolveRange({ github, context, core, require, process }) {
         return;
     }
 
+    // A file the PR leaves exactly as it is on the base branch adds nothing to review, however the
+    // history got it there: master's changes committed by hand instead of merged, or a stacked PR
+    // whose parent was squash-merged. #14495 was reviewed with 169 such files. Leave them out,
+    // through the same file list a re-review uses. Best effort: on any doubt, review as before.
+    const narrowed = await withoutFilesOnBase({ github, owner, repo, baseRef: pr.base.ref, base, head, files, core });
+    if (narrowed && !narrowed.length && prior) {
+        // Nothing the PR changes differs from the base branch any more: carry the last verdict.
+        core.info('Every file the PR changes already matches the base branch -- reposting the last verdict.');
+        core.setOutput('pr', String(prNumber));
+        core.setOutput('head_sha', head);
+        core.setOutput('verdict_sha', prior.commit_id);
+        core.setOutput('skip', 'false');
+        core.setOutput('repost', 'true');
+        return;
+    }
+    if (narrowed && narrowed.length) files = narrowed;
+
     const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
         owner,
         repo,
@@ -195,6 +250,8 @@ async function resolveRange({ github, context, core, require, process }) {
         headers: { accept: 'application/vnd.github.v3.diff' }
     });
     fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, files ? filterDiff(diff, files) : diff);
+    // The whole PR's diff, which a finding may anchor to. `post` fetches the same diff again.
+    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr.diff`, diff);
     // Settings from the base checkout's .pr_agent.toml, so a PR can't change them. Later steps use
     // these outputs, which the model cannot change; the model reads review-config.json.
     const reviewConfig = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/config.cjs`);
@@ -214,6 +271,7 @@ async function resolveRange({ github, context, core, require, process }) {
                 base_sha: base,
                 head_sha: head,
                 incremental,
+                full_review: full,
                 prior_review_sha: incremental ? priorSha : null,
                 prior_review_at: prior ? prior.submitted_at : null,
                 files

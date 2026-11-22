@@ -64,7 +64,7 @@ async function runScript(stepFn, { github, context, env, cwd }) {
         : realFs;
     // GITHUB_WORKSPACE is a temp dir here; the base checkout's scripts come from this repo.
     const wrappedRequire = id =>
-        id === 'fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
+        id === 'node:fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
     await stepFn({ github, context, core, require: wrappedRequire, process: fakeProcess });
     return { ...recorded, core };
 }
@@ -171,7 +171,12 @@ test('D1 post: head MOVED by a force-push -> nothing is posted, since the review
     writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const pinned = SHA('a'),
         live = SHA('c');
-    for (const compare of [async () => ({ data: { status: 'diverged' } }), async () => Promise.reject(new Error('No common ancestor'))]) {
+    for (const compare of [
+        async () => ({ data: { status: 'diverged' } }),
+        async () => {
+            throw new Error('No common ancestor');
+        }
+    ]) {
         const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: live } } }) });
         github.rest.repos.compareCommitsWithBasehead = compare;
         const env = { PR: '1', HEAD_SHA: pinned, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
@@ -510,20 +515,21 @@ test('#14486 Finding 2: a transient reviewThreads GraphQL error routes to a repo
 });
 
 // ===================== A withheld review is not automatically red =====================
-test('D3a analyze-gate: a backstop-tripping review with 0 findings -> withheld, NON-blocking', async () => {
+test('D3a analyze-gate: a backstop-tripping summary -> held back, NON-blocking, rest kept', async () => {
     const review = cleanReview();
     review.summary = 'This change guards against a SQL injection in the query builder.'; // trips the backstop
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
     const { github } = mockGitHub();
     const env = { GITHUB_WORKSPACE: dir };
     const res = await runScript(analyzeGate.gateAnalysis, { github, context, env });
-    assert.equal(res.outputs.withheld, 'true', 'the backstop withholds the public copy');
-    assert.equal(res.outputs.withheld_blocking, 'false', 'but with 0 findings it is NON-blocking');
-    assert.equal(res.outputs.public_findings_count, '0', 'the public count stays 0 (no leak)');
+    assert.equal(res.outputs.withheld, 'false', 'the review is still posted');
+    assert.equal(res.outputs.held_back, 'true', 'with its summary held back');
+    assert.equal(res.outputs.withheld_blocking, 'false', 'with 0 findings it is NON-blocking');
     const written = JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8'));
-    assert.deepEqual(written, { withheld: true }, 'only the withheld stub is kept, never the content');
+    assert.equal(written.summary, '', 'the summary is never kept');
+    assert.ok(!JSON.stringify(written).includes('injection'));
 });
-test('D3a analyze-gate: a real security finding -> withheld AND blocking', async () => {
+test('D3a analyze-gate: a security finding in existing code -> held back AND blocking; the count leaves it out', async () => {
     const review = cleanReview();
     review.dimensions.security = { status: 'findings' };
     review.findings = [{ dimension: 'security', severity: 'high', confidence: 8, title: 'authz gap', body: 'missing owner check' }];
@@ -531,9 +537,34 @@ test('D3a analyze-gate: a real security finding -> withheld AND blocking', async
     const { github } = mockGitHub();
     const env = { GITHUB_WORKSPACE: dir };
     const res = await runScript(analyzeGate.gateAnalysis, { github, context, env });
-    assert.equal(res.outputs.withheld, 'true');
+    assert.equal(res.outputs.withheld, 'false');
+    assert.equal(res.outputs.held_back, 'true');
     assert.equal(res.outputs.withheld_blocking, 'true');
-    assert.equal(res.outputs.public_findings_count, '0', 'the public count stays 0 even for a real finding (no count leak)');
+    assert.equal(res.outputs.public_findings_count, '0', 'the public count leaves it out (no count leak)');
+    assert.ok(!readFileSync(join(dir, 'review.json'), 'utf8').includes('owner'));
+});
+test('analyze-gate: a security finding the PR introduces, on lines it adds, is published', async () => {
+    const review = cleanReview();
+    review.dimensions.security = { status: 'findings' };
+    review.findings = [
+        { dimension: 'security', scope: 'introduced', severity: 'high', confidence: 8, title: 'authz gap', body: 'Check the owner.', path: 'a.py', line: 1 }
+    ];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -0,0 +1 @@\n+edit(list)\n');
+    const { github } = mockGitHub();
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
+    assert.equal(res.outputs.held_back, 'false');
+    assert.equal(res.outputs.public_findings_count, '1');
+    assert.equal(JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')).findings[0].title, 'authz gap');
+});
+test('analyze-gate: a malformed review is withheld in full and blocks', async () => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify({ summary: 5 }));
+    const { github } = mockGitHub();
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
+    assert.equal(res.outputs.withheld, 'true');
+    assert.equal(res.outputs.held_back, 'false');
+    assert.equal(res.outputs.withheld_blocking, 'true');
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')), { withheld: true });
 });
 test('D3a status: withheld + non-blocking -> SUCCESS (the no-defect PR greens itself)', async () => {
     const head = SHA('a');
@@ -551,7 +582,7 @@ test('D3a status: withheld + non-blocking -> SUCCESS (the no-defect PR greens it
     await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'success');
 });
-test('D3a status: withheld + blocking -> FAILURE with the non-leaky private-delivery phrase', async () => {
+test('D3a status: withheld + blocking -> FAILURE with the non-leaky withheld phrase', async () => {
     const head = SHA('a');
     const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
     const env = {
@@ -566,9 +597,36 @@ test('D3a status: withheld + blocking -> FAILURE with the non-leaky private-deli
     };
     await runScript(status.postStatus, { github, context, env });
     assert.equal(calls.createCommitStatus[0].state, 'failure');
-    assert.equal(calls.createCommitStatus[0].description, 'A finding was delivered privately; maintainer review required.');
+    assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
     assert.ok(!/\d/.test(calls.createCommitStatus[0].description), 'the description carries no count');
 });
+for (const [blocking, state] of [
+    ['true', 'failure'],
+    ['false', 'success'],
+    ['', 'failure']
+]) {
+    test(`status: a posted review with a part held back (blocking=${blocking || 'missing'}) -> ${state}`, async () => {
+        const head = SHA('a');
+        const { github, calls } = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: head } } }),
+            listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x' }] })
+        });
+        const env = {
+            PR: '1',
+            HEAD_SHA: head,
+            POST_RESULT: 'success',
+            PUBLIC_FINDINGS_COUNT: '0',
+            WITHHELD: 'false',
+            HELD_BACK: 'true',
+            WITHHELD_BLOCKING: blocking,
+            REPOST: 'false',
+            RUN_URL: 'u'
+        };
+        await runScript(status.postStatus, { github, context, env });
+        assert.equal(calls.createCommitStatus[0].state, state);
+        if (blocking === 'true') assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
+    });
+}
 test('D3a post: a withheld stub -> createReview NOT called, exits clean (no hard failure)', async () => {
     writeFileSync(join(dir, 'review.json'), JSON.stringify({ withheld: true }));
     writeFileSync(join(dir, 'review.diff'), '');
@@ -700,13 +758,35 @@ test('analyze-gate: LOW findings do not count toward the public findings count',
     const review = cleanReview();
     review.dimensions.correctness = { status: 'findings' };
     review.findings = [
-        { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'a', body: 'b' },
-        { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd' }
+        { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'a', body: 'b', path: 'x', line: 1 },
+        { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd', path: 'x', line: 1 }
     ];
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
     const { github } = mockGitHub();
     const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir } });
     assert.equal(res.outputs.public_findings_count, '1');
+});
+// Counted the way `post` sorts them: a finding blocks only if it gets a thread (#14471).
+const countFor = async (findings, env = {}) => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = findings.map(f => ({ dimension: 'correctness', severity: 'medium', confidence: 8, title: 't', body: 'b', ...f }));
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    writeFileSync(join(dir, 'pr.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\ndiff --git a/y b/y\n--- a/y\n+++ b/y\n@@ -5 +5 @@\n+y\n');
+    const { github } = mockGitHub();
+    const res = await runScript(analyzeGate.gateAnalysis, { github, context, env: { GITHUB_WORKSPACE: dir, ...env } });
+    return res.outputs.public_findings_count;
+};
+test('analyze-gate: a finding with a line or a file in the PR counts; one about no file in the PR is a note', async () => {
+    assert.equal(await countFor([{ path: 'x', line: 1 }]), '1', 'a line comment');
+    assert.equal(await countFor([{ path: 'y', line: 5 }]), '1', 'a line in pr.diff outside review.diff');
+    assert.equal(await countFor([{ path: 'y' }]), '1', 'a file-level comment');
+    assert.equal(await countFor([{ path: 'y', line: 99 }]), '1', 'a line outside the diff falls back to the file');
+    assert.equal(await countFor([{ path: 'elsewhere.py', line: 1 }]), '0', 'a file outside the PR: a note');
+    assert.equal(await countFor([{}]), '0', 'no path: a note');
+    assert.equal(await countFor([{}], { INLINE_KEY_ISSUES: 'false' }), '1', 'inline comments off: every finding is in the summary and blocks');
 });
 test('post: a LOW finding becomes a suggestion in the summary, not a blocking inline thread', async () => {
     const review = cleanReview();
@@ -720,7 +800,8 @@ test('post: a LOW finding becomes a suggestion in the summary, not a blocking in
     await runScript(post.validateAndPost, { github, context, env, cwd: dir });
     const posted = calls.createReview[0];
     assert.equal((posted.comments || []).length, 0, 'no inline thread for a LOW finding');
-    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* \(`x:1`\): Add a test\./);
+    assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Untested label\*\* · `x:1`\n {2}Add a test\./);
+    assert.match(posted.body, /^\*\*No blocking findings\*\* · 1 suggestion on `/, 'a suggestion is not called a finding');
     assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
     assert.notEqual(posted.event, 'REQUEST_CHANGES');
 });
@@ -782,6 +863,7 @@ test("range: a base merge plus one author commit reviews the PR diff for that co
     assert.equal(res.outputs.files, JSON.stringify(['b.py']));
     assert.deepEqual(calls.getCommit, [A, M], "master's own commits are never read; the merge only for conflict fixes");
     assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+    assert.equal(readFileSync(join(dir, 'pr.diff'), 'utf8'), PR_DIFF, 'the whole PR diff, for anchors');
     const rangeJson = JSON.parse(readFileSync(join(dir, 'review-range.json'), 'utf8'));
     assert.equal(rangeJson.prior_review_sha, P);
     assert.deepEqual(rangeJson.files, ['b.py']);
@@ -822,11 +904,12 @@ test('status repost: carries the verdict of the review on VERDICT_SHA, an earlie
         assert.equal(calls.createCommitStatus[0].state, state);
     }
 });
-test('post refetchDiff: cuts the PR diff to the files analyze listed', async () => {
+test('post refetchDiff: cuts the PR diff to the files analyze listed, and keeps the whole diff for anchors', async () => {
     const { github } = baseMergeGitHub({ sinceCommits: [] });
     const env = { BASE_SHA: MB, HEAD_SHA: A, FILES: JSON.stringify(['b.py']) };
     await runScript(post.refetchDiff, { github, context, env: { ...env, GITHUB_WORKSPACE: dir }, cwd: dir });
     assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+    assert.equal(readFileSync(join(dir, 'pr.diff'), 'utf8'), PR_DIFF);
     const bad = await runScript(post.refetchDiff, { github, context, env: { ...env, FILES: '{"x":1}', GITHUB_WORKSPACE: dir }, cwd: dir });
     assert.equal(bad.failed, 'Unexpected review range.');
 });
@@ -859,21 +942,559 @@ test('post: a 422 on an anchor posts again with the inline comments in the summa
 });
 
 // ===================== Review text =====================
-test('post: the tip follows push reviews, and the footer names no one', async () => {
+test('post: the one-line footer gives the next step, and asks for no comments', async () => {
     const head = SHA('a');
     const bodies = [];
-    for (const minutes of ['10', '']) {
-        writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    const withFinding = cleanReview();
+    withFinding.dimensions.correctness = { status: 'findings' };
+    withFinding.findings = [{ dimension: 'correctness', severity: 'low', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    for (const [minutes, review] of [
+        ['10', withFinding],
+        ['', withFinding],
+        ['10', cleanReview()]
+    ]) {
+        writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
         writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
         const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
         const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', PUSH_REVIEW_MINUTES: minutes, GITHUB_WORKSPACE: dir };
         await runScript(post.validateAndPost, { github, context, env, cwd: dir });
         bodies.push(calls.createReview[0].body);
     }
-    assert.match(bodies[0], /A new review starts automatically about 10 minutes after your last push\./);
-    assert.match(bodies[1], /comment `@openlibrary-bot review` on this PR to run a fresh review\./);
-    for (const b of bodies) {
-        assert.doesNotMatch(b, /on behalf of/);
-        assert.match(b, /Automated review by \[@openlibrary-bot\]\([^)]*docs\/code-review-bot\.md\)\. This is \*\*not\*\* an approval/);
+    const link = String.raw`\[How this bot works\]\([^)]*docs/code-review-bot\.md\)`;
+    const ask = 'Please address the feedback above before a maintainer reviews this PR';
+    assert.match(bodies[0], new RegExp(`<sub>${ask} · ${link} · Reviews new pushes after 10 minutes</sub>`), 'a suggestion is feedback too');
+    assert.match(bodies[1], new RegExp(`<sub>${ask} · ${link}</sub>`));
+    assert.match(bodies[2], /^\*\*No issues found\*\* on `aaaaaaa`\.\n\nA plain summary with nothing sensitive\.\n\n<sub>/);
+    assert.match(bodies[2], new RegExp(`<sub>A maintainer will review this PR next · ${link}</sub>`));
+    for (const b of bodies) assert.doesNotMatch(b, /on behalf of|@openlibrary-bot review|\[!TIP\]|Dimensions|optional/);
+});
+
+// ===================== Part of a review held back =====================
+const heldBackPost = async env => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = [{ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Off by one', body: 'Use <=.', path: 'x', line: 1 }];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+ok\n');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const res = await runScript(post.validateAndPost, {
+        github,
+        context,
+        env: { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir, ...env },
+        cwd: dir
+    });
+    return { res, calls };
+};
+test('post: a blocking held-back part -> the rest is posted, with a fixed note and h=1 in the marker', async () => {
+    const { calls } = await heldBackPost({ HELD_BACK: 'true', WITHHELD_BLOCKING: 'true' });
+    const body = calls.createReview[0].body;
+    assert.match(
+        body,
+        /> \[!IMPORTANT\]\n> Part of this review was held back because it may be security-sensitive\. A maintainer needs to look at this PR before it can merge\./
+    );
+    assert.match(body, /<!-- ol-pr-review-bot f=1 h=1 -->/);
+    assert.equal(calls.createReview[0].comments.length, 1, 'the published finding is still posted');
+});
+test('post: a non-blocking held-back part -> a note that says so, and no h=1', async () => {
+    const { calls } = await heldBackPost({ HELD_BACK: 'true', WITHHELD_BLOCKING: 'false' });
+    const body = calls.createReview[0].body;
+    assert.match(body, /None of it blocks this PR\./);
+    assert.match(body, /<!-- ol-pr-review-bot f=1 -->/);
+});
+test('post: nothing held back -> no note', async () => {
+    const { calls } = await heldBackPost({ HELD_BACK: 'false', WITHHELD_BLOCKING: 'false' });
+    assert.ok(!/held back/.test(calls.createReview[0].body));
+});
+test('post: if its own gate would hold back more than analyze did, it posts nothing and fails', async () => {
+    const review = cleanReview();
+    review.summary = 'Guards against SQL injection.';
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const res = await runScript(post.validateAndPost, {
+        github,
+        context,
+        env: { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir },
+        cwd: dir
+    });
+    assert.equal(calls.createReview.length, 0);
+    assert.ok(res.failed);
+});
+test('status: a repost reads a blocking held-back part from the marker', async () => {
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: head, body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' }] })
+    });
+    await runScript(status.postStatus, { github, context, env: { PR: '1', HEAD_SHA: head, REPOST: 'true', RUN_URL: 'u' } });
+    assert.equal(calls.createCommitStatus[0].state, 'failure');
+    assert.equal(calls.createCommitStatus[0].description, 'Feedback withheld for maintainer review.');
+});
+test('status: a later clean review stays red while an earlier blocking held-back part is not dismissed', async () => {
+    const head = SHA('a');
+    for (const [state, want] of [
+        ['CHANGES_REQUESTED', 'failure'],
+        ['DISMISSED', 'success']
+    ]) {
+        const { github, calls } = mockGitHub({
+            prGet: async () => ({ data: { head: { sha: head } } }),
+            listReviews: async () => ({
+                data: [
+                    { user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), state, body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' },
+                    { user: { login: 'openlibrary-bot' }, commit_id: head, state: 'APPROVED', body: 'y\n<!-- ol-pr-review-bot f=0 -->' }
+                ]
+            })
+        });
+        const env = {
+            PR: '1',
+            HEAD_SHA: head,
+            POST_RESULT: 'success',
+            PUBLIC_FINDINGS_COUNT: '0',
+            WITHHELD: 'false',
+            HELD_BACK: 'false',
+            REPOST: 'false',
+            RUN_URL: 'u'
+        };
+        await runScript(status.postStatus, { github, context, env });
+        assert.equal(calls.createCommitStatus[0].state, want, state);
     }
+});
+test('post: never approves while a blocking part is held back', async () => {
+    const review = cleanReview();
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir, HELD_BACK: 'true', WITHHELD_BLOCKING: 'true' };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    assert.equal(calls.createReview[0].event, 'REQUEST_CHANGES');
+});
+// #14495: three later reviews said "No issues found" yet requested changes, with no reason given.
+const earlierHoldPost = async state => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    const held = {
+        id: 5,
+        user: { login: 'openlibrary-bot' },
+        commit_id: SHA('c'),
+        state,
+        html_url: 'https://github.com/internetarchive/openlibrary/pull/1#pullrequestreview-5',
+        body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->'
+    };
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }), listReviews: async () => ({ data: [held] }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir, HELD_BACK: 'false', WITHHELD_BLOCKING: 'false' };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    return calls.createReview[0];
+};
+test('post: a clean review held at REQUEST_CHANGES by an earlier held-back review says why, with a link', async () => {
+    const posted = await earlierHoldPost('CHANGES_REQUESTED');
+    assert.equal(posted.event, 'REQUEST_CHANGES');
+    assert.ok(posted.body.startsWith('**No issues found** on `aaaaaaa`.'), posted.body);
+    assert.match(
+        posted.body,
+        /> \[!IMPORTANT\]\n> Changes are still requested because part of an \[earlier review of `ccccccc`\]\(https:\/\/github\.com\/internetarchive\/openlibrary\/pull\/1#pullrequestreview-5\) was held back as possibly security-sensitive\. A maintainer needs to look at it, then dismiss that review\./
+    );
+    assert.match(posted.body, /<sub>Waiting for a maintainer to check the held-back review · /);
+    assert.doesNotMatch(posted.body, /A maintainer will review this PR next/);
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/, "this review's own marker is unchanged");
+});
+test('post: once a maintainer dismissed the held-back review, a clean review approves with no note', async () => {
+    const posted = await earlierHoldPost('DISMISSED');
+    assert.equal(posted.event, 'APPROVE');
+    assert.doesNotMatch(posted.body, /held back|Changes are still requested/);
+    assert.match(posted.body, /<sub>A maintainer will review this PR next · /);
+});
+
+// ===================== Anchors on the whole PR diff =====================
+// A re-review's review.diff has only the files changed since the last review, but a finding can be
+// about a line the PR changed earlier. GitHub accepts any line in the PR's diff.
+const anchorPost = async ({ withPrDiff }) => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = [{ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Caller breaks', body: 'Update it.', path: 'a.py', line: 1 }];
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1 @@\n+b\n');
+    if (withPrDiff)
+        writeFileSync(
+            join(dir, 'pr.diff'),
+            'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+a\ndiff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1 @@\n+b\n'
+        );
+    const head = SHA('a');
+    const { github, calls } = mockGitHub({ prGet: async () => ({ data: { head: { sha: head } } }) });
+    const env = { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), INCREMENTAL: 'true', GITHUB_WORKSPACE: dir };
+    await runScript(post.validateAndPost, { github, context, env, cwd: dir });
+    return calls.createReview[0];
+};
+test('post: a re-review finding on a file outside review.diff but in the PR gets an inline comment', async () => {
+    const posted = await anchorPost({ withPrDiff: true });
+    assert.equal(posted.comments.length, 1);
+    assert.equal(posted.comments[0].path, 'a.py');
+    assert.doesNotMatch(posted.body, /Findings without an in-diff anchor/);
+});
+test('post: without pr.diff, anchors fall back to review.diff (a finding outside it is a note)', async () => {
+    const posted = await anchorPost({ withPrDiff: false });
+    assert.equal(posted.comments.length, 0);
+    assert.match(posted.body, /### Notes \(won't block\)\n\n.*\n\n- \*\*Correctness — Caller breaks\*\* · `a\.py:1`/);
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/, 'a note does not count');
+});
+
+// ===================== GitHub 5xx when posting =====================
+// #14292: createReview returned a 500 and the PR was left with no review.
+const serverErrorPost = async ({ failures, createdAnyway = false, checkFailures = 0 }) => {
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(cleanReview()));
+    writeFileSync(join(dir, 'review.diff'), '');
+    const head = SHA('a');
+    let created = null;
+    let errored = false;
+    let checksLeft = checkFailures;
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => {
+            // After a failed post, the "was it posted anyway?" check can fail too.
+            if (errored && checksLeft-- > 0) throw Object.assign(new Error('Server Error'), { status: 502 });
+            return listed();
+        }
+    });
+    const listed = () => ({
+        data: created
+            ? [{ id: created.id, user: { login: 'openlibrary-bot' }, commit_id: head, submitted_at: new Date().toISOString(), body: created.body }]
+            : []
+    });
+    let left = failures;
+    const create = github.rest.pulls.createReview;
+    github.rest.pulls.createReview = async p => {
+        if (left-- > 0) {
+            calls.createReview.push(p);
+            errored = true;
+            if (createdAnyway) created = { id: 555, body: p.body };
+            throw Object.assign(new Error('Server Error'), { status: 500 });
+        }
+        const res = await create(p);
+        created = { id: res.data.id, body: p.body };
+        return res;
+    };
+    const sleeps = [];
+    const res = await runScript(args => post.validateAndPost({ ...args, sleep: async ms => sleeps.push(ms) }), {
+        github,
+        context,
+        env: { PR: '1', HEAD_SHA: head, BASE_SHA: SHA('b'), GITHUB_WORKSPACE: dir },
+        cwd: dir
+    }).catch(e => ({ thrown: e }));
+    return { res, calls, sleeps };
+};
+test('post: a 5xx from createReview is retried, and the review still posts', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 1 });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null);
+    assert.equal(calls.createReview.length, 2);
+    assert.deepEqual(sleeps, [10000]);
+    assert.match(res.warnings.join('\n'), /GitHub returned 500 posting the review; trying again \(1 of 2\)/);
+});
+test('post: a 5xx after GitHub created the review does not post it twice', async () => {
+    const { res, calls } = await serverErrorPost({ failures: 1, createdAnyway: true });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null, 'the review GitHub created counts as posted');
+    assert.equal(calls.createReview.length, 1);
+});
+test('post: a failed "was it posted?" check does not stop the retry', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 1, checkFailures: 1 });
+    assert.equal(res.thrown, undefined);
+    assert.equal(res.failed, null);
+    assert.equal(calls.createReview.length, 2);
+    assert.deepEqual(sleeps, [10000]);
+    assert.match(res.warnings.join('\n'), /Could not check whether the review was posted \(Server Error\); trying again anyway/);
+});
+test('post: after two retries a 5xx still fails the job', async () => {
+    const { res, calls, sleeps } = await serverErrorPost({ failures: 3 });
+    assert.equal(res.thrown.status, 500);
+    assert.equal(calls.createReview.length, 3);
+    assert.deepEqual(sleeps, [10000, 20000]);
+});
+
+// ===================== Files that already match the base branch =====================
+// #14495: master's changes committed into the branch by hand made them part of the PR's diff.
+function baseTreeGitHub({ changed, tree, truncated = false, prior = false }) {
+    const github = {
+        rest: {
+            pulls: {
+                get: async () => ({ data: { number: 1, draft: false, state: 'open', head: { sha: A }, base: { sha: MB, ref: 'master' } } }),
+                listReviews: async () => ({
+                    data: prior
+                        ? [{ user: { login: 'openlibrary-bot' }, commit_id: P, submitted_at: '2026-01-01', body: 'x\n<!-- ol-pr-review-bot f=0 -->' }]
+                        : []
+                })
+            },
+            repos: {
+                compareCommitsWithBasehead: async ({ basehead, headers }) => {
+                    if (headers) return { data: PR_DIFF };
+                    // The prior review is not an ancestor, so a full review (keeps this test to the filter).
+                    if (basehead === `${P}...${A}`) return { data: { status: 'diverged' } };
+                    return { data: { files: changed } };
+                }
+            },
+            git: { getTree: async ({ tree_sha }) => ({ data: { truncated, tree: tree_sha === 'master' ? tree : [] } }) }
+        },
+        paginate: async (method, params) => (await method(params)).data,
+        graphql: async () => ({ repository: { pullRequest: { reviewThreads: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } } })
+    };
+    return github;
+}
+const blob = (path, sha) => ({ path, sha, type: 'blob' });
+test('range: a file the PR leaves exactly as it is on master is not reviewed', async () => {
+    const github = baseTreeGitHub({
+        changed: [
+            { filename: 'a.py', sha: 'same', status: 'modified' },
+            { filename: 'b.py', sha: 'new', status: 'modified' }
+        ],
+        tree: [blob('a.py', 'same'), blob('b.py', 'old')]
+    });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'false');
+    assert.equal(res.outputs.files, JSON.stringify(['b.py']));
+    assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), 'diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1 +1,2 @@\n+b\n+b2\n');
+});
+test('range: a rename keeps both names, and a deletion master also made is left out', async () => {
+    const github = baseTreeGitHub({
+        changed: [
+            { filename: 'b.py', previous_filename: 'old_b.py', sha: 'new', status: 'renamed' },
+            { filename: 'gone.py', sha: 'x', status: 'removed' },
+            { filename: 'kept_gone.py', sha: 'x', status: 'removed' }
+        ],
+        tree: [blob('kept_gone.py', 'x')]
+    });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.files, JSON.stringify(['b.py', 'kept_gone.py', 'old_b.py']));
+});
+test('range: when every changed file already matches master, the last verdict is carried', async () => {
+    const github = baseTreeGitHub({ changed: [{ filename: 'a.py', sha: 'same', status: 'modified' }], tree: [blob('a.py', 'same')], prior: true });
+    const res = await runScript(range.resolveRange, { github, context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+    assert.equal(res.outputs.repost, 'true');
+    assert.equal(res.outputs.verdict_sha, P);
+});
+test('range: a truncated tree, or nothing matching, changes nothing', async () => {
+    for (const opts of [
+        { changed: [{ filename: 'a.py', sha: 'same', status: 'modified' }], tree: [blob('a.py', 'same')], truncated: true },
+        { changed: [{ filename: 'a.py', sha: 'new', status: 'modified' }], tree: [blob('a.py', 'old')] }
+    ]) {
+        const res = await runScript(range.resolveRange, { github: baseTreeGitHub(opts), context: prCtx, env: { GITHUB_WORKSPACE: dir }, cwd: dir });
+        assert.equal(res.outputs.files || '', '', 'a full review of the whole PR diff');
+        assert.equal(readFileSync(join(dir, 'review.diff'), 'utf8'), PR_DIFF);
+    }
+});
+
+// ===================== Every blocking finding gets a thread =====================
+const shared = load(join(SCRIPTS, 'shared.cjs'));
+const DIFF3 = [
+    'diff --git a/mid.py b/mid.py\n--- a/mid.py\n+++ b/mid.py\n@@ -17,7 +17,7 @@\n C17\n C18\n C19\n-C20\n+C20b\n C21\n C22\n C23\n',
+    'diff --git a/del.py b/del.py\n--- a/del.py\n+++ b/del.py\n@@ -9,7 +9,6 @@\n D9\n D10\n D11\n-D12\n D13\n D14\n D15\n',
+    'diff --git a/gone.py b/gone.py\ndeleted file mode 100644\n--- a/gone.py\n+++ /dev/null\n@@ -1 +0,0 @@\n-GONE\n',
+    'diff --git a/img.png b/img.png\nBinary files a/img.png and b/img.png differ\n'
+].join('');
+test('diffAnchors: right-side lines per file, and the first hunk line as the fallback (never line 1)', () => {
+    const a = shared.diffAnchors(DIFF3);
+    assert.deepEqual([...a.lines.get('mid.py').keys()], [17, 18, 19, 20, 21, 22, 23]);
+    assert.equal(a.lines.get('mid.py').get(20), 'C20b');
+    assert.deepEqual(a.firstHunk.get('mid.py'), { line: 17, side: 'RIGHT' });
+    assert.deepEqual(a.firstHunk.get('del.py'), { line: 9, side: 'RIGHT' }, 'deletions only: its context lines');
+    assert.deepEqual(a.firstHunk.get('gone.py'), { line: 1, side: 'LEFT' }, 'a deleted file has only an old side');
+    assert.equal(a.lines.get('gone.py').size, 0);
+    assert.ok(a.lines.has('img.png') && !a.firstHunk.has('img.png'), 'a binary file can take a file-level thread, with no fallback');
+});
+test('threadKind: line, file, or none', () => {
+    const a = shared.diffAnchors(DIFF3);
+    assert.equal(shared.threadKind({ path: 'mid.py', line: 20 }, a), 'line');
+    assert.equal(shared.threadKind({ path: 'mid.py', start_line: 18, line: 20 }, a), 'line');
+    assert.equal(shared.threadKind({ path: 'mid.py', line: 1 }, a), 'file', 'a line outside the diff: the whole file');
+    assert.equal(shared.threadKind({ path: 'mid.py', start_line: 1, line: 20 }, a), 'file', 'a range starting outside the diff');
+    const twoHunks = shared.diffAnchors('diff --git a/t.py b/t.py\n--- a/t.py\n+++ b/t.py\n@@ -1 +1 @@\n+a\n@@ -5 +5 @@\n+e\n');
+    assert.equal(shared.threadKind({ path: 't.py', start_line: 1, line: 5 }, twoHunks), 'file', 'a range across two hunks: the whole file');
+    assert.equal(shared.threadKind({ path: 'gone.py' }, a), 'file');
+    assert.equal(shared.threadKind({ path: 'other.py', line: 1 }, a), null);
+    assert.equal(shared.threadKind({ line: 20 }, a), null);
+});
+
+// A mock for the pending-review flow: createReview without an event makes a pending review,
+// addPullRequestReviewThread adds threads, submitReview submits it.
+function threadGitHub({ fileThread = () => ({ id: 'PRRT_f' }), lineThread = () => ({ id: 'PRRT_l' }), submit, pendingLeft = false, deleteFails = false } = {}) {
+    const calls = { createReview: [], threads: [], submit: [], deleted: [] };
+    const listed = () => [
+        ...(pendingLeft ? [{ id: 7, user: { login: 'openlibrary-bot' }, state: 'PENDING' }] : []),
+        ...(calls.submit.length ? [{ id: 50, user: { login: 'openlibrary-bot' }, commit_id: SHA('a'), state: 'CHANGES_REQUESTED' }] : [])
+    ];
+    const github = {
+        rest: {
+            pulls: {
+                get: async () => ({ data: { head: { sha: SHA('a') }, user: { login: 'contributor' } } }),
+                listReviews: async () => ({ data: listed() }),
+                createReview: async p => {
+                    calls.createReview.push(p);
+                    return { data: p.event ? { id: 49 } : { id: 50, node_id: 'PRR_50' } };
+                },
+                submitReview: async p => {
+                    if (submit) await submit(p);
+                    calls.submit.push(p);
+                    return { data: { id: 50 } };
+                },
+                deletePendingReview: async p => {
+                    if (deleteFails) throw Object.assign(new Error('Not Found'), { status: 404 });
+                    calls.deleted.push(p.review_id);
+                    return { data: {} };
+                }
+            },
+            repos: { compareCommitsWithBasehead: async () => ({ data: { status: 'ahead', files: [{}] } }) }
+        },
+        paginate: async (method, params) => (await method(params)).data,
+        graphql: async (query, vars) => {
+            if (!/addPullRequestReviewThread/.test(query))
+                return { repository: { pullRequest: { reviewThreads: { nodes: [], pageInfo: { hasNextPage: false } } } } };
+            calls.threads.push(vars.input);
+            const thread = vars.input.subjectType === 'FILE' ? fileThread(vars.input) : lineThread(vars.input);
+            return { addPullRequestReviewThread: { thread } };
+        }
+    };
+    return { github, calls };
+}
+const threadPost = async (findings, gh) => {
+    const review = cleanReview();
+    review.dimensions.correctness = { status: 'findings' };
+    review.findings = findings.map(f => ({ dimension: 'correctness', severity: 'medium', confidence: 8, title: 'T', body: 'B', ...f }));
+    writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    writeFileSync(join(dir, 'review.diff'), DIFF3);
+    writeFileSync(join(dir, 'pr.diff'), DIFF3);
+    const env = { PR: '1', HEAD_SHA: SHA('a'), BASE_SHA: SHA('b'), INCREMENTAL: 'false', GITHUB_WORKSPACE: dir };
+    return runScript(post.validateAndPost, { github: gh.github, context, env, cwd: dir });
+};
+test('post: a file-level finding goes on the whole file through a pending review, then submits with the verdict', async () => {
+    const gh = threadGitHub();
+    const res = await threadPost(
+        [
+            { title: 'Line', path: 'mid.py', line: 20 },
+            { title: 'Whole file', path: 'mid.py' }
+        ],
+        gh
+    );
+    assert.equal(res.failed, null);
+    assert.equal(gh.calls.createReview.length, 1);
+    assert.equal(gh.calls.createReview[0].event, undefined, 'created pending');
+    assert.equal(gh.calls.createReview[0].comments.length, 1, 'the line comment goes in with it');
+    assert.deepEqual(
+        gh.calls.threads.map(t => [t.pullRequestReviewId, t.path, t.subjectType]),
+        [['PRR_50', 'mid.py', 'FILE']]
+    );
+    assert.match(gh.calls.threads[0].body, /^\*\*MEDIUM · Correctness — Whole file\*\*/);
+    assert.doesNotMatch(gh.calls.threads[0].body, /line `/, "the agent prompt names no line it doesn't have");
+    assert.equal(gh.calls.submit[0].event, 'REQUEST_CHANGES');
+    assert.match(gh.calls.submit[0].body, /<!-- ol-pr-review-bot f=2 -->/, 'both threads count');
+    assert.deepEqual(gh.calls.deleted, []);
+});
+test('post: a file-level thread GitHub returns null for falls back to the first hunk line, not line 1', async () => {
+    const gh = threadGitHub({ fileThread: () => null });
+    await threadPost([{ path: 'mid.py' }, { path: 'gone.py' }], gh);
+    const lines = gh.calls.threads.filter(t => !t.subjectType).map(t => [t.path, t.line, t.side]);
+    assert.deepEqual(lines, [
+        ['mid.py', 17, 'RIGHT'],
+        ['gone.py', 1, 'LEFT']
+    ]);
+    assert.match(gh.calls.submit[0].body, /<!-- ol-pr-review-bot f=2 -->/);
+});
+test('post: a finding that gets no thread at all goes in the summary and still blocks', async () => {
+    const gh = threadGitHub({
+        fileThread: () => null,
+        lineThread: () => {
+            throw new Error('Line could not be resolved');
+        }
+    });
+    await threadPost([{ title: 'Stuck', path: 'mid.py' }], gh);
+    const body = gh.calls.submit[0].body;
+    assert.match(body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Stuck\*\* · `mid\.py`/);
+    assert.match(body, /<!-- ol-pr-review-bot f=1 -->/);
+    assert.equal(gh.calls.submit[0].event, 'REQUEST_CHANGES');
+});
+test('post: a binary file whose file-level thread fails has no fallback line, so the finding goes in the summary', async () => {
+    const gh = threadGitHub({ fileThread: () => null });
+    await threadPost([{ title: 'Image', path: 'img.png' }], gh);
+    assert.equal(gh.calls.threads.length, 1, 'no line fallback tried');
+    assert.match(gh.calls.submit[0].body, /— Image\*\* · `img\.png`/);
+});
+test('post: a pending review left by an earlier run is deleted first (GitHub allows one per user per PR)', async () => {
+    const gh = threadGitHub({ pendingLeft: true });
+    await threadPost([{ path: 'mid.py' }], gh);
+    assert.deepEqual(gh.calls.deleted, [7]);
+    assert.equal(gh.calls.submit.length, 1);
+});
+test('post: a failed delete of a leftover pending review is a warning, and the review is still posted', async () => {
+    const gh = threadGitHub({ pendingLeft: true, deleteFails: true });
+    const res = await threadPost([{ path: 'mid.py' }], gh);
+    assert.equal(res.failed, null);
+    assert.ok(
+        res.warnings.some(w => /Could not delete pending review 7/.test(w)),
+        res.warnings.join('\n')
+    );
+    assert.equal(gh.calls.submit.length, 1);
+});
+test('post: if submitting fails, the pending review is deleted and the review is posted without file threads', async () => {
+    let failures = 1;
+    const gh = threadGitHub({
+        submit: async () => {
+            if (failures-- > 0) throw Object.assign(new Error('Unprocessable'), { status: 422 });
+        }
+    });
+    await threadPost([{ title: 'Whole file', path: 'mid.py' }], gh);
+    assert.deepEqual(gh.calls.deleted, [50]);
+    const retry = gh.calls.createReview[1];
+    assert.equal(retry.event, 'REQUEST_CHANGES', 'posted again in one call');
+    assert.match(retry.body, /### Findings without an in-diff anchor\n\n- \*\*MEDIUM · Correctness — Whole file\*\*/);
+    assert.match(retry.body, /<!-- ol-pr-review-bot f=1 -->/);
+});
+test('post: with no file-level findings, the review is posted in one call as before', async () => {
+    const gh = threadGitHub();
+    await threadPost([{ path: 'mid.py', line: 20 }], gh);
+    assert.equal(gh.calls.createReview[0].event, 'REQUEST_CHANGES');
+    assert.equal(gh.calls.threads.length, 0);
+    assert.equal(gh.calls.submit.length, 0);
+});
+
+// ===================== A full re-review =====================
+// After a change to the bot, a maintainer can ask for a review of a commit already reviewed.
+const fullReviewRange = async (env, priorSha = SHA('a')) => {
+    const head = SHA('a');
+    const { github } = mockGitHub({
+        prGet: async () => ({
+            data: { number: 1, head: { sha: head }, base: { sha: SHA('b'), ref: 'master' }, draft: false, state: 'open', user: { login: 'author' } }
+        }),
+        listReviews: async () => ({
+            data: [{ user: { login: 'openlibrary-bot' }, commit_id: priorSha, submitted_at: '2026-01-01', body: 'ok\n<!-- ol-pr-review-bot f=0 -->' }]
+        }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }),
+        reviewThreads: []
+    });
+    // The whole PR's diff, as text when asked for a diff.
+    github.rest.repos.compareCommitsWithBasehead = async p =>
+        p.headers
+            ? { data: 'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n+x\n' }
+            : { data: { status: 'ahead', files: [], commits: [], total_commits: 0 } };
+    const ctx = { ...context, eventName: 'issue_comment', payload: { issue: { number: 1 } } };
+    const res = await runScript(range.resolveRange, { github, context: ctx, env: { GITHUB_WORKSPACE: dir, ...env }, cwd: dir });
+    return { res, json: () => JSON.parse(readFileSync(join(dir, 'review-range.json'), 'utf8')) };
+};
+test('range: a full review runs on a commit already reviewed, over the whole PR', async () => {
+    const { res, json } = await fullReviewRange({ FULL_REVIEW: 'true' });
+    assert.equal(res.outputs.skip, 'false');
+    assert.notEqual(res.outputs.repost, 'true', 'the model runs');
+    assert.equal(res.outputs.incremental, 'false');
+    assert.equal(res.outputs.files || '', '');
+    assert.equal(json().full_review, true);
+    assert.equal(json().prior_review_sha, null);
+});
+test('range: without it, the same commit is skipped as before', async () => {
+    const { res } = await fullReviewRange({ FULL_REVIEW: 'false' });
+    assert.equal(res.outputs.skip, 'true');
+});
+test('range: a full review on a newer commit is not incremental', async () => {
+    const { res, json } = await fullReviewRange({ FULL_REVIEW: 'true' }, SHA('c'));
+    assert.equal(res.outputs.incremental, 'false');
+    assert.equal(json().full_review, true);
 });

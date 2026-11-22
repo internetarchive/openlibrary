@@ -58,7 +58,8 @@ jobs:
         run: |
           git fetch --no-tags --prune --depth=1 origin master
           # The integration tests mostly wait on PostgreSQL (pre-installed on the runner), so they run in the background.
-          timeout 300 pytest -m integration openlibrary/tests/core/ > integration.log 2>&1 &
+          # Print test names and dump stacks before the outer timeout kills a stalled run.
+          timeout 300 pytest -vv -o faulthandler_timeout=60 -m integration openlibrary/tests/core/ > integration.log 2>&1 &
           integration_pid=$!
           # One xdist worker per physical core of this 4-vCPU runner. 4 workers were slower: every worker repeats collection.
           unit_status=0

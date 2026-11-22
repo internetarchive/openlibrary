@@ -171,9 +171,9 @@ test('gate: a finding without an integer confidence from 1 to 10 withholds the r
 test('gate: confidence below 6 demotes the finding to low; 6 and up keeps its severity', () => {
     assert.equal(gate.check(withFinding({ confidence: 5 })).clean.findings[0].severity, 'low');
     assert.equal(gate.check(withFinding({ confidence: 6 })).clean.findings[0].severity, 'high');
-    // A withheld-by-text review whose only finding is unsure doesn't block.
+    // A finding held back by the text scan that is unsure doesn't block.
     const res = gate.check(withFinding({ confidence: 3, body: 'Store the password here.' }));
-    assert.equal(res.publish, false);
+    assert.equal(res.heldBack, true);
     assert.equal(res.blocking, false);
 });
 
@@ -229,7 +229,7 @@ async function runScript(stepFn, { github, context, env, cwd }) {
     });
     // GITHUB_WORKSPACE is a temp dir here; the base checkout's scripts come from this repo.
     const wrappedRequire = id =>
-        id === 'fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
+        id === 'node:fs' ? wrappedFs : realRequire(env.GITHUB_WORKSPACE ? id.replace(env.GITHUB_WORKSPACE, join(here, '..', '..', '..')) : id);
     await stepFn({ github, context, core, require: wrappedRequire, process: fakeProcess });
     return { ...recorded, core };
 }
@@ -477,8 +477,14 @@ test('post: a failed review post leaves the fixed thread unedited and hands noth
         github.rest.pulls.createReview = async () => {
             throw Object.assign(new Error('Bad Gateway'), { status: 502 });
         };
-        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d }).catch(e => ({ thrown: e, outputs: {} }));
-        assert.ok(res.thrown, 'the post fails');
+        // No real waits between the 5xx retries.
+        const res = await runScript(args => post.validateAndPost({ ...args, sleep: async () => {} }), { github, context, env: baseEnv(d), cwd: d }).catch(
+            e => ({
+                thrown: e,
+                outputs: {}
+            })
+        );
+        assert.ok(res.thrown, 'the post fails, after its retries');
         assert.deepEqual(calls.edits, [], 'no "Addressed in" note without a posted review');
         assert.deepEqual(handedOff(res), []);
     } finally {
@@ -537,13 +543,18 @@ test('post: inline and summary findings carry the agent prompt with diff context
         assert.ok(comments[0].body.startsWith('**HIGH · Correctness — Bug here**\n\ndetails\n\n<details>'), comments[0].body);
         assert.match(comments[0].body, /At `a\.py`, line `1`:/);
         assert.doesNotMatch(comments[0].body, /print\(1\)/, 'no PR text in the agent prompt');
-        // The unanchored finding and the suggestion are in the summary, each with its own block.
-        assert.equal(summary.match(/<summary>Prompt for AI agents<\/summary>/g).length, 2, summary);
-        assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\*/);
-        assert.match(summary, /<!-- ol-pr-review-bot f=2 -->/, 'the demoted finding does not count');
-        // Dimensions are collapsed; no state line on a first review.
-        assert.match(summary, /<details>\n<summary>Dimensions<\/summary>\n\n- \*\*Correctness\*\* — 3 findings/);
-        assert.ok(summary.startsWith('A plain summary.'), summary);
+        // The summary opens with the status line, and one prompt covers all three findings.
+        // A finding with no path has no thread to go on, so it is a note that doesn't block (#14471).
+        assert.ok(summary.startsWith('**1 finding** · 1 suggestion · 1 note on `'), summary);
+        assert.match(summary, /\n\nA plain summary\.\n\n/, "the model's summary follows the status line");
+        assert.match(summary, /### Notes \(won't block\)\n\n.*\n\n- \*\*Correctness — Elsewhere\*\*\n {2}in another file/);
+        assert.match(summary, /### Suggestions \(won't block\)\n\n- \*\*Maybe\*\* · `a\.py:1`\n {2}not sure/);
+        assert.equal(summary.match(/<summary>Prompt for AI agents/g).length, 1, summary);
+        assert.match(summary, /<summary>Prompt for AI agents \(3 open items\)<\/summary>/);
+        assert.match(summary, /<file name="a\.py">\n<item location="1">Bug here: details<\/item>\n<item location="1">Maybe: not sure<\/item>\n<\/file>/);
+        assert.match(summary, /<item>Elsewhere: in another file<\/item>/);
+        assert.doesNotMatch(summary, /Dimensions/);
+        assert.match(summary, /<!-- ol-pr-review-bot f=1 -->/, 'neither the demoted finding nor the note counts');
     } finally {
         teardown();
     }
@@ -567,7 +578,8 @@ test('post: a thread the model dismissed is noted and resolved, and the summary 
                 ['C_WRONG', 'Dismissed: a reply below shows this does not apply.']
             ]
         );
-        assert.ok(calls.createReview[0].body.startsWith('Earlier findings: 1 addressed, 1 dismissed, 1 still open.\n\n'), calls.createReview[0].body);
+        assert.ok(calls.createReview[0].body.startsWith('**No issues found** on `'), calls.createReview[0].body);
+        assert.match(calls.createReview[0].body, /`\.\n\nEarlier findings: 1 addressed, 1 dismissed, 1 still open\.\n\n/);
         assert.equal(calls.createReview[0].event, 'COMMENT');
     } finally {
         teardown();
@@ -714,9 +726,194 @@ async function postedBody(suggestion) {
 test('post: a suggestion that changes the anchored line is posted as an applicable suggestion', async () => {
     assert.match(await postedBody('print(2)'), /\n```suggestion\nprint\(2\)\n```/);
 });
-test('post: a suggestion with the wrong line count, or no change, is dropped', async () => {
-    for (const s of ['print(2)\nprint(3)', 'print(1)']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
+test('post: a suggestion may replace the lines with more or fewer lines', async () => {
+    assert.match(await postedBody('print(2)\nprint(3)'), /\n```suggestion\nprint\(2\)\nprint\(3\)\n```/);
+});
+test('post: an empty suggestion deletes the lines', async () => {
+    assert.match(await postedBody(''), /\n```suggestion\n```/);
+});
+test('post: a trailing newline is trimmed, and a suggestion that changes nothing is dropped', async () => {
+    assert.match(await postedBody('print(2)\n'), /\n```suggestion\nprint\(2\)\n```/);
+    for (const s of ['print(1)', 'print(1)\n']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
+});
+
+// A low finding is a suggestion that never blocks. With a change to apply, it also gets a line comment,
+// marked so the status check and the verdict ignore its thread.
+const low = extra => ({
+    dimension: 'styleguide',
+    severity: 'low',
+    confidence: 8,
+    title: 'Comment restates the code',
+    body: 'Delete it.',
+    path: 'a.py',
+    line: 1,
+    ...extra
+});
+async function postedLow(finding, ghOpts = {}) {
+    const d = setup(reviewWith([finding]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor', ...ghOpts });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        return calls.createReview[0];
+    } finally {
+        teardown();
+    }
+}
+test('post: a low finding with a change gets a non-blocking line comment, and the review still approves', async () => {
+    const posted = await postedLow(low({ suggestion: '' }));
+    assert.equal(posted.comments.length, 1);
+    const [c] = posted.comments;
+    assert.equal(c.path, 'a.py');
+    assert.ok(c.body.startsWith(`${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — Comment restates the code**`), c.body);
+    assert.match(c.body, /\n```suggestion\n```$/);
+    assert.doesNotMatch(c.body, /Prompt for AI agents/);
+    assert.equal(posted.event, 'APPROVE', 'a suggestion never blocks');
+    assert.match(posted.body, /^\*\*No blocking findings\*\* · 1 suggestion on `/);
+    assert.doesNotMatch(posted.body, /### Suggestions/, 'not listed twice');
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
+});
+test('post: a low finding without a change, or with one that changes nothing, stays in the summary only', async () => {
+    for (const extra of [{}, { suggestion: 'print(1)' }]) {
+        const posted = await postedLow(low(extra));
+        assert.equal((posted.comments || []).length, 0, JSON.stringify(extra));
+        assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Comment restates the code\*\*/);
+    }
+});
+test('post: inline comments off, a low finding stays in the summary only', async () => {
+    const d = setup(reviewWith([low({ suggestion: '' })]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor' });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), INLINE_KEY_ISSUES: 'false' }, cwd: d });
+        assert.equal((calls.createReview[0].comments || []).length, 0);
+    } finally {
+        teardown();
+    }
+});
+test('post: on a 422, suggestion comments are dropped first and blocking findings keep their threads', async () => {
+    const blocking = { dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1 };
+    const d = setup(reviewWith([blocking, low({ suggestion: '' })]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor', throw422: true });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        const posted = calls.createReview[0];
+        assert.equal(posted.comments.length, 1, 'only the blocking thread');
+        assert.match(posted.comments[0].body, /^\*\*HIGH · Correctness — Bug here\*\*/);
+        assert.equal(posted.event, 'REQUEST_CHANGES');
+        assert.match(posted.body, /- \*\*Comment restates the code\*\* · `a\.py:1`\n/, 'moved to the summary');
+    } finally {
+        teardown();
+    }
+});
+test('post: an open suggestion thread from an earlier review does not stop APPROVE', async () => {
+    const t = thread('T1', 'other.py', 'styleguide', 'Comment restates the code', { severity: 'LOW' });
+    t.comments.nodes[0].body = `${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — Comment restates the code**\n\nDelete it.`;
+    const d = setup(reviewWith([]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: [t] });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+    } finally {
+        teardown();
+    }
 });
 test('post: a suggestion containing backticks gets a longer fence', async () => {
     assert.match(await postedBody('x = "```"'), /\n````suggestion\nx = "```"\n````/);
+});
+
+// ========================= Marking earlier reviews addressed =========================
+// Once every finding a review raised is fixed or dismissed, `post` edits that review to say so, as
+// cubic does, keeping the hidden markers the other jobs read.
+const shared = load(join(SCRIPTS, 'shared.cjs'));
+const stats = load(join(SCRIPTS, 'report_stats.cjs'));
+const { addressedBody, reviewsToMark, ADDRESSED_MARKER } = post;
+const OLD = '**2 findings** · 1 suggestion on `abc1234`\n\nEarlier findings: 1 addressed.\n\n<sub>footer</sub>\n\n<!-- ol-pr-review-bot f=2 -->';
+
+test('addressedBody: a new first line, the old status struck through, and every marker kept', () => {
+    const body = addressedBody(OLD);
+    assert.ok(body.startsWith('✅ **Every finding in this review was fixed or dismissed.**\n\n~~**2 findings** · 1 suggestion on `abc1234`~~\n\n'), body);
+    assert.ok(body.endsWith(`\n${ADDRESSED_MARKER}`));
+    assert.equal(shared.parseReviewMarker(body), shared.parseReviewMarker(OLD), 'status and range read the same count');
+    assert.equal(stats.suggestionCount(body), 1, 'the weekly report still reads the suggestion count');
+    assert.equal(addressedBody(body), null, 'never edited twice');
+});
+test('addressedBody: keeps h=1 and the superseded marker, and says a held-back part still needs a maintainer', () => {
+    const held = `**No blocking findings** on \`abc1234\`\n\n<!-- ol-pr-review-bot f=1 h=1 -->\n<!-- ol-pr-review-bot superseded reviewed=${SHA('c')} -->`;
+    const body = addressedBody(held, { held: true });
+    assert.match(body, /fixed or dismissed\.\*\* The held-back part still needs a maintainer\./);
+    assert.equal(shared.heldBackBlocking(body), true);
+    assert.equal(shared.supersededCommit(body), SHA('c'));
+    assert.equal(addressedBody(''), null);
+});
+
+const bot = { login: 'openlibrary-bot' };
+const rev = (id, f, extra = {}) => ({
+    id,
+    user: bot,
+    state: 'CHANGES_REQUESTED',
+    body: `**${f} findings** on \`abc1234\`\n\n<!-- ol-pr-review-bot f=${f} -->`,
+    ...extra
+});
+const th = (id, reviewId, isResolved = false) => ({ id, reviewId, isResolved });
+test('reviewsToMark: only reviews whose last open finding this run closes', () => {
+    const mark = (reviews, threads, closing) => reviewsToMark({ reviews, threads, closing, botLogin: 'openlibrary-bot', exclude: 99 }).map(r => r.id);
+    assert.deepEqual(mark([rev(1, 2)], [th('A', 1, true), th('B', 1)], ['B']), [1], 'one resolved earlier, the last one closed now');
+    assert.deepEqual(mark([rev(1, 2)], [th('A', 1), th('B', 1)], ['B']), [], 'one still open');
+    assert.deepEqual(mark([rev(1, 2)], [th('A', 1)], ['A']), [], 'a finding with no thread: unknown, so left alone');
+    assert.deepEqual(mark([rev(1, 1)], [th('A', 1, true)], []), [], 'nothing closed by this run: old reviews are not edited in bulk');
+    assert.deepEqual(mark([rev(1, 1, { body: `x\n<!-- ol-pr-review-bot f=1 -->\n${ADDRESSED_MARKER}` })], [th('A', 1)], ['A']), [], 'already marked');
+    assert.deepEqual(mark([rev(1, 0)], [], ['A']), [], 'a review with no findings');
+    assert.deepEqual(mark([rev(99, 1)], [th('A', 99)], ['A']), [], "this run's own review");
+    assert.deepEqual(mark([rev(1, 1, { user: { login: 'someone' } })], [th('A', 1)], ['A']), [], "someone else's review");
+});
+
+test("post: closing an earlier review's last finding edits that review, and only its text", async () => {
+    const d = setup(reviewWith([]));
+    const updates = [];
+    const earlier = { id: 5, user: bot, state: 'CHANGES_REQUESTED', commit_id: SHA('c'), body: OLD.replace('f=2', 'f=1') };
+    const t = thread('T1', 'a.py', 'correctness', 'Bug');
+    t.comments.nodes[0].pullRequestReview = { databaseId: 5 };
+    try {
+        const { github } = mockGitHub({ reviewThreads: [t] });
+        github.rest.pulls.listReviews = async () => ({ data: [earlier, { id: 999, user: bot, commit_id: SHA('a') }] });
+        github.rest.pulls.updateReview = async p => {
+            updates.push(p);
+            return { data: {} };
+        };
+        writeFileSync(join(d, 'review.json'), JSON.stringify({ ...reviewWith([]), resolved: ['T1'] }));
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.deepEqual(handedOff(res), ['T1']);
+        assert.equal(updates.length, 1);
+        assert.equal(updates[0].review_id, 5);
+        assert.ok(updates[0].body.startsWith('✅ **Every finding in this review was fixed or dismissed.**'), updates[0].body);
+        assert.match(updates[0].body, /<!-- ol-pr-review-bot f=1 -->/);
+        assert.deepEqual(Object.keys(updates[0]).sort(), ['body', 'owner', 'pull_number', 'repo', 'review_id'], 'no event or state');
+    } finally {
+        teardown();
+    }
+});
+test('post: a failed edit of an earlier review is a warning, not a failed job', async () => {
+    const d = setup(reviewWith([]));
+    const t = thread('T1', 'a.py', 'correctness', 'Bug');
+    t.comments.nodes[0].pullRequestReview = { databaseId: 5 };
+    try {
+        const { github } = mockGitHub({ reviewThreads: [t] });
+        github.rest.pulls.listReviews = async () => ({
+            data: [
+                { id: 5, user: bot, state: 'CHANGES_REQUESTED', body: OLD.replace('f=2', 'f=1') },
+                { id: 999, user: bot, commit_id: SHA('a') }
+            ]
+        });
+        github.rest.pulls.updateReview = async () => {
+            throw new Error('Server Error');
+        };
+        writeFileSync(join(d, 'review.json'), JSON.stringify({ ...reviewWith([]), resolved: ['T1'] }));
+        const res = await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.equal(res.failed, null);
+        assert.ok(
+            res.warnings.some(w => /Could not mark review 5 as addressed/.test(w)),
+            res.warnings.join('\n')
+        );
+    } finally {
+        teardown();
+    }
 });

@@ -64,7 +64,7 @@ export function init() {
                         drag: { enabled: true },
                         pinch: { enabled: true },
                         mode: 'x',
-                        onZoomComplete: ({ chart }) => filter(years[chart.scales.x.min], years[chart.scales.x.max])
+                        onZoomComplete: ({ chart: zoomedChart }) => filter(years[zoomedChart.scales.x.min], years[zoomedChart.scales.x.max])
                     }
                 }
             }

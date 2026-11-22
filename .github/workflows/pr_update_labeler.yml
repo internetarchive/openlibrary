@@ -1,5 +1,15 @@
 name: pr_update_labeler
-on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
+
+# Removes `Needs: Submitter Input` when the author pushes new commits (actions/labeler with
+# sync-labels; .github/labeler.yml has no matching rules, so the sync just clears labels).
+#
+# SECURITY -- read before editing the checkout step below.
+#
+# `pull_request_target` runs with a write token even on fork PRs. That is only safe because
+# this job never executes PR code: the checkout has no `ref:`, so it gets the base commit,
+# and actions/labeler only reads changed-file names from the API. Never add
+# `ref: ${{ github.event.pull_request.head.sha }}` (or any PR ref) here.
+on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout has no `ref:` (base commit); actions/labeler only reads changed-file names via the API. _target is required: a fork's pull_request token cannot remove Needs: Submitter Input.
   pull_request_target:
     types:
       - synchronize
@@ -7,7 +17,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
       - master
 jobs:
   labeler:
-    if: github.repository_owner == 'internetarchive'
+    if: github.repository == 'internetarchive/openlibrary'
     permissions:
       contents: read
       pull-requests: write

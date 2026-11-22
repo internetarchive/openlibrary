@@ -37,13 +37,13 @@ async function runScript(job, name, env, github = {}) {
         warning: () => {},
         debug: () => {}
     };
-    const fs = require('fs');
+    const fs = require('node:fs');
     const at = p => (typeof p === 'string' && !p.startsWith('/') ? join(dir, p) : p);
     const wrappedFs = { ...fs, readFileSync: (p, ...a) => fs.readFileSync(at(p), ...a), writeFileSync: (p, ...a) => fs.writeFileSync(at(p), ...a) };
     const context = { repo: { owner: 'internetarchive', repo: 'openlibrary' }, eventName: 'pull_request_target', payload: { pull_request: { number: 1 } } };
     const [file, fn] = STEPS[`${job}/${name}`];
     const processEnv = { env: { GITHUB_WORKSPACE: dir, ...env } };
-    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'fs' ? wrappedFs : require(id)), process: processEnv });
+    await require(join(SCRIPTS, file))[fn]({ github, context, core, require: id => (id === 'node:fs' ? wrappedFs : require(id)), process: processEnv });
     return recorded;
 }
 
@@ -62,7 +62,12 @@ function mockGitHub() {
                     return { data: { id: 999 } };
                 }
             },
-            issues: { get: async () => (calls.issuesGet++, { data: {} }) },
+            issues: {
+                get: async () => {
+                    calls.issuesGet++;
+                    return { data: {} };
+                }
+            },
             repos: { compareCommitsWithBasehead: async () => ({ data: 'diff --git a/a.py b/a.py\n' }) }
         },
         paginate: async (method, params) => (await method(params)).data,
@@ -93,9 +98,10 @@ afterEach(() => {
 });
 
 // ================================= parsing and validation =================================
-test('the committed .pr_agent.toml equals the defaults, except that push reviews are on', () => {
+test('the committed .pr_agent.toml equals the defaults, except that push reviews are on, base-branch updates included', () => {
     const expected = config.defaults();
     expected.github_action_config.handle_push_trigger = true;
+    expected.github_action_config.push_trigger_ignore_merge_commits = false;
     assert.deepEqual(config.load(ROOT), expected);
 });
 
@@ -205,6 +211,8 @@ test('SECURITY: settings are read before the PR head is extracted, and steps aft
 // ================================= gate step: turned-off dimensions =================================
 async function runGate(review, off) {
     writeFileSync(join(dir, 'review.json'), JSON.stringify(review));
+    // finding() anchors on a.py:1. A finding about a file outside the diff is a note, which doesn't count.
+    writeFileSync(join(dir, 'review.diff'), 'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n+print(1)\n');
     const res = await runScript('analyze', 'Gate the analysis', { OFF_DIMENSIONS: JSON.stringify(off) });
     return { res, written: JSON.parse(readFileSync(join(dir, 'review.json'), 'utf8')) };
 }
@@ -217,10 +225,12 @@ test('gate: a turned-off dimension loses its findings and is marked not reviewed
     );
     assert.equal(written.dimensions.test_coverage.status, 'none');
 });
-test('SECURITY: a security concern filed under a turned-off dimension still withholds the review', async () => {
+test('SECURITY: a security concern filed under a turned-off dimension is still held back, and blocks', async () => {
     const { res, written } = await runGate(reviewWith([finding('accessibility', 'XSS in the search box')]), ['accessibility']);
-    assert.equal(res.outputs.withheld, 'true');
-    assert.deepEqual(written, { withheld: true });
+    assert.equal(res.outputs.withheld, 'false');
+    assert.equal(res.outputs.held_back, 'true');
+    assert.equal(res.outputs.withheld_blocking, 'true');
+    assert.ok(!JSON.stringify(written).includes('XSS'));
 });
 
 // ================================= post and linked issues =================================

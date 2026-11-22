@@ -283,7 +283,8 @@ $(function () {
     const anonymizationButton = document.querySelector('.account-anonymization-button');
     const adminLinks = document.getElementById('adminLinks');
     const confirmButtons = document.querySelectorAll('.do-confirm');
-    if (adminLinks || anonymizationButton || confirmButtons.length) {
+    const newAccountsForm = document.querySelector('.new-accounts__form');
+    if (adminLinks || anonymizationButton || confirmButtons.length || newAccountsForm) {
         import('./admin').then(module => {
             if (adminLinks) {
                 module.initAdmin();
@@ -293,6 +294,9 @@ $(function () {
             }
             if (confirmButtons.length) {
                 module.initConfirmationButtons(confirmButtons);
+            }
+            if (newAccountsForm) {
+                module.initNewAccountsReview(newAccountsForm);
             }
         });
     }
@@ -605,6 +609,12 @@ $(function () {
     const browseStacks = document.querySelector('.browse-stacks');
     if (browseStacks) {
         import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
+    }
+
+    // Home page: a signed-in reader's loans, holds and Want to Read row
+    const homeMemberSlot = document.querySelector('.home-member-slot');
+    if (homeMemberSlot) {
+        import('./home-member').then(module => module.initHomeMember(homeMemberSlot));
     }
 
     // Home page librarian call-out: /tasks can be slow to start painting.

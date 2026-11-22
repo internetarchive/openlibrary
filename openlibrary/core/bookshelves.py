@@ -375,6 +375,11 @@ class Bookshelves(db.CommonExtras):
         cache.get_memcache().set(cls._reading_log_version_key(username), uuid4().hex, expires=cls.READING_LOG_VERSION_TTL)
 
     @classmethod
+    def reading_log_version(cls, username: str) -> str:
+        """Public name for the version, for caches kept outside this class (the home page's reader section)."""
+        return cls._reading_log_version(username)
+
+    @classmethod
     def _reading_log_version(cls, username: str) -> str:
         """
         The version of `username`'s reading log that cached shelf orders are keyed

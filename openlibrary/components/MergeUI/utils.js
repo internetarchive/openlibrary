@@ -110,7 +110,7 @@ export function merge(master, dupes) {
 
     for (const field in result) {
         sources[field] = [master.key];
-        if (result[field] instanceof Array) {
+        if (Array.isArray(result[field])) {
             for (const el of result[field]) {
                 subsources[field] = {
                     [hash_subel(field, el)]: [master.key]
@@ -124,7 +124,7 @@ export function merge(master, dupes) {
             if (!(field in result) && field !== 'subtitle') {
                 result[field] = dupe[field];
                 sources[field] = [dupe.key];
-            } else if (result[field] instanceof Array) {
+            } else if (Array.isArray(result[field])) {
                 result[field] = result[field].concat(dupe[field]);
                 sources[field].push(dupe.key);
             }
@@ -133,7 +133,7 @@ export function merge(master, dupes) {
 
     // dedup
     for (const key in result) {
-        if (!(result[key] instanceof Array)) continue;
+        if (!Array.isArray(result[key])) continue;
         switch (key) {
             case 'authors': {
                 const authors = cloneJSON(result.authors);

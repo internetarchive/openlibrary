@@ -1,8 +1,9 @@
 // If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
-// The `analyze` job's "Fetch linked issues" step: writes the issues a PR links to into
-// linked-issues.json for the model. Follows PR-Agent's ticket_pr_compliance_check.py: issues
-// referenced in the PR body, then the branch name, then the title; this repo's issues only, no
-// pull requests; title, body and labels; at most 3 issues of 10,000 characters each.
+// The `analyze` job's "Fetch linked issues" step. Writes two files for the model:
+// - pr-description.json: the PR's title and description, so it can check they match the diff.
+// - linked-issues.json: the issues the PR links to. Follows PR-Agent's ticket_pr_compliance_check.py:
+//   issues referenced in the PR body, then the branch name, then the title; this repo's issues only,
+//   no pull requests; title, body, issue type and labels; at most 3 issues of 10,000 characters each.
 'use strict';
 
 // Issue numbers referenced in `text`, in order of appearance. Only this repo's issues count.
@@ -44,7 +45,7 @@ const branchIssueNumbers = branch => {
 };
 
 async function fetchLinkedIssues({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const owner = context.repo.owner,
         repo = context.repo.repo;
     const prNumber = Number(process.env.PR);
@@ -53,11 +54,27 @@ async function fetchLinkedIssues({ github, context, core, require, process }) {
         MAX_LOOKUPS = 30,
         MAX_CHARS = 10000;
 
+    // HTML comments are template hints, not content. Dropped to save the budget.
+    const clean = text => {
+        const t = String(text || '')
+            .replace(/<!--[\s\S]*?(-->|$)/g, '')
+            .trim();
+        return t.length > MAX_CHARS ? `${t.slice(0, MAX_CHARS)}...` : t;
+    };
+
+    let pr = null;
+    try {
+        ({ data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber }));
+    } catch (e) {
+        core.info(`Could not read the PR (${e.message}) -- reviewing without its description or linked issues.`);
+    }
+    const description = pr ? { title: String(pr.title || ''), body: clean(pr.body) } : null;
+    fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr-description.json`, JSON.stringify(description, null, 2));
+
     const tickets = [];
     if (process.env.TICKET_ANALYSIS === 'false') core.info('Ticket analysis is turned off in .pr_agent.toml.');
-    else
+    else if (pr)
         try {
-            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
             const candidates = [];
             for (const n of [
                 ...findIssueNumbers(pr.body, owner, repo),
@@ -85,16 +102,13 @@ async function fetchLinkedIssues({ github, context, core, require, process }) {
                         .startsWith(prefix)
                 )
                     continue;
-                // HTML comments are the issue template's hints, not requirements. Dropped to save the budget.
-                let body = String(issue.body || '')
-                    .replace(/<!--[\s\S]*?(-->|$)/g, '')
-                    .trim();
-                if (body.length > MAX_CHARS) body = `${body.slice(0, MAX_CHARS)}...`;
+                const body = clean(issue.body);
                 tickets.push({
                     ticket_id: issue.number,
                     ticket_url: `https://github.com/${owner}/${repo}/issues/${issue.number}`,
                     title: String(issue.title || ''),
                     body,
+                    type: (issue.type && issue.type.name) || null,
                     labels: (issue.labels || []).map(l => (typeof l === 'string' ? l : l && l.name)).filter(Boolean)
                 });
             }

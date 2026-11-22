@@ -1,0 +1,20 @@
+$def with (batch, statuses)
+$# batch: batch_id, name, submitter, added_time, comments, and status_counts ({status: count}).
+$ total = sum(batch.status_counts.values())
+<div class="batch-card">
+  <a class="batch-card__id" href="/import/batch/$batch.batch_id">#$batch.batch_id</a>
+  <div class="batch-card__main">
+    <a class="batch-card__name" href="/import/batch/$batch.batch_id">$(batch.name or "—")</a>
+    <div class="batch-card__meta">
+      $if batch.submitter:
+        $batch.submitter &bull;
+      $datestr(batch.added_time)
+    </div>
+    $if batch.comments:
+      <div class="batch-card__comments">$batch.comments</div>
+  </div>
+  <div class="batch-card__progress">
+    $:render_template("batch_import_progress", batch, statuses)
+    <div class="batch-card__count">$ungettext("%(count)s item", "%(count)s items", total, count=commify(total))</div>
+  </div>
+</div>
