@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
@@ -556,11 +557,17 @@ def test_login_forwards_s3_headers_to_audit(fastapi_client):
 
 
 def _record_ctx_ip(result):
-    """An audit_accounts stand-in that records web.ctx.ip, which Infobase stamps on the transactions it writes."""
+    """An audit_accounts stand-in that records web.ctx.ip, which Infobase stamps on the transactions it writes,
+    and whether it ran on the event loop, which its blocking calls would stall."""
     seen = {}
 
     def fake_audit(**kwargs):
         seen["ip"] = web.ctx.get("ip")
+        try:
+            asyncio.get_running_loop()
+            seen["on_event_loop"] = True
+        except RuntimeError:
+            seen["on_event_loop"] = False
         return result
 
     return fake_audit, seen
@@ -581,6 +588,7 @@ def test_login_sets_client_ip_for_infobase_writes(fastapi_client):
         )
     assert response.status_code == 303
     assert seen["ip"] == _CLIENT_IP
+    assert seen["on_event_loop"] is False
 
 
 def test_login_json_sets_client_ip_for_infobase_writes(fastapi_client):
@@ -593,6 +601,33 @@ def test_login_json_sets_client_ip_for_infobase_writes(fastapi_client):
         response = fastapi_client.post("/account/login", json={"access": "ak", "secret": "sk"})
     assert response.status_code == 200
     assert seen["ip"] == _CLIENT_IP
+    assert seen["on_event_loop"] is False
+
+
+def _record_pda_cookie(seen):
+    def fake_audit(**kwargs):
+        seen.append(web.cookies().get("pda"))
+        return {"ol_username": "testuser"}
+
+    return fake_audit
+
+
+def test_login_passes_the_pda_cookie_to_audit_accounts(fastapi_client):
+    """audit_accounts records a print-disability request from the "pda" cookie; web.py login then flashes and clears it."""
+    seen = []
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=_record_pda_cookie(seen)),
+        patch("openlibrary.fastapi.account._set_login_cookies_on_response", return_value=MagicMock()),
+    ):
+        fastapi_client.cookies.set("pda", "bard")
+        response = fastapi_client.post("/account/login", data={"username": "testuser", "password": "password"}, follow_redirects=False)
+        fastapi_client.cookies.clear()
+        second = fastapi_client.post("/account/login", data={"username": "testuser", "password": "password"}, follow_redirects=False)
+    assert seen == ["bard", None]
+    set_cookies = response.headers.get_list("set-cookie")
+    assert any(c.startswith("flash=") and "print%20disability" in c for c in set_cookies)
+    assert any(c.startswith('pda=""') for c in set_cookies)
+    assert not any(c.startswith(("flash=", "pda=")) for c in second.headers.get_list("set-cookie"))
 
 
 class TestAnonymizeAccount:
