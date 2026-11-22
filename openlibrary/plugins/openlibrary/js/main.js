@@ -656,8 +656,10 @@ $(function () {
         import('./stats').then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 
-    // History page comparison
-    const pageHistory = document.querySelector('#pageHistory');
+    // History page comparison. The footer History box in
+    // templates/lib/history.html also uses #pageHistory but has no data-i18n,
+    // so match on the attribute the comparison script needs.
+    const pageHistory = document.querySelector('table#pageHistory[data-i18n]');
     if (pageHistory) {
         import('./history').then(module => module.initHistory(pageHistory));
     }
