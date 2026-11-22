@@ -200,3 +200,20 @@ def test_validation_guards_return_422(params):
 def test_batch_over_cap_returns_422():
     many = [("subject", f"s{i}") for i in range(sc.MAX_BATCH + 1)]
     assert client.get(URL, params=many).status_code == 422
+
+
+def test_overlong_subject_and_contains_return_422():
+    assert client.get(URL, params={"subject": "x" * (sc.MAX_SUBJECT_LEN + 1)}).status_code == 422
+    assert client.get(URL, params={"contains": "y" * (sc.MAX_CONTAINS_LEN + 1)}).status_code == 422
+
+
+def test_malformed_json_facet_batch_maps_to_503(monkeypatch):
+    # A malformed Solr reply (facets present but a bucket is not a dict) must become a
+    # sanitized 503, not an uncaught 500 — the same contract as the classic facet path.
+    _mock_solr(monkeypatch, {"facets": {"c0": "oops"}})
+    assert client.get(URL, params={"subject": "A"}).status_code == 503
+
+
+def test_malformed_json_facet_enumerate_maps_to_503(monkeypatch):
+    _mock_solr(monkeypatch, {"facets": {"s": {"buckets": [{"no_val": 1}]}}})
+    assert client.get(URL, params={"limit": 5}).status_code == 503

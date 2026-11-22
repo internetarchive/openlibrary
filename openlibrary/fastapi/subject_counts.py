@@ -37,7 +37,10 @@ MAX_LIMIT = 1000
 MAX_WINDOW = 10_000
 # Most subject strings one batch exact-count request may ask about.
 MAX_BATCH = 100
+# Per-string length caps, so a batch can't carry multi-megabyte terms.
+MAX_SUBJECT_LEN = 500
 MIN_CONTAINS_LEN = 2
+MAX_CONTAINS_LEN = 200
 # classic facet.contains is Solr's only substring filter over facet values, but it cannot
 # sort by count, so for the rare tail we pull the whole match set and order it in-process.
 # A match set larger than this cannot yield a reliable rare tail, so such a request is
@@ -61,7 +64,7 @@ class SubjectCountsParams(BaseModel):
         description="Exact subject string(s) to count. Repeat for a batch (e.g. ?subject=A&subject=B).",
     )
     subject_type: SubjectType = Field(SubjectType.subject, description="Which facet to count over.")
-    contains: str | None = Field(None, description="Case-insensitive substring filter for enumeration.")
+    contains: str | None = Field(None, max_length=MAX_CONTAINS_LEN, description="Case-insensitive substring filter for enumeration.")
     max_works: int | None = Field(None, ge=0, description="Only return subjects used in at most this many works (the rare tail).")
     sort: Literal["count", "count_asc"] = Field("count", description="count = most-used first; count_asc = rarest first.")
     limit: int = Field(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT)
@@ -74,6 +77,8 @@ class SubjectCountsParams(BaseModel):
                 raise ValueError(f"at most {MAX_BATCH} subject values per request")
             if any(not s.strip() for s in self.subject):
                 raise ValueError("subject must be a non-empty string")
+            if any(len(s) > MAX_SUBJECT_LEN for s in self.subject):
+                raise ValueError(f"each subject must be at most {MAX_SUBJECT_LEN} characters")
             return self
         if self.offset + self.limit > MAX_WINDOW:
             raise ValueError(f"offset + limit must not exceed {MAX_WINDOW}")
@@ -153,9 +158,9 @@ def _flatten_facet(result: dict, field: str) -> list[tuple[str, int]]:
     """Classic facet counts come back as a flat ``[value, count, value, count, ...]``."""
     try:
         flat = result["facet_counts"]["facet_fields"][field]
-    except (KeyError, TypeError) as e:
+        return [(flat[i], flat[i + 1]) for i in range(0, len(flat), 2)]
+    except (KeyError, TypeError, IndexError) as e:
         raise HTTPException(status_code=503, detail=_UNAVAILABLE) from e
-    return [(flat[i], flat[i + 1]) for i in range(0, len(flat), 2)]
 
 
 async def _run_solr(params: list[tuple[str, object]]) -> dict:
@@ -173,8 +178,11 @@ async def _run_solr(params: list[tuple[str, object]]) -> dict:
 async def batch_exact_count(field: str, subjects: list[str]) -> tuple[list[int], bool]:
     """Return ``(counts, partial)`` with one count per subject, in request order."""
     result = await _run_solr(build_batch_count_params(field, subjects))
-    facets = result.get("facets", {})
-    counts = [int(facets.get(f"c{idx}", {}).get("count", 0)) for idx in range(len(subjects))]
+    try:
+        facets = result.get("facets", {})
+        counts = [int(facets.get(f"c{idx}", {}).get("count", 0)) for idx in range(len(subjects))]
+    except (AttributeError, TypeError, ValueError) as e:
+        raise HTTPException(status_code=503, detail=_UNAVAILABLE) from e
     return counts, is_partial(result)
 
 
@@ -209,8 +217,11 @@ async def enumerate_subjects(
         return pairs[offset : offset + limit], len(pairs) > offset + limit, is_partial(result)
 
     result = await _run_solr(build_enumerate_params(field, limit, offset, ascending))
-    facet = result.get("facets", {}).get("s", {})
-    buckets = [(b["val"], b["count"]) for b in facet.get("buckets", [])]
+    try:
+        facet = result.get("facets", {}).get("s", {})
+        buckets = [(b["val"], b["count"]) for b in facet.get("buckets", [])]
+    except (AttributeError, TypeError, KeyError) as e:
+        raise HTTPException(status_code=503, detail=_UNAVAILABLE) from e
     if max_works is not None:
         kept = [(v, c) for v, c in buckets if c <= max_works]
         # buckets arrive count-ascending, so a short page means we reached the first value
