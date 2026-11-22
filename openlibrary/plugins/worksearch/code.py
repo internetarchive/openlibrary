@@ -1384,14 +1384,12 @@ def setup():
         bulk_search,
         languages,
         publishers,
-        subject_counts,
         subjects,
     )
 
     bulk_search.setup()
     autocomplete.setup()
     subjects.setup()
-    subject_counts.setup()
     publishers.setup()
     languages.setup()
 
