@@ -59,6 +59,7 @@ SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 def _run_with_web_ctx_ip(client_ip: str, cookie_header: str, func, *args, **kwargs):
     """Run legacy code with the request IP and cookies set on web.ctx."""
     original_env = web.ctx.get("env")
+    original_cookies = web.ctx.pop("_parsed_cookies", None)
     env = dict(original_env or {})
     env["HTTP_COOKIE"] = cookie_header
     web.ctx.env = env
@@ -66,6 +67,9 @@ def _run_with_web_ctx_ip(client_ip: str, cookie_header: str, func, *args, **kwar
         try:
             return func(*args, **kwargs)
         finally:
+            web.ctx.pop("_parsed_cookies", None)
+            if original_cookies is not None:
+                web.ctx._parsed_cookies = original_cookies
             if original_env is None:
                 del web.ctx.env
             else:

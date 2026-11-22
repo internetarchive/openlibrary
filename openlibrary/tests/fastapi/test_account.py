@@ -605,6 +605,55 @@ def test_run_with_web_ctx_ip_forwards_cookie_and_restores_ctx():
         web.ctx.ip = original_ip
 
 
+def test_run_with_web_ctx_ip_ignores_stale_cookie_cache():
+    original_env = web.ctx.get("env")
+    original_ip = web.ctx.get("ip")
+    original_cookies = web.ctx.get("_parsed_cookies")
+    try:
+        web.ctx.env = {"HTTP_COOKIE": "pda=stale-session"}
+        web.ctx.ip = "198.51.100.1"
+        assert web.cookies().get("pda") == "stale-session"
+
+        result = _run_with_web_ctx_ip(_CLIENT_IP, "pda=current-session", lambda: web.cookies().get("pda"))
+        assert result == "current-session"
+        assert web.ctx.get("_parsed_cookies") == {"pda": "stale-session"}
+    finally:
+        web.ctx.pop("_parsed_cookies", None)
+        if original_cookies is not None:
+            web.ctx._parsed_cookies = original_cookies
+        if original_env is None:
+            del web.ctx.env
+        else:
+            web.ctx.env = original_env
+        web.ctx.ip = original_ip
+
+
+def test_run_with_web_ctx_ip_does_not_leak_cookie_cache():
+    original_env = web.ctx.get("env")
+    original_ip = web.ctx.get("ip")
+    original_cookies = web.ctx.get("_parsed_cookies")
+    try:
+        web.ctx.env = {"HTTP_HOST": "openlibrary.org"}
+        web.ctx.ip = "198.51.100.1"
+        web.ctx.pop("_parsed_cookies", None)
+
+        def read_ctx():
+            return web.cookies().get("pda")
+
+        assert _run_with_web_ctx_ip(_CLIENT_IP, "pda=login-session", read_ctx) == "login-session"
+        assert "_parsed_cookies" not in web.ctx
+        assert web.cookies().get("pda") is None
+    finally:
+        web.ctx.pop("_parsed_cookies", None)
+        if original_cookies is not None:
+            web.ctx._parsed_cookies = original_cookies
+        if original_env is None:
+            del web.ctx.env
+        else:
+            web.ctx.env = original_env
+        web.ctx.ip = original_ip
+
+
 def test_login_sets_client_ip_for_infobase_writes(fastapi_client):
     """audit_accounts can create or activate the OL account; an empty ip made Postgres reject the transaction row."""
     fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
