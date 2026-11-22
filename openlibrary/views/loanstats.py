@@ -11,10 +11,11 @@ from infogami.utils import delegate
 from openlibrary.utils.request_context import site
 
 from .. import app
+from ..admin.numbers import TAGGED_WORK_FIELDS
 from ..contribute import initiatives
 from ..contribute.field_guides import get_field_guides
 from ..core import cache
-from ..core.admin import get_count_docs, initiative_counts, rolling_counts
+from ..core.admin import Stats, get_count_docs, initiative_counts, rolling_counts
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.follows import PubSub
@@ -506,3 +507,77 @@ class tasks_stats(app.view):
 
     def GET(self):
         return app.render_template("stats/tasks", page=build_tasks_stats_page(web.input(scope="all", _method="GET").scope))
+
+
+# The windows the /stats/tags page reports: 7, 28 and 365 days, plus all time.
+TAG_WINDOWS = (7, 28, 365)
+
+
+def _tagged_works_on(by_key: dict, latest_date: dt.date, field: str, lookback: int) -> int | None:
+    "The `works` count of `field` in the count doc `lookback` days before `latest_date`; None when unwritten."
+    target = (latest_date - dt.timedelta(days=lookback)).strftime("counts-%Y-%m-%d")
+    doc = by_key.get(target) or {}
+    return ((doc.get("total_tagged_works") or {}).get(field) or {}).get("works")
+
+
+def _change(current: int | None, earlier: int | None) -> str:
+    "A change as a signed count, or a dash when either side is unwritten."
+    if current is None or earlier is None:
+        return "—"
+    delta = current - earlier
+    return f"+{commify(delta)}" if delta >= 0 else f"-{commify(-delta)}"
+
+
+def build_tags_stats_page() -> dict:
+    """The /stats/tags page, from the daily count docs only (never the big tables): tags created
+    over each window with a small trend chart, and works carrying each tag type now and 7, 28
+    and 365 days ago."""
+    docs = get_count_docs(365 + 28)
+    today = dt.date.today()
+    by_key = {d["_key"]: d for d in docs}
+
+    created = []
+    for days in (*TAG_WINDOWS, None):
+        if days is None:
+            label = _("All time")
+            value = next((d["total_tags"] for d in reversed(docs) if "total_tags" in d), None)
+            chart_days = min(len(docs), 365)
+        else:
+            label = _("Last %(days)s days", days=days)
+            value = window_sum(docs, "tags", day_keys(today, days))
+            chart_days = min(days, len(docs))
+        created.append(
+            {
+                "label": label,
+                "value": format_count(value),
+                "chart": Stats(docs, "tags", "total_tags").get_bar_chart(chart_days, width=250, height=35),
+            }
+        )
+
+    latest_doc = docs[-1] if docs else {}
+    latest_total = latest_doc.get("total_tagged_works") or {}
+    try:
+        latest_date = dt.datetime.strptime(latest_doc["_key"], "counts-%Y-%m-%d").date()
+    except KeyError, ValueError:
+        latest_date = today
+    guides = get_field_guides()
+    tagged_works = []
+    for field in TAGGED_WORK_FIELDS:
+        current = (latest_total.get(field) or {}).get("works")
+        tagged_works.append(
+            {
+                "field": field,
+                "label": guides[field].label if field in guides else field.replace("_", " ").title(),
+                "works": format_count(current),
+                "changes": {days: _change(current, _tagged_works_on(by_key, latest_date, field, days)) for days in TAG_WINDOWS},
+            }
+        )
+
+    return {"created": created, "tagged_works": tagged_works}
+
+
+class tags_stats(app.view):
+    path = "/stats/tags"
+
+    def GET(self):
+        return app.render_template("stats/tags", page=build_tags_stats_page())

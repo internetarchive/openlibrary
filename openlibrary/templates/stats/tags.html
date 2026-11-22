@@ -1,0 +1,62 @@
+$def with (page)
+
+<div id="contentHead">
+  <div class="stats-head">
+    <h1>$_("Tag Stats")</h1>
+    <nav class="stats-head__links" aria-label="$_('Related stats pages')">
+      <ol-button variant="ghost" href="/stats/tasks">$:macros.icon("pencil", slot="icon-start")$_("Tasks")</ol-button>
+      <ol-button variant="ghost" href="/admin">$:macros.icon("search", slot="icon-start")$_("Admin")</ol-button>
+    </nav>
+  </div>
+</div>
+
+<div id="contentBody">
+
+  <div class="admin-section">
+    <h2>$_("Tags created")</h2>
+    <p>$_("How many Book Tags were created, counted by the nightly stats job.")</p>
+    <table class="measurements stripeEven" id="tags-created">
+      <thead>
+        <tr>
+          <th></th>
+          <th>$_("Tags created")</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        $for c in page["created"]:
+          <tr>
+            <th>$c["label"]</th>
+            <td>$c["value"]</td>
+            <td><div class="sparkDisplay">$:render_jinja_template("StatsBarChart.html.jinja", chart=c["chart"], css_class="stats-spacer", label=c["label"])</div></td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-section">
+    <h2>$_("Works carrying a tag, by tag type")</h2>
+    <p>$_("How many works link each kind of Tag, and how that changed over the last week, month and year.")</p>
+    <table class="measurements stripeEven" id="tagged-works">
+      <thead>
+        <tr>
+          <th>$_("Tag type")</th>
+          <th>$_("Works")</th>
+          <th>$_("Last %(days)s days", days=7)</th>
+          <th>$_("Last %(days)s days", days=28)</th>
+          <th>$_("Last %(days)s days", days=365)</th>
+        </tr>
+      </thead>
+      <tbody>
+        $for r in page["tagged_works"]:
+          <tr>
+            <th>$r["label"]</th>
+            <td>$r["works"]</td>
+            $for days in (7, 28, 365):
+              <td>$r["changes"][days]</td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
