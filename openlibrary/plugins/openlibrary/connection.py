@@ -385,19 +385,25 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
     def write(self, sitename, data):
         keys = self._keys_from_write(data)
+        if keys:
+            self.mc_delete_multi(keys)
         result = ConnectionMiddleware.write(self, sitename, data)
         if keys:
             self.mc_delete_multi(keys)
         return result
 
     def save(self, sitename, path, data):
-        result = ConnectionMiddleware.save(self, sitename, path, data)
         if key := path.removeprefix("/save"):
+            self.mc_delete(key)
+        result = ConnectionMiddleware.save(self, sitename, path, data)
+        if key:
             self.mc_delete(key)
         return result
 
     def save_many(self, sitename, data):
         keys = self._keys_from_write(data)
+        if keys:
+            self.mc_delete_multi(keys)
         result = ConnectionMiddleware.save_many(self, sitename, data)
         if keys:
             self.mc_delete_multi(keys)
