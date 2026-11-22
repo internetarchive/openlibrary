@@ -22,9 +22,6 @@ def _mock_solr(monkeypatch, response):
     monkeypatch.setattr(sc, "_run_solr", stub)
 
 
-# --- pure query builders (injection boundary, Solr directives) ---
-
-
 def test_batch_count_params_dereference_each_term():
     # No subject string may land in query syntax: each is bound to vN and read back via
     # {!term ... v=$vN}, so Solr matches it literally.
@@ -62,9 +59,6 @@ def test_flatten_facet_raises_503_on_bad_shape():
     assert exc.value.status_code == 503
 
 
-# --- _run_solr error mapping (the 503 path) ---
-
-
 def test_run_solr_maps_http_error_to_503(monkeypatch):
     class _Resp:
         def raise_for_status(self):
@@ -98,9 +92,6 @@ def test_run_solr_maps_non_json_to_503(monkeypatch):
     assert exc.value.status_code == 503
 
 
-# --- the HTTP route: exact and batch ---
-
-
 def test_exact_single_returns_object(monkeypatch):
     _mock_solr(monkeypatch, {"facets": {"c0": {"count": 3}}})
     r = client.get(URL, params={"subject": "Handbooks, Manuals"})
@@ -127,9 +118,6 @@ def test_exact_batch_returns_list_in_order(monkeypatch):
 def test_exact_surfaces_partial(monkeypatch):
     _mock_solr(monkeypatch, {"responseHeader": {"partialResults": True}, "facets": {"c0": {"count": 9}}})
     assert client.get(URL, params={"subject": "X"}).json()["partial"] is True
-
-
-# --- the HTTP route: enumerate ---
 
 
 def test_enumerate_no_contains(monkeypatch):
@@ -175,9 +163,6 @@ def test_rare_tail_too_broad_refused_400(monkeypatch):
     _mock_solr(monkeypatch, {"facet_counts": {"facet_fields": {"subject_facet": flat}}})
     r = client.get(URL, params={"contains": "ee", "max_works": 1})
     assert r.status_code == 400
-
-
-# --- the HTTP route: validation guards (item 1) ---
 
 
 @pytest.mark.parametrize(
