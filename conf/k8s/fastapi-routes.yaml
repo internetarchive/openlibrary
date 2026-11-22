@@ -97,6 +97,7 @@ fastapiRoutes:
   - GET /search/inside.json
   - GET /search/lists.json
   - GET /search/subjects.json
+  - GET /search/subjects/counts.json
   - GET /series/{list_id}.json
   - GET /series/{olid}/editions.json
   - GET POST /series/{olid}/seeds.json
