@@ -270,7 +270,7 @@ class TestEdition:
         identifier = ed.get_identifiers()["depósito_legal"]
 
         assert identifier.value == stored_value
-        assert identifier.url.startswith("https://catalogo.bne.es/discovery/search?")
+        assert identifier.url.startswith("https://catalogo.bne.es/discovery/search?query=lds16,exact,")
         assert expected_url_value in identifier.url
         assert stored_value.replace(" ", "") not in identifier.url
 

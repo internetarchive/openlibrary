@@ -28,7 +28,7 @@ identifiers:
 -   label: Biblioteca Nacional de España Depósito Legal
     name: depósito_legal
     notes: ''
-    url: https://catalogo.bne.es/discovery/search?query=any,exact,%22@@@%22&tab=LibraryCatalog&search_scope=MyInstitution&vid=34BNE_INST:CATALOGO
+    url: https://catalogo.bne.es/discovery/search?query=lds16,exact,%22@@@%22&vid=34BNE_INST:CATALOGO
     website: https://www.bne.es/en/catalogues
 -   label: Biblioteca Nacional de Portugal (BNP)
     name: bnp
