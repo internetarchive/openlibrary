@@ -1,8 +1,4 @@
 $def with ()
 
-$# The request read stays here, in the Templetor wrapper, rather than in the
-$# Jinja template: called from FastAPI, query_param() can return a value left
-$# over from another visitor's request. See "only the route touches the
-$# request" in docs/core/fastapi-pages.md. The page syntax is unchanged --
-$# wiki pages still write {{SubjectSearch()}}.
+$# Called only from wiki page bodies ({{SubjectSearch()}} on /subjects); no code calls it.
 $:render_jinja_template("SubjectSearch.html.jinja", q=query_param("q", ""))

@@ -28,13 +28,6 @@ from openlibrary.utils.template_usage import analyze
 # /upstream/* are stale shadows. When in doubt leave it out -- a missing
 # entry just keeps this check failing (safe). Stale entries fail the
 # staleness check below.
-# "SubjectSearch" was here, for {{SubjectSearch()}} in db-stored /subjects wiki
-# pages (f7b9ae436). The macro is still invoked only from db content, but the
-# name is now referenced in code -- SubjectSearch.html renders, and the tests
-# load, "SubjectSearch.html.jinja" -- so this hook's staleness check rejects the
-# entry. Removed rather than worked around; if that jinja file is ever renamed,
-# SubjectSearch.html goes back to having no static call site and needs its
-# exclusion back.
 DB_USED_EXCLUSIONS: dict[str, str] = {}
 
 # Maintainer-verified without evidence; revisit periodically.
