@@ -12,7 +12,6 @@ import re
 from urllib.parse import unquote
 
 import pytest
-from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.search import pages
@@ -83,6 +82,7 @@ def test_bulk_search_page_sends_translated_text(client, monkeypatch):
     assert strings["extractHeading"] == "Bücher extrahieren"
     # A string with no translation keeps its English text
     assert strings["matchHeading"] == "Match Books"
+
 
 def test_bulk_search_page_does_not_read_webpy_ctx(client, webpy_leftovers):
     """The page renders without web.py's request state, which a FastAPI request must not touch."""
