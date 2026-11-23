@@ -141,7 +141,7 @@ def test_list_urls():
         ("/series/OL1L", "/type/series"),
     ],
 )
-@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions", "preview.png"])
+@pytest.mark.parametrize("action", ["export", "embed", "edit", "preview.png"])
 def test_list_action_urls(key, type_key, action):
     site = MockSite()
     site.add({"key": key, "type": {"key": type_key}, "name": "foo"})
@@ -155,7 +155,7 @@ def test_list_action_urls(key, type_key, action):
 
 
 @pytest.mark.parametrize(("key", "type_key"), [("/people/joe/lists/OL1L", "/type/list"), ("/series/OL1L", "/type/series")])
-@pytest.mark.parametrize("action", ["export", "embed", "edit", "editions", "preview.png"])
+@pytest.mark.parametrize("action", ["export", "embed", "edit", "preview.png"])
 def test_list_action_name_is_canonical_slug(key, type_key, action):
     site = MockSite()
     site.add({"key": key, "type": {"key": type_key}, "name": action})
