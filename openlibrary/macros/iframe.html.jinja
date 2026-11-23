@@ -1,24 +1,11 @@
-{#
-  An embedded archive.org player, as written in wiki page bodies.
-
-  Attributes are rendered with Jinja's `xmlattr` rather than joined by hand.
-  The Templetor version built them as `' '.join('%s="%s"' % (k, v))` and spliced
-  the result in unescaped, so a value containing a double quote closed the
-  attribute and anything after it became real markup -- an `onload=` handler,
-  for one. `xmlattr` escapes each value and, since Jinja 3.1.5, rejects keys
-  containing whitespace, `/`, `>` or `=`.
-
-  The allowlist is unchanged on purpose, https:// included: it is the behaviour
-  this port is required to preserve, not fix. See the scope note on #14387.
-#}
+{# Takes `url` and `attrs`, a dict of extra iframe attributes. Only archive.org URLs are embedded. #}
 {% macro iframe(url, attrs={}) %}
     {% if url.startswith("http://www.archive.org/") or url.startswith("http://archive.org/") or url.startswith("//archive.org/") %}
+        {# Wiki editors write `attrs`: xmlattr escapes the values and rejects unsafe names. #}
         <iframe src="{{ url }}"{{ attrs | xmlattr }}></iframe>
     {% endif %}
 {% endmacro %}
-{#- Rendering this file directly (from the Templetor wrapper) draws the iframe.
-    Guarded so that importing the macro does not render the body, which would
-    raise on the undefined `url` under StrictUndefined. -#}
+{#- Rendering this file directly (from the Templetor macro) draws the iframe; importing it doesn't. -#}
 {%- if url is defined %}
     {{ iframe(url, attrs | default({})) }}
 {%- endif %}

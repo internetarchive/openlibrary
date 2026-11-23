@@ -1,6 +1,3 @@
 $def with (url, **attrs)
 
-$# The markup lives in iframe.html.jinja so it can be rendered without
-$# Templetor. Attributes go across as one dict rather than as loose keyword
-$# arguments, so the Jinja side can hand them to `xmlattr` whole.
 $:render_jinja_template("iframe.html.jinja", url=url, attrs=attrs)
