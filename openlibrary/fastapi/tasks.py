@@ -4,23 +4,27 @@ and the /tasks/admin pages, where the community projects are run."""
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Any, Literal
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
+import web
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
-from openlibrary.contribute import feed, initiatives, manage
+from openlibrary.contribute import book_page, feed, initiatives, manage, save, tasks
+from openlibrary.contribute.field_guides import get_field_guides
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.core.shell.user import ShellUser
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import FlashType, set_flash_cookie
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary import contribute
-from openlibrary.utils.request_context import site
+from openlibrary.plugins.upstream import spamcheck
+from openlibrary.utils.request_context import site, web_ctx_ip
 
 router = APIRouter()
 
@@ -90,6 +94,71 @@ def tasks_rows(
     if (rows := contribute.build_task_rows(contribute.normalize_filter(task), contribute.get_initiative(initiative))) is None:
         return Response(status_code=202)
     return HTMLResponse(render_jinja_template("contribute/rows.html.jinja", rows=rows))
+
+
+SignedInDep = Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+
+
+def get_fill_edition(
+    olid: Annotated[str, Path(pattern=r"^OL\d+M$", description="The edition, as on its book page.")],
+    field: Annotated[str, Path(description="One of the fields a book page asks for.")],
+    _user: SignedInDep,
+) -> Any:
+    """The edition a book page's drawer is filling in. 404 for a field the book page doesn't ask for. Takes the
+    member so a visitor gets a 401 before any record is read."""
+    if field not in book_page.FIELDS or not (edition := site.get().get(f"/books/{olid}")) or edition.type.key != "/type/edition":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nothing to fill in here")
+    return edition
+
+
+FillEditionDep = Annotated[Any, Depends(get_fill_edition)]
+
+
+def fill_done(edition: Any, field: str, outcome: str, user: AuthenticatedUser, value: str = "") -> HTMLResponse:
+    """The drawer once the field is dealt with, offering what the edition still leaves open."""
+    others = book_page.open_fields(edition, site.get(), user.user_key)
+    done = contribute.build_fill_done(edition, field, outcome, value, others)
+    return HTMLResponse(render_jinja_template("contribute/fill_done.html.jinja", data=done))
+
+
+# Plain defs: the record, its other editions and the save are blocking I/O, so they run in the threadpool.
+@router.get(f"{book_page.URL}/{{olid}}/{{field}}", response_class=HTMLResponse, include_in_schema=False)
+def tasks_fill(field: str, edition: FillEditionDep, user: SignedInDep) -> HTMLResponse:
+    """One empty field's question and answer form, for the drawer on the edition's own page."""
+    if not tasks.is_missing(edition, field):
+        return fill_done(edition, field, "filled", user)
+    return HTMLResponse(render_jinja_template("contribute/fill.html.jinja", data=contribute.build_fill_context(edition, field)))
+
+
+class FillAnswer(BaseModel):
+    """The drawer's form. ``then`` is the button pressed: save the answer, or note that it couldn't be found."""
+
+    value: str = ""
+    note: str = ""
+    then: Literal["save", "notfound"] = "save"
+
+
+@router.post(f"{book_page.URL}/{{olid}}/{{field}}", response_class=HTMLResponse, include_in_schema=False)
+def tasks_fill_save(field: str, edition: FillEditionDep, form: Annotated[FillAnswer, Form()], user: SignedInDep, client_ip: ClientIpDep) -> HTMLResponse:
+    """Save the drawer's answer as a normal edit, the way a task page does. 422 hands the form back with what was wrong."""
+    # Same check as the edit form and the task page; it also stops read-only and blocked accounts.
+    if spamcheck.is_spam(web.storage(form.model_dump()), allow_privileged_edits=True):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This edit can't be saved")
+    if not tasks.is_missing(edition, field):
+        return fill_done(edition, field, "filled", user)
+    if form.then == "notfound":
+        initiatives.record_not_found(site.get(), edition.key, field, user.user_key, form.note)
+        return fill_done(edition, field, "notfound", user)
+    initiative = initiatives.listing(edition.key, field)
+    try:
+        with web_ctx_ip(client_ip):
+            save.save_answer(
+                edition, field, form.value, get_field_guides()[field].label, form.note, initiative=initiative.slug if initiative else "", door=book_page.DOOR
+            )
+    except save.InvalidAnswer as e:
+        context = contribute.build_fill_context(edition, field, error=str(e), value=form.value, note=form.note)
+        return HTMLResponse(render_jinja_template("contribute/fill.html.jinja", data=context), status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
+    return fill_done(edition, field, "saved", user, value=contribute.format_answer(field, form.value))
 
 
 def find_project(slug: str) -> initiatives.Initiative:

@@ -1,0 +1,12 @@
+{#- An empty field's slot on the book page: where the value would show, a quiet way to add it (book-fill.js opens the drawer).
+    Takes `field` (a book_page.FIELDS name), `label` (the slot's heading) and `action` (the button's accessible name). -#}
+{% if field is defined %}
+    <div class="edition-omniline-item edition-omniline-item--empty"
+         data-book-fill-slot="{{ field }}">
+        <div>{{ label }}</div>
+        <ol-button variant="ghost" size="small" type="button" aria-label="{{ action }}" data-book-fill="{{ field }}" data-ol-link-track="BookFill|Open|{{ field }}">
+            {{ icon("plus", size="sm", slot="icon-start") }}
+            {{ _("Add") }}
+        </ol-button>
+    </div>
+{% endif %}

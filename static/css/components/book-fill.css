@@ -1,0 +1,236 @@
+/**
+ * Filling in an empty field from the book page: the empty slot in the edition's
+ * summary row, and the form the drawer beside the record loads for it.
+ * Markup: templates/books/fill/ and templates/contribute/fill*.html.jinja.
+ */
+
+/* An empty slot keeps the row's shape; the dashed edge says nothing is there yet. */
+.edition-omniline-item--empty {
+  border-style: dashed;
+}
+
+.book-fill-drawer {
+  --ol-drawer-width: 400px;
+}
+
+.book-fill {
+  display: grid;
+  gap: var(--spacing-stack-lg);
+  padding: var(--spacing-inset-lg);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+}
+
+.book-fill p {
+  margin: 0;
+}
+
+.book-fill__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+}
+
+.book-fill__question {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: 0;
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  text-wrap: balance;
+}
+
+.book-fill--done .book-fill__question svg {
+  flex: none;
+  color: var(--color-success-fg);
+}
+
+/* The close button's own padding would push it past the panel's inset. */
+.book-fill__close {
+  flex: none;
+  margin-block-start: calc(-1 * var(--spacing-inset-xs));
+  margin-inline-end: calc(-1 * var(--spacing-inset-xs));
+}
+
+.book-fill__edition {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-sm);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
+}
+
+.book-fill__cover {
+  flex: none;
+  width: 40px;
+  height: auto;
+  align-self: flex-start;
+  border-radius: var(--border-radius-thumbnail);
+}
+
+.book-fill__edition-text {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+.book-fill__title {
+  font-weight: var(--font-weight-medium);
+}
+
+.book-fill__scope,
+.book-fill__hint {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.book-fill__form,
+.book-fill__field,
+.book-fill__help {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.book-fill__form {
+  gap: var(--spacing-stack-md);
+}
+
+.book-fill__label {
+  font-weight: var(--font-weight-medium);
+}
+
+.book-fill__input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: var(--control-height-medium);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border: var(--border-input);
+  border-radius: var(--border-radius-input);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+.book-fill__input--number {
+  max-width: 12rem;
+}
+
+textarea.book-fill__input {
+  padding-block: var(--spacing-inset-sm);
+  resize: vertical;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .book-fill__input:hover {
+    border: var(--border-input-hovered);
+  }
+}
+
+.book-fill__input:focus-visible {
+  border: var(--border-input-focused);
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* --width-breakpoint-tablet: iOS zooms in on focus when the field's font is under 16px. */
+@media (max-width: 767px) {
+  .book-fill__input {
+    font-size: var(--font-size-body-large);
+  }
+}
+
+.book-fill__picker {
+  justify-self: start;
+}
+
+.book-fill__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+/* A lead-in to the chips, so it keeps its own line and every chip starts at the same edge. */
+.book-fill__suggest-label {
+  flex-basis: 100%;
+}
+
+/* Primary on the right, as in a dialog; it stays first in the markup so Enter saves. */
+.book-fill__actions {
+  display: flex;
+  flex-flow: row-reverse wrap;
+  justify-content: flex-start;
+  gap: var(--spacing-inline-sm);
+}
+
+.book-fill--done .book-fill__actions {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.book-fill__help {
+  padding-block-start: var(--spacing-stack-lg);
+  border-block-start: var(--border-width) solid var(--color-border-subtle);
+}
+
+.book-fill__overline {
+  margin: 0;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+.book-fill__linkouts,
+.book-fill__others {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm) var(--spacing-inline-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.book-fill__others {
+  gap: var(--spacing-inline-sm);
+}
+
+.book-fill__linkouts a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.book-fill__disclosure summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-link);
+}
+
+.book-fill__disclosure[open] summary {
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.book-fill__how {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  font-size: var(--font-size-body-small);
+}
+
+.book-fill__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

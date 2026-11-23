@@ -1,0 +1,116 @@
+{#- One empty field of an edition, asked in the drawer on the edition's own page (book-fill.js loads it from /tasks/fill/OL…M/<field>).
+    Takes `data` from build_fill_context in openlibrary/plugins/openlibrary/contribute.py. Styled by static/css/components/book-fill.css.
+    The task page's question, answer and lookups, without the record around them: the page beside the drawer is the record. -#}
+{% set guide = data.field_guide %}
+<div class="book-fill" data-book-fill-panel data-field="{{ data.field }}">
+    <header class="book-fill__head">
+        <h2 class="book-fill__question" id="book-fill-question">{{ guide.question }}</h2>
+        <ol-button class="book-fill__close" variant="ghost" shape="icon" size="small" type="button" aria-label="{{ _('Close') }}" data-book-fill-close>
+            {{ icon("x", size="sm") }}
+        </ol-button>
+    </header>
+    {#- Which edition the answer is for, before anything is asked: the usual mistake is answering for another one. -#}
+    <div class="book-fill__edition">
+        {% if data.book.cover_url %}
+            <img class="book-fill__cover"
+                 src="{{ data.book.cover_url }}"
+                 alt=""
+                 width="40"
+                 height="60" />
+        {% endif %}
+        <div class="book-fill__edition-text">
+            <div class="book-fill__title">{{ data.book.title }}</div>
+            <p class="book-fill__scope">{{ data.scope }}</p>
+        </div>
+    </div>
+    <form class="book-fill__form"
+          method="post"
+          action="{{ data.url }}"
+          data-book-fill-form>
+        {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
+        <div class="book-fill__field">
+            {% if data.languages %}
+                <span class="book-fill__label" id="book-fill-label">{{ guide.label }}</span>
+                <ol-options-popover class="book-fill__picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ guide.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ data.value }}" items='{{ data.languages | tojson }}' data-book-fill-answer>
+                </ol-options-popover>
+            {% else %}
+                <label class="book-fill__label" for="book-fill-value">{{ guide.label }}</label>
+                <input id="book-fill-value"
+                       class="book-fill__input{% if guide.input_type == 'number' %} book-fill__input--number{% endif %}"
+                       type="{{ guide.input_type }}"
+                       name="value"
+                       placeholder="{{ guide.placeholder }}"
+                       {% if guide.input_type == "number" %}min="1" inputmode="numeric"{% endif %}
+                       value="{{ data.value }}"
+                       autocomplete="off"
+                       required
+                       data-book-fill-answer />
+            {% endif %}
+            {% if data.suggestions %}
+                <div class="book-fill__suggest" data-book-fill-suggest>
+                    <span class="book-fill__suggest-label">{{ _("Other editions say…") }}</span>
+                    {% for s in data.suggestions %}
+                        <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on %(count)d edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
+                            {{ s.label }}
+                        </ol-chip>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if guide.check %}<p class="book-fill__hint">{{ guide.check }}</p>{% endif %}
+        </div>
+        <details class="book-fill__disclosure"{% if data.note %} open{% endif %}>
+            <summary>{{ _("Add a comment about your edit") }}</summary>
+            <label class="book-fill__visually-hidden" for="book-fill-note">{{ _("Edit comment") }}</label>
+            <textarea id="book-fill-note"
+                      class="book-fill__input"
+                      name="note"
+                      rows="2"
+                      maxlength="{{ data.note_max }}"
+                      placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
+        </details>
+        {#- A contained surface, so the primary action sits on the right; it stays first in the form so Enter saves. -#}
+        <div class="book-fill__actions">
+            <ol-button variant="primary" type="submit" name="then" value="save">
+                {{ _("Save") }}
+            </ol-button>
+            <ol-button variant="ghost" type="submit" name="then" value="notfound" formnovalidate data-ol-link-track="BookFill|NotFound|{{ data.field }}">
+                {{ data.not_found_label }}
+            </ol-button>
+        </div>
+    </form>
+    <section class="book-fill__help">
+        {% if data.link_outs %}
+            <h3 class="book-fill__overline">{{ _("Look it up") }}</h3>
+            <ul class="book-fill__linkouts">
+                {% for link in data.link_outs %}
+                    <li>
+                        <a href="{{ link.url }}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           data-ol-link-track="BookFill|Lookup|{{ data.field }}">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if data.links_by_title and guide.sources %}
+                <p class="book-fill__hint">
+                    {{ _("This edition has no ISBN, so these links search by title and author. Check that the publisher and year match before you copy anything.") }}
+                </p>
+            {% endif %}
+        {% endif %}
+        <details class="book-fill__disclosure">
+            <summary>{{ _("How to answer") }}</summary>
+            <div class="book-fill__how">
+                {#- The book's own pages lead when there's a scan, then the sources the record brought in, then the standing advice. -#}
+                {% if data.scan_tip %}<p>{{ data.scan_tip }}</p>{% endif %}
+                {% for link in data.link_outs if link.tip %}<p>{{ link.tip }}</p>{% endfor %}
+                {% for para in guide.how.split("\n\n") if para %}<p>{{ para }}</p>{% endfor %}
+                {% for note in guide.notes %}
+                    <p>
+                        {{ note.text }}
+                        {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
+                    </p>
+                {% endfor %}
+            </div>
+        </details>
+    </section>
+</div>

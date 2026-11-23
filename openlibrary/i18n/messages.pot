@@ -626,7 +626,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja contribute/fill.html.jinja contribute/fill_done.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -967,7 +967,7 @@ msgstr ""
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html contribute/parts.html.jinja languages/index.html openlibrary/core/shell/search_modal.py work_search.html
+#: books/edit/edition.html contribute/fill.html.jinja contribute/parts.html.jinja languages/index.html openlibrary/core/shell/search_modal.py work_search.html
 msgid "Languages"
 msgstr ""
 
@@ -1530,7 +1530,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/admin/project.html.jinja contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/admin/project.html.jinja contribute/fill.html.jinja contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
 msgid "Save"
 msgstr ""
 
@@ -1968,7 +1968,7 @@ msgstr ""
 msgid "Imports"
 msgstr ""
 
-#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
+#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html books/fill/slot.html.jinja covers/change.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -4318,6 +4318,18 @@ msgstr ""
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
 msgstr ""
 
+#: books/fill/drawer.html.jinja
+msgid "Add to this edition"
+msgstr ""
+
+#: books/fill/drawer.html.jinja lists/widget.html openlibrary/core/shell/shelf_labels.py
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: books/fill/drawer.html.jinja
+msgid "Please log in again to continue."
+msgstr ""
+
 #: borrow/provider_popup_result.html.jinja
 msgid "Borrowed"
 msgstr ""
@@ -4544,6 +4556,94 @@ msgstr ""
 
 #: contribute/faq.html.jinja
 msgid "A fixed list of books and the details it asks about, like \"covers and page counts for the most-read books.\" Open Library librarians set them up. Tasks come from the list in random order."
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Choose a language"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Filter languages"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "No matching language"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Other editions say…"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+#, python-format
+msgid "%(value)s, on %(count)d edition"
+msgid_plural "%(value)s, on %(count)d editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Add a comment about your edit"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Edit comment"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Where you found it"
+msgstr ""
+
+#: contribute/fill.html.jinja
+msgid "Look it up"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "This edition has no ISBN, so these links search by title and author. Check that the publisher and year match before you copy anything."
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "How to answer"
+msgstr ""
+
+#: contribute/fill.html.jinja contribute/parts.html.jinja
+msgid "Guideline"
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "Saved. Thank you!"
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "Thanks for looking"
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "Already filled in"
+msgstr ""
+
+#: contribute/fill_done.html.jinja contribute/parts.html.jinja
+#, python-format
+msgid "%(field)s added: %(value)s"
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "We've noted that you couldn't find it. Nothing on the record changed."
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "Someone filled this in while you had the page open. Reload the page to see it."
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "See your edit in this edition's history"
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "Also missing on this edition"
+msgstr ""
+
+#: contribute/fill_done.html.jinja
+msgid "Done"
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -5737,10 +5837,6 @@ msgstr ""
 #: lists/widget.html openlibrary/core/shell/shelf_labels.py
 #, python-format
 msgid "Removed from %(name)s"
-msgstr ""
-
-#: lists/widget.html openlibrary/core/shell/shelf_labels.py
-msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: merge/authors.html
@@ -8699,24 +8795,7 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "%(field)s added: %(value)s"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
 msgid "%(field)s added"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "How to answer"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "This edition has no ISBN, so these links search by title and author. Check that the publisher and year match before you copy anything."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Guideline"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8809,18 +8888,6 @@ msgid "That is not a valid number for this catalog."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Choose a language"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Filter languages"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "No matching language"
-msgstr ""
-
-#: contribute/parts.html.jinja
 #, python-format
 msgid "And 1 more."
 msgid_plural "And %(count)d more."
@@ -8833,29 +8900,6 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "View scan"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Other editions say…"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "%(value)s, on %(count)d edition"
-msgid_plural "%(value)s, on %(count)d editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: contribute/parts.html.jinja
-msgid "Add a comment about your edit"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Edit comment"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Where you found it"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -9511,6 +9555,11 @@ msgstr ""
 
 #: openlibrary/contribute/save.py
 msgid "This field can't be filled in here."
+msgstr ""
+
+#: openlibrary/contribute/save.py
+#, python-format
+msgid "Filled in %(field)s from the book page"
 msgstr ""
 
 #: openlibrary/contribute/save.py

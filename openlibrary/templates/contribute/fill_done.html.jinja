@@ -1,0 +1,57 @@
+{#- The book page's drawer once a field is dealt with: saved, not found, or filled in by someone else in the meantime.
+    Takes `data` from build_fill_done in openlibrary/plugins/openlibrary/contribute.py. book-fill.js reads the outcome
+    and value off the root to update the page beside the drawer. -#}
+<div class="book-fill book-fill--done"
+     data-book-fill-panel
+     data-book-fill-done="{{ data.outcome }}"
+     data-field="{{ data.field }}"
+     data-value="{{ data.value }}">
+    <header class="book-fill__head">
+        <h2 class="book-fill__question" role="status">
+            {% if data.outcome == "saved" %}
+                {{ icon("circle-check", size="md") }}{{ _("Saved. Thank you!") }}
+            {% elif data.outcome == "notfound" %}
+                {{ _("Thanks for looking") }}
+            {% else %}
+                {{ _("Already filled in") }}
+            {% endif %}
+        </h2>
+        <ol-button class="book-fill__close" variant="ghost" shape="icon" size="small" type="button" aria-label="{{ _('Close') }}" data-book-fill-close>
+            {{ icon("x", size="sm") }}
+        </ol-button>
+    </header>
+    <p class="book-fill__result">
+        {% if data.outcome == "saved" %}
+            {{ _("%(field)s added: %(value)s", field=data.label, value=data.value) }}
+        {% elif data.outcome == "notfound" %}
+            {{ _("We've noted that you couldn't find it. Nothing on the record changed.") }}
+        {% else %}
+            {{ _("Someone filled this in while you had the page open. Reload the page to see it.") }}
+        {% endif %}
+    </p>
+    {% if data.outcome == "saved" %}
+        <p class="book-fill__hint">
+            <a href="{{ data.history_url }}" data-ol-link-track="BookFill|History">{{ _("See your edit in this edition's history") }}</a>
+        </p>
+    {% endif %}
+    {% if data.others %}
+        <section class="book-fill__help">
+            <h3 class="book-fill__overline">{{ _("Also missing on this edition") }}</h3>
+            <ul class="book-fill__others">
+                {% for other in data.others %}
+                    <li>
+                        <ol-button variant="secondary" size="small" type="button" data-book-fill="{{ other.field }}" data-ol-link-track="BookFill|Next|{{ other.field }}">
+                            {{ icon("plus", size="sm", slot="icon-start") }}
+                            {{ other.action }}
+                        </ol-button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+    <div class="book-fill__actions">
+        <ol-button variant="{{ 'secondary' if data.others else 'primary' }}" type="button" data-book-fill-close>
+            {{ _("Done") }}
+        </ol-button>
+    </div>
+</div>
