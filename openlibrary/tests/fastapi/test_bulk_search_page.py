@@ -7,15 +7,18 @@ own body.
 """
 
 import json
+import pathlib
 import re
 from urllib.parse import unquote
 
 import pytest
+from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.search import pages
 
 I18N_ATTRIBUTE = re.compile(r'\si18n="([^"]*)"')
+COMPONENT_STRINGS_JS = pathlib.Path(__file__).resolve().parents[3] / "openlibrary/components/BulkSearch/utils/i18n.js"
 
 
 @pytest.fixture
@@ -28,6 +31,13 @@ def i18n_strings(html: str) -> dict:
     match = I18N_ATTRIBUTE.search(html)
     assert match, "no i18n attribute on the component element"
     return json.loads(unquote(match.group(1)))
+
+
+def component_default_keys() -> set[str]:
+    """The keys of `DEFAULT_BULK_SEARCH_STRINGS` in i18n.js."""
+    source = COMPONENT_STRINGS_JS.read_text()
+    defaults = source.split("export const DEFAULT_BULK_SEARCH_STRINGS = {", 1)[1].split("\n};", 1)[0]
+    return set(re.findall(r"^ {4}([a-zA-Z]\w*):", defaults, re.MULTILINE))
 
 
 def test_bulk_search_page_renders_the_component(client):
@@ -56,6 +66,23 @@ def test_bulk_search_page_passes_the_translated_strings(client):
     assert set(strings["editions"]) == {"one", "two", "few", "many", "other"}
     assert all("%(count)s" in form for form in strings["editions"].values())
 
+
+def test_bulk_search_page_sends_translated_text(client, monkeypatch):
+    """The payload carries the request language's text, not the English msgids."""
+
+    class Translations:
+        def ugettext(self, message: str) -> str:
+            return {"Extract Books": "Bücher extrahieren"}.get(message, message)
+
+        def ungettext(self, singular: str, plural: str, n: int) -> str:
+            return singular if n == 1 else plural
+
+    monkeypatch.setattr("openlibrary.i18n.load_translations", lambda lang: Translations())
+
+    strings = i18n_strings(client.get("/search/bulk").text)
+    assert strings["extractHeading"] == "Bücher extrahieren"
+    # A string with no translation keeps its English text
+    assert strings["matchHeading"] == "Match Books"
 
 def test_bulk_search_page_does_not_read_webpy_ctx(client, webpy_leftovers):
     """The page renders without web.py's request state, which a FastAPI request must not touch."""
