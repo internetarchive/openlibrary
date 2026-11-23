@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 
 ALLOWED = [
+    "https://www.archive.org/details/x",
+    "https://archive.org/details/x",
     "http://www.archive.org/details/x",
     "http://archive.org/details/x",
     "//archive.org/details/x",
@@ -29,8 +31,7 @@ def test_allowed_hosts_render_an_iframe(url):
 @pytest.mark.parametrize(
     "url",
     [
-        "https://archive.org/details/x",
-        "https://www.archive.org/details/x",
+        "https://archive.org.evil.example/x",
         "http://evil.example/details/x",
         "//evil.example/x",
         "javascript:alert(1)",

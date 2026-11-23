@@ -1,6 +1,6 @@
 {# Takes `url` and `attrs`, a dict of extra iframe attributes. Only archive.org URLs are embedded. #}
 {% macro iframe(url, attrs={}) %}
-    {% if url.startswith("http://www.archive.org/") or url.startswith("http://archive.org/") or url.startswith("//archive.org/") %}
+    {% if url.startswith(("https://www.archive.org/", "https://archive.org/", "http://www.archive.org/", "http://archive.org/", "//archive.org/")) %}
         {# Wiki editors write `attrs`: xmlattr escapes the values and rejects unsafe names. #}
         <iframe src="{{ url }}"{{ attrs | xmlattr }}></iframe>
     {% endif %}
