@@ -1,0 +1,18 @@
+{# q is an argument because a request read here can return another visitor's value under FastAPI (docs/core/fastapi-pages.md). #}
+{% macro subject_search(q="") %}
+    <form action="/search/subjects" class="olform">
+        <p>
+            <label for="searchSubjects" class="shift">{{ _("Search for a subject") }}</label>
+            <input type="text"
+                   name="q"
+                   id="searchSubjects"
+                   size="100"
+                   class="larger"
+                   placeholder="{{ _('Search for a subject') }}"
+                   value="{{ q }}" />
+            <input type="submit" class="large" value="{{ _('Search') }}" />
+        </p>
+    </form>
+{% endmacro %}
+{#- Rendering the file, as SubjectSearch.html does, draws the form. -#}
+{{ subject_search(q | default("")) }}
