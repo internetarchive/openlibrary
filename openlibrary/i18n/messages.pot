@@ -2077,12 +2077,16 @@ msgstr ""
 msgid "Stats"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html stats/tags.html
 msgid "Related stats pages"
 msgstr ""
 
-#: admin/index.html contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
+#: admin/index.html contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py stats/tags.html
 msgid "Tasks"
+msgstr ""
+
+#: admin/index.html type/tag/index.html
+msgid "Tags"
 msgstr ""
 
 #: admin/index.html admin/menu.html admin/new_accounts.html.jinja
@@ -2922,7 +2926,7 @@ msgstr ""
 msgid "Reset Password"
 msgstr ""
 
-#: admin/people/view.html
+#: admin/people/view.html stats/tags.html
 msgid "Admin"
 msgstr ""
 
@@ -6757,7 +6761,7 @@ msgstr ""
 msgid "The total number of books logged using the Reading Log feature"
 msgstr ""
 
-#: stats/readinglog.html
+#: openlibrary/views/loanstats.py stats/readinglog.html
 msgid "All time"
 msgstr ""
 
@@ -6810,6 +6814,39 @@ msgstr ""
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
+msgstr ""
+
+#: stats/tags.html
+msgid "Tag Stats"
+msgstr ""
+
+#: stats/tags.html
+msgid "Tags created"
+msgstr ""
+
+#: stats/tags.html
+msgid "How many Book Tags were created, counted by the nightly stats job."
+msgstr ""
+
+#: stats/tags.html
+msgid "Works carrying a tag, by tag type"
+msgstr ""
+
+#: stats/tags.html
+msgid "How many works link each kind of Tag, and how that changed over the last week, month and year."
+msgstr ""
+
+#: stats/tags.html type/tag/tag_form_inputs.html
+msgid "Tag type"
+msgstr ""
+
+#: stats/tags.html
+msgid "Works"
+msgstr ""
+
+#: openlibrary/views/loanstats.py stats/tags.html
+#, python-format
+msgid "Last %(days)s days"
 msgstr ""
 
 #: stats/tasks.html stats/tasks.html.jinja
@@ -7663,10 +7700,6 @@ msgid "Add this tag now"
 msgstr ""
 
 #: type/tag/index.html
-msgid "Tags"
-msgstr ""
-
-#: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
 msgstr ""
 
@@ -7704,10 +7737,6 @@ msgstr ""
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
-
-#: type/tag/tag_form_inputs.html
-msgid "Tag type"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html

@@ -11,6 +11,7 @@ import pytest
 import web
 
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.helpers import commify
 from openlibrary.views import loanstats
 
 FAKE_LEADERBOARD = {
@@ -175,3 +176,69 @@ class TestTrendingNowCaching:
 
         loanstats.activity_stream().GET(mode="/now")
         mock_cached.assert_called_once_with(limit=loanstats.TRENDING_NOW_LIMIT, page=1)
+
+
+class TestTagsStats:
+    """Tests for the /stats/tags view (internetarchive/openlibrary#14656): the page must render
+    from the daily count docs only, never querying the big tables."""
+
+    def _docs(self, days=400, tags_per_day=5, tag_step=3):
+        """`days` of consecutive count docs ending today, with `tags` (created that day),
+        `total_tags` and `total_tagged_works` (works per tag field = 1000 - tag_step * days_ago)."""
+        today = dt.date.today()
+        docs = []
+        for i in range(days - 1, -1, -1):
+            d = today - dt.timedelta(days=i)
+            docs.append(
+                {
+                    "_key": d.strftime("counts-%Y-%m-%d"),
+                    "tags": tags_per_day,
+                    "total_tags": 9000 + (days - 1 - i),
+                    "total_tagged_works": {f: {"works": 1000 - tag_step * i, "links": 2000 - 4 * i} for f in loanstats.TAGGED_WORK_FIELDS},
+                }
+            )
+        return docs
+
+    def test_page_reads_only_the_daily_docs(self, monkeypatch):
+        days, tags_per_day, tag_step = 400, 5, 3
+        docs = self._docs(days, tags_per_day, tag_step)
+        monkeypatch.setattr(loanstats, "get_count_docs", lambda ndays: docs)
+        monkeypatch.setattr(loanstats.app, "render_template", lambda *a, **kw: web.storage(**kw))
+        monkeypatch.setattr(web.ctx, "lang", "en", raising=False)
+        web.ctx.env = web.ctx.environ = web.storage(REQUEST_METHOD="GET", QUERY_STRING="")
+
+        page = loanstats.tags_stats().GET().page
+
+        # Tags created: window sums of the daily `tags` key, then the all-time `total_tags`.
+        created = page["created"]
+        assert [c["label"] for c in created] == ["Last 7 days", "Last 28 days", "Last 365 days", "All time"]
+        assert [c["value"] for c in created] == [
+            commify(tags_per_day * 7),
+            commify(tags_per_day * 28),
+            commify(tags_per_day * 365),
+            commify(9000 + days - 1),
+        ]
+        assert all(c["chart"]["bars"] for c in created), "every window gets a trend chart"
+
+        # Works tagged by type: current total and the change over 7/28/365 days.
+        rows = {r["field"]: r for r in page["tagged_works"]}
+        assert set(rows) == set(loanstats.TAGGED_WORK_FIELDS)
+        genres = rows["genres"]
+        assert genres["works"] == commify(1000)
+        assert genres["changes"][7] == f"+{commify(tag_step * 7)}"
+        assert genres["changes"][28] == f"+{commify(tag_step * 28)}"
+        assert genres["changes"][365] == f"+{commify(tag_step * 365)}"
+
+    def test_page_renders_dashes_until_the_stats_script_writes_the_keys(self, monkeypatch):
+        today = dt.date.today()
+        docs = [{"_key": (today - dt.timedelta(days=i)).strftime("counts-%Y-%m-%d")} for i in range(29, -1, -1)]
+        monkeypatch.setattr(loanstats, "get_count_docs", lambda ndays: docs)
+        monkeypatch.setattr(loanstats.app, "render_template", lambda *a, **kw: web.storage(**kw))
+        monkeypatch.setattr(web.ctx, "lang", "en", raising=False)
+        web.ctx.env = web.ctx.environ = web.storage(REQUEST_METHOD="GET", QUERY_STRING="")
+
+        page = loanstats.tags_stats().GET().page
+
+        assert [c["value"] for c in page["created"]] == ["—", "—", "—", "—"]
+        assert all(r["works"] == "—" for r in page["tagged_works"])
+        assert all(change == "—" for r in page["tagged_works"] for change in r["changes"].values())

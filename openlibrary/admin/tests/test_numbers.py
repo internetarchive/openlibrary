@@ -22,6 +22,10 @@ class FakeDB:
         self.queries.append((q, vars))
         return self.rows if self.rows is not None else [web.storage(count=self.count)]
 
+    def where(self, table, **kw):
+        self.queries.append((f"where:{table}", kw))
+        return [web.storage(id=9)]
+
 
 class FakeStore(dict):
     def get(self, key, default=None):
@@ -312,3 +316,42 @@ def test_the_28_day_saves_by_initiative_pair_each_count_with_its_undone():
     db = TwoQueries()
     assert run(numbers.admin_range__tasks_saves_by_initiative_28d, db) == {"most-read-2026-11": {"saves": 40, "undone": 2}}
     assert len(db.queries) == 2
+
+
+def test_tags_created_per_day_counts_tag_things():
+    db = FakeDB(rows=[web.storage(id=9, count=7)])
+    assert run(numbers.admin_range__tags, db) == 7
+    (q1, vars1), (q2, vars2) = db.queries
+    assert vars1["typ"] == "/type/tag"
+    assert "from thing where key='/type/tag'" in str(web.db.reparam(q1, vars1))
+    sql = str(web.db.reparam(q2, vars2))
+    assert "FROM thing WHERE type=9" in sql
+    assert "created >= '2026-10-15' AND created < '2026-10-15 21:00:00'" in sql
+
+
+def test_total_tags_counts_every_tag_thing():
+    db = FakeDB(rows=[web.storage(id=9, count=42)])
+    assert numbers.admin_total__tags(thingdb=db) == 42
+    assert db.queries[0] == ("where:thing", {"key": "/type/tag"})
+    sql = str(web.db.reparam(db.queries[1][0], db.queries[1][1]))
+    assert "FROM thing WHERE type=9" in sql
+
+
+def test_tagged_works_counts_works_and_links_per_tag_field():
+    rows = [
+        web.storage(field="genres", works=1069, links=1200),
+        web.storage(field="awards", works=12, links=15),
+    ]
+    db = FakeDB(rows=rows)
+    result = numbers.admin_total__tagged_works(thingdb=db)
+    assert result["genres"] == {"works": 1069, "links": 1200}
+    assert result["awards"] == {"works": 12, "links": 15}
+    # fields with no links at all are still present, zero-filled
+    assert result["content_warnings"] == {"works": 0, "links": 0}
+    assert set(result) == set(numbers.TAGGED_WORK_FIELDS)
+    [(q, vars)] = db.queries
+    sql = str(web.db.reparam(q, vars))
+    assert "FROM work_ref r JOIN property p ON p.id = r.key_id" in sql
+    assert "key = '/type/work'" in sql
+    for field in numbers.TAGGED_WORK_FIELDS:
+        assert f"'{field}'" in sql

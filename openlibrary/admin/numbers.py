@@ -481,6 +481,7 @@ admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
 admin_range__authors = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists = functools.partial(single_thing_skeleton, type="list")
 admin_range__members = functools.partial(single_thing_skeleton, type="user")
+admin_range__tags = functools.partial(single_thing_skeleton, type="tag")
 
 
 def admin_total__authors(**kargs):
@@ -516,6 +517,11 @@ def admin_total__works(**kargs):
     return _count_things(db, "/type/work")
 
 
+def admin_total__tags(**kargs):
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/tag")
+
+
 def admin_total__editions(**kargs):
     db = kargs["thingdb"]
     return _count_things(db, "/type/edition")
@@ -541,3 +547,39 @@ def _query_count(db, table, type, property, distinct=False):
 def admin_total__members(**kargs):
     db = kargs["thingdb"]
     return _count_things(db, "/type/user")
+
+
+# The Tag fields a work can carry, as property names on the work: genres, subgenres, literary
+# forms, audiences, content warnings, content formats and awards.
+TAGGED_WORK_FIELDS = (
+    "genres",
+    "subgenres",
+    "literary_forms",
+    "audiences",
+    "content_warnings",
+    "content_formats",
+    "awards",
+)
+
+
+def admin_total__tagged_works(**kargs):
+    """Works carrying each Tag field as of today, and the tag links behind them:
+    `{field: {"works": n, "links": m}}`, every field present even when nothing carries it.
+
+    Infobase stores one `work_ref` row per tag link, keyed by the field's id in `property`, so
+    this reads only the indexed `(key_id, value)` rows for these fields. Plain-text values in
+    those fields (older records) live in a different table and are correctly left out. Both
+    counts are stored: `works` is the number to chart, `links` shows works tagged more than once.
+    """
+    db = kargs["thingdb"]
+    q = """
+        SELECT p.name AS field, count(DISTINCT r.thing_id) AS works, count(*) AS links
+        FROM work_ref r JOIN property p ON p.id = r.key_id
+        WHERE p.type = (SELECT id FROM thing WHERE key = '/type/work')
+          AND p.name IN $fields
+        GROUP BY p.name
+    """
+    counts = {field: {"works": 0, "links": 0} for field in TAGGED_WORK_FIELDS}
+    for row in db.query(q, vars={"fields": list(TAGGED_WORK_FIELDS)}):
+        counts[row.field] = {"works": row.works, "links": row.links}
+    return counts
