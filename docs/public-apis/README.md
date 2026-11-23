@@ -267,7 +267,7 @@ There is also an **unwired stub** `async def unlink_ia_ol(): pass` in `openlibra
 |-----|-------------|--------|-----|
 | Search API | `/search.json`, `/search/authors.json` | FastAPI | [search](../search/README.md) |
 | Import API | `/api/import`, `/import/batch/new` | web.py | [imports](../imports/README.md) |
-| Covers API | `covers.openlibrary.org` | standalone | [[covers]] |
+| Covers API | `covers.openlibrary.org` | standalone | covers |
 | Lists API | `/lists/{olid}.json` | Infogami .json encoding | [features](../features/README.md) |
 | OPDS | `opds.openlibrary.org/opds/...` | FastAPI (Nomad) | See above |
 | Partials | Various `/partials/` paths | FastAPI | HTML fragments |
@@ -308,9 +308,9 @@ Mock `pyopds2_openlibrary._get_http_client`, not `httpx.get`. The old bare-httpx
 
 **Depends on:**
 - [search](../search/README.md) — all OPDS search calls hit Solr via `openlibrary.org/search.json`
-- [[core-operations]] — OL backend provides the Books/Authors/Works JSON APIs the OPDS service calls
+- **core-operations** — OL backend provides the Books/Authors/Works JSON APIs the OPDS service calls
 - [imports](../imports/README.md) — `/api/import` endpoint lives in the importapi plugin
-- [[infrastructure]] — `opds.openlibrary.org` runs on Nomad; see also [[infrastructure]] for deployment
+- **infrastructure** — `opds.openlibrary.org` runs on Nomad; see also infrastructure for deployment
 
 **Depended on by:**
 - reader.archive.org — primary production OPDS consumer
@@ -326,4 +326,4 @@ Mock `pyopds2_openlibrary._get_http_client`, not `httpx.get`. The old bare-httpx
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/opds/index.md` · code synthesis: `fastapi/books.py`, `plugins/books/dynlinks.py`, `plugins/books/readlinks.py`, `infogami/plugins/api/code.py` · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/opds/index.md` · code synthesis: `fastapi/books.py`, `plugins/books/dynlinks.py`, `plugins/books/readlinks.py`, `infogami/plugins/api/code.py` · See [README](../README.md)*

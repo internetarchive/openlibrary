@@ -360,7 +360,7 @@ Unit: **ω-value** — useful, weighted value (either Content or Retention).
 
 Full event weights defined in [Open Library Scores Schema](https://docs.google.com/spreadsheets/d/1tt9ekWRMVaNiMc3GKMP09W3YmBeMXoTwKJnxuaispRA/).
 
-**Note:** Community Tags are in limbo — focus on Typed Tags instead (see [[tags]]).
+**Note:** Community Tags are in limbo — focus on Typed Tags instead (see tags).
 
 ---
 
@@ -411,7 +411,7 @@ Implementation extends the Infogami `transaction` table to join with `transactio
 
 ## Common Confusion
 
-- **CVS is not a system health metric** — it measures catalog usefulness for patrons, not infrastructure uptime or error rates. See [[infrastructure]] for system health.
+- **CVS is not a system health metric** — it measures catalog usefulness for patrons, not infrastructure uptime or error rates. See infrastructure for system health.
 - **Demand ≠ page views** — demand is a formula combining reading log activity, historical work counts, and a base floor. Raw page views are not (yet) included.
 - **Usefulness raw score vs. percentage** — always use the percentage field (`usefulness_pct`) for sorting/filtering; the raw sum changes meaning when weights change.
 - **Participation ≠ Retention** — participation is value contributed to others; retention is value received by oneself. Adding a book to your own reading log is retention; editing a record for others is participation.
@@ -429,7 +429,7 @@ Implementation extends the Infogami `transaction` table to join with `transactio
 **What depends on this system:**
 - Any dashboard or reporting that tracks OL's health as a product (not infrastructure health)
 - Librarian prioritization — CVS/CLS identify which records most need improvement
-- [[librarianship]] — participation events include librarian actions (merges, edits)
+- **librarianship** — participation events include librarian actions (merges, edits)
 
 ---
 
@@ -443,4 +443,4 @@ Implementation extends the Infogami `transaction` table to join with `transactio
 
 ---
 
-*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · methodology for ingest rules*

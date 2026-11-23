@@ -56,7 +56,7 @@ token = f"{timestamp}-{HMAC - MD5(config.ia_access_secret, token_data)}"
 
 ⚠️ UNVERIFIED — GH #10096 notes the HMAC uses MD5 (`hashlib.md5`) and should be upgraded to a stronger hash. The issue is open and blocked.
 
-`config.ia_access_secret` lives in olsystem (not in the repo). See [[infrastructure]].
+`config.ia_access_secret` lives in olsystem (not in the repo). See infrastructure.
 
 ---
 
@@ -130,7 +130,7 @@ Page references: `page/23` (number), `page/iv` (Roman), `page/title` (named). Mo
 
 **Depends on:**
 - [lending](../lending/README.md) — loan lifecycle, HMAC secret management, availability check
-- [[infrastructure]] — `ia_access_secret` in olsystem; archive.org hosts BookReader and image server
+- **infrastructure** — `ia_access_secret` in olsystem; archive.org hosts BookReader and image server
 - [auth](../core/auth.md) — user identity (`ia_userid`) embedded in the auth link
 
 **Depended on by:**
@@ -139,4 +139,4 @@ Page references: `page/23` (number), `page/iv` (Roman), `page/title` (named). Mo
 
 ---
 
-*Sources: `dev_docs_bookreader.json`, `dev_docs_bookurls.json`, `borrow.py` · GH #10096, #12500 · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `dev_docs_bookreader.json`, `dev_docs_bookurls.json`, `borrow.py` · GH #10096, #12500 · See [README](../README.md)*

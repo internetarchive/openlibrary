@@ -168,4 +168,4 @@ Events reporting · funnel analysis.
 
 ---
 
-*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · methodology for ingest rules*

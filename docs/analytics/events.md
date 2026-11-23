@@ -288,4 +288,4 @@ missing `action`/`url`, so a malformed cookie fails silently.
 
 ---
 
-*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · methodology for ingest rules*

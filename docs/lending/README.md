@@ -206,7 +206,7 @@ All config loaded via `lending.setup(config)`:
 | `ia_ol_metadata_write_s3` | OL's S3 credentials for availability lookups |
 | `bookreader_host` | `archive.org` (or override for dev) |
 
-All secrets live in olsystem. See [[infrastructure]].
+All secrets live in olsystem. See infrastructure.
 
 ---
 
@@ -356,7 +356,7 @@ An inventory of zero-caller symbols, with the era each belongs to, is in [histor
 ## Dependencies
 
 **Depends on:**
-- [[infrastructure]] — IA loan API, IA S3, `ia_access_secret` in olsystem; Memcached for availability cache
+- **infrastructure** — IA loan API, IA S3, `ia_access_secret` in olsystem; Memcached for availability cache
 - [auth](../core/auth.md) — user S3 keys come from OL account model; `ia_itemname` identifies patron to IA
 - [bookreader](../frontend/bookreader.md) — lending hands off to BookReader via HMAC auth link after loan is created
 
@@ -369,6 +369,6 @@ An inventory of zero-caller symbols, with the era each belongs to, is in [histor
 
 ---
 
-*Sources: `lending.py`, `waitinglist.py`, `borrow.py`, `book_providers.py` (code synthesis) · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `lending.py`, `waitinglist.py`, `borrow.py`, `book_providers.py` (code synthesis) · See [README](../README.md)*
 
 ---

@@ -114,7 +114,7 @@ S3 keypairs are IA's authentication mechanism for their content APIs (loans, ava
 **How OL's own service key is used:**
 - `lending.config_ia_ol_xauth_s3` holds a service-level S3 keypair for OL to authenticate as a service to xauthn
 - These are separate from patron keys — they identify OL as an authorized caller of the xauthn API
-- Config values live in olsystem (excluded from this KB per security policy — see [[infrastructure]])
+- Config values live in olsystem (excluded from this KB per security policy — see infrastructure)
 
 **S3 validation path:**
 `InternetArchiveAccount.s3auth(access_key, secret_key)` → `GET {lending.config_ia_s3_auth_url}` with `Authorization: LOW {access}:{secret}` header → IA validates and returns `{"authorized": True, "username": ...}`.
@@ -197,8 +197,8 @@ curl -s -X POST http://localhost:8080/account/otp/redeem \
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — web.py routing; Infobase session/auth token
-- [[infrastructure]] — Memcache for rate limiting; olsystem for production secrets (xauthn URL, service S3 keys)
+- **core-operations** — web.py routing; Infobase session/auth token
+- **infrastructure** — Memcache for rate limiting; olsystem for production secrets (xauthn URL, service S3 keys)
 - [lending](../lending/README.md) — S3 keys from auth flow are consumed by the lending borrow flow; HMAC for BookReader login also uses IA credentials
 
 **Depended on by:**
@@ -207,4 +207,4 @@ curl -s -X POST http://localhost:8080/account/otp/redeem \
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/subsystems/otp_service.md` · code synthesis: `account.py`, `accounts/model.py` · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/subsystems/otp_service.md` · code synthesis: `account.py`, `accounts/model.py` · See [README](../README.md)*

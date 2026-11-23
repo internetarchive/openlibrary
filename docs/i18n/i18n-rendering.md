@@ -230,7 +230,7 @@ grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Jinja environment wired into the web.py/Infogami request lifecycle; `openlibrary/core/jinja.py` is the setup point
+- **core-operations** — Jinja environment wired into the web.py/Infogami request lifecycle; `openlibrary/core/jinja.py` is the setup point
 - [frontend](../frontend/README.md) — Lit components use the `data-i18n` bridge
 - [a11y](../frontend/a11y.md) — accessibility patterns are a separate domain
 
@@ -240,4 +240,4 @@ grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/i18n.md` · a11y is a separate domain → [a11y](../frontend/a11y.md) · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/i18n.md` · a11y is a separate domain → [a11y](../frontend/a11y.md) · See [README](../README.md)*

@@ -238,7 +238,7 @@ ALLOWED_COVER_HOSTS = ("archive.org", "books.google.com", "commons.wikimedia.org
 ```
 Covers from other hosts are silently set to `None` with no error or warning —
 **but only on the fresh-create path** (`load_data()`, via `check_cover_url_host()`).
-See [[covers]] for the second, stricter gate on the update/merge path, why a
+See covers for the second, stricter gate on the update/merge path, why a
 client-side fix does *not* reach the in-repo importer scripts, and the design
 options that would.
 
@@ -283,7 +283,7 @@ ImportBot runs as a configurable multiprocessing pool (default 8 workers in prod
 
 ## Related Processes
 
-- **ImportBot** (`scripts/manage-imports.py`) — cron daemon consuming the batch queue; see [[infrastructure]]
+- **ImportBot** (`scripts/manage-imports.py`) — cron daemon consuming the batch queue; see infrastructure
 - **Solr updater** — new Editions from imports propagate to search; see [search](../search/README.md)
 - **openlibrary-bots** — source adapters run independently on their own schedules; submit to `/import/batch/new`
 - **Promise items** — IA placeholder editions (revision=1) that get overwritten wholesale when a MARC record arrives (full `load_data()` replace, not merge)
@@ -327,7 +327,7 @@ check first, and all three are answerable by unauthenticated public reads
 | State | The silent failure |
 |---|---|
 | `identifiers-registered` | A proprietary ID not merged **and deployed** in `identifiers.yml` before submission is **silently dropped** — no error, no warning, import reports success. Records land unfindable by the only ID the provider has. Bit ITAN. Deploy is weekly, so this is a precondition on something outside the repo. |
-| `covers-attached` | A record with `cover` imports cleanly and the cover never attaches — dropped by one of two allowlists, one of which sets `cover_url = None` with no error at all. Batch 1516: ~850 bookdash books, clean import, zero covers. See [[covers]]. |
+| `covers-attached` | A record with `cover` imports cleanly and the cover never attaches — dropped by one of two allowlists, one of which sets `cover_url = None` with no error at all. Batch 1516: ~850 bookdash books, clean import, zero covers. See covers. |
 | `records-correct` | Records landed and are wrong in ways no status reports. The recurring one is **duplicate authors** — see below; a role-suffix string check is *not* the right detector. Nothing fails. |
 
 **The ordinary states.** These need the `import_item`/`Batch` tables, which
@@ -479,7 +479,7 @@ rather than of the database contents.
 
 ### Known limitations
 
-- **Cover URL allowlist(s) — two independent gates, not one** — see [[covers]] for
+- **Cover URL allowlist(s) — two independent gates, not one** — see covers for
   the full picture. `load_data()` (fresh-create path) silently drops the cover if
   the host fails `check_cover_url_host()`. `update_edition_with_rec_data()`
   (match/merge path) has **no host check at all** — it calls `add_cover()`
@@ -491,7 +491,7 @@ rather than of the database contents.
   2026-09-19** — the fix in `openlibrary-client`
   ([#448](https://github.com/internetarchive/openlibrary-client/pull/448)) does
   *not* reach these providers, because they never call `openlibrary-client` at
-  all; see [[covers]] "Which providers are actually affected".
+  all; see covers "Which providers are actually affected".
 - **`ol import` CLI doesn't exist** — described in `pm/workflows/import_workflow.md` but not implemented in `olclient/cli.py`; batch submission requires a Python script calling `DataProvider.iter_ol_records()` directly
 - **Identifier deploy dependency** — new identifier types silently dropped until the identifier PR deploys (weekly cycle)
 - **No trusted-partner tier** — batches are either admin (auto-approved) or non-admin (manual review); no middle tier
@@ -539,9 +539,9 @@ rather than of the database contents.
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Infogami object model, plugin routing; importapi is a plugin
-- [[ol-client]] — DataProvider/DataProviderRecord/OLImportRecord live in openlibrary-client
-- [[infrastructure]] — ImportBot scheduling, Infobase writes, deploy cycle for identifier registration
+- **core-operations** — Infogami object model, plugin routing; importapi is a plugin
+- **ol-client** — DataProvider/DataProviderRecord/OLImportRecord live in openlibrary-client
+- **infrastructure** — ImportBot scheduling, Infobase writes, deploy cycle for identifier registration
 - [search](../search/README.md) — Solr must index newly created/updated editions
 
 **Depended on by:**
@@ -557,8 +557,8 @@ Three repos required for a complete import flow:
 2. `openlibrary-bots` — run independently (scripts or cron); each adapter handles its own schedule
 3. `openlibrary` — hosts the HTTP endpoints and ImportBot daemon
 
-ImportBot runs as a supervised process in production (see [[infrastructure]]). Local dev: `compose.near-prod.yaml`.
+ImportBot runs as a supervised process in production (see infrastructure). Local dev: `compose.near-prod.yaml`.
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/imports/` (7 files) · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/imports/` (7 files) · See [README](../README.md)*

@@ -296,12 +296,12 @@ Full route listing: `https://dev.openlibrary.org/developers/routes`
 ## Dependencies
 
 **Depends on:**
-- [[infrastructure]] — Docker host layout; ol-dev as staging; production secrets in olsystem
-- [[core-operations]] — Infobase is the data layer all local dev touches
+- **infrastructure** — Docker host layout; ol-dev as staging; production secrets in olsystem
+- **core-operations** — Infobase is the data layer all local dev touches
 
 **Depended on by:**
 - Every other domain — development environment is the prerequisite for working on anything
 
 ---
 
-*Sources: `raw/openlibrary-wiki/Developer-Resources/Getting-Started.md` (⚠️ STALE — self-described), `Testing.md`, `Writing-Bots.md`, `Endpoints.md` · Canonical setup: `docker/README.md` in repo · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-wiki/Developer-Resources/Getting-Started.md` (⚠️ STALE — self-described), `Testing.md`, `Writing-Bots.md`, `Endpoints.md` · Canonical setup: `docker/README.md` in repo · See [README](../README.md)*
