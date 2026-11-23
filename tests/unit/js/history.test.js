@@ -1,10 +1,9 @@
 /**
- * js/history.js is the revision-comparison glue for a page's edit history. Two
- * elements on the site share the #pageHistory id: the real revision table on
- * ?m=history, which carries the compare strings in data-i18n, and the History
- * box in a page footer (templates/lib/history.html), which has neither the
- * attribute nor the comparison bar. Starting the script on the footer box threw
- * "undefined is not valid JSON" on every page that renders it.
+ * js/history.js is the revision-comparison glue for a page's edit history.
+ * Two elements on the site share the #pageHistory id: the real revision table
+ * on ?m=history, which carries the compare strings in data-i18n, and the
+ * History box in a page footer (templates/lib/history.html), which has neither
+ * the attribute nor the comparison bar.
  */
 import { initHistory } from '../../../openlibrary/plugins/openlibrary/js/history';
 
