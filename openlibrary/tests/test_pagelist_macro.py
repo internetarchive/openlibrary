@@ -90,7 +90,7 @@ def test_a_page_key_cannot_inject_markup(key):
 # so drive the real macro file here. Raised by the review bot on #14568.
 # ---------------------------------------------------------------------------
 
-WRAPPER = Path("openlibrary/macros/PageList.html").read_text(encoding="utf-8")
+WRAPPER = (Path(__file__).parents[1] / "macros" / "PageList.html").read_text(encoding="utf-8")
 
 
 def _render_wrapper(query: dict[str, str], pages=(), path="", limit=500):
