@@ -8,15 +8,22 @@
             <div class="byline">
                 {{ doc.author_name[0] }}
             </div>
-            <div class="identifier">{{ doc.first_publish_year }} - {{ doc.edition_count }} editions</div>
+            <div class="identifier">{{ doc.first_publish_year }} - {{ editionsLabel }}</div>
             <a class="action actionName" target="_blank" />
         </div>
     </div>
 </template>
 
 <script>
+import { bulkSearchString } from '../utils/i18n.js';
+
 export default {
     props: {
+        /** Translated UI strings merged in BulkSearch.vue. */
+        strings: {
+            type: Object,
+            required: true
+        },
         doc: {
             type: Object,
             required: true
@@ -35,6 +42,9 @@ export default {
         },
         workUrl() {
             return `https://openlibrary.org/${this.doc.key}`;
+        },
+        editionsLabel() {
+            return bulkSearchString(this.strings, 'editions', { count: this.doc.edition_count });
         }
     }
 };
