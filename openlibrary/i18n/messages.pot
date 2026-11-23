@@ -541,7 +541,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
+#: RelatedSubjects.html.jinja account/create.html bulk_search/bulk_search.html.jinja librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -3430,7 +3430,7 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
-#: SearchResultsWork.html books/check.html merge/authors.html openlibrary/contribute/manage.py
+#: SearchResultsWork.html books/check.html bulk_search/bulk_search.html.jinja merge/authors.html openlibrary/contribute/manage.py
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -4327,7 +4327,119 @@ msgstr ""
 msgid "Back to Open Library"
 msgstr ""
 
-#: bulk_search/bulk_search.html search/advancedsearch.html.jinja
+#: bulk_search/bulk_search.html.jinja
+msgid "Please include a header row. Supported columns include: \"Title\", \"Author\", \"ISBN\"."
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Enter your books below - one per line, or paste from a spreadsheet."
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Enter your books..."
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Try a Sample..."
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Extract Books"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "How to convert your books above into structured information, like title and author."
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Extractor"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "OpenAI API Key"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "OpenAI API key here...."
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Match Books"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Once structured data has been found, it's time to match it to a book in OpenLibrary!"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Options"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Use author in search query"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Save your Matches"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Now that you've found your books, why not save them to your reading log? Or a list?"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja openlibrary/core/shell/shelf_labels.py
+msgid "Add to list"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Add to List"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Extracted Books"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Matched Books"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "View results in Open Library"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "No Books Found"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Pattern: Title by Author"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Pattern: Author - Title"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Pattern: Title - Author"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Pattern: Title (Author)"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "✨ AI Extraction (Beta)"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja
+msgid "Extract from a Table/Spreadsheet"
+msgstr ""
+
+#: bulk_search/bulk_search.html.jinja openlibrary/fastapi/search.py openlibrary/plugins/worksearch/bulk_search.py search/advancedsearch.html.jinja
 msgid "Bulk Search (beta)"
 msgstr ""
 
@@ -9779,10 +9891,6 @@ msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py
 msgid "Clear rating"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Add to list"
 msgstr ""
 
 #: openlibrary/core/shell/shelf_labels.py

@@ -1,0 +1,56 @@
+{#-
+    /search/bulk body. The keys and English text must match
+    DEFAULT_BULK_SEARCH_STRINGS in
+    openlibrary/components/BulkSearch/utils/i18n.js; the component decodes the
+    URL-encoded JSON in its `i18n` attribute.
+
+    Each edition form is formatted with its own placeholder as the value so
+    the browser still receives "%(count)s"; see bulkSearchString() in i18n.js.
+-#}
+{% set i18n_strings = {
+    "columnHint": _("Please include a header row. Supported columns include: \"Title\", \"Author\", \"ISBN\"."),
+    "instructions": _("Enter your books below - one per line, or paste from a spreadsheet."),
+    "inputPlaceholder": _("Enter your books..."),
+    "trySample": _("Try a Sample..."),
+    "extractHeading": _("Extract Books"),
+    "extractDescription": _("How to convert your books above into structured information, like title and author."),
+    "extractorLabel": _("Extractor"),
+    "apiKeyLabel": _("OpenAI API Key"),
+    "apiKeyPlaceholder": _("OpenAI API key here...."),
+    "extractButton": _("Extract Books"),
+    "loading": _("Loading..."),
+    "matchHeading": _("Match Books"),
+    "matchDescription": _("Once structured data has been found, it's time to match it to a book in OpenLibrary!"),
+    "optionsLabel": _("Options"),
+    "useAuthor": _("Use author in search query"),
+    "matchButton": _("Match Books"),
+    "saveHeading": _("Save your Matches"),
+    "saveDescription": _("Now that you've found your books, why not save them to your reading log? Or a list?"),
+    "addToList": _("Add to list"),
+    "addToListSubmit": _("Add to List"),
+    "extractedBooks": _("Extracted Books"),
+    "matchedBooks": _("Matched Books"),
+    "viewResults": _("View results in Open Library"),
+    "noBooksFound": _("No Books Found"),
+    "editions": {
+        "one": ngettext("%(count)s edition", "%(count)s editions", 1, count="%(count)s"),
+        "two": ngettext("%(count)s edition", "%(count)s editions", 2, count="%(count)s"),
+        "few": ngettext("%(count)s edition", "%(count)s editions", 3, count="%(count)s"),
+        "many": ngettext("%(count)s edition", "%(count)s editions", 11, count="%(count)s"),
+        "other": ngettext("%(count)s edition", "%(count)s editions", 100, count="%(count)s"),
+    },
+    "extractorPatternTitleByAuthor": _("Pattern: Title by Author"),
+    "extractorPatternAuthorTitle": _("Pattern: Author - Title"),
+    "extractorPatternTitleAuthor": _("Pattern: Title - Author"),
+    "extractorPatternTitleAuthorParens": _("Pattern: Title (Author)"),
+    "extractorWikipediaCitation": _("Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)"),
+    "extractorAi": _("✨ AI Extraction (Beta)"),
+    "extractorTable": _("Extract from a Table/Spreadsheet"),
+} %}
+<div id="contentHead">
+    <h1>{{ _("Bulk Search (beta)") }}</h1>
+</div>
+<script type="module"
+        src="{{ static_url('build/components/production/ol-BulkSearch.js') }}"></script>
+<ol-bulk-search i18n="{{ i18n_strings | tojson | urlencode }}">
+</ol-bulk-search>
