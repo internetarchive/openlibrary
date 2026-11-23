@@ -1,12 +1,6 @@
 $def with (path="", limit=500)
 
-$# The request reads stay here, in the Templetor wrapper: ?path=, ?page= and
-$# homepath() (which is web.ctx.homepath). From FastAPI, a request read inside
-$# a template can return a value left over from another visitor's request. See
-$# docs/core/fastapi-pages.md. The page lookup stays here too, so the Jinja
-$# template only renders what it is handed.
-$#
-$# The use_repr argument is gone: no page in the database passed it. See #14387.
+$# Request reads stay out of the Jinja template: rendered from FastAPI, they can return another visitor's values.
 $ path = query_param("path", path)
 $ page = safeint(query_param("page", "0"))
 $ pages = list_pages(path, limit=limit, offset=page * limit)
