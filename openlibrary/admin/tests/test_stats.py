@@ -5,6 +5,7 @@ def test_backfill_days_dont_inherit_a_later_days_counts(monkeypatch):
     "A key that has no figure for a past day (a snapshot, or a failed query) must be absent there, not copied back."
     calls = iter([{"saves": 3, "initiative_open_gaps": 40}, {"saves": 2}, {"saves": 1}])
     stored = {}
+    monkeypatch.setattr(stats, "pg_parameters", lambda config: {})
     monkeypatch.setattr(stats, "connect_to_pg", lambda config: None)
     monkeypatch.setattr(stats, "setup_ol_config", lambda config: None)
     monkeypatch.setattr(stats, "run_gathering_functions", lambda *args, prefix, **kw: next(calls) if prefix == "admin_range__" else {})
@@ -18,19 +19,12 @@ def test_backfill_days_dont_inherit_a_later_days_counts(monkeypatch):
     assert past == [{"saves": 2}, {"saves": 1}]
 
 
-def test_connect_to_pg_passes_port_and_password(monkeypatch, tmp_path):
+def test_pg_parameters_pass_port_and_password(tmp_path):
     "Both key styles in the production configs (infobase.yml and coverstore.yml) keep host, port and password."
-    connected = []
-    monkeypatch.setattr(stats.web, "database", lambda **kw: connected.append(kw))
     infobase_yml = tmp_path / "infobase.yml"
     infobase_yml.write_text("db_parameters:\n  engine: postgres\n  host: db\n  database: openlibrary\n  username: ol\n  password: secret\n  port: 6432\n")
     coverstore_yml = tmp_path / "coverstore.yml"
     coverstore_yml.write_text("db_parameters:\n  dbn: postgres\n  host: db\n  db: coverstore\n  user: ol\n  pw: secret\n  port: 6432\n")
 
-    stats.connect_to_pg(str(infobase_yml))
-    stats.connect_to_pg(str(coverstore_yml))
-
-    assert connected == [
-        {"dbn": "postgres", "db": "openlibrary", "user": "ol", "pw": "secret", "host": "db", "port": 6432},
-        {"dbn": "postgres", "db": "coverstore", "user": "ol", "pw": "secret", "host": "db", "port": 6432},
-    ]
+    assert stats.pg_parameters(infobase_yml) == {"db": "openlibrary", "user": "ol", "pw": "secret", "host": "db", "port": 6432}
+    assert stats.pg_parameters(coverstore_yml) == {"db": "coverstore", "user": "ol", "pw": "secret", "host": "db", "port": 6432}

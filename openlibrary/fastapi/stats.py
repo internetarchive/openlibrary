@@ -1,4 +1,4 @@
-"""The daily series behind /stats/tasks, for charts that can pick their own range and granularity."""
+"""Catalog statistics backed by the daily count documents."""
 
 from __future__ import annotations
 
@@ -8,11 +8,18 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
+from openlibrary.admin.numbers import TAG_STATS_FIELDS
 from openlibrary.core import admin, cache
+from openlibrary.core.helpers import commify
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.shell.request import PageMeta
+from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
+from openlibrary.i18n import gettext as _
 from openlibrary.utils.dateutil import MINUTE_SECS
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import get_request_lang, site
 
 router = APIRouter()
+pages = APIRouter(route_class=SitePageRoute)
 
 # Enough for a 12-month view with a previous period to compare the first weeks against.
 MAX_DAYS = 400
@@ -77,3 +84,72 @@ def tasks_series(
         saves_by_field=[doc.get("tasks_saves_by_field_1d") for doc in day_docs],
         initiatives=initiative_series(day_docs),
     )
+
+
+def _tag_creation_cards(docs: list[dict], today: date) -> list[dict]:
+    lang = get_request_lang()
+    periods = [(7, _("Last 7 days")), (28, _("Last 28 days")), (365, _("Last 365 days"))]
+    cards = []
+    for days, label in periods:
+        since = f"counts-{today - timedelta(days=days - 1)}"
+        daily = [doc for doc in docs if doc["_key"] >= since and "tags" in doc]
+        stats = admin.Stats(daily, "tags", "total_tags")
+        cards.append(
+            {
+                "label": label,
+                "value": commify(stats.get_summary(days), lang) if len(daily) == days else None,
+                "chart": stats.get_bar_chart(days, width=250, height=35) if daily else None,
+                "chart_label": _("Tags created per day"),
+            }
+        )
+    total_docs = [doc for doc in docs if "total_tags" in doc]
+    totals = admin.Stats(total_docs, "total_tags", "total_tags")
+    cards.append(
+        {
+            "label": _("All time"),
+            "value": commify(totals.total, lang) if total_docs else None,
+            "chart": totals.get_bar_chart(365, width=250, height=35) if total_docs else None,
+            "chart_label": _("Total tags by day"),
+        }
+    )
+    return cards
+
+
+def _tagged_work_rows(docs: list[dict]) -> list[dict]:
+    label_by_field = {
+        "genres": _("Genres"),
+        "subgenres": _("Subgenres"),
+        "literary_forms": _("Literary forms"),
+        "audiences": _("Audiences"),
+        "content_warnings": _("Content warnings"),
+        "content_formats": _("Content formats"),
+        "awards": _("Awards"),
+    }
+    key = "total_tagged_works"
+    windows = [admin.rolling_counts(docs, [key], lookback=days)[key] for days in (7, 28, 365)]
+    latest = windows[0]["latest"] if windows[0] else {}
+    earlier = [window["earlier"] if window else None for window in windows]
+    lang = get_request_lang()
+    rows = []
+    for field in TAG_STATS_FIELDS:
+        count = latest.get(field)
+        changes = [count - past[field] if count is not None and past is not None and field in past else None for past in earlier]
+        rows.append(
+            {
+                "label": label_by_field[field],
+                "total": commify(count, lang) if count is not None else None,
+                "changes": [("+" if change > 0 else "") + commify(change, lang) if change is not None else None for change in changes],
+            }
+        )
+    return rows
+
+
+@pages.get("/stats/tags")
+def tags_stats() -> SitePage:
+    docs = admin.get_count_docs(MAX_DAYS)
+    body = render_jinja_template(
+        "stats/tags.html.jinja",
+        cards=_tag_creation_cards(docs, date.today()),
+        rows=_tagged_work_rows(docs),
+    )
+    return SitePage(body, page=PageMeta(title=_("Book Tag Stats"), cssfile="admin"))

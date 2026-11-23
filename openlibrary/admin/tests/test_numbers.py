@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 import web
@@ -34,6 +35,33 @@ def run(fn, db):
         return fn(thingdb=db, coverdb=None, start=datetime(2026, 10, 15), end=datetime(2026, 10, 15, 21, 0, 0))
     finally:
         numbers.cached_bot_accounts = None
+
+
+def test_tags_created_counts_tag_things_in_the_daily_window():
+    db = FakeDB(rows=[web.storage(id=12, count=7)])
+    assert run(numbers.admin_range__tags, db) == 7
+    (_, type_vars), (query, count_vars) = db.queries
+    assert type_vars["typ"] == "/type/tag"
+    assert "created >= $start_date AND created < $end_date" in query
+    assert count_vars == {"type_id": 12, "start_date": "2026-10-15", "end_date": "2026-10-15 21:00:00"}
+
+
+def test_tagged_work_snapshot_counts_distinct_works_and_includes_empty_types(monkeypatch):
+    fetch_all = AsyncMock(return_value=[{"name": "genres", "works": 4}, {"name": "subgenres", "works": 2}])
+    monkeypatch.setattr(numbers, "fetch_all", fetch_all)
+    assert run(numbers.admin_total__tagged_works, FakeDB()) == {
+        "genres": 4,
+        "subgenres": 2,
+        "literary_forms": 0,
+        "audiences": 0,
+        "content_warnings": 0,
+        "content_formats": 0,
+        "awards": 0,
+    }
+    query, params = fetch_all.await_args.args
+    assert "count(DISTINCT r.thing_id)" in query
+    assert "JOIN work_ref" in query
+    assert params == {"fields": list(numbers.TAG_STATS_FIELDS)}
 
 
 def test_edit_counts_split_humans_from_bots():

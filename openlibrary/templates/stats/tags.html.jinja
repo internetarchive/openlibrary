@@ -1,0 +1,59 @@
+{# Takes `cards` (tag creation counts and chart data) and `rows` (tagged-work totals and changes). #}
+<div id="contentHead">
+    <h1>{{ _("Book Tag Stats") }}</h1>
+</div>
+<div id="contentBody" class="tags-stats">
+    <section class="tasks-stats__panel">
+        <h2>{{ _("Tags created") }}</h2>
+        <div class="tasks-stats__cards">
+            {% for card in cards %}
+                <div class="tags-stats__card">
+                    <h3 class="tasks-stats__card-label">{{ card.label }}</h3>
+                    <strong class="tasks-stats__card-value">{{ card.value or "—" }}</strong>
+                    {% if card.chart %}
+                        {% with chart=card.chart, css_class="tags-stats__chart", label=card.chart_label %}
+                            {% include "StatsBarChart.html.jinja" %}
+                        {% endwith %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <p class="tasks-stats__note">
+            {{ _("Charts show recorded days. The all-time chart shows total tags over the last 365 days.") }}
+        </p>
+    </section>
+    <section class="tasks-stats__panel" aria-labelledby="tagged-works-heading">
+        <h2 id="tagged-works-heading">{{ _("Works tagged by type") }}</h2>
+        <div class="tags-stats__table"
+             role="region"
+             aria-labelledby="tagged-works-heading"
+             tabindex="0">
+            <table class="tasks-stats__fields no-table-collapse">
+                <thead>
+                    <tr>
+                        <th scope="col">{{ _("Tag type") }}</th>
+                        <th scope="col" class="tasks-stats__fields-count">{{ _("Total") }}</th>
+                        <th scope="col" class="tasks-stats__fields-count">{{ _("Last 7 days") }}</th>
+                        <th scope="col" class="tasks-stats__fields-count">{{ _("Last 28 days") }}</th>
+                        <th scope="col" class="tasks-stats__fields-count">{{ _("Last 365 days") }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <th scope="row" class="tags-stats__field">{{ row.label }}</th>
+                            <td class="tasks-stats__fields-count">{{ row.total or "—" }}</td>
+                            {% for change in row.changes %}
+                                <td class="tasks-stats__fields-count">{{ change or "—" }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="tasks-stats__note">
+            {{ _("Each work counts once per tag type. Changes compare the latest snapshot with the snapshot from that many days earlier.") }}
+        </p>
+    </section>
+    <p class="tasks-stats__note">{{ _("A dash means there is not enough data for that period yet.") }}</p>
+</div>

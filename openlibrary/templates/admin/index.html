@@ -17,6 +17,7 @@ $ }
       <h1>$_("Stats")</h1>
       <nav class="stats-head__links" aria-label="$_('Related stats pages')">
         <ol-button variant="ghost" href="/stats/tasks">$:macros.icon("pencil", slot="icon-start")$_("Tasks")</ol-button>
+        <ol-button variant="ghost" href="/stats/tags">$:macros.icon("bookmark", slot="icon-start")$_("Book Tags")</ol-button>
         $if ctx.user and ctx.user.is_admin():
           <ol-button variant="ghost" href="/admin/new-accounts">$:macros.icon("ban", slot="icon-start")$_("Spam review")</ol-button>
       </nav>

@@ -19,6 +19,8 @@ import functools
 import logging
 from datetime import timedelta
 
+from openlibrary.core.async_db import fetch_all
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import site
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,9 @@ class InvalidType(TypeError):
 
 class NoStats(TypeError):
     pass
+
+
+TAG_STATS_FIELDS = ("genres", "subgenres", "literary_forms", "audiences", "content_warnings", "content_formats", "awards")
 
 
 # Utility functions
@@ -481,6 +486,31 @@ admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
 admin_range__authors = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists = functools.partial(single_thing_skeleton, type="list")
 admin_range__members = functools.partial(single_thing_skeleton, type="user")
+admin_range__tags = functools.partial(single_thing_skeleton, type="tag")
+
+
+def admin_total__tags(**kargs):
+    return _count_things(kargs["thingdb"], "/type/tag")
+
+
+def admin_total__tagged_works(**kargs) -> dict[str, int]:
+    return async_bridge.run(count_tagged_works())
+
+
+async def count_tagged_works() -> dict[str, int]:
+    """Distinct works with a tag reference in each field."""
+    rows = await fetch_all(
+        """
+        SELECT p.name, count(DISTINCT r.thing_id) AS works
+        FROM property p
+        JOIN work_ref r ON r.key_id = p.id
+        WHERE p.type = (SELECT id FROM thing WHERE key = '/type/work')
+          AND p.name = ANY(%(fields)s)
+        GROUP BY p.name
+        """,
+        {"fields": list(TAG_STATS_FIELDS)},
+    )
+    return dict.fromkeys(TAG_STATS_FIELDS, 0) | {row["name"]: row["works"] for row in rows}
 
 
 def admin_total__authors(**kargs):

@@ -11,13 +11,15 @@
   gap: var(--spacing-md);
 }
 
-.tasks-stats {
+.tasks-stats,
+.tags-stats {
   display: grid;
   gap: var(--spacing-xl);
   font-variant-numeric: tabular-nums;
 }
 
-.tasks-stats h2 {
+.tasks-stats h2,
+.tags-stats h2 {
   margin: 0;
   font-size: var(--font-size-title-medium);
   line-height: var(--line-height-heading);
@@ -44,7 +46,8 @@
   gap: var(--spacing-sm);
 }
 
-.tasks-stats__card {
+.tasks-stats__card,
+.tags-stats__card {
   display: grid;
   align-content: start;
   gap: var(--spacing-3xs);
@@ -55,6 +58,9 @@
   color: var(--color-text);
   font: inherit;
   text-align: start;
+}
+
+.tasks-stats__card {
   cursor: pointer;
 }
 
@@ -72,6 +78,20 @@
   font-size: var(--font-size-body-medium);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
+}
+
+.tags-stats__card h3 {
+  margin: 0;
+}
+
+.tags-stats__chart {
+  width: 100%;
+  height: 35px;
+  margin-top: var(--spacing-xs);
+}
+
+.tags-stats__table {
+  overflow-x: auto;
 }
 
 .tasks-stats__card-value {
@@ -341,6 +361,13 @@
   color: var(--color-text-secondary);
 }
 
+.tasks-stats__fields .tags-stats__field {
+  color: var(--color-text);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .tasks-stats__fields .tasks-stats__fields-count {
   text-align: end;
 }
@@ -348,6 +375,10 @@
 /* The share column takes the slack, so its bar has room at phone width */
 .tasks-stats__fields td:last-child {
   width: 50%;
+}
+
+.tags-stats__table td:last-child {
+  width: auto;
 }
 
 .tasks-stats__fields-share {

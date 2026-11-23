@@ -12,6 +12,8 @@ import yaml
 
 from openlibrary.admin import numbers
 from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
+from openlibrary.core import async_db
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import create_context_for_script, req_context, site
 
 logger = logging.getLogger(__name__)
@@ -24,8 +26,8 @@ class InvalidType(TypeError):
     pass
 
 
-def connect_to_pg(config_file):
-    """Connects to the postgres database specified by the `db_parameters`
+def pg_parameters(config_file):
+    """Read the PostgreSQL connection parameters from the `db_parameters`
     key of the YAML file at `config_file`. Accepts either key style found in
     our configs (`database`/`username`/`password` or `db`/`user`/`pw`); `host`,
     `port` and the password are used when present."""
@@ -45,7 +47,11 @@ def connect_to_pg(config_file):
     if port := params.get("port"):
         conf["port"] = port
     logger.debug(" Postgres Database : %(db)s" % conf)
-    return web.database(dbn="postgres", **conf)  # noqa: TID251
+    return conf
+
+
+def connect_to_pg(params):
+    return web.database(dbn="postgres", **params)  # noqa: TID251
 
 
 def store_data(data, date):
@@ -118,8 +124,9 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     )
     logger.info("Parsing config file")
     try:
-        infobase_db = connect_to_pg(infobase_config)
-        coverstore_db = connect_to_pg(coverstore_config)
+        infobase_params = pg_parameters(infobase_config)
+        infobase_db = connect_to_pg(infobase_params)
+        coverstore_db = connect_to_pg(pg_parameters(coverstore_config))
     except KeyError as k:
         logger.critical("Config file section '%s' missing", k.args[0])
         return -1
@@ -131,11 +138,12 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Delta counts are computed by subtracting the current total from yesterday's total
     today = dt.datetime.now()
     yesterday = today - dt.timedelta(days=1)
-    data = {}
-
     logger.info("Gathering total data")
-    data.update(
-        run_gathering_functions(
+    # Use the same catalog connection parameters for both drivers, even if the site uses a different Infobase endpoint.
+    previous_params = web.config.get("db_parameters")
+    web.config.db_parameters = infobase_params
+    try:
+        data = run_gathering_functions(
             infobase_db,
             coverstore_db,
             yesterday,
@@ -143,7 +151,9 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
             prefix="admin_total__",
             key_prefix="total",
         )
-    )
+    finally:
+        async_bridge.run(async_db.close_pool())
+        web.config.db_parameters = previous_params
 
     store_data(data, today.strftime("%Y-%m-%d"))
     # Now gather data which can be queried based on date ranges

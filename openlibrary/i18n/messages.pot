@@ -2045,7 +2045,7 @@ msgstr ""
 msgid "Imported Time"
 msgstr ""
 
-#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html stats/tags.html.jinja
 msgid "Total"
 msgstr ""
 
@@ -2085,6 +2085,10 @@ msgstr ""
 msgid "Tasks"
 msgstr ""
 
+#: admin/index.html
+msgid "Book Tags"
+msgstr ""
+
 #: admin/index.html admin/menu.html admin/new_accounts.html.jinja
 msgid "Spam review"
 msgstr ""
@@ -2101,11 +2105,11 @@ msgstr ""
 msgid "Yesterday"
 msgstr ""
 
-#: admin/index.html stats/tasks.html.jinja
+#: admin/index.html openlibrary/fastapi/stats.py stats/tags.html.jinja stats/tasks.html.jinja
 msgid "Last 7 days"
 msgstr ""
 
-#: admin/index.html stats/tasks.html.jinja
+#: admin/index.html openlibrary/fastapi/stats.py stats/tags.html.jinja stats/tasks.html.jinja
 msgid "Last 28 days"
 msgstr ""
 
@@ -6757,7 +6761,7 @@ msgstr ""
 msgid "The total number of books logged using the Reading Log feature"
 msgstr ""
 
-#: stats/readinglog.html
+#: openlibrary/fastapi/stats.py stats/readinglog.html
 msgid "All time"
 msgstr ""
 
@@ -6810,6 +6814,38 @@ msgstr ""
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py stats/tags.html.jinja
+msgid "Book Tag Stats"
+msgstr ""
+
+#: stats/tags.html.jinja
+msgid "Tags created"
+msgstr ""
+
+#: stats/tags.html.jinja
+msgid "Charts show recorded days. The all-time chart shows total tags over the last 365 days."
+msgstr ""
+
+#: stats/tags.html.jinja
+msgid "Works tagged by type"
+msgstr ""
+
+#: stats/tags.html.jinja type/tag/tag_form_inputs.html
+msgid "Tag type"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py stats/tags.html.jinja
+msgid "Last 365 days"
+msgstr ""
+
+#: stats/tags.html.jinja
+msgid "Each work counts once per tag type. Changes compare the latest snapshot with the snapshot from that many days earlier."
+msgstr ""
+
+#: stats/tags.html.jinja
+msgid "A dash means there is not enough data for that period yet."
 msgstr ""
 
 #: stats/tasks.html stats/tasks.html.jinja
@@ -7704,10 +7740,6 @@ msgstr ""
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
-
-#: type/tag/tag_form_inputs.html
-msgid "Tag type"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
@@ -9033,7 +9065,7 @@ msgstr ""
 msgid "Anthologies and collections take the form of what's inside. A book of essays about novels is nonfiction."
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py
+#: openlibrary/contribute/field_guides.py openlibrary/fastapi/stats.py
 msgid "Genres"
 msgstr ""
 
@@ -10274,6 +10306,38 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 msgid "Author search"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Tags created per day"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Total tags by day"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Subgenres"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Literary forms"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Audiences"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Content warnings"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Content formats"
+msgstr ""
+
+#: openlibrary/fastapi/stats.py
+msgid "Awards"
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py

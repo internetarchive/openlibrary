@@ -10,6 +10,7 @@ from openlibrary.core import cache
 from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.helpers import commify, format_date
+from openlibrary.utils.request_context import get_request_lang
 from openlibrary.utils.request_context import site as site_context
 
 
@@ -68,6 +69,7 @@ class Stats:
         counts = sorted(self.get_counts(ndays, True))
         peak = max((count for _, count in counts), default=0) or 1
         step = width / max(len(counts), 1)
+        lang = get_request_lang()
         bars = []
         for i, (timestamp, count) in enumerate(counts):
             bar_height = count / peak * height
@@ -77,7 +79,7 @@ class Stats:
                     "x": round(i * step, 2),
                     "y": round(height - bar_height, 2),
                     "height": round(bar_height, 2),
-                    "title": f"{format_date(day)}: {commify(count)}",
+                    "title": f"{format_date(day, lang)}: {commify(count, lang)}",
                 }
             )
         return {
