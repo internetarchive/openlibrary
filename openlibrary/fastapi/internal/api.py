@@ -9,6 +9,7 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import io
+import re
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
@@ -36,6 +37,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.plugins.openlibrary.api import (
     bestbook_award,
     get_bookshelves_summary,
@@ -44,6 +46,7 @@ from openlibrary.plugins.openlibrary.api import (
     get_works_data_async,
     process_work_bookshelves,
 )
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
@@ -230,6 +233,7 @@ class RatingsResponse(BaseModel):
         )
 
 
+@nonblocking
 @router.get("/works/OL{work_id}W/ratings.json")
 async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
@@ -267,6 +271,7 @@ class BooknoteResponse(BaseModel):
     success: str = Field(..., description="Status message")
 
 
+@nonblocking
 @router.post("/works/OL{work_id}W/notes", response_model=BooknoteResponse)
 @router.post("/works/OL{work_id}W/notes.json", response_model=BooknoteResponse)
 async def booknotes_post(
@@ -298,6 +303,7 @@ async def booknotes_post(
     return BooknoteResponse(success="note added")
 
 
+@nonblocking
 @router.get("/works/OL{work_id}W/bookshelves.json")
 async def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
@@ -433,6 +439,11 @@ class HideBannerResponse(BaseModel):
 @router.post("/hide_banner")
 def hide_banner(data: HideBannerRequest, response: Response) -> HideBannerResponse:
     """Persist a banner dismissal in a cookie and, when applicable, user preferences."""
+    # The cookie name is caller-supplied. Constrain it to a safe cookie-token
+    # character set so it cannot smuggle CRLF/control characters into the
+    # Set-Cookie header or name an unrelated cookie (CodeQL py/cookie-injection).
+    if not re.fullmatch(r"[\w-]{1,64}", data.cookie_name):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid banner cookie name")
     if (user := accounts.get_current_user()) and data.cookie_name.startswith("yrg"):
         user.save_preferences({"yrg_banner_pref": data.cookie_name})
 
@@ -453,6 +464,7 @@ class FollowEntry(BaseModel):
     created: datetime | None = None
 
 
+@nonblocking
 @router.get("/people/{username}/follows.json", response_model=list[FollowEntry])
 async def get_patron_follows(
     username: Annotated[str, Path(pattern=r"^[^/]+$")],
@@ -480,13 +492,14 @@ async def post_patron_follows(
         await PubSub.subscribe(user.username, publisher)
     else:
         await PubSub.unsubscribe(user.username, publisher)
-    return RedirectResponse(url=redir_url, status_code=303)
+    return RedirectResponse(url=redir_url if is_safe_redirect(redir_url) else "/", status_code=303)
 
 
 async def patrons_observations():
     pass
 
 
+@nonblocking
 @router.get(
     "/observations.json",
     description="Returns anonymized community reviews for a list of works.",
@@ -515,6 +528,7 @@ class BestbookCountResponse(BaseModel):
 BestbookAwardOp = Literal["add", "remove", "update"]
 
 
+@nonblocking
 @router.post(
     "/works/OL{work_id}W/awards.json",
     response_model=BestbookAwardResponse,
@@ -548,6 +562,7 @@ async def post_bestbook_award(
     )
 
 
+@nonblocking
 @router.get("/awards/count.json", response_model=BestbookCountResponse)
 async def get_bestbook_count(
     work_id: Annotated[str | None, Query(pattern=r"^(?:/works/)?(?:OL)?[0-9]+W?$", description="Numeric work ID or work OLID, e.g. 123 or OL123W")] = None,

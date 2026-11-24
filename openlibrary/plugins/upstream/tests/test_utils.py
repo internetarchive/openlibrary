@@ -268,7 +268,7 @@ def test_get_abbrev_from_full_lang_name(
     monkeypatch.setattr(web, "ctx", web.storage())
     web.ctx.site = mock_site
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "eng",
             "key": "/languages/eng",
@@ -284,7 +284,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "fre",
             "key": "/languages/fre",
@@ -298,7 +298,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "spa",
             "key": "/languages/spa",
@@ -307,7 +307,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "por",
             "key": "/languages/por",
@@ -452,3 +452,13 @@ def test_json_encode():
     assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
         '{"description": "\\u003c/script\\u003e\\u003cscript\\u003ealert(\'xss\')\\u003c/script\\u003e"}'
     )
+
+
+@pytest.mark.parametrize("legacy", ["missing", "different"])
+def test_user_object_uses_current_site(mock_site, monkeypatch, legacy):
+    mock_site.quicksave("/people/alice", "/type/user", displayname="Alice")
+    if legacy == "missing":
+        monkeypatch.delitem(web.ctx, "site")
+    else:
+        monkeypatch.setitem(web.ctx, "site", Mock())
+    assert utils.get_user_object("alice").displayname == "Alice"

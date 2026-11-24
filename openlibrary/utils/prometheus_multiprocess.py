@@ -4,6 +4,7 @@ In multiprocess mode prometheus_client keeps each worker's metrics in its own
 ``<type>_<pid>.db`` file in ``PROMETHEUS_MULTIPROC_DIR``, and ``/metrics`` adds them up.
 When gunicorn recycles a worker, ``merge_dead_worker`` folds its counters, histograms
 and summaries into ``<type>_archive.db`` and deletes its files, so the totals don't drop.
+It deletes its ``livesum``-style gauges' files too, so they count only live workers.
 
 A scrape reads the files one at a time, so it must not overlap a merge: it could find a
 file already deleted (a 500), or count a worker both in its file and in the archive (a
@@ -27,9 +28,17 @@ import os
 import shutil
 from typing import TYPE_CHECKING
 
-from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, CollectorRegistry, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    GC_COLLECTOR,
+    PLATFORM_COLLECTOR,
+    REGISTRY,
+    CollectorRegistry,
+    disable_created_metrics,
+    generate_latest,
+)
 from prometheus_client.mmap_dict import MmapedDict
-from prometheus_client.multiprocess import MultiProcessCollector
+from prometheus_client.multiprocess import MultiProcessCollector, mark_process_dead
 from starlette.responses import Response
 
 if TYPE_CHECKING:
@@ -55,7 +64,7 @@ def _locked(metrics_dir: str, operation: int) -> Iterator[bool]:
 
 
 def merge_dead_worker(metrics_dir: str, pid: int) -> bool:
-    """Merge the additive metric files of the exited worker ``pid`` into the archives, and delete them.
+    """Merge the additive metric files of the exited worker ``pid`` into the archives, and delete them and its live gauges.
 
     Returns False, merging nothing, if a scrape is reading the files.
     """
@@ -94,6 +103,7 @@ def merge_dead_worker(metrics_dir: str, pid: int) -> bool:
 
             os.replace(new_archive_path, archive_path)
             os.remove(dead_file)
+        mark_process_dead(pid, metrics_dir)  # deletes its live gauges' files
     return True
 
 
@@ -150,9 +160,23 @@ def _has_values(path: str) -> bool:
         return False
 
 
+def drop_unused_default_metrics() -> None:
+    """Stop exporting the series prometheus_client adds by default that no dashboard uses.
+
+    Each pod is its own set of series, so on Kubernetes, where pods come and go with autoscaling, these add up:
+    ``<name>_created`` (the time each counter, histogram and summary label set was first seen; ``rate()`` doesn't
+    need it), ``python_gc_*`` and ``python_info``. The ``process_*`` metrics stay. Multiprocess mode exports none of these.
+    """
+    disable_created_metrics()
+    for collector in (GC_COLLECTOR, PLATFORM_COLLECTOR):
+        with contextlib.suppress(KeyError):  # already unregistered
+            REGISTRY.unregister(collector)
+
+
 def metrics_registry() -> CollectorRegistry:
     """The registry to serve at ``/metrics``: all the workers' metrics in multiprocess mode, else this process's."""
     if "PROMETHEUS_MULTIPROC_DIR" not in os.environ:
+        drop_unused_default_metrics()
         return REGISTRY
     registry = CollectorRegistry()
     LockedMultiProcessCollector(registry)

@@ -66,7 +66,7 @@ export function init() {
      * @param {Function} ac_opts.termPreprocessor - optional hook for processing the search term before doing the search
      */
     function setup_autocomplete(_this, ol_ac_opts, ac_opts) {
-        var default_ac_opts = {
+        const default_ac_opts = {
             minChars: 2,
             autoFill: true,
             formatItem: item => item.name,
@@ -88,8 +88,8 @@ export function init() {
                 return ac_opts.autoFill;
             },
             select: function (_event, ui) {
-                var item = ui.item;
-                var $this = $(this);
+                const item = ui.item;
+                const $this = $(this);
                 $this.closest('.ac-input').find('.ac-input__value').val(item.key);
                 const $preview = $this.closest('.ac-input').find('.ac-input__preview');
                 if ($preview.length) {
@@ -167,7 +167,7 @@ export function init() {
      */
     $.fn.setup_multi_input_autocomplete = function (input_renderer, ol_ac_opts, ac_opts) {
         /** @type {JQuery<HTMLElement>} */
-        var container = $(this);
+        const container = $(this);
 
         // first let's init any pre-existing inputs
         container.find('.ac-input__visible').each(function () {
@@ -275,11 +275,10 @@ export function init() {
         });
 
         container.on('click', '.mia__add', function (event) {
-            var next_index, new_input;
             event.preventDefault();
 
-            next_index = container.find('.mia__input').length;
-            new_input = $(input_renderer(next_index, { key: '', name: '' }));
+            const next_index = container.find('.mia__input').length;
+            const new_input = $(input_renderer(next_index, { key: '', name: '' }));
             new_input.insertBefore(container.find('.mia__add'));
             setup_autocomplete(new_input.find('.ac-input__visible')[0], ol_ac_opts, ac_opts);
             update_visible();
@@ -329,10 +328,9 @@ export function init() {
                 const terms = splitField(subject_string);
                 if (terms.length !== dataConfig.data.length) {
                     return terms.pop();
-                } else {
-                    $('ul.ui-autocomplete').hide();
-                    return '';
                 }
+                $('ul.ui-autocomplete').hide();
+                return '';
             },
             select: function (event, ui) {
                 const terms = splitField(this.value);

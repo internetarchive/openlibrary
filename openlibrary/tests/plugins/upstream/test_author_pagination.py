@@ -6,6 +6,7 @@ import web
 
 from openlibrary.plugins.upstream import code as upstream_code
 from openlibrary.plugins.worksearch import code as worksearch_code
+from openlibrary.utils.request_context import site as site_context
 
 
 @pytest.mark.parametrize(
@@ -35,6 +36,7 @@ def test_author_view_returns_404_only_after_last_page(monkeypatch, num_found, pa
 
     web.ctx.clear()
     web.ctx.site = site
+    site_context.set(web.ctx.site)
     web.ctx.status = "200 OK"
     monkeypatch.setattr(web, "input", lambda **kwargs: web.storage(page=str(page), q="query", mode="ebooks", rows=rows))
     monkeypatch.setattr(worksearch_code, "works_by_author", count_query)
@@ -56,3 +58,10 @@ def test_author_view_returns_404_only_after_last_page(monkeypatch, num_found, pa
         )
     else:
         count_query.assert_not_called()
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

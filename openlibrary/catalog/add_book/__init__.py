@@ -28,8 +28,7 @@ import logging
 import re
 import uuid
 from collections import defaultdict
-from collections.abc import Iterable
-from copy import copy
+from collections.abc import Iterable, Iterator
 from html import unescape as html_unescape
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
@@ -62,6 +61,7 @@ from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_ac
 from openlibrary.utils import dicthash, extract_numeric_id_from_olid, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.oclc import normalize_oclc
 from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
@@ -72,6 +72,8 @@ logger = logging.getLogger("add_book")
 re_normalize = re.compile("[^[:alphanum:] ]", re.UNICODE)
 re_lang = re.compile("^/languages/([a-z]{3})$")
 ISBD_UNIT_PUNCT = " : "  # ISBD cataloging title-unit separator punctuation
+# Infobase caps a `things()` limit at 1000; see `author_work_keys`.
+WORKS_QUERY_PAGE_SIZE: Final = 1000
 SUSPECT_PUBLICATION_DATES: Final = [
     "1900",
     "January 1, 1900",
@@ -82,9 +84,18 @@ SUSPECT_PUBLICATION_DATES: Final = [
 SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
+# source_records prefix -> identifiers key. These sources' records are
+# separate e-editions identified by the source's own id, so an import from one
+# only ever matches an edition carrying that same id; matching on title would
+# merge it into some other edition of the work, or miss and duplicate it.
+ID_MATCHED_SOURCES: Final = {
+    "project_gutenberg": "project_gutenberg",
+    "wikisource": "wikisource",
+}
 ALLOWED_COVER_HOSTS: Final = (
     "archive.org",
     "books.google.com",
+    "cdn.sanity.io",
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
@@ -214,6 +225,41 @@ def split_subtitle(full_title: str):
     return (title, subtitle)
 
 
+def author_work_keys(author_key: str) -> Iterator[list[str]]:
+    """
+    Yields pages of work keys for the given author.
+
+    The `limit` has to be passed explicitly: Infobase defaults a `things()` query
+    that doesn't carry one to 20 results, and caps an explicit one at
+    WORKS_QUERY_PAGE_SIZE (both in `infobase/readquery.py`). Authors with more
+    works than that are paged through with `offset`.
+
+    The query is sorted by key so the pages are stable: without a sort, Infobase
+    runs the select with no ORDER BY, and paging with `offset` could skip or repeat
+    works for an author with more than one page of them.
+
+    :param str author_key: an author key, "/authors/OL..A"
+    """
+    offset = 0
+    while True:
+        page = list(
+            site.get().things(
+                {
+                    "type": "/type/work",
+                    "authors": {"author": {"key": author_key}},
+                    "sort": "key",
+                    "limit": WORKS_QUERY_PAGE_SIZE,
+                    "offset": offset,
+                }
+            )
+        )
+        if page:
+            yield page
+        if len(page) < WORKS_QUERY_PAGE_SIZE:
+            return
+        offset += WORKS_QUERY_PAGE_SIZE
+
+
 def find_matching_work(e):
     """
     Looks for an existing Work representing the new import edition by
@@ -227,19 +273,18 @@ def find_matching_work(e):
     """
     seen = set()
     for a in e["authors"]:
-        q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
-        work_keys = list(site.get().things(q))
-        works = {w.key: w for w in site.get().get_many(work_keys)}
-        for wkey in work_keys:
-            w = works.get(wkey)
-            if w is None or wkey in seen:
-                continue
-            seen.add(wkey)
-            if not w.get("title"):
-                continue
-            if mk_norm(w["title"]) == mk_norm(e["title"]):
-                assert w.type.key == "/type/work"
-                return wkey
+        for work_keys in author_work_keys(a["key"]):
+            works = {w.key: w for w in site.get().get_many(work_keys)}
+            for wkey in work_keys:
+                w = works.get(wkey)
+                if w is None or wkey in seen:
+                    continue
+                seen.add(wkey)
+                if not w.get("title"):
+                    continue
+                if mk_norm(w["title"]) == mk_norm(e["title"]):
+                    assert w.type.key == "/type/work"
+                    return wkey
 
 
 def load_author_import_records(authors_in, edits, source, save: bool = True):
@@ -380,24 +425,6 @@ def modify_ia_item(item, data):
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
 
 
-def create_ol_subjects_for_ocaid(ocaid, subjects):
-    item = get_ia_item(ocaid)
-    openlibrary_subjects = copy(item.metadata.get("openlibrary_subject")) or []
-
-    if not isinstance(openlibrary_subjects, list):
-        openlibrary_subjects = [openlibrary_subjects]
-
-    for subject in subjects:
-        if subject not in openlibrary_subjects:
-            openlibrary_subjects.append(subject)
-
-    r = modify_ia_item(item, {"openlibrary_subject": openlibrary_subjects})
-    if r.status_code != 200:
-        return f"{item.identifier} failed: {r.content}"
-    else:
-        return f"success for {item.identifier}"
-
-
 def update_ia_metadata_for_ol_edition(edition_id):
     """
     Writes the Open Library Edition and Work id to a linked
@@ -429,17 +456,21 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
 def normalize_record_bibids(rec: dict):
     """
-    Returns the Edition import record with all ISBN fields and LCCNs cleaned.
+    Returns the Edition import record with ISBNs, LCCNs, and OCLC numbers cleaned.
 
     :param dict rec: Edition import record
     :rtype: dict
-    :return: A record with cleaned LCCNs, and ISBNs in the various possible ISBN locations.
+    :return: A record with cleaned ISBN, LCCN, and OCLC fields.
     """
     for field in ("isbn_13", "isbn_10", "isbn"):
         if rec.get(field):
             rec[field] = [normalize_isbn(isbn) for isbn in rec.get(field, "") if normalize_isbn(isbn)]
     if rec.get("lccn"):
         rec["lccn"] = [normalize_lccn(lccn) for lccn in rec.get("lccn", "") if normalize_lccn(lccn)]
+    if oclc_numbers := rec.get("oclc_numbers"):
+        if isinstance(oclc_numbers, str):
+            oclc_numbers = [oclc_numbers]
+        rec["oclc_numbers"] = list(dict.fromkeys(number for value in oclc_numbers if value is not None and (number := normalize_oclc(str(value)))))
     return rec
 
 
@@ -454,13 +485,15 @@ def isbns_from_record(rec: dict) -> list[str]:
     return isbns
 
 
-def find_wikisource_src(rec: dict) -> str | None:
-    if not rec.get("source_records"):
-        return None
-    ws_prefix = "wikisource:"
-    ws_match = next((src for src in rec["source_records"] if src.startswith(ws_prefix)), None)
-    if ws_match:
-        return ws_match[len(ws_prefix) :]
+def find_id_matched_source(rec: dict) -> tuple[str, str] | None:
+    """The ``(identifiers key, id)`` of a source whose imports match on id alone.
+
+    E.g. ``project_gutenberg:1661`` -> ``("project_gutenberg", "1661")``.
+    """
+    for src in rec.get("source_records") or []:
+        prefix, _, source_id = src.partition(":")
+        if source_id and (key := ID_MATCHED_SOURCES.get(prefix)):
+            return key, source_id
     return None
 
 
@@ -511,7 +544,7 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
         if verified := resolve_edition_ref(ol_key):
             # The record names its edition and that edition exists: this IS the
             # answer, not a candidate to weigh against title evidence. Narrow the
-            # pool to it, the same way a wikisource id narrows to itself.
+            # pool to it, the same way an ID_MATCHED_SOURCES id narrows to itself.
             #
             # Deliberately checked BEFORE the title pool rather than relying on
             # find_quick_match, which only runs when build_pool returned
@@ -536,12 +569,11 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
             ol_key,
         )
 
-    if ws_match := find_wikisource_src(rec):
-        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = set(editions_matched(rec, "identifiers.wikisource", ws_match))
-        if ekeys:
-            pool["wikisource"] = ekeys
-        return {k: list(v) for k, v in pool.items() if v}
+    if id_source := find_id_matched_source(rec):
+        id_key, source_id = id_source
+        if ekeys := editions_matched(rec, f"identifiers.{id_key}", source_id):
+            return {id_key: ekeys}
+        return {}
 
     # Find records with matching fields
     for field in match_fields:
@@ -570,13 +602,10 @@ def find_quick_match(rec: dict) -> str | None:
         # and raise on.
         return verified
 
-    if ws_match := find_wikisource_src(rec):
-        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = editions_matched(rec, "identifiers.wikisource", ws_match)
-        if ekeys:
-            return ekeys[0]
-        else:
-            return None
+    if id_source := find_id_matched_source(rec):
+        id_key, source_id = id_source
+        ekeys = editions_matched(rec, f"identifiers.{id_key}", source_id)
+        return ekeys[0] if ekeys else None
 
     ekeys = editions_matched(rec, "ocaid")
     if ekeys:

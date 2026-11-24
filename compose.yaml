@@ -30,7 +30,7 @@ services:
         max-file: "4"
 
   solr:
-    image: solr:10.0.0
+    image: solr:10.1.0
     expose:
       - 8983
     environment:

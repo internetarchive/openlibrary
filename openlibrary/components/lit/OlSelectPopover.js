@@ -293,7 +293,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                 color: var(--color-text-muted);
                 font: inherit;
                 font-size: var(--font-size-label-large);
-                font-weight: 500;
+                font-weight: var(--font-weight-medium);
                 cursor: pointer;
             }
 

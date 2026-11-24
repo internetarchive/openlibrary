@@ -5,12 +5,12 @@ import random
 from datetime import UTC, date, datetime, timedelta
 
 import requests
-import web
 
 from openlibrary.core import cache
 from openlibrary.core.async_db import fetch_val
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.helpers import commify, format_date
+from openlibrary.utils.request_context import site as site_context
 
 
 class Stats:
@@ -179,7 +179,7 @@ class VisitorStats(Stats):
 
 def read_count_docs(site, ndays: int) -> list[dict]:
     """The daily count docs `scripts/store_counts.py` writes, oldest first, for the last `ndays` up to today. Days with no
-    doc are left out. Takes the site so FastAPI (`site.get()`) and web.py (`web.ctx.site`) can both read them."""
+    doc are left out. Takes the current site (`site.get()`) for both FastAPI and web.py callers."""
     today = date.today()
     dates = [today - timedelta(days=i) for i in reversed(range(ndays))]
     docs = [site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
@@ -213,7 +213,7 @@ def get_count_docs(ndays: int) -> list[dict]:
 
     This function is memoized to avoid accessing the db for every request.
     """
-    return read_count_docs(web.ctx.site, ndays)
+    return read_count_docs(site_context.get(), ndays)
 
 
 def get_stats(ndays=30, use_mock_data=False):

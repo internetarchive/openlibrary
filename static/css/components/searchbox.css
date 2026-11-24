@@ -27,7 +27,7 @@
   background: transparent;
   color: var(--color-text-secondary) !important;
   flex-grow: 1;
-  font-size: 1em !important;
+  font-size: inherit !important;
   min-width: 0;
   outline: none;
 }

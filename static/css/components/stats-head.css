@@ -1,0 +1,17 @@
+/* Stats heading with links to the other stats pages on the right; openlibrary/templates/admin/index.html */
+.stats-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm) var(--spacing-lg);
+}
+
+.stats-head__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  /* Pulls the ghost buttons' padding out so the last label lines up with the page edge. */
+  margin-inline-end: calc(-1 * var(--spacing-md));
+}

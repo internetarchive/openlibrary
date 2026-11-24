@@ -21,10 +21,9 @@ import re
 import sys
 from pathlib import Path
 
-import web
-
 from openlibrary.accounts import RunAs
 from openlibrary.setup import setup_for_script
+from openlibrary.utils.request_context import site
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 # Matches:
@@ -110,7 +109,7 @@ def process_dump(dump_path: str) -> None:
 def setup(config_path: str) -> None:
     """
     Initialize the Infogami/OL environment required for database access.
-    Loads config, sets up the web.ctx.site connection, and registers
+    Loads config, sets up the site ContextVar, and registers
     a graceful shutdown signal handler.
 
     Args:
@@ -161,7 +160,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
             )
             break
 
-        record = web.ctx.site.get(key)
+        record = site.get().get(key)
         if record is None:
             print(f"Record not found: {key}", file=sys.stderr)
             records_processed += 1
@@ -173,7 +172,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
         if updates and not dry_run:
             data.update(updates)
             with RunAs("ImportBot"):
-                web.ctx.site.save(data, comment="Decode HTML entity encoding", action="update")
+                site.get().save(data, comment="Decode HTML entity encoding", action="update")
 
         records_processed += 1
 

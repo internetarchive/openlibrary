@@ -118,6 +118,10 @@ class OpenLibrary:
             cookies = response.headers["Set-Cookie"].split(",")
             self.cookie = ";".join([c.split(";")[0] for c in cookies])
 
+        status = response.code if isinstance(response, OLError) else response.status_code
+        cookie_names = [c.split("=", 1)[0].strip() for c in (self.cookie or "").split(";") if "=" in c]
+        logger.info("login status=%s location=%s cookies=%s", status, response.headers.get("Location"), cookie_names)
+
     def get(self, key, v=None):
         response = self._request(key + ".json", params={"v": v} if v else {})
         return unmarshal(response.json())

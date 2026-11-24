@@ -10,11 +10,11 @@ import { isbnOverride } from '../../openlibrary/js/isbnOverride';
 export function init() {
     // used in books/edit/exercpt, books/edit/web and books/edit/edition
     $.fn.repeat = function (options) {
-        var addSelector, removeSelector, id, elems, t, code, nextRowId;
+        let code, nextRowId;
         options = options || {};
 
-        id = `#${this.attr('id')}`;
-        elems = {
+        const id = `#${this.attr('id')}`;
+        const elems = {
             _this: this,
             add: $(`${id}-add`),
             form: $(`${id}-form`),
@@ -32,7 +32,7 @@ export function init() {
             return Template(code);
         }
 
-        t = createTemplate(`${id}-template`);
+        const t = createTemplate(`${id}-template`);
 
         /**
          * Search elems.form for input fields and create an
@@ -40,9 +40,9 @@ export function init() {
          * @return {object} data mapping names to values
          */
         function formdata() {
-            var data = {};
+            const data = {};
             $(':input', elems.form).each(function () {
-                var $e = $(this),
+                const $e = $(this),
                     name = $e.attr('name'),
                     type = $e.attr('type'),
                     _id = $e.attr('id');
@@ -62,7 +62,7 @@ export function init() {
          * @param {jQuery.Event} event
          */
         function onAdd(event) {
-            var data, newid;
+            let data;
             const isbnOverrideData = isbnOverride.get();
             event.preventDefault();
 
@@ -88,7 +88,7 @@ export function init() {
 
             $.extend(data, options.vars || {});
 
-            newid = `${elems._this.attr('id')}--${nextRowId}`;
+            const newid = `${elems._this.attr('id')}--${nextRowId}`;
             // increment the index to avoid situations where more than one element have same
             nextRowId++;
             // Create the HTML of a hidden input
@@ -101,8 +101,8 @@ export function init() {
             $(this).parents('.repeat-item').eq(0).remove();
             elems._this.trigger('repeat-remove');
         }
-        addSelector = `${id} .repeat-add`;
-        removeSelector = `${id} .repeat-remove`;
+        const addSelector = `${id} .repeat-add`;
+        const removeSelector = `${id} .repeat-remove`;
         // Click handlers should apply to newly created add/remove selectors
         $(document).on('click', addSelector, onAdd);
         $(document).on('click', removeSelector, onRemove);

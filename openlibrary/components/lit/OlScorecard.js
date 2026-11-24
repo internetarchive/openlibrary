@@ -57,12 +57,12 @@ class OlScoreGauge extends LitElement {
             align-items: center;
             justify-content: center;
             font-size: var(--font-size-headline-small, 24px);
-            font-weight: normal;
+            font-weight: var(--font-weight-regular);
         }
 
         :host([size='small']) .value {
             font-size: var(--font-size-label-medium, 12px);
-            font-weight: bold;
+            font-weight: var(--font-weight-bold);
         }
     `;
 
@@ -288,7 +288,7 @@ export class OlScorecard extends LitElement {
         }
 
         button.tab[aria-selected='true'] .tab-label {
-            font-weight: bold;
+            font-weight: var(--font-weight-bold);
         }
 
         button.tab:focus-visible {
@@ -361,7 +361,7 @@ export class OlScorecard extends LitElement {
             gap: var(--spacing-inline-md, 8px);
             padding: var(--spacing-inset-sm, 8px) 0;
             cursor: pointer;
-            font-weight: normal;
+            font-weight: var(--font-weight-regular);
             list-style: none;
         }
 

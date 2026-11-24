@@ -1,0 +1,12 @@
+{% macro ol_pagination(page, total_pages, size="medium") %}
+    {% if total_pages > 1 %}
+        <div class="ol-pagination-wrapper">
+            <ol-pagination total-pages="{{ total_pages }}" current-page="{{ page }}" size="{{ size }}" label-previous-page="{{ _('Go to previous page') }}" label-next-page="{{ _('Go to next page') }}" label-go-to-page="{{ _('Go to page {page}') }}" label-current-page="{{ _('Page {page}, current page') }}" label-pagination="{{ _('Pagination') }}">
+            </ol-pagination>
+        </div>
+    {% endif %}
+{% endmacro %}
+{#- Rendering this file directly (from Templetor's OlPagination macro) draws the pagination. -#}
+{% if page is defined and total_pages is defined %}
+    {{ ol_pagination(page, total_pages, size|default("medium")) }}
+{% endif %}

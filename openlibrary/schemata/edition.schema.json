@@ -139,7 +139,6 @@
     "publishers":          { "$ref": "shared_definitions.json#/string_array" },
     "contributions":       { "$ref": "shared_definitions.json#/string_array" },
     "dewey_decimal_class": { "$ref": "shared_definitions.json#/string_array" },
-    "genres":              { "$ref": "shared_definitions.json#/string_array" },
     "lc_classifications":  {
       "type": "array",
       "items": { "$ref": "shared_definitions.json#/lc_classification" }

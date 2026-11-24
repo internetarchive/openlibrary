@@ -3,7 +3,7 @@ import pytest
 from openlibrary.plugins.openlibrary import contribute
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
-ACTIVE = contribute.initiatives.ACTIVE
+ACTIVE = contribute.initiatives.MOST_READ
 # One open task out of the fields the initiative asks about, on one book.
 GAPS = [["/books/OL1M", 9, [ACTIVE.fields[0]], []]]
 
@@ -24,7 +24,13 @@ def cards(monkeypatch):
 def test_only_the_open_initiative_is_on(cards):
     built = cards()
     assert [slug for slug, card in built.items() if card["on"]] == [ACTIVE.slug]
-    assert len(built) == len(contribute.initiatives.INITIATIVES)
+    assert len(built) == len(contribute.initiatives.BUILTIN)
+
+
+def test_the_open_initiative_has_a_card_even_when_nothing_is_listed(cards, monkeypatch):
+    monkeypatch.setattr(contribute.initiatives, "listed", list)
+    built = cards()
+    assert [slug for slug, card in built.items() if card["on"]] == [ACTIVE.slug]
 
 
 def test_blank_while_the_gaps_are_being_built(cards):
@@ -49,12 +55,16 @@ def test_tasks_left_uses_the_plural_and_groups_thousands(cards):
     ],
 )
 def test_people_line_hides_low_counts(cards, people, expected):
-    assert cards(docs=[{"initiative_slug": ACTIVE.slug, "initiative_people": people}])[ACTIVE.slug]["people"] == expected
+    card = cards(docs=[{"initiative_slug": ACTIVE.slug, "initiative_people": people}])[ACTIVE.slug]
+    assert card["people"] == expected
+    # Below the threshold the row asks for help instead.
+    assert card["help_needed"] is (expected is None)
 
 
 def test_people_line_waits_for_the_stats_job(cards):
-    assert cards()[ACTIVE.slug]["people"] is None
-    assert cards(docs=[{"saves": 3}])[ACTIVE.slug]["people"] is None
+    # Not counted yet is not the same as nobody helping: no count, and no call for help either.
+    for card in (cards()[ACTIVE.slug], cards(docs=[{"saves": 3}])[ACTIVE.slug]):
+        assert (card["people"], card["help_needed"]) == (None, False)
 
 
 def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
@@ -64,14 +74,75 @@ def test_people_prefers_todays_count_and_falls_back_to_yesterdays(cards):
 
 
 def test_people_read_from_the_nested_snapshot(cards):
-    other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
+    other = next(i for i in contribute.initiatives.BUILTIN if i is not ACTIVE)
     built = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 6}, other.slug: {"people": 12}}}])
     assert built[ACTIVE.slug]["people"] == "6 people helping"
     assert built[other.slug]["people"] == "12 people helping"
 
 
 def test_people_count_goes_to_the_initiative_it_names(cards):
-    other = next(i for i in contribute.initiatives.INITIATIVES if i is not ACTIVE)
+    other = next(i for i in contribute.initiatives.BUILTIN if i is not ACTIVE)
     built = cards(docs=[{"initiative_slug": other.slug, "initiative_people": 50}])
     assert built[ACTIVE.slug]["people"] is None
     assert built[other.slug]["people"] == "50 people helping"
+
+
+ENDED = {"slug": "october-sprint", "title": "October Sprint", "fields": ["covers"], "starts_at": "2026-10-01", "ends_at": "2026-10-31", "size": 3}
+
+
+@pytest.fixture
+def ended(cards, monkeypatch):
+    monkeypatch.setattr(contribute.initiatives, "cached_definitions", lambda: [ENDED])
+    return next(i for i in contribute.initiatives.listed() if i.slug == ENDED["slug"])
+
+
+def test_a_finished_project_comes_last_and_says_how_it_finished(cards, ended):
+    built = cards()
+    assert list(built)[-1] == ended.slug
+    assert (built[ended.slug]["finished"], built[ended.slug]["finished_label"]) == (True, "Finished · 0% filled")
+    assert built[ACTIVE.slug]["finished"] is False
+    assert cards(gaps=None)[ended.slug]["finished_label"] == "Finished"
+
+
+def test_a_finished_project_shows_a_closing_note_and_the_project_to_go_to(cards, ended):
+    built = cards()
+    assert contribute.build_finished(built[ACTIVE.slug]) is None
+    finished = contribute.build_finished(built[ended.slug])
+    assert finished["note"] == "0% of its details were filled in. Thank you to everyone who helped."
+    assert (finished["next_url"], finished["next_label"]) == ("/tasks", "Go to Fill the Gaps")
+    crowd = cards(docs=[{"initiatives": {ended.slug: {"people": 12}}}])[ended.slug]
+    assert contribute.build_finished(crowd)["note"] == "12 people filled in 0% of its details. Thank you."
+
+
+def test_the_fine_print_of_a_finished_project_says_when_it_ran(cards, ended):
+    site = type("Site", (), {"store": {ended.store_key: {"frozen_at": "2026-10-01T00:00:00+00:00"}}})()
+    assert contribute.initiatives.fine_print(ended, site) == "Ran October 1, 2026 to October 30, 2026 · 3 books"
+
+
+def test_a_card_counts_the_tasks_done_out_of_those_open_at_the_start(cards):
+    assert cards()[ACTIVE.slug]["tasks_done"] == "0 of 1 task done"
+    assert cards(gaps=None)[ACTIVE.slug]["tasks_done"] == ""
+
+
+def test_a_card_shows_its_goal_until_it_is_reached(cards):
+    card = cards()[ACTIVE.slug]
+    assert (card["goal"], card["reached"], card["goal_label"]) == (90, False, "Goal: 90%")
+    assert card["done_label"] == "0% done, goal 90%"
+    reached = cards(gaps=[["/books/OL1M", 9, [], []]])[ACTIVE.slug]
+    assert (reached["reached"], reached["goal_label"], reached["done_label"]) == (True, "Goal reached", "100% done, goal reached")
+
+
+def test_a_finished_project_that_reached_its_goal_says_so(cards, ended):
+    built = cards(gaps=[["/books/OL1M", 9, [], []]])
+    assert built[ended.slug]["finished_label"] == "Finished · goal reached"
+    finished = contribute.build_finished(built[ended.slug])
+    assert finished["title"] == "This project reached its goal"
+    assert finished["note"] == "Together we reached the goal: 100% of its details were filled in. Thank you to everyone who helped."
+
+
+def test_a_project_past_its_goal_is_completed(cards):
+    # Nothing left open: the percent is 100 and the goal is reached.
+    done = cards(gaps=[["/books/OL1M", 9, [], []]], docs=[{"initiatives": {ACTIVE.slug: {"people": 2}}}])[ACTIVE.slug]
+    assert (done["reached"], done["completed"], done["help_needed"]) == (True, True, False)
+    running = cards(docs=[{"initiatives": {ACTIVE.slug: {"people": 60}}}])[ACTIVE.slug]
+    assert (running["completed"], running["people"]) == (False, "60 people helping")

@@ -6,7 +6,6 @@ import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectT
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
-import './OlShelfActions.js';
 import './OlIcon.js';
 
 export const DEFAULT_LABELS = {
@@ -35,7 +34,7 @@ export const DEFAULT_LABELS = {
  * a main half that toggles Want to Read on and off without opening anything.
  * With `lists-only` the same shapes serve a seed that has no work to shelve
  * (an author, an edition on its own): the split becomes one "Add to list"
- * trigger, the glyph a list-plus, and the popover opens on its lists pane.
+ * trigger, the glyph a list, and the popover opens on its lists pane.
  * Once the book is on one of the three reading shelves the main half opens the
  * popover instead: those shelves carry dates, ratings and goal progress, so
  * leaving one goes through the menu, which takes Already Read via its date
@@ -334,7 +333,9 @@ export class OlShelfButton extends LitElement {
                 drop-shadow(0 -0.5px 0 color-mix(in srgb, var(--black) 25%, transparent));
         }
 
-        .glyph[name='bookmark'] {
+        /* Blue is for a book that is on a shelf; the two resting glyphs stay neutral. */
+        .glyph[name='bookmark'],
+        .glyph[name='list'] {
             color: var(--color-text);
         }
 
@@ -446,9 +447,9 @@ export class OlShelfButton extends LitElement {
         this._announce = '';
     }
 
-    /** The badge's glyph: the shelf's own once shelved, a list-plus in lists-only mode. */
+    /** The badge's glyph: the shelf's own once shelved, a plain list in lists-only mode. */
     get _icon() {
-        return this.listsOnly ? 'list-plus' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
+        return this.listsOnly ? 'list' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
     }
 
     t(key, vars) {

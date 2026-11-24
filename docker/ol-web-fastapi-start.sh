@@ -16,6 +16,15 @@ if [ "${LOCAL_DEV:-false}" = "true" ]; then
     --host 0.0.0.0 \
     --port 8080 \
     openlibrary.asgi_app:create_app
+elif [ "${OL_ASGI_SERVER:-gunicorn}" = "uvicorn" ]; then
+  # One uvicorn process per container (e.g. Kubernetes).
+  unset PROMETHEUS_MULTIPROC_DIR
+  exec uvicorn \
+    --factory \
+    --workers 1 \
+    --host 0.0.0.0 \
+    --port 8080 \
+    openlibrary.asgi_app:create_app
 else
   # Run ASGI app via gunicorn with uvicorn workers
   # Note: GUNICORN_OPTS may be provided via environment (compose.yaml)

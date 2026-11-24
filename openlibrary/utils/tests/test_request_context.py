@@ -147,7 +147,12 @@ def signed_cookie(user_key, secret="secret"):
 
 
 # Cookie parsing and signature checks are tested in openlibrary/tests/fastapi/test_auth.py
-@pytest.mark.parametrize(("cookie", "user_key"), [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)])
+@pytest.mark.parametrize(
+    ("cookie", "user_key"),
+    [(signed_cookie("/people/alice"), "/people/alice"), (signed_cookie("/people/alice", secret="wrong"), None)],
+    # The cookies have a random salt, so they can't be the test ids: every xdist worker must collect the same ids.
+    ids=["valid-signature", "wrong-secret"],
+)
 def test_visitor_from_session_cookie(monkeypatch, cookie, user_key):
     monkeypatch.setattr("openlibrary.fastapi.auth.get_secret_key", lambda: "secret")
     assert _visitor(cookie, is_bot=True) == Visitor(user_key=user_key, is_bot=True)

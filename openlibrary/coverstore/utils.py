@@ -32,7 +32,9 @@ ALLOWED_COVER_URLS: Final = (
     r"^https?://commons.wikimedia.org/.*$",
     r"^https?://m.media-amazon.com/.*$",
     # e.g. https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg
-    r"^https?://www.gutenberg.org/cache/epub/\d+/pg\d+\.cover\.(small|medium)\.jpg$",
+    r"^https?://www\.gutenberg\.org/cache/[^?#]+$",
+    # e.g. https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format
+    r"^https?://cdn\.sanity\.io/images/[^#]+$",
 )
 
 
