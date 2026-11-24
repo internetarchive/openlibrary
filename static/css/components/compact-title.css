@@ -11,7 +11,8 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    z-index: var(--z-index-level-5);
+    /* Legacy value: fixed chrome that has to clear page-level dropdowns. */
+    z-index: var(--z-index-dropdown);
     position: fixed;
     top: 0;
     height: var(--compact-title-height);
@@ -24,12 +25,12 @@
   }
 
   .compact-title__heading {
-    font-size: 1.25em;
+    font-size: var(--font-size-title-large);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-family: var(--font-family-title);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
   }
 }
 

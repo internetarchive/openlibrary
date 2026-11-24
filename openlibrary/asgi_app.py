@@ -16,9 +16,12 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
-from openlibrary.core.env import get_ol_env
+from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
+from openlibrary.fastapi.middleware.server_timing import add_server_timing
+from openlibrary.utils import prometheus, prometheus_multiprocess, saturation_metrics, server_timing
+from openlibrary.utils.legacy_db import install_connection_recovery
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -130,6 +133,7 @@ sentry: Sentry | None = None
 
 def _include_routers(app: FastAPI) -> None:
     """Include all FastAPI routers."""
+    from openlibrary.fastapi.account import pages as account_pages
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.borrow import router as borrow_router
@@ -143,10 +147,16 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.merge_authors import router as merge_authors_router
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
+    from openlibrary.fastapi.publishers import pages as publishers_pages
     from openlibrary.fastapi.publishers import router as publishers_router
+    from openlibrary.fastapi.search import pages as search_pages
     from openlibrary.fastapi.search import router as search_router
+    from openlibrary.fastapi.stats import router as stats_router
     from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.tasks import pages as tasks_pages
+    from openlibrary.fastapi.tasks import public_pages as tasks_public_pages
+    from openlibrary.fastapi.tasks import router as tasks_router
     from openlibrary.fastapi.yearly_reading_goals import (
         router as yearly_reading_goals_router,
     )
@@ -166,22 +176,37 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(public_my_books_router)
     app.include_router(publishers_router)
     app.include_router(search_router)
+    app.include_router(stats_router)
     app.include_router(status_router)
     app.include_router(subjects_router)
+    app.include_router(tasks_router)
     app.include_router(yearly_reading_goals_router)
+
+    # HTML pages, wrapped in the site shell (SitePageRoute).
+    app.include_router(account_pages)
+    app.include_router(publishers_pages)
+    app.include_router(search_pages)
+    app.include_router(tasks_pages)
+    app.include_router(tasks_public_pages)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
-    # Startup
-    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+    if get_ol_env().LOCAL_DEV:
         setup_debugpy()
-    yield
-    # Shutdown (if needed in the future)
+    from openlibrary.core.async_db import close_pool, init_pool
+
+    await init_pool()
+    try:
+        async with saturation_metrics.sampling():
+            yield
+    finally:
+        await close_pool()
 
 
 def create_app() -> FastAPI | None:
+    install_connection_recovery()
     if "pytest" not in sys.modules:
         _setup_env()
 
@@ -198,7 +223,10 @@ def create_app() -> FastAPI | None:
             if sentry is not None:
                 return None
             sentry = init_sentry(getattr(infogami.config, "sentry", {}))
+            # Temporary, to compare the frameworks during the migration. Once web.py is gone, drop the
+            # `fastapi` and `framework` tags here and webpy_framework_tag_processor in openlibrary/utils/sentry.py.
             set_tag("fastapi", True)
+            set_tag("framework", "fastapi")
 
         except Exception:
             logger.exception("Failed to initialize legacy WSGI app")
@@ -214,7 +242,7 @@ def create_app() -> FastAPI | None:
         version="1.0.0",
         contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "openlibrary@archive.org"},
         license_info={"name": "AGPL-3.0", "url": "https://github.com/internetarchive/openlibrary/blob/master/LICENSE"},
-        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+        debug=get_ol_env().LOCAL_DEV,
         lifespan=lifespan,
         strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
     )
@@ -242,11 +270,13 @@ def create_app() -> FastAPI | None:
             response.headers["X-Served-By"] = "FastAPI"
         return response
 
-    # Add prometheus metrics
+    # Add prometheus metrics. web.py records the same ones; see openlibrary/utils/prometheus.py
     Instrumentator(
         should_group_status_codes=False,
-        excluded_handlers=["/health", "/metrics"],
-    ).instrument(app).expose(app, include_in_schema=False)
+        excluded_handlers=list(prometheus.EXCLUDED_HANDLERS),
+    ).add(prometheus.request_metrics("fastapi")).instrument(app)
+    prometheus_multiprocess.expose(app)
+    app.add_middleware(saturation_metrics.InFlightMiddleware)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
@@ -258,31 +288,34 @@ def create_app() -> FastAPI | None:
     # because the handlers are called in reverse order
     setup_i18n(app)
 
+    # Outermost, so `total` covers the other middleware and crashes' 500 pages get the header. Off with `server_timing: false`.
+    if infogami.config.get("server_timing", True):
+        server_timing.install_legacy_bridge()
+        add_server_timing(app)
+
     # Serve static assets directly from the project static directory.
     # This mirrors legacy /static/* behavior while we migrate endpoints to FastAPI.
     app.mount("/static", StaticFiles(directory=STATIC_ROOT), name="static")
 
     # --- Fast routes (mounted within this app) ---
+    # async: a sync handler runs in the threadpool, so the readiness probe
+    # would queue behind slow sync handlers when the pool is busy.
     @app.get("/health")
-    def health() -> dict[str, str]:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     _include_routers(app)
 
-    # Only enable fallback proxy in LOCAL_DEV. The previous check
-    # `get_deployment_name() == "testing"` was evaluated at startup when
-    # `web.ctx.host` is empty, so it always returned "development" and
-    # never enabled the proxy on testing — and when it did run it wasn't
-    # per-request, so homepage returned 404. Reverted port swap
-    # (web:8080, fast_web:18080) until per-request detection is verified.
-    # TODO: re-enable for testing with per-request host check:
-    #   host = request.headers.get("host", "").split(":")[0]
-    #   if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
-    #       raise HTTPException(404)
-    if get_ol_env().LOCAL_DEV:
+    # FastAPI is the front door for local dev and testing; proxy the rest to
+    # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
+    # local dev, serve only the real testing and staging hosts.
+    if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
         async def fallback(request: Request, path: str) -> Response:
+            host = request.headers.get("host", "").split(":")[0]
+            if not get_ol_env().LOCAL_DEV and host not in ("testing.openlibrary.org", "staging.openlibrary.org"):
+                raise HTTPException(status_code=404)
             if request.headers.get("X-Proxied-By") == "FastAPI":
                 raise HTTPException(status_code=404)
             return await proxy.proxy_to_webpy(request)

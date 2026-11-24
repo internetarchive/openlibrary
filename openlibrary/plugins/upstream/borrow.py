@@ -1,7 +1,6 @@
 """Handlers for borrowing books"""
 
 import contextlib
-import copy
 import hashlib
 import hmac
 import json
@@ -9,10 +8,11 @@ import logging
 import time
 import urllib
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Literal
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Literal
 
 import web
+from markupsafe import Markup, escape
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -24,17 +24,22 @@ from infogami.utils.view import (
 )
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
-from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
     models,  # noqa: F401 side effects may be needed
     stats,
     vendors,
 )
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_member
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
+
+if TYPE_CHECKING:
+    from openlibrary.fastapi.shared.utils import FlashType
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -135,7 +140,7 @@ class BorrowRedirect:
 
     url: str
     permanent: bool = False  # False -> 303 See Other, True -> 301 Moved Permanently
-    flash: tuple[str, str] | None = None  # (type, message), e.g. ("error", "...")
+    flash: tuple[FlashType, str] | None = None  # (type, message), e.g. ("error", "...")
     clear_login_cookie: bool = False
 
 
@@ -144,7 +149,7 @@ class BorrowNotFound:
     pass
 
 
-BorrowOutcome = BorrowRedirect | BorrowNotFound
+BorrowOutcome = BorrowRedirect | BorrowNotFound | str  # str = rendered interstitial HTML
 
 
 async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None, fastapi: bool = False) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
@@ -177,13 +182,36 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and (provider := get_book_provider(edition))
         and provider.short_name != "ia"
         and (acquisitions := provider.get_acquisitions(edition))
-        and acquisitions[0].access == "open-access"
+        # `borrow` as well as `open-access`: a provider that lends its own
+        # copies sends the patron to its own sign-in. `sample` too: a "Preview"
+        # web link is read on the provider's site (#12345). Falling through
+        # reaches `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA
+        # edition `ocaid` is infogami's `Nothing`, whose `__radd__` returns the
+        # left operand -- so that path yields a bare `archive.org/stream/`
+        # instead of raising.
+        and acquisitions[0].access in ("open-access", "borrow", "sample")
     ):
         stats.increment("ol.loans.webbook")
-        return render_template(
-            "interstitial",
-            url=acquisitions[0].url,
-            provider_name=acquisitions[0].provider_name,
+        url = acquisitions[0].url
+        raw_name = acquisitions[0].provider_name or ""
+        display_name = raw_name.replace("_", " ").title()
+        if acquisitions[0].access == "borrow":
+            # Borrowed *through* Open Library, so no interstitial: that screen
+            # warns the patron they are leaving for a third party, and the next
+            # page here is an openlibrary.org route. A node with no configured
+            # credentials returns None and keeps the interstitial below, since
+            # that one really is a handoff to the node's own sign-in.
+            from openlibrary.plugins.upstream import lenny
+
+            if mediated := lenny.mediated_borrow(key):
+                return BorrowRedirect(mediated)
+
+        book_provider = Markup("<strong>") + escape(display_name) + Markup("</strong>") if raw_name else Markup("")
+        return render_jinja_template(
+            "interstitial.html.jinja",
+            url=url,
+            book_provider=book_provider,
+            wait=5,
             fastapi=fastapi,
         )
 
@@ -208,12 +236,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
 
     error_redirect = archive_url
 
-    # Strip scheme/host to prevent open-redirect attacks.
-    if i.redirect:
-        parsed = urllib.parse.urlsplit(i.redirect)
-        edition_redirect = urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, parsed.fragment))
-    else:
-        edition_redirect = edition.url()
+    # Only same-site paths; anything else lands on the edition page.
+    edition_redirect = i.redirect if is_safe_redirect(i.redirect) else edition.url()
 
     user = accounts.get_current_user()
 
@@ -222,6 +246,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         ia_itemname = account.itemname if account else None
         s3_keys = parse_s3_cookie(s3_cookie)
         lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
+        home_member.invalidate_cache(user.key.split("/")[-1])  # the home page shows those loans
     if not user or not ia_itemname or not s3_keys:
         return_path = f"{edition_redirect}/borrow?action={action}"
         redirect_url = f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"
@@ -233,10 +258,9 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         with contextlib.suppress(lending.PatronAccessException):
             await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="return_loan")
 
-        edition.update_loan_status()
-        user.update_loan_status()
         title = edition.title or _("this book")
 
+        flash: tuple[FlashType, str]
         if user.has_borrowed(edition):
             flash = ("error", _("Unable to return %s. Please try again later or contact info@archive.org.") % title)
         else:
@@ -281,8 +305,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
             bookPath += "?_autoReadAloud=show"
 
         # Look for loans for this book
-        user.update_loan_status()
-        loans = get_loans(user)
+        loans = lending.get_loans_of_user(user.key)
         for loan in loans:
             if loan["book"] == edition.key:
                 return BorrowRedirect(
@@ -351,7 +374,6 @@ class borrow_status(delegate.page):
         if not edition:
             raise web.notfound()
 
-        edition.update_loan_status()
         available_formats = [loan["resource_type"] for loan in edition.get_available_loans()]
         loan_available = len(available_formats) > 0
         subjects = set()
@@ -413,7 +435,7 @@ def datetime_from_isoformat(expiry):
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.utcfromtimestamp(seconds)
+    return datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
 
 
 def get_bookreader_stream_url(itemid: str) -> str:
@@ -421,82 +443,6 @@ def get_bookreader_stream_url(itemid: str) -> str:
 
 
 # ######### Helper Functions
-
-
-def get_all_store_values(**query) -> list:
-    """Get all values by paging through all results. Note: adds store_key with the row id."""
-    query = copy.deepcopy(query)
-    if "limit" not in query:
-        query["limit"] = 500
-    query["offset"] = 0
-    values = []
-    got_all = False
-
-    while not got_all:
-        # new_values = site.get().store.values(**query)
-        new_items = site.get().store.items(**query)
-        for new_item in new_items:
-            new_item[1].update({"store_key": new_item[0]})
-            # XXX-Anand: Handling the existing loans
-            new_item[1].setdefault("ocaid", None)
-            values.append(new_item[1])
-        if len(new_items) < query["limit"]:
-            got_all = True
-        query["offset"] += len(new_items)
-    return values
-
-
-def get_all_loans() -> list:
-    # return web.ctx.site.store.values(type='/type/loan')
-    return get_all_store_values(type="/type/loan")
-
-
-def get_loans(user):
-    return lending.get_loans_of_user(user.key)
-
-
-def get_edition_loans(edition):
-    if edition.ocaid:
-        loan = lending.get_loan(edition.ocaid)
-        if loan:
-            return [loan]
-    return []
-
-
-def get_loan_key(resource_id: str):
-    """Get the key for the loan associated with the resource_id"""
-    # Find loan in OL
-    loan_keys = site.get().store.query("/type/loan", "resource_id", resource_id)
-    if not loan_keys:
-        # No local records
-        return None
-
-    # Only support single loan of resource at the moment
-    if len(loan_keys) > 1:
-        # raise Exception('Found too many local loan records for resource %s' % resource_id)
-        logger.error("Found too many loan records for resource %s: %s", resource_id, loan_keys)
-
-    loan_key = loan_keys[0]["key"]
-    return loan_key
-
-
-def is_loaned_out(resource_id: str) -> bool | None:
-    # bookreader loan status is stored in the private data store
-
-    # Check our local status
-    loan_key = get_loan_key(resource_id)
-    if not loan_key:
-        # No loan recorded
-        identifier = resource_id[len("bookreader:") :]
-        return lending.is_loaned_out_on_ia(identifier)
-
-    # Find the loan and check if it has expired
-    loan = site.get().store.get(loan_key)
-    return bool(loan and datetime_from_isoformat(loan["expiry"]) < datetime.utcnow())
-
-
-def is_loaned_out_from_status(status) -> bool:
-    return status and status["returned"] != "T"
 
 
 async def user_can_borrow_edition_async(user, edition) -> Literal["borrow", "browse", False]:
@@ -534,27 +480,6 @@ def is_admin() -> bool:
     """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
     return user is not None and user.key in [m.key for m in site.get().get("/usergroup/admin").members]
-
-
-def return_resource(resource_id):
-    """Return the book to circulation!  This object is invalid and should not be used after
-    this is called.  Currently only possible for bookreader loans."""
-    loan_key = get_loan_key(resource_id)
-    if not loan_key:
-        raise Exception("Asked to return %s but no loan recorded" % resource_id)
-
-    loan = site.get().store.get(loan_key)
-
-    delete_loan(loan_key, loan)
-
-
-def delete_loan(loan_key, loan=None) -> None:
-    if not loan:
-        loan = site.get().store.get(loan_key)
-        if not loan:
-            raise Exception("Could not find store record for %s", loan_key)
-
-    loan.delete()
 
 
 def ia_hash(token_data: str) -> str:

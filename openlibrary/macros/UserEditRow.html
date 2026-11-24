@@ -16,7 +16,7 @@ $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <div class="input">
-            <input type="text" name="$name#$i" value="$v"
+            <input type="url" name="$name#$i" value="$v" placeholder="https://..."
             $if i == 0:
                 id="$name"
             $else:

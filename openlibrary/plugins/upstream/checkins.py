@@ -1,10 +1,5 @@
 """Reading log check-ins handler and services."""
 
-from infogami.utils.view import public
-from openlibrary.accounts import get_current_user
-from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
-from openlibrary.utils import extract_numeric_id_from_olid
-
 
 def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in the expected format, given the year, month, and day.
@@ -37,20 +32,6 @@ def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     if day is not None and not 1 <= int(day) <= 31:
         return False
     return not day or bool(month)
-
-
-@public
-def get_latest_read_date(work_olid: str) -> dict | None:
-    user = get_current_user()
-    if not user:
-        return None
-
-    username = user["key"].split("/")[-1]
-
-    work_id = extract_numeric_id_from_olid(work_olid)
-
-    result = BookshelvesEvents.get_latest_event_date(username, work_id, BookshelfEvent.FINISH)
-    return result
 
 
 def setup():

@@ -1,8 +1,17 @@
 name: new_pr_labeler
-on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
+on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout has no `ref:` (base commit), scripts run from base; PR body/login reach the script only via env vars. _target is required: a fork's pull_request token cannot label/assign/close.
   pull_request_target:
+    # `ready_for_review` is needed alongside `opened`: a PR opened as a draft is
+    # skipped by the `!draft` guard below, and with `opened` as the only trigger
+    # nothing ever re-evaluates it, so it never enters the labeling pipeline at
+    # all -- no priority label, no lead, not even `Needs: Lead`. A PR opened ready
+    # never emits `ready_for_review`, so this does not double-label.
+    #
+    # Reopened also retries GFI assignment after the author comments on the issue.
     types:
       - opened
+      - ready_for_review
+      - reopened
 env:
   NODE_VERSION: '24'
 jobs:
@@ -12,19 +21,24 @@ jobs:
     # Note this guard intentionally does NOT exclude fork-authored PRs -- those should
     # be labeled too, and pull_request_target keeps the write token needed to do it.
     if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
+    # Serialize opened/ready/reopened runs for this PR to avoid duplicate bot writes.
+    concurrency:
+      group: new-pr-labeler-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     permissions:
       contents: read
-      issues: read
+      issues: write  # swaps Needs: Response for Needs: Review on issues the PR references
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+          check-latest: true
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: cache-octokit
         with:
           path: 'node_modules'
@@ -32,8 +46,9 @@ jobs:
           key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
       - if: steps.cache-octokit.outputs.cache-hit != 'true'
         run: npm install @octokit/action  # zizmor: ignore[adhoc-packages]
-      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN} ${{ github.event.pull_request.number }} "$PR_BODY"
+      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} "${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN}" ${{ github.event.pull_request.number }} "$PR_BODY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
           PR_BODY: ${{ github.event.pull_request.body }}
           GITHUB_EVENT_PULL_REQUEST_USER_LOGIN: ${{ github.event.pull_request.user.login }}

@@ -5,21 +5,21 @@ Migrated from openlibrary.plugins.upstream.merge_authors.merge_authors_json.
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
 from infogami.infobase.client import ClientException
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
+from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
 from openlibrary.plugins.upstream.edits import perform_merge_update
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
 )
-from openlibrary.utils.request_context import req_context, web_ctx_ip
-from openlibrary.utils.retry import MaxRetriesExceeded
+from openlibrary.utils.request_context import web_ctx_ip
 
 router = APIRouter(tags=["merge-authors"])
 
@@ -27,29 +27,27 @@ router = APIRouter(tags=["merge-authors"])
 class MergeAuthorsBody(BaseModel):
     master: str
     duplicates: list[str]
-    mrid: str | None = None
+    mrid: int | None = None
     comment: str | None = None
     olids: str = ""
 
 
-@router.post("/authors/merge.json")
-def merge_authors_json(_: LibrarianDep, data: MergeAuthorsBody) -> Any:
-    with web_ctx_ip(req_context.get().x_forwarded_for or "127.0.0.1"):
-        try:
-            engine = AuthorMergeEngine(AuthorRedirectEngine())
-            merge_result = engine.merge(data.master, data.duplicates)
-        except ClientException as e:
-            raise HTTPException(
-                status_code=400,
-                detail=json.loads(e.json),
-            )
+def _merge(master: str, duplicates: list[str], client_ip: str) -> Any:
+    with web_ctx_ip(client_ip):
+        return AuthorMergeEngine(AuthorRedirectEngine()).merge(master, duplicates)
 
-        try:
-            perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
-        except MaxRetriesExceeded as e:
-            raise HTTPException(
-                status_code=400,
-                detail=str(e.last_exception),
-            )
+
+@router.post("/authors/merge.json")
+async def merge_authors_json(user: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
+    try:
+        # The Infobase merge is sync I/O, so keep it off the event loop.
+        merge_result = await run_in_threadpool(_merge, data.master, data.duplicates, client_ip)
+    except ClientException as e:
+        raise HTTPException(
+            status_code=400,
+            detail=e.get_data() or str(e),
+        )
+
+    await perform_merge_update(username=user.username, mrid=data.mrid, olids=data.olids, comment=data.comment)
 
     return merge_result

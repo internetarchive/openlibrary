@@ -14,7 +14,8 @@ services:
     ports:
       - ${WEB_PORT:-8080}:8080
     environment:
-      - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
+      - GUNICORN_OPTS= --workers 22 --timeout 300 --max-requests 1500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
@@ -32,7 +33,8 @@ services:
     ports:
       - ${FAST_WEB_PORT:-18080}:8080
     environment:
-      - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
@@ -104,12 +106,12 @@ services:
         max-file: "4"
 
   covers:
-    profiles: ["ol-covers0"]
+    profiles: ["ol-covers1"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 30 --max-requests 500
+      - GUNICORN_OPTS= --workers 20 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
     volumes:
       - ../olsystem:/olsystem
@@ -118,13 +120,9 @@ services:
       # openlibrary.yml needs to reference the service name, to avoid some issues with how we
       # use hostname, and a cyclical networks request (or something)
       infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
-    deploy:
-      # Note: the replicas here must be kept in sync with the `upstream covers_backend`
-      # value in `docker/covers_nginx.conf`.
-      replicas: 2
 
   covers_nginx:
-    profiles: ["ol-covers0"]
+    profiles: ["ol-covers1"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
     command: docker/ol-nginx-start.sh
@@ -194,7 +192,7 @@ services:
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/infobase:/var/lib/openlibrary/infobase
   web_haproxy:
-    profiles: ["ol-www0"]
+    profiles: ["ol-www1"]
     image: haproxy:2.9.15
     restart: unless-stopped
     hostname: "$HOSTNAME"
@@ -212,9 +210,9 @@ services:
         max-size: "512m"
         max-file: "4"
   web_nginx:
-    profiles: ["ol-www0"]
+    profiles: ["ol-www1"]
     restart: unless-stopped
-    hostname: "ol-www0" # always want this hostname (or nginx backups will be misnamed)
+    hostname: "ol-www1" # always want this hostname (or nginx backups will be misnamed)
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
     command: docker/ol-nginx-start.sh
@@ -305,7 +303,7 @@ services:
     volumes:
       - ../olsystem:/olsystem
       # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
-      - /www0_1:/1
+      - /www1_1:/1
     logging:
       options:
         max-size: "512m"
@@ -332,7 +330,7 @@ services:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
       # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
-      - /www0_1:/1
+      - /www1_1:/1
     command: docker/ol-solr-updater-start.sh
     networks:
       - webnet
@@ -356,7 +354,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers1", "ol-www1", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile
@@ -379,6 +377,28 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Needed to inspect fail2ban since it runs on the host
       - /var/run/fail2ban:/var/run/fail2ban
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  node-exporter:
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers1", "ol-www1", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
+    image: prom/node-exporter:v1.12.1
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    # Needed to see the host's network/PIDs instead of the container's
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run)($$|/)
     logging:
       options:
         max-size: "512m"

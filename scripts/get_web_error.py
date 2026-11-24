@@ -7,7 +7,7 @@ To see the contents of an Open Library user-reported like 2023-02-03/01155653562
 1. Copy this script into your user directory on any Open Library host.
 2. Type the command above substituting in the error code you are looking for.
 
-This script will ssh into hosts ol-web1 and ol-web2 and if that file is found in the
+This script will ssh into the ol-web hosts and if that file is found in the
 docker_container openlibrary_web_1, it will print its contents to stdout.
 
 Type `yes` if ssh prompts you to add the hosts to your known_hosts file.
@@ -24,11 +24,15 @@ filename is like 2023-02-03/000008077313.html"""
 
 def get_web_error(
     filename: str,
-    hosts=("ol-web1.us.archive.org", "ol-web2.us.archive.org"),
+    hosts=(
+        "ol-web0.us.archive.org",
+        "ol-web2.us.archive.org",
+        "ol-web3.us.archive.org",
+    ),
     docker_container: str = "openlibrary_web_1",
 ) -> str:
     """
-    ssh into hosts ol-web1 and ol-web2 and if filename is found in the
+    ssh into the ol-web hosts and if filename is found in the
     docker_container openlibrary_web_1 then return its contents.
     """
     file_path = f"/var/log/openlibrary/ol-errors/{filename}"

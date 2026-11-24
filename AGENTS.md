@@ -1,14 +1,22 @@
 # AGENTS.md
 
-> **Canonical guide:** [`docs/ai/README.md`](docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`docs/ai-coding-guide.md`](/docs/ai-coding-guide.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
+> 📖 **Guides:** [`docs/i18n/i18n.md`](/docs/i18n/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/frontend/design.md`](/docs/frontend/design.md) — read before touching `static/css/`, templates, macros, or `openlibrary/components/`; [`docs/frontend/web-components.md`](/docs/frontend/web-components.md) — also read before touching `openlibrary/components/lit/`. [`docs/ai-coding-guide.md`](/docs/ai-coding-guide.md) — full architecture and data-model. [`docs/core/database.md`](/docs/core/database.md) — read before writing SQL or touching the DB models. [`docs/core/fastapi-pages.md`](/docs/core/fastapi-pages.md) — read before moving an HTML page from web.py to FastAPI. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
+>
+> 📄 **Jinja:** When touching Jinja files (`*.html.jinja`) — creating, editing, or converting from Templetor — read [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) first for syntax, conventions, and known conversion pitfalls. `docs/wiki/` is a separate repo (not a submodule), cloned automatically on container startup by `docker/ol-home-start.sh`. If it's missing (e.g. working outside Docker), clone it:
+> ```bash
+> git clone https://github.com/internetarchive/openlibrary.wiki.git docs/wiki
+> ```
+> (Inside the Docker container the same command runs with `/openlibrary/docs/wiki` — see `docker/ol-home-start.sh`.)
+>
+> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py`. Single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) run one query each; `async with connection()` wraps multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py` (Ruff `TID251` bans it; never add a `# noqa: TID251` or new sync queries); sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`. Full guide: [`docs/core/database.md`](/docs/core/database.md).
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
@@ -40,6 +48,7 @@ make test-py-uv PYTEST_ARGS="openlibrary/tests/fastapi/"
 # Or directly: uv run --with-requirements requirements_test.txt pytest openlibrary/tests/fastapi/
 
 npm run test:js             # JS tests
+npm run test:js:browser     # JS component tests in real Chromium (browser mode)
 make lint                   # Python lint (ruff)
 npm run lint                # JS + CSS lint
 npm run lint-fix            # Auto-fix JS/CSS
@@ -49,10 +58,28 @@ npm run watch               # Dev mode with hot reload
 ### Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
-- **JS:** ESLint, single quotes, no jQuery in new code
+- **Lint suppressions:** scope them to one line with `# noqa: <CODE>`; never add a file, or a code, to `per-file-ignores` in `pyproject.toml`
+- **JS:** oxlint + oxfmt (ESLint for Vue files only), single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
 - **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
 - **Branches:** `{issue-number}/{type}/{slug}`
+
+### Code Comments
+
+Write comments for someone reading the code as it is now, with no access to the issue, the PR or your session.
+
+- Default to no comment. Add one only when it tells the reader something the code can't: why it's done this way, a constraint or invariant, a workaround, or a consequence that lives elsewhere. Before adding one, name the mistake it prevents.
+- Don't restate the code, or repeat what a well-named function already says. `# Set a one-minute timeout` above `timeout=60` adds nothing. If the code needs narrating to be followed, rename things or split the function instead.
+- Describe the code, not its history. No "now uses", "changed to", "previously", "fixed the bug where" or "as discussed". That belongs in the commit message and PR description.
+- Keep length proportional to the complexity. Most comments are one short line. Longer is fine for a hard algorithm, a regex or a subtle race. If a workaround needs a paragraph of justification, fix the code.
+- Don't address the reviewer, the user or the next agent. No section banners, no commented-out code.
+- Doc comments (JSDoc with types, `:param name:` docstrings) say what a value means, not how the function works inside.
+- Keep existing comments unless your change makes them wrong, and then fix them.
+- Before finishing, reread every comment you added as a new contributor would, and delete the ones that break these rules.
+
+### Picking Up an Issue
+
+Agents opening PRs follow [`CONTRIBUTING.md`](CONTRIBUTING.md) like everyone else: read it before starting work on an issue, including the `Good First Issue` rules (the bot closes PRs from authors who haven't commented on the issue).
 
 ### Entry Points
 
@@ -64,6 +91,7 @@ npm run watch               # Dev mode with hot reload
 | Templates | `openlibrary/templates/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
 | CSS source | `static/css/` |
+| DB access | **Async pool (new code):** `openlibrary/core/async_db.py` · Legacy sync: `openlibrary/core/db.py` |
 
 ### Testing Authenticated Endpoints with curl
 

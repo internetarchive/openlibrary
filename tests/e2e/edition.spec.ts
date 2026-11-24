@@ -3,15 +3,13 @@ import { collectConsoleErrors } from './helpers';
 
 // OL3421846M is present in the dev DB seed data (referenced in lists unit tests).
 // OL7353617M is a known production edition (The Fellowship of the Ring).
-const EDITION_URL = process.env.OL_BASE_URL?.startsWith('https')
-    ? '/books/OL7353617M'
-    : '/books/OL3421846M';
+const EDITION_URL = process.env.OL_BASE_URL?.startsWith('https') ? '/books/OL7353617M' : '/books/OL3421846M';
 
 test.describe('Edition page @smoke', () => {
     test('loads with book title in heading', async ({ page }) => {
         const errors = collectConsoleErrors(page);
         const response = await page.goto(EDITION_URL);
-        test.skip(response?.status() === 404, 'Edition not in this environment\'s DB');
+        test.skip(response?.status() === 404, "Edition not in this environment's DB");
         // h1.work-title is the book title heading in type/edition/title_and_author.html
         const title = page.locator('h1.work-title').filter({ visible: true });
         await expect(title).toBeVisible();

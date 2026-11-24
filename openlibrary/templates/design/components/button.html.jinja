@@ -1,20 +1,28 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
-    {% call ex.example("Variants", "Secondary is the default — a bare <ol-button> renders as secondary.") %}
-        <ol-button>
-            Secondary
-        </ol-button>
+    {% call ex.example("Variants", "Secondary is the default — a bare <ol-button> renders as secondary. Variant carries emphasis and nothing else; hue is a separate axis, tone, below.") %}
         <ol-button variant="primary">
             Primary
         </ol-button>
-        <ol-button variant="destructive">
-            Destructive
+        <ol-button>
+            Secondary
         </ol-button>
         <ol-button variant="ghost">
             Ghost
         </ol-button>
     {% endcall %}
-    {% call ex.example("Links", "Set href and the component renders an <a> with the same styling — for button-shaped navigation like Read, Borrow, or Find in a library. disabled and loading drop the href and set aria-disabled.") %}
+    {% call ex.example("Danger tone", "tone=\"danger\" crosses the danger hue with the emphasis you picked. Beside a Save, stay quiet with ghost or secondary; in the confirmation that follows, Delete is the primary action and takes the fill.") %}
+        <ol-button variant="primary" tone="danger">
+            Primary
+        </ol-button>
+        <ol-button variant="secondary" tone="danger">
+            Secondary
+        </ol-button>
+        <ol-button variant="ghost" tone="danger">
+            Ghost
+        </ol-button>
+    {% endcall %}
+    {% call ex.example("Links", "Set href and the component renders an <a> with the same styling — for button-shaped navigation like Read, Borrow, or Nearby Libraries. disabled and loading drop the href and set aria-disabled.") %}
         <ol-button variant="primary" href="/search?q=hobbit">
             Read
         </ol-button>
@@ -22,7 +30,7 @@
             Borrow
         </ol-button>
         <ol-button href="/search?q=hobbit" target="_blank" rel="noopener">
-            Find in a library
+            Nearby Libraries
         </ol-button>
         <ol-button href="/search?q=hobbit" disabled>
             Unavailable
@@ -173,14 +181,14 @@
         </ol-button>
     {% endcall %}
     {% call ex.example("Disabled") %}
-        <ol-button disabled>
-            Secondary
-        </ol-button>
         <ol-button variant="primary" disabled>
             Primary
         </ol-button>
-        <ol-button variant="destructive" disabled>
-            Destructive
+        <ol-button disabled>
+            Secondary
+        </ol-button>
+        <ol-button variant="primary" tone="danger" disabled>
+            Delete
         </ol-button>
     {% endcall %}
     {% call ex.example("Loading", "Shows a spinner and blocks interaction. The label stays in the DOM so the button's width doesn't shift.") %}
@@ -190,7 +198,7 @@
         <ol-button loading>
             Cancel
         </ol-button>
-        <ol-button variant="destructive" loading>
+        <ol-button variant="primary" tone="danger" loading>
             Delete
         </ol-button>
     {% endcall %}

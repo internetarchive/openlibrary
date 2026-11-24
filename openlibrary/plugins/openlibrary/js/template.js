@@ -3,9 +3,9 @@
 // Inspired by http://ejohn.org/blog/javascript-micro-templating/
 
 export default function Template(tmpl_text) {
-    var s = [];
-    var js = ['var _p=[];', 'with(env) {'];
-    var tokens, i, t, f, g;
+    const s = [];
+    const js = ['var _p=[];', 'with(env) {'];
+    let i, t;
 
     function addCode(text) {
         js.push(text);
@@ -18,27 +18,30 @@ export default function Template(tmpl_text) {
         s.push(text);
     }
 
-    tokens = tmpl_text.split('<%');
+    const tokens = tmpl_text.split('<%');
 
     addText(tokens[0]);
-    for (i=1; i < tokens.length; i++) {
+    for (i = 1; i < tokens.length; i++) {
         t = tokens[i].split('%>');
 
         if (t[0][0] === '=') {
-            addExpr(t[0].substr(1));
-        }
-        else {
+            addExpr(t[0].slice(1));
+        } else {
             addCode(t[0]);
         }
         addText(t[1]);
     }
-    js.push('}', 'return _p.join(\'\');');
+    js.push('}', "return _p.join('');");
 
-    f = new Function(['__s', 'env'], js.join('\n'));
-    g = function(env) {
+    const f = new Function(['__s', 'env'], js.join('\n'));
+    const g = function (env) {
         return f(s, env);
     };
-    g.toString = function() { return tmpl_text; };
-    g.toCode = function() { return f.toString(); };
+    g.toString = function () {
+        return tmpl_text;
+    };
+    g.toCode = function () {
+        return f.toString();
+    };
     return g;
 }

@@ -1,0 +1,36 @@
+{
+  "publish_date": "1939",
+  "publish_country": "fr",
+  "languages": [
+    "fre"
+  ],
+  "title": "Un coeur fier",
+  "subtitle": "roman",
+  "by_statement": "Pearl Buck",
+  "identifiers": {
+    "bnp": [
+      "176723"
+    ]
+  },
+  "authors": [
+    {
+      "birth_date": "1892",
+      "death_date": "1973",
+      "name": "Buck, Pearl S.",
+      "entity_type": "person"
+    },
+    {
+      "name": "Delamain, Germaine",
+      "entity_type": "person",
+      "role": "Translator"
+    }
+  ],
+  "publishers": [
+    "Stock"
+  ],
+  "publish_places": [
+    "Paris"
+  ],
+  "pagination": "350 p.",
+  "number_of_pages": 350
+}

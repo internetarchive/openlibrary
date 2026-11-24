@@ -1,0 +1,435 @@
+/**
+ * The top of the home page for a signed-in reader: one section about now. A
+ * card of their loans and ready holds, and one row of covers of their Currently
+ * Reading and Want to Read books that have a copy free.
+ * Defined in:
+ *  - openlibrary/templates/home/member.html.jinja
+ *  - openlibrary/templates/home/member_skeleton.html.jinja
+ *  - openlibrary/templates/home/welcome.html (hidden when signed in)
+ */
+
+/* The welcome cards introduce the site, so a signed-in reader doesn't get them.
+   The page is cached and shared; the shell marks the reader on <body>. */
+body[data-user-key] .home-welcome {
+  display: none;
+}
+
+/* While the section loads, a skeleton in its shape holds its room
+   (home/member_skeleton.html.jinja). Only a signed-in reader gets the request. */
+.home-now--skeleton {
+  display: none;
+}
+
+[data-user-key] .home-now--skeleton {
+  display: block;
+}
+
+.home-now__sk-title {
+  width: 11em;
+  height: calc(var(--font-size-title-large) * var(--line-height-heading));
+}
+
+/* A bar the height of the text it stands for, a little short of the line. */
+.home-now__sk-line {
+  width: var(--sk-width);
+  max-width: 100%;
+  height: 0.8em;
+  margin-block: calc((var(--sk-leading) - 0.8) * 0.5em);
+  font-size: var(--sk-size);
+}
+
+.home-now__sk-line--label {
+  --sk-width: 9em;
+  --sk-size: var(--font-size-label-large);
+  --sk-leading: var(--line-height-meta);
+}
+
+.home-now__sk-line--more {
+  --sk-width: 16em;
+  --sk-size: var(--font-size-body-small);
+  --sk-leading: var(--line-height-meta);
+}
+
+.home-now__sk-cover {
+  aspect-ratio: 2 / 3;
+}
+
+/* Sections are separated by their own bottom margin; gap is kept for things inside one. */
+.home-now {
+  /* The width of a cover in the row; the card is held to the row's height from it. */
+  --home-now-cover: 80px;
+
+  margin-block: var(--spacing-stack-lg) var(--spacing-stack-xl);
+}
+
+.home-now :where(ul) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-now__head {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.home-now__title {
+  margin: 0;
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-heading);
+}
+
+/* The row of covers takes the width; the card, when there is one, takes the
+   left column beside it. Both columns are one height, the row's, so the card
+   arriving narrows the row and moves nothing below. */
+.home-now__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-inline-xl);
+}
+
+.home-now__body:has(> .home-now__loans:not([hidden])) {
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+}
+
+.home-now__loans,
+.home-now__shelves {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The skeleton's place for the card, until a card arrives. */
+.home-now__loans[hidden] {
+  display: none;
+}
+
+/* A part's small heading. */
+.home-now__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.home-now__label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: 0;
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.home-now__label-icon {
+  flex: none;
+  color: var(--color-icon-muted);
+}
+
+/* The way to the rest of a part's books: quiet text under them, in link blue only on hover. */
+.home-now__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--spacing-inline-sm);
+  margin: auto 0 0;
+  padding-top: var(--spacing-stack-sm);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-meta);
+}
+
+.home-now__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  white-space: nowrap;
+}
+
+.home-now__link:link,
+.home-now__link:visited {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-now__link:hover {
+    color: var(--color-link);
+  }
+
+  .home-now__link:hover > span {
+    text-decoration: underline;
+  }
+}
+
+.home-now__link + .home-now__link::before {
+  content: "·";
+  color: var(--color-text-secondary);
+}
+
+/* Under the row of covers, a sentence naming the shelves the books come from. The
+   shelf names are links in the sentence's own colour, underlined only on hover. */
+.home-now__source {
+  display: block;
+  color: var(--color-text-secondary);
+}
+
+.home-now__source-link:link,
+.home-now__source-link:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-now__source-link:hover {
+    text-decoration: underline;
+  }
+}
+
+/* The loans card --------------------------------------------------------------- */
+
+/* Grows to the row's height, and is built to fit inside it. With no row beside
+   it, it keeps the row's height anyway: the skeleton was that tall. */
+.home-now__card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(var(--home-now-cover) * 1.5);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
+}
+
+/* One book: its cover, and beside it the title, author, and the button with its status. */
+.home-now__main {
+  display: flex;
+  gap: var(--spacing-inset-md);
+}
+
+/* ol-book-cover is as tall as its artwork (`fit`). */
+.home-now__cover {
+  flex: none;
+  width: 56px;
+}
+
+.home-now__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.home-now__book {
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-subheading);
+  line-height: var(--line-height-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__book a:link,
+.home-now__book a:visited {
+  color: var(--color-text-heading);
+  text-decoration: none;
+}
+
+.home-now__author {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__main-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md) var(--spacing-inline-lg);
+  margin-top: auto;
+  padding-top: var(--spacing-stack-xs);
+}
+
+.home-now__action {
+  flex: none;
+  margin: 0;
+}
+
+/* One status line by a book: plain, urgent (a loan nearly due) or ready (a hold to collect). */
+.home-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  min-width: 0;
+  margin: 0;
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.home-status--urgent {
+  color: var(--color-warning-fg);
+}
+
+.home-status--ready {
+  color: var(--color-success-fg);
+}
+
+/* Two books: a line each, cover, title over status, then the button. */
+.home-now__rest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+}
+
+.home-now__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+}
+
+.home-now__thumb {
+  flex: none;
+  width: 28px;
+}
+
+.home-now__item-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.home-now__item-title {
+  overflow: hidden;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-now__item-title:link,
+.home-now__item-title:visited {
+  color: var(--color-text-heading);
+  text-decoration: none;
+}
+
+.home-now__item .home-status {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The row of covers ------------------------------------------------------------ */
+
+/* One row, as many covers as fit whole: a cover past the width is not drawn,
+   so the keyboard doesn't land on one out of sight. The negative margin and
+   padding leave room for the covers' shadows and focus rings. */
+.home-now__shelves {
+  container-type: inline-size;
+}
+
+.home-now__wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--home-now-cover));
+  column-gap: var(--spacing-lg);
+  margin: calc(-1 * var(--spacing-xs));
+  padding: var(--spacing-xs);
+}
+
+/* A cover and its gap are 96px: k covers need 96k − 16px. */
+@container (width < 1328px) {
+  .home-now__wall > li:nth-child(n + 14) {
+    display: none;
+  }
+}
+
+@container (width < 1232px) {
+  .home-now__wall > li:nth-child(n + 13) {
+    display: none;
+  }
+}
+
+@container (width < 1136px) {
+  .home-now__wall > li:nth-child(n + 12) {
+    display: none;
+  }
+}
+
+@container (width < 1040px) {
+  .home-now__wall > li:nth-child(n + 11) {
+    display: none;
+  }
+}
+
+@container (width < 944px) {
+  .home-now__wall > li:nth-child(n + 10) {
+    display: none;
+  }
+}
+
+@container (width < 848px) {
+  .home-now__wall > li:nth-child(n + 9) {
+    display: none;
+  }
+}
+
+@container (width < 752px) {
+  .home-now__wall > li:nth-child(n + 8) {
+    display: none;
+  }
+}
+
+@container (width < 656px) {
+  .home-now__wall > li:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+@container (width < 560px) {
+  .home-now__wall > li:nth-child(n + 6) {
+    display: none;
+  }
+}
+
+@container (width < 464px) {
+  .home-now__wall > li:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+@container (width < 368px) {
+  .home-now__wall > li:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .home-now__body,
+  .home-now__body:has(> .home-now__loans:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-now__source {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .home-now__source-short {
+    display: none;
+  }
+}

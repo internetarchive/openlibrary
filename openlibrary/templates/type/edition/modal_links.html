@@ -1,6 +1,6 @@
-$def with (work, edition, page_url, mobile=False)
+$def with (work, edition, page_url, mobile=False, user_note=None)
 
-$def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=None, action_name=None):
+$def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=None, action_name=None, popover_trigger=False):
   $ href = 'javascript:;'
   $ data_attr = ''
 
@@ -13,6 +13,8 @@ $def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=No
     $ href = '/account/login?redirect=%s' % ctx.path
 
   <a href="$href" class="$link_class icon-link"
+    $if popover_trigger:
+      slot="trigger"
     $if ga_data:
       data-ol-link-track="$ga_data"
     $:data_attr>
@@ -28,11 +30,19 @@ $def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=No
     $if mobile:
       $:macros.StarRatings(work, edition, id="--mobile")
 
-    $ notes_content = icon_link("notes-modal-link", "sticky-note", _("Notes"), ga_data="ModalLinkClick|NoteIcon", action_name=_("adding notes to"))
-    $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
+    $# A saved note marks its own link: the lined icon and the selected treatment
+    $# say the note is there without opening the dialog.
+    $ has_note = bool(user_note and user_note.notes)
+    $ notes_class = "notes-modal-link icon-link--has-note" if has_note else "notes-modal-link"
+    $ notes_icon = "sticky-note-text" if has_note else "sticky-note"
+    $ notes_content = icon_link(notes_class, notes_icon, _("Notes"), ga_data="ModalLinkClick|NoteIcon", action_name=_("adding notes to"))
+    $:macros.NotesModal(notes_content)
 
   $if ctx.get('share_links'):
-    $ share_content = icon_link("share-modal-link", "share-2", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+    $ share_content = icon_link("share-modal-link", "share-2", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon", popover_trigger=True)
     $ share_links = ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")
 </div>
+
+$if work and work.get('key', ''):
+  $:macros.NotesModalDialog(work, edition, 'sidebar-notes', user_note)

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict fkUeomEJdnYX03A9f2ANw1jXt0ZeOleno80oiBmMWb9gnBwErdvLFUcUplxZEey
+\restrict XlnDS4K80Rmja2aj9GV5TfzHPspgC70daRJHBj6wNX06UnoAvDMtDnqJfhP7oZZ
 
 -- Dumped from database version 18.3 (Debian 18.3-1.pgdg13+1)
 -- Dumped by pg_dump version 18.3 (Debian 18.3-1.pgdg13+1)
@@ -62,6 +62,46 @@ CREATE TABLE public.account (
 
 
 ALTER TABLE public.account OWNER TO openlibrary;
+
+--
+-- Name: acquisitions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.acquisitions (
+    id integer NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer NOT NULL,
+    provider_name text NOT NULL,
+    local_id text NOT NULL,
+    data jsonb NOT NULL,
+    created timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text),
+    updated timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text)
+);
+
+
+ALTER TABLE public.acquisitions OWNER TO postgres;
+
+--
+-- Name: acquisitions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.acquisitions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.acquisitions_id_seq OWNER TO postgres;
+
+--
+-- Name: acquisitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.acquisitions_id_seq OWNED BY public.acquisitions.id;
+
 
 --
 -- Name: author_boolean; Type: TABLE; Schema: public; Owner: openlibrary
@@ -425,6 +465,46 @@ CREATE TABLE public.edition_str (
 ALTER TABLE public.edition_str OWNER TO openlibrary;
 
 --
+-- Name: feed_registry; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.feed_registry (
+    id integer NOT NULL,
+    provider_name text NOT NULL,
+    feed_type text DEFAULT 'opds'::text NOT NULL,
+    url text NOT NULL,
+    last_updated timestamp without time zone,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text),
+    updated timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text)
+);
+
+
+ALTER TABLE public.feed_registry OWNER TO postgres;
+
+--
+-- Name: feed_registry_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.feed_registry_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.feed_registry_id_seq OWNER TO postgres;
+
+--
+-- Name: feed_registry_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.feed_registry_id_seq OWNED BY public.feed_registry.id;
+
+
+--
 -- Name: follows; Type: TABLE; Schema: public; Owner: openlibrary
 --
 
@@ -517,6 +597,22 @@ ALTER SEQUENCE public.import_item_id_seq OWNED BY public.import_item.id;
 
 
 --
+-- Name: likes; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.likes (
+    username text NOT NULL,
+    key text NOT NULL,
+    value smallint DEFAULT 1 NOT NULL,
+    created timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    modified timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT likes_value_check CHECK ((value = ANY (ARRAY[1, '-1'::integer])))
+);
+
+
+ALTER TABLE public.likes OWNER TO postgres;
+
+--
 -- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary
 --
 
@@ -575,6 +671,47 @@ ALTER SEQUENCE public.property_id_seq OWNER TO openlibrary;
 --
 
 ALTER SEQUENCE public.property_id_seq OWNED BY public.property.id;
+
+
+--
+-- Name: provider_tokens; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.provider_tokens (
+    id integer NOT NULL,
+    username text NOT NULL,
+    provider_name text NOT NULL,
+    access_token text NOT NULL,
+    refresh_token text,
+    expires timestamp without time zone,
+    scope text DEFAULT ''::text NOT NULL,
+    created timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text),
+    updated timestamp without time zone DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'::text)
+);
+
+
+ALTER TABLE public.provider_tokens OWNER TO postgres;
+
+--
+-- Name: provider_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.provider_tokens_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.provider_tokens_id_seq OWNER TO postgres;
+
+--
+-- Name: provider_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.provider_tokens_id_seq OWNED BY public.provider_tokens.id;
 
 
 --
@@ -1324,6 +1461,13 @@ CREATE TABLE public.yearly_reading_goals (
 ALTER TABLE public.yearly_reading_goals OWNER TO postgres;
 
 --
+-- Name: acquisitions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.acquisitions ALTER COLUMN id SET DEFAULT nextval('public.acquisitions_id_seq'::regclass);
+
+
+--
 -- Name: bestbooks award_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1352,6 +1496,13 @@ ALTER TABLE ONLY public.community_edits_queue ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: feed_registry id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.feed_registry ALTER COLUMN id SET DEFAULT nextval('public.feed_registry_id_seq'::regclass);
+
+
+--
 -- Name: import_batch id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
@@ -1370,6 +1521,13 @@ ALTER TABLE ONLY public.import_item ALTER COLUMN id SET DEFAULT nextval('public.
 --
 
 ALTER TABLE ONLY public.property ALTER COLUMN id SET DEFAULT nextval('public.property_id_seq'::regclass);
+
+
+--
+-- Name: provider_tokens id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.provider_tokens ALTER COLUMN id SET DEFAULT nextval('public.provider_tokens_id_seq'::regclass);
 
 
 --
@@ -1426,6 +1584,14 @@ ALTER TABLE ONLY public.version ALTER COLUMN id SET DEFAULT nextval('public.vers
 --
 
 COPY public.account (thing_id, email, password, active, bot, verified) FROM stdin;
+\.
+
+
+--
+-- Data for Name: acquisitions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.acquisitions (id, work_id, edition_id, provider_name, local_id, data, created, updated) FROM stdin;
 \.
 
 
@@ -1721,10 +1887,10 @@ COPY public.booknotes (username, work_id, edition_id, notes, updated, created) F
 --
 
 COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
-1	Want to Read	A list of books I want to read	f	2026-04-09 00:52:42.440498	2026-04-09 00:52:42.440498
-2	Currently Reading	A list of books I am currently reading	f	2026-04-09 00:52:42.446241	2026-04-09 00:52:42.446241
-3	Already Read	A list of books I have finished reading	f	2026-04-09 00:52:42.448473	2026-04-09 00:52:42.448473
-4	Stopped Reading	A list of books I have stopped reading	f	2026-04-09 00:52:42.448473	2026-04-09 00:52:42.448473
+1	Want to Read	A list of books I want to read	f	2026-10-31 21:02:30.99533	2026-10-31 21:02:30.99533
+2	Currently Reading	A list of books I am currently reading	f	2026-10-31 21:02:30.99643	2026-10-31 21:02:30.99643
+3	Already Read	A list of books I have finished reading	f	2026-10-31 21:02:30.997276	2026-10-31 21:02:30.997276
+4	Stopped Reading	A list of books I have stopped reading	f	2026-10-31 21:02:30.998194	2026-10-31 21:02:30.998194
 \.
 
 
@@ -2436,6 +2602,7 @@ COPY public.data (thing_id, revision, data) FROM stdin;
 664	1	{"publishers": ["ICON Reference"], "languages": [{"key": "/languages/eng"}], "weight": "13.8 ounces", "title": "Adventures of Tom Sawyer (Webster's Chinese-Simplified Thesaurus Edition)", "number_of_pages": 264, "isbn_13": ["9780497260576"], "created": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "physical_format": "Paperback", "isbn_10": ["0497260573"], "publish_date": "May 5, 2006", "key": "/books/OL7652936M", "last_modified": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "latest_revision": 1, "works": [{"key": "/works/OL8193488W"}], "type": {"key": "/type/edition"}, "subjects": ["Chinese", "Foreign Language Study / Chinese", "Foreign Language Study", "Foreign Language - Dictionaries / Phrase Books", "Language"], "physical_dimensions": "9 x 6 x 0.6 inches", "revision": 1}
 665	1	{"description": {"type": "/type/text", "value": "Group of librarians. \\r\\n\\r\\nLibrarians have permission to edit all pages on the website, including the developer documentation."}, "created": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "last_modified": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "latest_revision": 1, "key": "/usergroup/librarians", "type": {"key": "/type/usergroup"}, "revision": 1}
 666	1	{"description": {"type": "/type/text", "value": "User Group for beta-testers.\\r\\n\\r\\nPeople in the group will get to see the beta features of Open Library."}, "created": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "m": "edit", "last_modified": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "latest_revision": 1, "key": "/usergroup/beta-testers", "type": {"key": "/type/usergroup"}, "revision": 1}
+673	1	{"description": {"type": "/type/text", "value": "Permission to allow only loggedin users to modify."}, "readers": [{"key": "/usergroup/everyone"}], "admins": [{"key": "/usergroup/admin"}], "writers": [{"key": "/usergroup/allusers"}], "key": "/permission/loggedinusers", "type": {"key": "/type/permission"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}, "last_modified": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}}
 667	1	{"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, {"label": "LibriVox", "name": "librivox", "notes": "Should be a number", "url": "https://librivox.org/author/@@@", "website": "https://librivox.org"}, {"label": "Project Gutenberg", "name": "project_gutenberg", "notes": "Should be a number", "url": "https://www.gutenberg.org/ebooks/author/@@@", "website": "https://www.gutenberg.org"}, {"label": "VIAF", "name": "viaf", "notes": "", "url": "https://viaf.org/viaf/@@@", "website": "https://viaf.org"}, {"label": "Wikidata", "name": "wikidata", "notes": "", "url": "https://www.wikidata.org/wiki/@@@", "website": "https://wikidata.org"}], "key": "/config/author", "type": {"key": "/type/object"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}, "last_modified": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}}
 668	1	{"body": {"type": "/type/text", "value": "{{PageList(\\"/usergroup\\")}}"}, "type": {"key": "/type/page"}, "title": "User Groups", "m": "edit", "key": "/usergroup", "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:11.984130"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:11.984130"}}
 669	1	{"description": {"type": "/type/text", "value": "Librarians who are permitted to use work merge UI."}, "key": "/usergroup/super-librarians", "members": [{"key": "/people/openlibrary"}], "type": {"key": "/type/usergroup"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}}
@@ -2447,6 +2614,9 @@ COPY public.data (thing_id, revision, data) FROM stdin;
 570	3	{"bio": "Mark Twain, was an American author and humorist. Twain is noted for his novels Adventures of Huckleberry Finn  (1884), which has been called \\"the Great American Novel\\", and The Adventures of Tom Sawyer  (1876). He is extensively quoted. Twain was a friend to presidents, artists, industrialists, and European royalty. ([Source][1].)\\r\\n\\r\\n[1]:http://en.wikipedia.org/wiki/Mark_Twain", "photograph": "/static/files//697/OL2622189A_photograph_1212404607766697.jpg", "name": "Mark Twain", "marc": ["1 \\u001faTwain, Mark,\\u001fd1835-1910.\\u001e"], "alternate_names": ["Mark TWAIN", "M. Twain", "TWAIN", "Twain", "Twain, Mark (pseud)", "Twain, Mark (Spirit)", "Twain, Mark, 1835-1910", "Mark (Samuel L. Clemens) Twain", "Samuel Langhorne Clemens (Mark Twain)", "Samuel Langhorne Clemens", "mark twain"], "death_date": "21 April 1910", "wikipedia": "http://en.wikipedia.org/wiki/Mark_Twain", "key": "/authors/OL18319A", "birth_date": "30 November 1835", "title": "(pseud)", "personal_name": "Mark Twain", "type": {"key": "/type/author"}, "remote_ids": {"wikidata": "Q7245"}, "latest_revision": 3, "revision": 3, "created": {"type": "/type/datetime", "value": "2013-03-28T07:50:47.897206"}, "last_modified": {"type": "/type/datetime", "value": "2023-09-01T22:06:40.403133"}}
 672	1	{"type": {"key": "/type/usergroup"}, "key": "/usergroup/curators", "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2025-09-22T22:30:47.351199"}, "last_modified": {"type": "/type/datetime", "value": "2025-09-22T22:30:47.351199"}}
 61	2	{"classifications": [{"label": "Dewey Decimal Class", "name": "dewey_decimal_class"}, {"label": "Library of Congress", "name": "lc_classifications"}, {"label": "Library and Archives Canada Cataloguing in Publication", "name": "library_and_archives_canada_cataloguing_in_publication", "notes": "", "website": "http://www.collectionscanada.gc.ca/cip/index-e.html"}, {"label": "BISAC Subject Headings", "name": "bisac", "notes": "Classification system by the American trade association The Book Industry Study Group."}, {"label": "DK5 decimal classifications", "name": "dk5", "notes": "Danish library decimal classification system, 5th edition"}, {"label": "Library-Bibliographical Classification", "name": "library_bibliographical_classification"}, {"label": "Regensburger Verbundklassifikation", "name": "rvk", "notes": "", "website": "https://rvk.uni-regensburg.de/"}, {"label": "Finnish Public Libraries", "name": "finnish_public_libraries_classification_system", "notes": "", "website": "http://ykl.kirjastot.fi/en-GB/?PrevLang=fi"}, {"label": "Thema subject categories", "name": "thema", "notes": "Thema is a multilingual subject category scheme managed by EDItEUR and an international group of stakeholders, and is free to use.", "website": "https://www.editeur.org/151/thema/"}, {"label": "Universal Decimal Classification", "name": "udc", "notes": "", "website": "http://www.udcc.org/"}, {"label": "ULRLS Classmark", "name": "ulrls_classmark", "notes": "", "website": "http://www.shl.lon.ac.uk/library/servicesandfacilities/information/classmarks.shtml"}, {"label": "Goethe University Library, Frankfurt", "name": "goethe_university_library,_frankfurt", "notes": "", "website": "http://www.ub.uni-frankfurt.de/en/english.html"}, {"label": "SISO", "name": "siso", "notes": "", "website": "http://www.leren.nl/artikelen/2004/siso.html"}, {"label": "NUR", "name": "nur", "notes": "", "website": "https://nl.wikipedia.org/wiki/Nederlandstalige_Uniforme_Rubrieksindeling"}, {"label": "Identificativo SBN", "name": "identificativo_sbn", "notes": "", "website": "http://www.iccu.sbn.it/opencms/opencms/it/main/sbn/ (in italian)"}, {"label": "Swedish library classification (SAB)", "name": "sab", "notes": ""}], "key": "/config/edition", "roles": ["Author", "Adaptation", "Afterword", "Book Designer", "Contributor", "Colorist", "Copy Editor", "Cover artist", "Contributing artist", "Curator", "Decorator", "Designer", "Editor", "Epilogue", "Foreword", "Graphic Design", "Illustrator", "Indexer", "Introduction", "Narrator", "Photographer", "Printmaker", "Proofreader", "Screenplay", "Translator", "Technical Reviewer", "Text Design", "Typesetter", "Conductor", "Orchestra", "Recording Studio", "Soloist", "Script", "Agent", "As told to", "Assistant Editor", "Art Director", "Botanical Illustrator", "Chief editor", "Compiler", "Consultant Editor", "Consulting Editor", "Editorial Director", "General Editor", "Lettering", "Home Economist", "Map Design and Cartography", "Photo Editor", "Preface", "Posf\\u00e1cio", "Production Controller", "Production Coordinator", "Research", "Senior Editor", "Director", "Musical Director", "Recording Producer", "Producer", "Collected by", "Reviewer", "Co-Authors", "collection", "Information Officer", "Research Dir.", "Revised by", "Notes by", "Selected by", "Copyright", "Photo Scanning Specialist", "printer", "grunt", "hallucinator", "smallchange artist", "Advisory Editor", "Researcher"], "type": {"key": "/type/object"}, "latest_revision": 2, "revision": 2, "created": {"type": "/type/datetime", "value": "2013-03-20T10:27:04.640800"}, "last_modified": {"type": "/type/datetime", "value": "2025-12-08T18:28:52.075951"}}
+674	1	{"permission": {"key": "/permission/restricted"}, "title": "Books", "key": "/books", "child_permission": {"key": "/permission/loggedinusers"}, "type": {"key": "/type/page"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}, "last_modified": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}}
+675	1	{"body": {"type": "/type/text", "value": "<form action=\\"/search/authors\\" class=\\"olform\\"> \\r\\n    <h2 class=\\"collapse\\"><label for=\\"searchAuthor\\">Search for an Author</label></h2> \\r\\n    <p>\\r\\n        <input type=\\"text\\" name=\\"q\\" id=\\"searchAuthor\\" size=\\"100\\" class=\\"larger\\" value=\\"\\"/> \\r\\n        <input type=\\"submit\\" value=\\"Search\\" class=\\"large\\"/> \\r\\n    </p>\\r\\n\\r\\n</form>\\r\\n\\r\\n<h2>Tips for Reconciling Author Records</h2>\\r\\n\\r\\n<h3>Merging Authors</h3>\\r\\n\\r\\nOpen Library holds catalog records from several different libraries around the world, each of which seems to have similar, yet different, cataloging practices. Some libraries will enter an author name like *Lastname, Firstname* whereas others will enter them *Firstname Lastname*. There are also titles (such as Sir, Queen etc.) that clog up Open Library's ability to spot two variations of an author's name as the same author.\\r\\n\\r\\nKeep an eye out for the Magic Merge Wand to help join these duplicates together. There's [more info on the Open Library blog][1] about merging authors, and you can explore [recent author merges][2] too.  For step-by-step instructions, take a look at the [screencast][3].\\r\\n\\r\\n<h3>Splitting Authors</h3>\\r\\n\\r\\nSometimes, Open Library thinks that a certain author has written a book or two that was actually written by another author with a similar or identical name. In this case, the books in question need to be split apart. It's a bit fiddly to do this, but it's really useful.\\r\\n\\r\\nHere's how to split an author:\\r\\n\\r\\n 1. [Find][4] the author that needs to be split. Click the EDIT button. \\r\\n 2. Add some more information to that author record that will help you identify it later, like a middle initial or a birth/death date. Leave a note about what you've changed and hit SAVE.\\r\\n 3. Then, from the author's page, pick the book(s) that need to be split off.\\r\\n 4. Now comes the tricky part. On the book page(s) you've just opened, you'll need to edit the works to point to the other author. Hit EDIT on those work pages.\\r\\n 5. Find the Author field. Clear the name in it, and re-enter the author you'd like to connect this book to. There's a chance there'll only be one entry for the author (hence the join you're trying to split), so you may need to choose \\"Create a New Author Record for...\\" That will create a new author stub, and you can attach the books to that stub.\\r\\n\\r\\nWe know this is a bit complicated, but once you've done it a few times, it's not too bad. The key is to make sure there's some distinct metadata between the two author records so you can tell them apart. Good luck!\\r\\n\\r\\n\\r\\n  [1]: http://blog.openlibrary.org/2010/08/16/duplicate-authors-wave-your-magic-wand/\\r\\n  [2]: http://openlibrary.org/recentchanges/merge-authors\\r\\n  [3]: http://blog.openlibrary.org/2010/09/21/merge-authors-the-screencast/\\r\\n  [4]: http://openlibrary.org/search/authors"}, "permission": {"key": "/permission/restricted"}, "key": "/authors", "title": "Authors", "m": "edit", "child_permission": {"key": "/permission/loggedinusers"}, "type": {"key": "/type/page"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}, "last_modified": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}}
+676	1	{"permission": {"key": "/permission/restricted"}, "title": "Works", "key": "/works", "child_permission": {"key": "/permission/loggedinusers"}, "type": {"key": "/type/page"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}, "last_modified": {"type": "/type/datetime", "value": "2026-10-31T21:06:38.621882"}}
 \.
 
 
@@ -2463,6 +2633,12 @@ COPY public.datum_int (thing_id, key_id, value, ordering) FROM stdin;
 --
 
 COPY public.datum_ref (thing_id, key_id, value, ordering) FROM stdin;
+674	140	22	\N
+674	141	673	\N
+675	141	673	\N
+675	140	22	\N
+676	140	22	\N
+676	141	673	\N
 \.
 
 
@@ -3581,6 +3757,10 @@ COPY public.datum_str (thing_id, key_id, value, ordering) FROM stdin;
 61	139	Thema is a multilingual subject category scheme managed by EDItEUR and an international group of stakeholders, and is free to use.	\N
 61	139	Danish library decimal classification system, 5th edition	\N
 61	139	Classification system by the American trade association The Book Industry Study Group.	\N
+674	36	Books	\N
+675	135	edit	\N
+675	36	Authors	\N
+676	36	Works	\N
 \.
 
 
@@ -5150,6 +5330,14 @@ COPY public.edition_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
+-- Data for Name: feed_registry; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.feed_registry (id, provider_name, feed_type, url, last_updated, data, created, updated) FROM stdin;
+\.
+
+
+--
 -- Data for Name: follows; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
@@ -5170,6 +5358,14 @@ COPY public.import_batch (id, name, submitter, submit_time) FROM stdin;
 --
 
 COPY public.import_item (id, batch_id, added_time, import_time, status, error, ia_id, data, ol_key, comments, submitter) FROM stdin;
+\.
+
+
+--
+-- Data for Name: likes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.likes (username, key, value, created, modified) FROM stdin;
 \.
 
 
@@ -5334,6 +5530,16 @@ COPY public.property (id, type, name) FROM stdin;
 137	57	bio
 138	57	remote_ids.wikidata
 139	14	classifications.notes
+140	50	permission
+141	50	child_permission
+\.
+
+
+--
+-- Data for Name: provider_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.provider_tokens (id, username, provider_name, access_token, refresh_token, expires, scope, created, updated) FROM stdin;
 \.
 
 
@@ -5433,7 +5639,7 @@ COPY public.store (id, key, "json") FROM stdin;
 25	ebooks/books/OL24972169M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24972169M"}
 30	ebooks/books/OL24982896M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24982896M"}
 31	ebooks/books/OL24605334M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24605334M"}
-35	account/openlibrary	{"status": "active", "username": "openlibrary", "enc_password": "dcd90$ab61967218c45d5095dac4f61ab82ccc", "created_on": "2013-03-20T10:27:09.689977", "last_login": "2023-09-01T21:34:05.944452", "lusername": "openlibrary", "type": "account", "data": {"displayname": "Open Library"}, "email": "openlibrary@example.com", "internetarchive_itemname": "@openlibrary", "s3_keys": {"access": "foo", "secret": "foo"}}
+36	account/openlibrary	{"status": "active", "username": "openlibrary", "enc_password": "dcd90$ab61967218c45d5095dac4f61ab82ccc", "created_on": "2013-03-20T10:27:09.689977", "last_login": "2026-10-31T21:06:37.539790", "lusername": "openlibrary", "type": "account", "data": {"displayname": "Open Library"}, "email": "openlibrary@example.com", "internetarchive_itemname": "@openlibrary", "s3_keys": {"access": "foo", "secret": "foo"}}
 \.
 
 
@@ -5482,18 +5688,18 @@ COPY public.store_index (id, store_id, type, name, value) FROM stdin;
 173	31	ebook	_key	ebooks/books/OL24605334M
 174	31	ebook	book_key	/books/OL24605334M
 175	31	ebook	borrowed	false
-210	35	account	_key	account/openlibrary
-211	35	account	lusername	openlibrary
-212	35	account	data.displayname	Open Library
-213	35	account	last_login	2023-09-01T21:34:05.944452
-214	35	account	created_on	2013-03-20T10:27:09.689977
-215	35	account	s3_keys.access	foo
-216	35	account	internetarchive_itemname	@openlibrary
-217	35	account	enc_password	dcd90$ab61967218c45d5095dac4f61ab82ccc
-218	35	account	s3_keys.secret	foo
-219	35	account	status	active
-220	35	account	email	openlibrary@example.com
-221	35	account	username	openlibrary
+222	36	account	_key	account/openlibrary
+223	36	account	status	active
+224	36	account	s3_keys.secret	foo
+225	36	account	data.displayname	Open Library
+226	36	account	last_login	2026-10-31T21:06:37.539790
+227	36	account	email	openlibrary@example.com
+228	36	account	lusername	openlibrary
+229	36	account	username	openlibrary
+230	36	account	internetarchive_itemname	@openlibrary
+231	36	account	enc_password	dcd90$ab61967218c45d5095dac4f61ab82ccc
+232	36	account	created_on	2013-03-20T10:27:09.689977
+233	36	account	s3_keys.access	foo
 \.
 
 
@@ -6238,6 +6444,10 @@ COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM 
 570	/authors/OL18319A	57	3	2013-03-28 07:50:47.897206	2023-09-01 22:06:40.403133
 672	/usergroup/curators	12	1	2025-09-22 22:30:47.351199	2025-09-22 22:30:47.351199
 61	/config/edition	14	2	2013-03-20 10:27:04.6408	2025-12-08 18:28:52.075951
+673	/permission/loggedinusers	13	1	2026-10-31 21:06:38.621882	2026-10-31 21:06:38.621882
+674	/books	50	1	2026-10-31 21:06:38.621882	2026-10-31 21:06:38.621882
+675	/authors	50	1	2026-10-31 21:06:38.621882	2026-10-31 21:06:38.621882
+676	/works	50	1	2026-10-31 21:06:38.621882	2026-10-31 21:06:38.621882
 \.
 
 
@@ -6302,6 +6512,7 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 54	update	524	172.29.0.1		f	2023-09-01 22:06:40.403133	[{"key": "/authors/OL18319A", "revision": 3}]	{}
 55	update	524	172.18.0.1	Create usergroup	f	2025-09-22 22:30:47.351199	[{"key": "/usergroup/curators", "revision": 1}]	{}
 56	update	524	172.18.0.1	Add classifications from production	f	2025-12-08 18:28:52.075951	[{"key": "/config/edition", "revision": 2}]	{}
+57	default-bulk-update	524	172.18.0.6	\N	f	2026-10-31 21:06:38.621882	[{"key": "/permission/loggedinusers", "revision": 1}, {"key": "/books", "revision": 1}, {"key": "/authors", "revision": 1}, {"key": "/works", "revision": 1}]	{}
 \.
 
 
@@ -6310,6 +6521,19 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 --
 
 COPY public.transaction_details (id, transaction_id, thing_id, key_id, action, author_id, is_bot, created) FROM stdin;
+1	57	673	2	create	524	f	2026-10-31 21:06:46.532745
+2	57	674	141	create	524	f	2026-10-31 21:06:46.532745
+3	57	675	141	create	524	f	2026-10-31 21:06:46.532745
+4	57	675	36	create	524	f	2026-10-31 21:06:46.532745
+5	57	676	141	create	524	f	2026-10-31 21:06:46.532745
+6	57	675	135	create	524	f	2026-10-31 21:06:46.532745
+7	57	673	7	create	524	f	2026-10-31 21:06:46.532745
+8	57	674	140	create	524	f	2026-10-31 21:06:46.532745
+9	57	675	140	create	524	f	2026-10-31 21:06:46.532745
+10	57	673	10	create	524	f	2026-10-31 21:06:46.532745
+11	57	674	36	create	524	f	2026-10-31 21:06:46.532745
+12	57	676	140	create	524	f	2026-10-31 21:06:46.532745
+13	57	676	36	create	524	f	2026-10-31 21:06:46.532745
 \.
 
 
@@ -6805,6 +7029,9 @@ COPY public.user_ref (thing_id, key_id, value, ordering) FROM stdin;
 20	13	524	\N
 20	13	24	\N
 669	13	524	\N
+673	2	20	\N
+673	7	19	\N
+673	10	18	\N
 \.
 
 
@@ -7519,6 +7746,10 @@ COPY public.version (id, thing_id, revision, transaction_id) FROM stdin;
 688	570	3	54
 689	672	1	55
 690	61	2	56
+691	673	1	57
+692	674	1	57
+693	675	1	57
+694	676	1	57
 \.
 
 
@@ -8178,6 +8409,13 @@ COPY public.yearly_reading_goals (username, year, target, created, updated) FROM
 
 
 --
+-- Name: acquisitions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.acquisitions_id_seq', 1, false);
+
+
+--
 -- Name: bestbooks_award_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -8206,6 +8444,13 @@ SELECT pg_catalog.setval('public.community_edits_queue_id_seq', 1, false);
 
 
 --
+-- Name: feed_registry_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.feed_registry_id_seq', 1, false);
+
+
+--
 -- Name: import_batch_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
@@ -8223,7 +8468,14 @@ SELECT pg_catalog.setval('public.import_item_id_seq', 1, false);
 -- Name: property_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.property_id_seq', 139, true);
+SELECT pg_catalog.setval('public.property_id_seq', 141, true);
+
+
+--
+-- Name: provider_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.provider_tokens_id_seq', 1, false);
 
 
 --
@@ -8237,35 +8489,35 @@ SELECT pg_catalog.setval('public.seq_id_seq', 1, false);
 -- Name: store_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.store_id_seq', 35, true);
+SELECT pg_catalog.setval('public.store_id_seq', 36, true);
 
 
 --
 -- Name: store_index_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.store_index_id_seq', 221, true);
+SELECT pg_catalog.setval('public.store_index_id_seq', 233, true);
 
 
 --
 -- Name: thing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.thing_id_seq', 672, true);
+SELECT pg_catalog.setval('public.thing_id_seq', 676, true);
 
 
 --
 -- Name: transaction_details_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.transaction_details_id_seq', 1, false);
+SELECT pg_catalog.setval('public.transaction_details_id_seq', 13, true);
 
 
 --
 -- Name: transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.transaction_id_seq', 56, true);
+SELECT pg_catalog.setval('public.transaction_id_seq', 57, true);
 
 
 --
@@ -8307,7 +8559,7 @@ SELECT pg_catalog.setval('public.type_work_seq', 1, false);
 -- Name: version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.version_id_seq', 690, true);
+SELECT pg_catalog.setval('public.version_id_seq', 694, true);
 
 
 --
@@ -8316,6 +8568,22 @@ SELECT pg_catalog.setval('public.version_id_seq', 690, true);
 
 ALTER TABLE ONLY public.account
     ADD CONSTRAINT account_email_key UNIQUE (email);
+
+
+--
+-- Name: acquisitions acquisitions_local_id_provider_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.acquisitions
+    ADD CONSTRAINT acquisitions_local_id_provider_name_key UNIQUE (local_id, provider_name);
+
+
+--
+-- Name: acquisitions acquisitions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.acquisitions
+    ADD CONSTRAINT acquisitions_pkey PRIMARY KEY (id);
 
 
 --
@@ -8383,6 +8651,22 @@ ALTER TABLE ONLY public.community_edits_queue
 
 
 --
+-- Name: feed_registry feed_registry_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.feed_registry
+    ADD CONSTRAINT feed_registry_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: feed_registry feed_registry_provider_name_url_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.feed_registry
+    ADD CONSTRAINT feed_registry_provider_name_url_key UNIQUE (provider_name, url);
+
+
+--
 -- Name: follows follows_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
@@ -8415,6 +8699,14 @@ ALTER TABLE ONLY public.import_item
 
 
 --
+-- Name: likes likes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_pkey PRIMARY KEY (username, key);
+
+
+--
 -- Name: observations observations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -8436,6 +8728,22 @@ ALTER TABLE ONLY public.property
 
 ALTER TABLE ONLY public.property
     ADD CONSTRAINT property_type_name_key UNIQUE (type, name);
+
+
+--
+-- Name: provider_tokens provider_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.provider_tokens
+    ADD CONSTRAINT provider_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: provider_tokens provider_tokens_username_provider_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.provider_tokens
+    ADD CONSTRAINT provider_tokens_username_provider_name_key UNIQUE (username, provider_name);
 
 
 --
@@ -8571,6 +8879,27 @@ CREATE INDEX account_thing_id_idx ON public.account USING btree (thing_id);
 
 
 --
+-- Name: acquisitions_edition_id_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX acquisitions_edition_id_idx ON public.acquisitions USING btree (edition_id);
+
+
+--
+-- Name: acquisitions_updated_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX acquisitions_updated_idx ON public.acquisitions USING btree (updated);
+
+
+--
+-- Name: acquisitions_work_id_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX acquisitions_work_id_idx ON public.acquisitions USING btree (work_id);
+
+
+--
 -- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary
 --
 
@@ -8655,6 +8984,13 @@ CREATE INDEX booknotes_work_id_idx ON public.booknotes USING btree (work_id);
 
 
 --
+-- Name: bookshelves_books_created_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX bookshelves_books_created_idx ON public.bookshelves_books USING btree (created);
+
+
+--
 -- Name: bookshelves_books_updated_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -8673,6 +9009,13 @@ CREATE INDEX bookshelves_books_work_id_idx ON public.bookshelves_books USING btr
 --
 
 CREATE INDEX bookshelves_events_user_checkins_idx ON public.bookshelves_events USING btree (username, work_id, event_type DESC, event_date DESC);
+
+
+--
+-- Name: community_edits_queue_updated_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX community_edits_queue_updated_idx ON public.community_edits_queue USING btree (updated);
 
 
 --
@@ -8781,6 +9124,13 @@ CREATE INDEX edition_str_thing_id_idx ON public.edition_str USING btree (thing_i
 
 
 --
+-- Name: feed_registry_provider_name; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX feed_registry_provider_name ON public.feed_registry USING btree (provider_name);
+
+
+--
 -- Name: import_batch_name; Type: INDEX; Schema: public; Owner: openlibrary
 --
 
@@ -8827,6 +9177,20 @@ CREATE INDEX import_item_import_time ON public.import_item USING btree (import_t
 --
 
 CREATE INDEX import_item_status ON public.import_item USING btree (status);
+
+
+--
+-- Name: likes_key_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX likes_key_idx ON public.likes USING btree (key);
+
+
+--
+-- Name: likes_username_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX likes_username_idx ON public.likes USING btree (username);
 
 
 --
@@ -10122,6 +10486,13 @@ GRANT SELECT ON TABLE public.account TO readcreateaccess;
 
 
 --
+-- Name: TABLE acquisitions; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.acquisitions TO readcreateaccess;
+
+
+--
 -- Name: TABLE author_boolean; Type: ACL; Schema: public; Owner: openlibrary
 --
 
@@ -10248,10 +10619,24 @@ GRANT SELECT ON TABLE public.edition_str TO readcreateaccess;
 
 
 --
+-- Name: TABLE feed_registry; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.feed_registry TO readcreateaccess;
+
+
+--
 -- Name: TABLE follows; Type: ACL; Schema: public; Owner: openlibrary
 --
 
 GRANT SELECT ON TABLE public.follows TO readcreateaccess;
+
+
+--
+-- Name: TABLE likes; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.likes TO readcreateaccess;
 
 
 --
@@ -10273,6 +10658,13 @@ GRANT SELECT ON TABLE public.observations TO readcreateaccess;
 --
 
 GRANT SELECT ON TABLE public.property TO readcreateaccess;
+
+
+--
+-- Name: TABLE provider_tokens; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.provider_tokens TO readcreateaccess;
 
 
 --
@@ -10510,4 +10902,4 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABL
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fkUeomEJdnYX03A9f2ANw1jXt0ZeOleno80oiBmMWb9gnBwErdvLFUcUplxZEey
+\unrestrict XlnDS4K80Rmja2aj9GV5TfzHPspgC70daRJHBj6wNX06UnoAvDMtDnqJfhP7oZZ

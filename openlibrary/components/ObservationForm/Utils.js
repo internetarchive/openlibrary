@@ -7,13 +7,3 @@
 export function decodeAndParseJSON(str) {
     return JSON.parse(decodeURIComponent(str));
 }
-
-/*
-    window.$ is a jQuery object
-    window.$.colorbox is a jQuery plugin
-*/
-export function resizeColorbox() {
-    if (window.$ && window.$.colorbox && typeof window.$.colorbox.resize === 'function') {
-        window.$.colorbox.resize();
-    }
-}

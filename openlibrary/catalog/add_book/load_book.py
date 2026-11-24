@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 from pydantic import TypeAdapter, ValidationError
 
@@ -18,88 +18,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.catalog.add_book.load_book")
 
-# Sort by descending length to remove the _longest_ match.
-# E.g. remove "señorita" and not "señor", when both match.
-HONORIFICS: Final = sorted(
-    [
-        "countess",
-        "doctor",
-        "doktor",
-        "dr",
-        "dr.",
-        "frau",
-        "fräulein",
-        "herr",
-        "lady",
-        "lord",
-        "m.",
-        "madame",
-        "mademoiselle",
-        "miss",
-        "mister",
-        "mistress",
-        "mixter",
-        "mlle",
-        "mlle.",
-        "mme",
-        "mme.",
-        "monsieur",
-        "mr",
-        "mr.",
-        "mrs",
-        "mrs.",
-        "ms",
-        "ms.",
-        "mx",
-        "mx.",
-        "professor",
-        "señor",
-        "señora",
-        "señorita",
-        "sir",
-        "sr.",
-        "sra.",
-        "srta.",
-    ],
-    key=len,
-    reverse=True,
-)
-
-HONORIFC_NAME_EXECPTIONS = frozenset(
-    {
-        "dr. seuss",
-        "dr seuss",
-        "dr oetker",
-        "doctor oetker",
-    }
-)
-
-
-def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
-    """
-    Returns False if there is no by_statement in rec.
-    Otherwise returns whether author name uses eastern name order.
-    TODO: elaborate on what this actually means, and how it is used.
-    """
-    if "by_statement" not in rec:
-        return False
-    if "authors" not in rec:
-        return False
-    name = author["name"]
-    flipped = flip_name(name)
-    name = name.replace(".", "")
-    name = name.replace(", ", "")
-    if name == flipped.replace(".", ""):
-        # name was not flipped
-        return False
-    return rec["by_statement"].find(name) != -1
-
 
 class AuthorImportDict(TypedDict):
     """
     Keys expected in the author import dict.
 
-    TODO: Make https://github.com/internetarchive/openlibrary/blob/master/openlibrary/schemata/import.schema.json#L135 consistent with this
+    TODO: Make https://github.com/internetarchive/openlibrary/blob/master/openlibrary/schemata/import.schema.json
+          #/definitions/import_author consistent with this
     """
 
     name: str
@@ -178,6 +103,10 @@ def find_author(author: AuthorImportDict) -> list[Author]:
             seen.add(obj["key"])
         return obj
 
+    def has_conflicting_remote_ids(candidate: Author) -> bool:
+        existing = candidate.get("remote_ids") or {}
+        return any(id_type in existing and existing[id_type] != value for id_type, value in (author.get("remote_ids") or {}).items())
+
     def get_redirected_authors(authors: list[Author]):
         keys = [a.type.key for a in authors]
         if any(k != "/type/author" for k in keys):
@@ -248,6 +177,9 @@ def find_author(author: AuthorImportDict) -> list[Author]:
         assert a.type.key == "/type/author"
         if has_dates(author) and not author_dates_match(author, a):
             continue
+        if has_conflicting_remote_ids(a):
+            # A shared name, but the ids say this is someone else.
+            continue
         match.append(a)
     if not match:
         return []
@@ -266,42 +198,16 @@ def find_entity(author: AuthorImportDict) -> Author | None:
     """
     assert isinstance(author, dict)
     things = find_author(author)
-    if "remote_ids" in author:
-        for index, t in enumerate(things):
-            t.remote_ids, _ = t.merge_remote_ids(author["remote_ids"])
-            things[index] = t
     return things[0] if things else None
 
 
-def remove_author_honorifics(name: str) -> str:
-    """
-    Remove honorifics from an author's name field.
-
-    If the author's name is only an honorific, it will return the original name.
-    """
-    if name.casefold() in HONORIFC_NAME_EXECPTIONS:
-        return name
-
-    if honorific := next(
-        (
-            honorific
-            for honorific in HONORIFICS
-            if name.casefold().startswith(f"{honorific} ")  # Note the trailing space.
-        ),
-        None,
-    ):
-        return name[len(f"{honorific} ") :].lstrip() or name
-    return name
-
-
-def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> Author | dict[str, Any]:
+def author_import_record_to_author(author_import_record_dict: dict) -> Author | dict[str, Any]:
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.
     Does NOT create new authors.
 
     :param dict author: Author import record {"name": "Some One"}
-    :param bool eastern: Eastern name order
     :return: Open Library style Author representation, either existing Author with "key",
              or new candidate dict without "key".
     """
@@ -317,13 +223,17 @@ def author_import_record_to_author(author_import_record_dict: dict, eastern=Fals
             exc_info=True,
         )
     author_import_record = cast(AuthorImportDict, author_import_record_dict)
-    if author_import_record.get("entity_type") != "org" and not eastern:
+    if author_import_record.get("entity_type") != "org":
         do_flip(author_import_record)
     if existing := find_entity(author_import_record):
         assert existing.type.key == "/type/author"
         new = existing
         if "death_date" in author_import_record and "death_date" not in existing:
             new["death_date"] = author_import_record["death_date"]
+        # Merge incoming author identifiers (like ISNI)
+        if "remote_ids" in author_import_record:
+            remote_ids, _ = new.merge_remote_ids(author_import_record["remote_ids"])
+            new["remote_ids"] = remote_ids
         return new
     a: dict[str, Any] = {"type": {"key": "/type/author"}}
     for f in (
@@ -359,9 +269,7 @@ def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
             if v and v[0]:
                 book["authors"] = []
                 for author in v:
-                    author["name"] = remove_author_honorifics(author["name"])
-                    east = east_in_by_statement(rec, author)
-                    book["authors"].append(author_import_record_to_author(author, eastern=east))
+                    book["authors"].append(author_import_record_to_author(author))
             continue
 
         if k in ("languages", "translated_from"):

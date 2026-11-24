@@ -1,7 +1,17 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate, mybooks_home
 from openlibrary.utils.request_context import RequestContextVars, req_context
+
+
+@pytest.fixture(autouse=True)
+def _s3_cookie():
+    """render_template is a web.py handler and reads the patron's `s3` cookie
+    with web.cookies(), which needs a web.py request these tests don't build."""
+    with patch("openlibrary.plugins.upstream.mybooks.web.cookies", return_value={"s3": "test-s3"}):
+        yield
 
 
 def test_unified_loans_carousel_merges_active_and_history():
@@ -54,13 +64,9 @@ def test_unified_loans_carousel_merges_active_and_history():
     mock_mb.readlog = MagicMock()
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
-    # Stub site.get().get to resolve the active books
+    # Stub site.get().get_many to batch-resolve the active books
     mock_site = MagicMock()
-    site_map = {
-        "/books/OL1M": active_loan_book_A,
-        "/books/OL2M": active_loan_book_B,
-    }
-    mock_site.get.side_effect = site_map.get
+    mock_site.get_many.return_value = [active_loan_book_A, active_loan_book_B]
 
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
@@ -144,7 +150,7 @@ def test_active_loan_ranks_above_recently_returned():
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
     mock_site = MagicMock()
-    mock_site.get.side_effect = {"/books/OL1M": active_loan_book_A}.get
+    mock_site.get_many.return_value = [active_loan_book_A]
 
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
@@ -203,7 +209,7 @@ def _mb_for_viewer(*, is_my_page: bool):
 
 def _run_render(mb, mock_history_data):
     mock_site = MagicMock()
-    mock_site.get.side_effect = {}.get
+    mock_site.get_many.return_value = []
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
     with (
@@ -241,5 +247,4 @@ def test_loan_history_still_fetched_on_own_profile():
     mb.username = "viewer"
     _run_render(mb, mock_history_data)
 
-    mock_history_data.assert_called_once()
-    assert mock_history_data.call_args.args[0] == "viewer"
+    mock_history_data.assert_called_once_with("viewer", page=1, s3_cookie="test-s3")

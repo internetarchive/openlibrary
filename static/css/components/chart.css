@@ -15,13 +15,18 @@
   padding: 0 var(--spacing-inset-sm) var(--chart-bottom-padding)
     var(--spacing-inset-lg);
   margin-top: 0;
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-small);
   font-family: var(--font-family-body);
   background-color: transparent;
   background-image: url(/static/images/ajax-loader-bar.gif);
   background-repeat: no-repeat;
   background-position: 340px 60px;
   box-sizing: border-box;
+}
+/* The chart canvas is transparent, so drop the spinner background once it's drawn (or there's nothing to draw) */
+.chart:has(canvas),
+.chart.chart-empty {
+  background-image: none;
 }
 /* Only show the spinner background while its loading indicator is visible --
    otherwise it bleeds through the async-partial-retry prompt, which lives
@@ -39,7 +44,7 @@
   -moz-transform: rotate(-90deg);
   -o-transform: rotate(-90deg);
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
-  font-size: 10px;
+  font-size: var(--font-size-label-small);
   color: var(--color-success-fg);
   text-transform: uppercase;
 }
@@ -49,7 +54,7 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font-size: 10px;
+  font-size: var(--font-size-label-small);
   color: var(--color-success-fg);
   text-transform: uppercase;
 }
@@ -60,6 +65,10 @@
   height: var(--chart-height);
   width: 100%;
   overflow-y: hidden;
+}
+/* chartjs-plugin-zoom's pinch handler sets touch-action: none inline; keep vertical scrolling working over the chart */
+.chart .thisChart canvas {
+  touch-action: pan-y !important;
 }
 
 /* --width-breakpoint-desktop: 960px */

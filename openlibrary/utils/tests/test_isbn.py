@@ -115,7 +115,7 @@ def test_normalize_identifier(identifier, expected) -> None:
 def test_isbn_13_to_isbn_10_returns_none_for_979_prefix() -> None:
     """979-prefix ISBN-13s have no ISBN-10 equivalent (per the ISBN standard).
 
-    isbn_13_to_isbn_10() must return None for these; build_primary_stores()
+    isbn_13_to_isbn_10() must return None for these; build_stores()
     relies on this to decide whether to use Amazon's /dp/ route or fall back
     to a search URL (fix for issue #6572).
     """

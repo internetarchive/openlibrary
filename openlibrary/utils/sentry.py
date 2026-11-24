@@ -1,5 +1,6 @@
 import logging
 import re
+import socket
 from dataclasses import dataclass
 from os import getenv
 
@@ -74,7 +75,18 @@ class Sentry:
             profiles_sample_rate=self.config.get("profiles_sample_rate", 0.0),
             release=get_software_version(),
             enable_logs=self.config.get("enable_logs", True),
+            # Without this, server_name is the hostname. On Kubernetes that's the pod
+            # name, so every new pod adds a new value; the deployment sets one fixed
+            # name per app instead.
+            server_name=getenv("OL_SENTRY_SERVER_NAME") or None,
         )
+        if getenv("OL_SENTRY_SERVER_NAME"):
+            # Keep the pod and node on each event as a context: shown on the event,
+            # but not indexed as a tag.
+            sentry_sdk.get_global_scope().set_context(
+                "host",
+                {"hostname": socket.gethostname(), "node": getenv("OL_SENTRY_NODE_NAME")},
+            )
 
     def bind_to_webpy_app(self, app: web.application) -> None:
         _internalerror = app.internalerror
@@ -158,9 +170,53 @@ class InfogamiRoute:
     route: str
     mode: str = "view"
     encoding: str | None = None
+    path: str = ""  # the path the route was matched against
 
     def to_sentry_name(self) -> str:
         return self.route + (f".{self.encoding}" if self.encoding else "") + (f"?m={self.mode}" if self.mode != "view" else "")
+
+
+def find_infogami_route() -> InfogamiRoute:
+    """Return the route matched by the current Infogami request.
+
+    This lookup is shared by Sentry and request metrics so route naming still
+    works when Sentry is disabled.
+    """
+
+    def find_type() -> tuple[str, str] | None:
+        return next(
+            ((pattern, typename) for pattern, typename in type_patterns.items() if re.search(pattern, web.ctx.path)),
+            None,
+        )
+
+    result = InfogamiRoute("<other>", path=web.ctx.path)
+
+    cls, _args = find_page()
+    if cls:
+        result.route = cls.path if hasattr(cls, "path") else "/" + cls.__name__
+    elif type_page := find_type():
+        result.route = type_page[0]
+
+    if web.ctx.get("encoding"):
+        result.encoding = web.ctx.encoding
+
+    requested_mode = web.input(_method="GET").get("m", "view")
+    if requested_mode in modes:
+        result.mode = requested_mode
+
+    return result
+
+
+def webpy_framework_tag_processor(handler):
+    """
+    Outermost web.py processor: tag every event in the request, including errors
+    raised in processors that run before InfogamiSentryProcessor (e.g. the layout).
+    Remove with web.py, along with the `fastapi` and `framework` tags on the FastAPI side
+    (see create_app in openlibrary/asgi_app.py).
+    """
+    with sentry_sdk.isolation_scope() as scope:
+        scope.set_tag("framework", "webpy")
+        return handler()
 
 
 class WebPySentryProcessor:
@@ -205,34 +261,7 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
     """
 
     def find_route_name(self) -> str:
-        def find_type() -> tuple[str, str] | None:
-            return next(
-                ((pattern, typename) for pattern, typename in type_patterns.items() if re.search(pattern, web.ctx.path)),
-                None,
-            )
-
-        def find_route() -> InfogamiRoute:
-            result = InfogamiRoute("<other>")
-
-            cls, _args = find_page()
-            if cls:
-                if hasattr(cls, "path"):
-                    result.route = cls.path
-                else:
-                    result.route = web.ctx.path
-            elif type_page := find_type():
-                result.route = type_page[0]
-
-            if web.ctx.get("encoding"):
-                result.encoding = web.ctx.encoding
-
-            requested_mode = web.input(_method="GET").get("m", "view")
-            if requested_mode in modes:
-                result.mode = requested_mode
-
-            return result
-
-        return find_route().to_sentry_name()
+        return find_infogami_route().to_sentry_name()
 
 
 _sentry: Sentry | None = None

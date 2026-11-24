@@ -19,7 +19,7 @@ import './OlIcon.js';
  * @prop {String} moreText - Label for the expand toggle (default: "Read more")
  * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
  * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
- * @prop {String} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {"medium" | "small"} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
  *
  * @slot - The collapsible content
  *
@@ -47,7 +47,7 @@ export class OLReadMore extends LitElement {
         labelSize: { type: String, attribute: 'label-size' },
         // Internal state
         _expanded: { type: Boolean, state: true },
-        _unnecessary: { type: Boolean, state: true },
+        _unnecessary: { type: Boolean, state: true }
     };
 
     static styles = css`
@@ -72,14 +72,11 @@ export class OLReadMore extends LitElement {
             position: relative;
             color: var(--ol-readmore-link-color);
             font-family: inherit;
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
             text-align: center;
             width: 100%;
             padding: var(--spacing-inset-lg) var(--spacing-md) var(--spacing-md) var(--spacing-md);
-            background: linear-gradient(
-                var(--ol-readmore-gradient-color-transparent) 0,
-                var(--ol-readmore-gradient-color) var(--spacing-md)
-            );
+            background: linear-gradient(var(--ol-readmore-gradient-color-transparent) 0, var(--ol-readmore-gradient-color) var(--spacing-md));
             border: none;
             border-radius: 0 0 4px 4px;
             cursor: pointer;
@@ -89,8 +86,17 @@ export class OLReadMore extends LitElement {
             margin-top: calc(-1 * var(--spacing-md));
         }
 
-        .toggle-btn:hover {
-            text-decoration: underline;
+        @media (hover: hover) and (pointer: fine) {
+            .toggle-btn:hover {
+                text-decoration: underline;
+            }
+        }
+
+        /* Inset ring: the toggle is full-bleed, so an outward offset would draw
+           outside the container it sits on. */
+        .toggle-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         .toggle-btn.hidden {
@@ -122,7 +128,7 @@ export class OLReadMore extends LitElement {
         }
 
         .toggle-btn.small {
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             padding-top: var(--spacing-inset-md);
             padding-bottom: var(--spacing-inset-sm);
         }
@@ -201,7 +207,7 @@ export class OLReadMore extends LitElement {
         if (rect.top < 0) {
             this.scrollIntoView({
                 behavior: 'smooth',
-                block: 'start',
+                block: 'start'
             });
         }
     }
@@ -224,10 +230,7 @@ export class OLReadMore extends LitElement {
         const sizeClass = this.labelSize === 'small' ? 'small' : '';
 
         return html`
-            <div
-                class="content-wrapper ${this._expanded ? 'expanded' : ''}"
-                style="${this._getContentStyle()}"
-            >
+            <div class="content-wrapper ${this._expanded ? 'expanded' : ''}" style="${this._getContentStyle()}">
                 <slot></slot>
             </div>
             <button

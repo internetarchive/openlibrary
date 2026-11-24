@@ -1,6 +1,7 @@
 """Utilities for coverstore"""
 
 import contextlib
+import functools
 import json
 import mimetypes
 import os
@@ -13,7 +14,9 @@ from typing import Final
 from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
 from urllib.parse import urlencode as real_urlencode
 
-import requests
+import httpx
+
+from openlibrary.utils.async_utils import cache_per_event_loop
 
 COVERSTORE_USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 # Note: These domains need to also be kept insync with the IA squid proxy
@@ -28,15 +31,102 @@ ALLOWED_COVER_URLS: Final = (
     r"^https?://books.google.com/.*$",
     r"^https?://commons.wikimedia.org/.*$",
     r"^https?://m.media-amazon.com/.*$",
+    # e.g. https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg
+    r"^https?://www\.gutenberg\.org/cache/[^?#]+$",
+    # e.g. https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format
+    r"^https?://cdn\.sanity\.io/images/[^#]+$",
 )
 
 
-session = requests.Session()
-session.headers.update({"User-Agent": COVERSTORE_USER_AGENT})
+# Per event loop, not process-wide: an AsyncClient binds its pooled connections to
+# whichever loop first contends for them. See cache_per_event_loop.
+get_async_session = cache_per_event_loop(
+    functools.partial(
+        httpx.AsyncClient,
+        headers={"User-Agent": COVERSTORE_USER_AGENT},
+        timeout=10,
+        follow_redirects=True,
+    )
+)
 
 
 def is_allowed_cover_url(url: str) -> bool:
     return any(re.match(pattern, url) for pattern in ALLOWED_COVER_URLS)
+
+
+# Open Library / Internet Archive hosts a coverstore response may redirect a
+# browser to. Host-anchored (an exact host or a subdomain of one), never a
+# substring, so both https://openlibrary.org.evil.com/ and
+# https://evil.com/?x=openlibrary.org are rejected.
+TRUSTED_REDIRECT_HOSTS: Final = frozenset(
+    {
+        "openlibrary.org",
+        "covers.openlibrary.org",
+        "archive.org",
+    }
+)
+
+
+def _host_is_trusted(host: str | None) -> bool:
+    if not host:
+        return False
+    host = host.lower()
+    return any(host == h or host.endswith("." + h) for h in TRUSTED_REDIRECT_HOSTS)
+
+
+def is_allowed_default_redirect_url(url: str) -> bool:
+    """True if ``url`` is safe to 303-redirect a browser to as a missing-cover
+    fallback (the ``?default=<url>`` query param): an http(s) URL on a trusted
+    OL/IA host, or an already-allowed external cover URL. Everything else
+    (evil.com, internal hosts, scheme-relative ``//evil.com``, ``javascript:``)
+    is rejected, closing the GHSA-8ffj open redirect."""
+    # A backslash has no place in a URL, but WHATWG browsers normalise it to "/"
+    # while urlsplit does not: https://evil.com\@openlibrary.org parses here as
+    # host=openlibrary.org (trusted) yet a browser navigates to evil.com. Reject
+    # it outright so the string we validate matches the string the browser uses.
+    if "\\" in url:
+        return False
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return False
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        return False
+    return _host_is_trusted(parts.hostname) or is_allowed_cover_url(url)
+
+
+def safe_redirect_target(target: str | None, fallback: str = "/") -> str:
+    """Return ``target`` only when it is a safe redirect destination, else
+    ``fallback``. Safe means a site-relative path (``/foo``, but not ``//evil``
+    or ``/\\evil``) or an absolute http(s) URL on a trusted OL/IA host. This
+    neutralises the attacker-controlled redirect_url/success_url/failure_url/
+    referer open redirects on the touch/delete/upload endpoints."""
+    if not target:
+        return fallback
+    cleaned = target.strip()
+    # Browsers strip embedded control chars; a value carrying them is hostile.
+    if not cleaned or any(c in cleaned for c in ("\n", "\r", "\t")):
+        return fallback
+    # A backslash anywhere is unsafe: WHATWG browsers normalise "\" to "/", so
+    # urlsplit's view of the host would differ from the browser's (e.g.
+    # https://evil.com\@openlibrary.org parses as host=openlibrary.org here but
+    # navigates to evil.com). Reject it rather than validate a different string.
+    if "\\" in cleaned:
+        return fallback
+    # Scheme-relative host -> unsafe.
+    if cleaned.startswith("//"):
+        return fallback
+    try:
+        parts = urlsplit(cleaned)
+    except ValueError:
+        return fallback
+    # Pure site-relative path (no scheme, no netloc).
+    if not parts.scheme and not parts.netloc:
+        return cleaned if cleaned.startswith("/") else fallback
+    # Absolute URL: only http(s) on a trusted host.
+    if parts.scheme in ("http", "https") and _host_is_trusted(parts.hostname):
+        return cleaned
+    return fallback
 
 
 def safeint(value, default=None):
@@ -60,7 +150,7 @@ def get_ol_url():
     return config.ol_url.removesuffix("/")
 
 
-def ol_things(key: str, value: str) -> list[str]:
+async def ol_things(key: str, value: str) -> list[str]:
     # Import here to avoid top-level import with side-effects (requires config being loaded)
     from openlibrary.coverstore import oldb
 
@@ -74,19 +164,18 @@ def ol_things(key: str, value: str) -> list[str]:
         "limit": 10,
     }
     try:
-        resp = session.get(
+        resp = await get_async_session().get(
             f"{get_ol_url()}/api/things",
             params={"query": json.dumps(query)},
-            timeout=10,
         )
         result = resp.json()
         return result["result"]
-    except OSError:
+    except httpx.RequestError:
         traceback.print_exc()
         return []
 
 
-def ol_get(olkey: str) -> dict | None:
+async def ol_get(olkey: str) -> dict | None:
     # Import here to avoid top-level import with side-effects (requires config being loaded)
     from openlibrary.coverstore import oldb
 
@@ -94,8 +183,9 @@ def ol_get(olkey: str) -> dict | None:
         return oldb.get(olkey)
 
     try:
-        return session.get(f"{get_ol_url()}/{olkey}.json", timeout=10).json()
-    except OSError:
+        resp = await get_async_session().get(f"{get_ol_url()}/{olkey}.json")
+        return resp.json()
+    except httpx.RequestError:
         return None
 
 
@@ -103,11 +193,12 @@ class DisallowedCoverUrl(Exception):
     pass
 
 
-def download_external_image(url: str) -> bytes:
+async def download_external_image(url: str) -> bytes:
     if not is_allowed_cover_url(url):
         raise DisallowedCoverUrl(f"URL {url} is not an allowed cover URL")
 
-    return session.get(url, timeout=10).content
+    resp = await get_async_session().get(url)
+    return resp.content
 
 
 def urldecode(url: str) -> tuple[str, dict[str, str]]:

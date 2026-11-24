@@ -42,7 +42,11 @@ from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.utils import olid_to_key
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import set_context_from_legacy_web_py, site
+
+# One pattern for every seed type: delegate keys its `pages` registry by the raw
+# regex text, so both handlers below must register the identical string.
+SEED_LISTS_PATH = r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
 
 
 def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
@@ -216,32 +220,6 @@ def seed_key_to_seed_type(key: str) -> SeedType:
 
 
 @public
-def get_seed_info(doc):
-    """Takes a thing, determines what type it is, and returns a seed summary"""
-    seed_type = seed_key_to_seed_type(doc.key)
-    match seed_type:
-        case "subject":
-            seed = subject_key_to_seed(doc.key)
-            title = doc.name
-        case "work" | "edition":
-            seed = {"key": doc.key}
-            title = doc.get("title", "untitled")
-        case "author":
-            seed = {"key": doc.key}
-            title = doc.get("name", "name missing")
-        case _:
-            raise ValueError(f"Invalid seed type: {seed_type}")
-    return {
-        "seed": seed,
-        "type": seed_type,
-        "title": web.websafe(title),
-        "remove_dialog_html": _(
-            "Are you sure you want to remove <strong>%(title)s</strong> from your list?",
-            title=web.websafe(title),
-        ),
-    }
-
-
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():
@@ -268,11 +246,20 @@ def get_list_data(list, seed, include_cover_url=True):
     return d
 
 
+def evict_user_lists(user_key: str) -> None:
+    """Drop the memoised list keys of a user, so the next read sees a list just made or deleted.
+
+    The infobase edit hook evicts the same entry, but not reliably in every environment.
+    """
+    cache.memcache_cache.delete("d" + user_key)
+
+
 @public
 def get_user_lists(seed_info):
     user = get_current_user()
     if not user:
         return []
+    # The default limit is the memcached path; the list write paths below evict it.
     user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
     return [get_list_data(user_list, seed, include_cover_url=False) for user_list in user_lists]
@@ -280,16 +267,16 @@ def get_user_lists(seed_info):
 
 @public
 def convert_list(list):
-    site = web.ctx.site
-    data = site._load(list)
-    newList = List(site, list, data)
+    _site = site.get()
+    data = _site._load(list)
+    newList = List(_site, list, data)
     return newList
 
 
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = SEED_LISTS_PATH
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
@@ -321,7 +308,7 @@ class lists(delegate.page):
             else:
                 return None
         else:
-            return web.ctx.site.get(key)
+            return site.get().get(key)
 
 
 class lists_edit(delegate.page):
@@ -334,14 +321,14 @@ class lists_edit(delegate.page):
             return web.badrequest("Invalid URL.")
 
         key = (user_key or "") + f"/{list_type_plural}/{list_id}"
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 f"Permission denied to edit {key}.",
             )
 
-        lst = cast(List | None, web.ctx.site.get(key))
+        lst = cast(List | None, site.get().get(key))
         if lst is None:
             raise web.notfound()
         return render_template("type/list/edit", lst, list_type=list_type, new=False)
@@ -349,7 +336,7 @@ class lists_edit(delegate.page):
     def POST(self, user_key: str | None, list_type_plural: Literal["lists", "series"], list_id: str | None):  # type: ignore[override]
         list_key = (user_key or "") + f"/{list_type_plural}/{list_id or ''}"
 
-        if not web.ctx.site.can_write(list_key):
+        if not site.get().can_write(list_key):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -366,7 +353,7 @@ class lists_edit(delegate.page):
 
         # Creating a new list
         if not list_id:
-            list_num = web.ctx.site.seq.next_value("list")
+            list_num = site.get().seq.next_value("list")
             list_key += f"OL{list_num}L"
             list_record.key = list_key
 
@@ -382,12 +369,12 @@ class lists_edit(delegate.page):
 
             works_to_remove: set[str] = set()
             if list_id:
-                old_series = cast(Series, web.ctx.site.get(list_key))
+                old_series = cast(Series, site.get().get(list_key))
                 works_to_remove = {seed.key for seed in old_series.get_seeds() if seed.key not in work_key_to_list_seed}
 
             works = cast(
                 list[Work],
-                web.ctx.site.get_many(list(work_key_to_list_seed) + list(works_to_remove)),
+                site.get().get_many(list(work_key_to_list_seed) + list(works_to_remove)),
             )
             for work in works:
                 if work.key in works_to_remove:
@@ -417,7 +404,7 @@ class lists_edit(delegate.page):
                 records_to_save.append(cast(dict, work.dict()))
 
         action = "create-series" if list_type_plural == "series" else "create-list"
-        web.ctx.site.save_many(
+        site.get().save_many(
             records_to_save,
             action=action,
             comment=web.input(_comment="")._comment or None,
@@ -458,7 +445,7 @@ class lists_add(delegate.page):
             # Not allowed to have user-specific series
             return web.badrequest("Invalid URL.")
 
-        if user_key and not web.ctx.site.can_write(user_key):
+        if user_key and not site.get().can_write(user_key):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
@@ -486,6 +473,8 @@ class lists_delete:
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
         site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
+        if key.startswith("/people/"):
+            evict_user_lists(key.rsplit("/lists/", 1)[0])
 
 
 def build_pagination_links(
@@ -581,12 +570,14 @@ class lists_json:
         if spamcheck.is_spam(lst):
             raise SpamListError
 
-        return site.save(
+        result = site.save(
             lst.dict(),
             comment="Created new list.",
             action="create-list",
             data={"list": {"key": lst.key}, "seeds": seeds},
         )
+        evict_user_lists(user.key)
+        return result
 
     @staticmethod
     def process_seeds(
@@ -596,7 +587,7 @@ class lists_json:
 
 
 class lists_yaml(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = SEED_LISTS_PATH
     encoding = "yml"
     content_type = "text/yaml"
 
@@ -696,6 +687,20 @@ def _resolve_list_view_items(seeds: list[ListSeed]) -> list[ResolvedListItem]:
     return items
 
 
+def sort_list_seeds(seeds: list[ListSeed], sort: str | None) -> list[ListSeed]:
+    """Reorder list seeds for display; unknown sorts preserve list order."""
+    if sort == "added":
+        return seeds[::-1]
+    if sort == "title":
+        books = [seed for seed in seeds if seed.type in ("work", "edition")]
+        others = [seed for seed in seeds if seed.type not in ("work", "edition")]
+        # str(): legacy records can hold a non-string title.
+        return sorted(books, key=lambda seed: utils.strip_accents(str(seed.title)).casefold()) + others
+    if sort == "last_modified":
+        return h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+    return seeds
+
+
 class list_view(delegate.page):
     """HTML view for a single list or series page.
 
@@ -736,10 +741,11 @@ class list_view(delegate.page):
             web.redirect(lst.location)
 
         page = safeint(query_param("page"), 1) - 1
-        sort = query_param("sort", None)
+        # A series always stays in volume order.
+        sort = None if lst.type.key == "/type/series" else query_param("sort", None)
         page_size = LIST_VIEW_PAGE_SIZE
 
-        seeds = lst.get_seeds(sort=(sort == "last_modified"), resolve_redirects=True)
+        seeds = sort_list_seeds(lst.get_seeds(resolve_redirects=True), sort)
         page_seeds = seeds[page * page_size : page * page_size + page_size]
         items = _resolve_list_view_items(page_seeds)
 
@@ -918,7 +924,7 @@ class lists_embed(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/embed"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         if doc is None or doc.type.key != "/type/list":
             raise web.notfound()
         return render_template("type/list/embed", doc)
@@ -928,7 +934,7 @@ class export(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/export"
 
     def GET(self, key):
-        lst = cast(List | None, web.ctx.site.get(key))
+        lst = cast(List | None, site.get().get(key))
         if not lst:
             raise web.notfound()
 
@@ -1005,8 +1011,9 @@ class export(delegate.page):
         return export_data
 
     def make_doc(self, rawdata):
-        data = web.ctx.site._process_dict(common.parse_query(rawdata))
-        doc = client.create_thing(web.ctx.site, data["key"], data)
+        _site = site.get()
+        data = _site._process_dict(common.parse_query(rawdata))
+        doc = client.create_thing(_site, data["key"], data)
         return doc
 
 
@@ -1014,7 +1021,7 @@ class feeds(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/feeds/(updates).(atom)"
 
     def GET(self, key, name, fmt):
-        lst = cast(List | None, web.ctx.site.get(key))
+        lst = cast(List | None, site.get().get(key))
         if lst is None:
             raise web.notfound()
         text = getattr(self, "GET_" + name + "_" + fmt)(lst)
@@ -1038,8 +1045,9 @@ def _get_recently_modified_lists(limit, offset=0):
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
-    keys = web.ctx.site.things(
+    keys = site.get().things(
         {
             "type": "/type/list",
             "sort": "-last_modified",
@@ -1047,7 +1055,7 @@ def _get_recently_modified_lists(limit, offset=0):
             "offset": offset,
         }
     )
-    lists = web.ctx.site.get_many(keys)
+    lists = site.get().get_many(keys)
 
     return [lst.dict() for lst in lists]
 
@@ -1079,12 +1087,13 @@ def _preload_lists(lists):
             if isinstance(seed, dict) and "key" in seed:
                 keys.add(seed["key"])
 
-    web.ctx.site.get_many(list(keys))
+    site.get().get_many(list(keys))
 
 
 def _get_active_lists_in_random(limit=20, preload=True):
     if "env" not in web.ctx:
         delegate.fakeload()
+        set_context_from_legacy_web_py()
 
     lists = []
     offset = 0
@@ -1116,7 +1125,7 @@ def get_active_lists_in_random(limit=20, preload=True):
     )
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
-    return [web.ctx.site.new(xlist["key"], xlist) for xlist in lists]
+    return [site.get().new(xlist["key"], xlist) for xlist in lists]
 
 
 async def get_lists_async(keys: list[str]):

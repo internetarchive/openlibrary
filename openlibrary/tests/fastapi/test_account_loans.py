@@ -15,7 +15,6 @@ class FakeLegacyUser(dict):
         key = f"/people/{username}"
         super().__init__(key=key)
         self.key = key
-        self.update_loan_status = Mock()
 
 
 class FakeEdition:
@@ -30,21 +29,20 @@ class TestAccountLoansJson:
 
         assert response.status_code == 401
 
-    def test_loans_json_updates_loan_status_and_returns_loans(self, fastapi_client, mock_authenticated_user):
+    def test_loans_json_returns_loans(self, fastapi_client, mock_authenticated_user):
         legacy_user = FakeLegacyUser()
         loans = [{"book": "/books/OL1M", "ocaid": "test_ocaid"}]
 
         with (
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
-            patch("openlibrary.plugins.upstream.account.borrow.get_loans", return_value=loans) as get_loans,
+            patch("openlibrary.plugins.upstream.account.lending.get_loans_of_user", return_value=loans) as get_loans_of_user,
         ):
             response = fastapi_client.get("/account/loans.json")
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/json"
         assert response.json() == {"loans": loans}
-        legacy_user.update_loan_status.assert_called_once_with()
-        get_loans.assert_called_once_with(legacy_user)
+        get_loans_of_user.assert_called_once_with(legacy_user.key)
 
     @pytest.mark.parametrize(
         ("path", "page"),
@@ -84,6 +82,36 @@ class TestAccountLoansJson:
         assert get_data.called
         assert get_data.call_args.kwargs["page"] == page
 
+    def test_loan_history_json_passes_request_s3_cookie(self, fastapi_client, mock_authenticated_user):
+        """Regression for #13959: the route used to 500 with
+        AttributeError: 'ThreadedDict' object has no attribute 'env' because
+        get_loan_history_data() read web.cookies() on a FastAPI worker thread."""
+        response = MagicMock()
+        response.json.return_value = {"history": {"items": []}}
+
+        with (
+            patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=FakeLegacyUser()),
+            patch("openlibrary.core.lending.OpenLibraryAccount.get_by_username", return_value=MagicMock()),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}) as parse_s3_cookie,
+            patch("openlibrary.core.lending.s3_loan_api", return_value=response),
+            patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
+        ):
+            fastapi_client.cookies.set("s3", "a%3As")
+            result = fastapi_client.get("/account/loan-history.json")
+
+        assert result.status_code == 200
+        assert result.json() == {"loans_history": {"docs": [], "show_next": False, "limit": 25, "page": 1}}
+        parse_s3_cookie.assert_called_once_with("a%3As")
+
+    def test_loan_history_json_returns_404_when_account_missing(self, fastapi_client, mock_authenticated_user):
+        with (
+            patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=FakeLegacyUser()),
+            patch("openlibrary.core.lending.OpenLibraryAccount.get_by_username", return_value=None),
+        ):
+            result = fastapi_client.get("/account/loan-history.json")
+
+        assert result.status_code == 404
+
     def test_loan_history_json_rejects_invalid_page(self, fastapi_client, mock_authenticated_user):
         response = fastapi_client.get("/account/loan-history.json?page=0")
 
@@ -96,8 +124,8 @@ class TestAccountLoansJson:
             ("/account/loan-history.json", "openlibrary.fastapi.account.legacy_account.get_account_loan_history_json"),
         ],
     )
-    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path, monkeypatch):
-        monkeypatch.setenv("LOCAL_DEV", "true")
+    @pytest.mark.usefixtures("local_dev")
+    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path):
         legacy_user = FakeLegacyUser()
 
         with (
@@ -149,12 +177,11 @@ class TestAccountLoansJson:
 
         with (
             patch("openlibrary.core.lending.OpenLibraryAccount.get_by_username", return_value=mock_account),
-            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
             patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "acc", "secret": "sec"}),
             patch("openlibrary.core.lending.s3_loan_api", return_value=mock_response) as mock_s3_loan_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}) as mock_availability,
         ):
-            result = get_loan_history_data(username="testuser", page=1)
+            result = get_loan_history_data(username="testuser", page=1, s3_cookie="irrelevant")
 
             assert result == {
                 "docs": [],

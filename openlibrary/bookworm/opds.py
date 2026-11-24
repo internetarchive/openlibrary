@@ -1,0 +1,328 @@
+"""OPDS 2.0 parsing for the BookWorm feed-ingestion service (#12844).
+
+Parses OPDS 2.0 publications from a registered provider feed into Open Library
+import records (``import.schema.json``) that carry an ``acquisitions`` list.
+
+Built on pydantic models so heterogeneous feeds validate and map uniformly:
+
+- **Better World Books** — ISBN identifier, ``acquisition/buy`` links with a price.
+- **Project Gutenberg** — identifier is a ``gutenberg.org/ebooks/<id>`` URL,
+  ``acquisition/open-access`` (free) links.
+- **Lenny** — no ``metadata.identifier``; the id comes from the ``self`` link.
+  Open-access titles carry ``acquisition/open-access``; borrowable ones carry
+  ``acquisition/borrow`` with ``properties.availability`` and an
+  ``properties.authenticate`` pointer to the provider's OPDS Authentication
+  Document. Most of a Lenny catalogue is the latter.
+
+Feeds also vary in shape (``author`` may be a dict or a list; ``language`` a str
+or a list), which the models normalize. Extends the OPDS types drafted in #12852.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict
+
+from openlibrary.coverstore.utils import is_allowed_cover_url
+from openlibrary.plugins.upstream.utils import get_marc21_language
+
+BUY_REL = "http://opds-spec.org/acquisition/buy"
+OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
+BORROW_REL = "http://opds-spec.org/acquisition/borrow"
+# Full-size image rels; Gutenberg uses the OPDS 1 rel, BWB and Lenny use "cover".
+COVER_RELS = ("cover", "http://opds-spec.org/image")
+# rel -> the access value we store on the acquisition
+ACQUISITION_ACCESS = {
+    BUY_REL: "buy",
+    OPEN_ACCESS_REL: "open-access",
+    BORROW_REL: "borrow",
+}
+
+
+def _as_list(value: Any) -> list:
+    """OPDS scalars-or-lists (``author``, ``language``) -> a list."""
+    if value is None:
+        return []
+    return value if isinstance(value, list) else [value]
+
+
+def _localized(value: Any) -> str | None:
+    """An OPDS string, which may be a language map like ``{"en": "..."}``."""
+    if isinstance(value, dict):
+        value = value.get("en") or next(iter(value.values()), None)
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def _names(value: Any) -> list[str]:
+    """Names from an OPDS contributor or subject field.
+
+    Each entry may be a bare string or an object with a (possibly localized)
+    ``name``, and the field itself may be one entry or a list of them.
+    """
+    names = []
+    for entry in _as_list(value):
+        name = _localized(entry.get("name") if isinstance(entry, dict) else entry)
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+# Subject schemes that are classifications rather than topics.
+LCC_SCHEME = "http://purl.org/dc/terms/LCC"
+
+# Contributor ``identifier`` URLs we recognise -> the OL author remote_ids type
+# they carry, which add_book matches authors on before falling back to names.
+AUTHOR_ID_PATTERNS = ((re.compile(r"^https?://(?:www\.)?gutenberg\.org/ebooks/author/(\d+)/?$"), "project_gutenberg"),)
+
+
+def _author_remote_ids(identifier: Any) -> dict[str, str]:
+    if isinstance(identifier, str):
+        for pattern, id_type in AUTHOR_ID_PATTERNS:
+            if match := pattern.match(identifier.strip()):
+                return {id_type: match[1]}
+    return {}
+
+
+class Price(BaseModel):
+    currency: str
+    value: float
+
+
+class Availability(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    state: str | None = None
+
+
+class LinkProperties(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    price: Price | None = None
+    availability: Availability | None = None
+
+
+class Link(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    rel: str
+    href: str
+    type: str | None = None
+    title: str | None = None
+    length: int | None = None
+    properties: LinkProperties | None = None
+
+
+class Publication(BaseModel):
+    """One OPDS 2.0 publication, with normalized accessors."""
+
+    model_config = ConfigDict(extra="allow")
+    metadata: dict[str, Any] = {}
+    links: list[Link] = []
+    images: list[Link] = []
+
+    @property
+    def title(self) -> str | None:
+        return self.metadata.get("title")
+
+    @property
+    def subtitle(self) -> str | None:
+        return _localized(self.metadata.get("subtitle"))
+
+    @property
+    def authors(self) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for entry in _as_list(self.metadata.get("author")):
+            name = _localized(entry.get("name") if isinstance(entry, dict) else entry)
+            if not name or any(a["name"] == name for a in out):
+                continue
+            author: dict[str, Any] = {"name": name}
+            if isinstance(entry, dict) and (remote_ids := _author_remote_ids(entry.get("identifier"))):
+                author["remote_ids"] = remote_ids
+            out.append(author)
+        return out
+
+    @property
+    def publishers(self) -> list[str]:
+        return _names(self.metadata.get("publisher"))
+
+    @property
+    def description(self) -> str | None:
+        return _localized(self.metadata.get("description"))
+
+    @property
+    def subjects(self) -> list[str]:
+        topics = [s for s in _as_list(self.metadata.get("subject")) if not (isinstance(s, dict) and s.get("scheme") == LCC_SCHEME)]
+        return _names(topics)
+
+    @property
+    def lc_classifications(self) -> list[str]:
+        """LCC codes, which OPDS carries as subjects in the LCC scheme."""
+        codes = []
+        for subject in _as_list(self.metadata.get("subject")):
+            if isinstance(subject, dict) and subject.get("scheme") == LCC_SCHEME and (code := _localized(subject.get("code"))) and code not in codes:
+                codes.append(code)
+        return codes
+
+    @property
+    def number_of_pages(self) -> int | None:
+        pages = self.metadata.get("numberOfPages")
+        return pages if isinstance(pages, int) and not isinstance(pages, bool) and pages > 0 else None
+
+    @property
+    def languages(self) -> list[str]:
+        return [lang for lang in _as_list(self.metadata.get("language")) if lang]
+
+    @property
+    def modified(self) -> str | None:
+        return self.metadata.get("modified")
+
+    def self_href(self) -> str | None:
+        for link in self.links:
+            if link.rel == "self" and link.href:
+                return link.href
+        return None
+
+    def cover(self) -> str | None:
+        for image in self.images:
+            if image.rel in COVER_RELS and image.href:
+                return image.href
+        return None
+
+    def acquisition_links(self) -> list[Link]:
+        return [link for link in self.links if link.rel in ACQUISITION_ACCESS]
+
+
+class Feed(BaseModel):
+    """Per-provider config that specializes the generic OPDS 2.0 parser.
+
+    ``id_strategy`` selects how a publication's stable local id is derived:
+    ``isbn`` (from ``urn:isbn:`` in ``metadata.identifier``), ``gutenberg`` (the
+    numeric id in the ``gutenberg.org/ebooks/<id>`` identifier URL), or
+    ``self_link`` (the last path segment of the ``self`` link — Lenny).
+
+    ``local_id_is_ol_edition`` says the extracted id is itself an Open Library
+    edition number, so a record can name its edition outright instead of leaving
+    the catalog to infer it from the title. Separate from ``id_strategy`` because
+    how an id is extracted and what that id means are different questions.
+    """
+
+    provider_name: str
+    id_strategy: str  # "isbn" | "gutenberg" | "self_link"
+    local_id_is_ol_edition: bool = False
+
+
+ISBN_URN_PREFIX = "urn:isbn:"
+_GUTENBERG_ID_RE = re.compile(r"/ebooks/(\d+)")
+
+
+def extract_local_id(pub: Publication, feed: Feed) -> str | None:
+    """The provider-stable id for a publication (identity in the acquisitions table)."""
+    identifier = pub.metadata.get("identifier") or ""
+    if feed.id_strategy == "isbn":
+        return identifier[len(ISBN_URN_PREFIX) :] if identifier.startswith(ISBN_URN_PREFIX) else None
+    if feed.id_strategy == "gutenberg":
+        match = _GUTENBERG_ID_RE.search(identifier)
+        return match.group(1) if match else None
+    if feed.id_strategy == "self_link":
+        href = pub.self_href() or ""
+        # Drop any query/fragment so ".../pub/123?x=y" yields "123", not "123?x=y".
+        href = href.split("?", 1)[0].split("#", 1)[0]
+        return href.rstrip("/").rsplit("/", 1)[-1] or None
+    return None
+
+
+def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict[str, Any]]:
+    """Acquisition items for a publication: one per buy/open-access link.
+
+    Each item is an acquisitions-table row minus work/edition ids (the catalog
+    supplies those): ``provider_name`` + ``local_id`` + a ``data`` blob. The blob
+    stores the raw OPDS acquisition ``link`` as the source of truth (so provider
+    data we don't lift out yet — currency, indirect acquisition, ... — isn't
+    lost); the flat access/url/format/title/price fields are a denormalized
+    convenience copy of values already inside ``link``.
+    """
+    items = []
+    # Read once, outside the loop: `self` identifies the publication, so every
+    # acquisition link on it shares the same one. `extract_local_id` already
+    # reads this for the `self_link` id strategy and drops the URL once it has
+    # the id; keeping it is the difference between a consumer being able to
+    # follow an acquisition back to its source record and having to
+    # reverse-engineer the URL per provider.
+    source_url = pub.self_href()
+    for link in pub.acquisition_links():
+        data: dict[str, Any] = {"access": ACQUISITION_ACCESS[link.rel], "url": link.href}
+        if source_url:
+            data["source_url"] = source_url
+        if link.type:
+            data["format"] = link.type
+        if link.title:
+            data["title"] = link.title
+        if link.properties and link.properties.price:
+            data["price"] = link.properties.price.model_dump()
+        # Whether the copy can be borrowed right now. Without it a borrow CTA
+        # cannot tell "available" from "all copies out", and the flat fields
+        # would be the only thing a consumer reads.
+        if link.properties and (avail := link.properties.availability) and avail.state:
+            data["availability"] = avail.state
+        data["link"] = link.model_dump(mode="json", exclude_none=True)
+        items.append({"provider_name": feed.provider_name, "local_id": local_id, "data": data})
+    return items
+
+
+def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
+    """Map an OPDS publication to an OL import record with ``acquisitions[]``.
+
+    Returns None if the publication lacks a title, authors, or a resolvable id.
+    Identifier mapping is per-provider: BWB -> ``isbn_13``; Gutenberg ->
+    ``identifiers.project_gutenberg``; Lenny -> ``identifiers.lenny``.
+    """
+    local_id = extract_local_id(pub, feed)
+    if not local_id or not pub.title or not pub.authors:
+        return None
+
+    # OPDS feeds give ISO codes (e.g. "en"); OL editions need MARC21 ("eng").
+    languages = [marc for code in pub.languages if (marc := get_marc21_language(code))]
+    record: dict[str, Any] = {
+        "title": pub.title,
+        "authors": pub.authors,
+        "languages": languages,
+        "source_records": [f"{feed.provider_name}:{local_id}"],
+        "publish_date": pub.metadata.get("published", ""),
+    }
+    optional_fields = {
+        "subtitle": pub.subtitle,
+        "publishers": pub.publishers,
+        "description": pub.description,
+        "subjects": pub.subjects,
+        "lc_classifications": pub.lc_classifications,
+        "number_of_pages": pub.number_of_pages,
+    }
+    record.update({field: value for field, value in optional_fields.items() if value})
+    # Invariant: for non-ISBN feeds the ``identifiers`` KEY must equal the
+    # registered ``provider_name`` (the ``source_records`` prefix). The import
+    # validator's feed-source exemption only accepts the record when the two
+    # agree (see import_validator.FeedSourcedBook), so a feed's provider_name and
+    # its identifier type are one and the same — e.g. gutenberg must be
+    # registered as ``project_gutenberg``.
+    if feed.id_strategy == "isbn":
+        record["isbn_13"] = [local_id]
+    elif feed.id_strategy == "gutenberg":
+        record["identifiers"] = {"project_gutenberg": [local_id]}
+    elif feed.id_strategy == "self_link":
+        record["identifiers"] = {feed.provider_name: [local_id]}
+    if feed.local_id_is_ol_edition and local_id.isdigit():
+        # This feed's local id IS an OL edition number, so say which edition the
+        # record is, rather than letting build_pool guess from the title. That
+        # guess is at its worst here: build_pool ignores ``identifiers.*``, so a
+        # feed like this one is pooled on title alone -- against the thousands of
+        # same-title editions that public-domain classics accumulate. The catalog
+        # verifies the id resolves before trusting it (resolve_edition_ref), which
+        # matters because providers do not always validate the id they were given.
+        record["openlibrary"] = f"OL{local_id}M"
+    # Only covers coverstore will actually fetch: on the match/merge path (which
+    # feed re-imports hit constantly) add_cover() has no host check of its own
+    # and retries a rejected URL 10x with sleep(2), up to 20s per record.
+    if (cover := pub.cover()) and is_allowed_cover_url(cover):
+        record["cover"] = cover
+    if acquisitions := build_acquisitions(pub, feed, local_id):
+        record["acquisitions"] = acquisitions
+    return record

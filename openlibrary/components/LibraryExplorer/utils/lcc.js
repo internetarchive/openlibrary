@@ -12,7 +12,8 @@ const LCC_PARTS_RE = new RegExp(
         (?<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
         (?<rest>\s.*)?
         $`.replace(/\s/g, ''),
-    'i');
+    'i'
+);
 
 export function short_lcc_to_sortable_lcc(lcc) {
     const m = clean_raw_lcc(lcc).match(LCC_PARTS_RE);
@@ -45,7 +46,6 @@ export function sortable_lcc_to_short_lcc(lcc) {
     };
     return `${parts.letters}${parts.number}${parts.cutter1}${parts.rest}`;
 }
-
 
 /**
  * Remove noise in lcc before matching to LCC_PARTS_RE

@@ -60,7 +60,7 @@ export default class EdtionNavBar {
             });
 
             // Add this nav item's target anchor to array:
-            this.targetAnchors.push(document.getElementById(this.navItems[i].children[0].hash.substring(1)));
+            this.targetAnchors.push(document.getElementById(this.navItems[i].children[0].hash.slice(1)));
 
             // Set selectedIndex to the correct value:
             if (this.navItems[i].classList.contains('selected')) {
@@ -103,7 +103,7 @@ export default class EdtionNavBar {
         if (navbarHeight > 0) {
             let i = this.navItems.length;
             // 10 is for a little bit of padding
-            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) {
+            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < this.targetAnchors[i].offsetTop - 10) {
                 // Do nothing
             }
             if (i !== this.selectedIndex) {

@@ -12,7 +12,7 @@ test.describe('My Books @smoke', () => {
     test.describe('when logged in', () => {
         test.beforeEach(({ page }) => login(page));
 
-        test('loads the patron\'s books page', async ({ page }) => {
+        test("loads the patron's books page", async ({ page }) => {
             const errors = collectConsoleErrors(page);
             const response = await page.goto('/account/books');
             expect(response?.status()).toBe(200);

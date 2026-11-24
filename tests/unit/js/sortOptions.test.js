@@ -1,15 +1,15 @@
 import { initSortOptions } from '../../../openlibrary/plugins/openlibrary/js/sort_options.js';
 
-// Must be `mock`-prefixed: jest hoists the factory above the declarations.
-const mockTrackEvent = jest.fn();
-jest.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
-    trackEvent: (...args) => mockTrackEvent(...args),
+// Must be `mock`-prefixed: vitest hoists the factory above the declarations.
+const mockTrackEvent = vi.fn();
+vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
+    trackEvent: (...args) => mockTrackEvent(...args)
 }));
 
 const ITEMS = [
     { value: 'relevance', label: 'Relevance', url: '/search?q=dune', track: 'Relevance' },
     { value: 'old', label: 'First Published', url: '/search?q=dune&sort=old', track: 'Old' },
-    { value: 'want_to_read', label: 'Want to Read', nested: true, url: '/search?q=dune&sort=want_to_read', track: 'ReadingLogSubSort' },
+    { value: 'want_to_read', label: 'Want to Read', nested: true, url: '/search?q=dune&sort=want_to_read', track: 'ReadingLogSubSort' }
 ];
 
 // Stand-in for <ol-menu-popover>: the consumer only touches `items`, the
@@ -33,7 +33,7 @@ describe('initSortOptions', () => {
         document.body.innerHTML = '';
         mockTrackEvent.mockClear();
         // jsdom's window.location can't be replaced or spied on.
-        navigate = jest.fn();
+        navigate = vi.fn();
     });
 
     test('navigates to the committed option url', () => {

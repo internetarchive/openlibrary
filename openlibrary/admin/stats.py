@@ -3,7 +3,7 @@ Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """
 
-import datetime
+import datetime as dt
 import logging
 import os
 
@@ -12,6 +12,7 @@ import yaml
 
 from openlibrary.admin import numbers
 from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
+from openlibrary.utils.request_context import create_context_for_script, req_context, site
 
 logger = logging.getLogger(__name__)
 
@@ -24,50 +25,42 @@ class InvalidType(TypeError):
 
 
 def connect_to_pg(config_file):
-    """Connects to the postgres database specified in the dictionary
-    `config`. Needs a top level key `db_parameters` and under that
-    `database` (or `db`) at the least. If `user` and `host` are
-    provided, they're used as well."""
+    """Connects to the postgres database specified by the `db_parameters`
+    key of the YAML file at `config_file`. Accepts either key style found in
+    our configs (`database`/`username`/`password` or `db`/`user`/`pw`); `host`,
+    `port` and the password are used when present."""
     with open(config_file) as f:
         config = yaml.safe_load(f)
-    conf = {}
-    conf["db"] = config["db_parameters"].get("database") or config["db_parameters"].get("db")
+    params = config["db_parameters"]
+    conf = {
+        "db": params.get("database") or params.get("db"),
+        "pw": params.get("password") or params.get("pw") or "",
+    }
     if not conf["db"]:
         raise KeyError("database/db")
-    host = config["db_parameters"].get("host")
-    user = config["db_parameters"].get("user") or config["db_parameters"].get("username")
-    if host:
-        conf["host"] = host
-    if user:
+    if user := params.get("username") or params.get("user"):
         conf["user"] = user
+    if host := params.get("host"):
+        conf["host"] = host
+    if port := params.get("port"):
+        conf["port"] = port
     logger.debug(" Postgres Database : %(db)s" % conf)
-    return web.database(dbn="postgres", **conf)
-
-
-def get_config_info(infobase_config):
-    """Parses the config file(s) to get back all the necessary pieces of data.
-
-    Add extra parameters here and change the point of calling.
-    """
-    with open(infobase_config) as f:
-        config = yaml.safe_load(f)
-    logroot = config.get("writelog")
-    return logroot
+    return web.database(dbn="postgres", **conf)  # noqa: TID251
 
 
 def store_data(data, date):
     uid = "counts-%s" % date
     logger.debug(" Updating stats for %s - %s", uid, data)
-    doc = web.ctx.site.store.get(uid) or {}
+    doc = site.get().store.get(uid) or {}
     doc.update(data)
     doc["type"] = "admin-stats"
     # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
-    web.ctx.site.store[uid] = doc
+    site.get().store[uid] = doc
 
 
-def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix, key_prefix=None):
+def run_gathering_functions(infobase_db, coverstore_db, start, end, prefix, key_prefix=None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
     funcs = [x for x in dir(numbers) if x.startswith(prefix)]
@@ -81,7 +74,6 @@ def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, pre
             ret = fn(
                 thingdb=infobase_db,
                 coverdb=coverstore_db,
-                logroot=logroot,
                 start=start,
                 end=end,
             )
@@ -115,6 +107,8 @@ def setup_ol_config(openlibrary_config_file):
             config.infobase = yaml.safe_load(file)
 
     infogami._setup()
+    site.set(web.ctx.site)
+    req_context.set(create_context_for_script())
 
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
@@ -126,7 +120,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     try:
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
-        logroot = get_config_info(infobase_config)
     except KeyError as k:
         logger.critical("Config file section '%s' missing", k.args[0])
         return -1
@@ -136,8 +129,8 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Gather delta and total counts
     # Total counts are simply computed and updated for the current day
     # Delta counts are computed by subtracting the current total from yesterday's total
-    today = datetime.datetime.now()
-    yesterday = today - datetime.timedelta(days=1)
+    today = dt.datetime.now()
+    yesterday = today - dt.timedelta(days=1)
     data = {}
 
     logger.info("Gathering total data")
@@ -147,7 +140,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
             coverstore_db,
             yesterday,
             today,
-            logroot,
             prefix="admin_total__",
             key_prefix="total",
         )
@@ -157,16 +149,16 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Now gather data which can be queried based on date ranges
     # The queries will be from the beginning of today till right now
     # The data will be stored as the counts of the current day.
-    end = datetime.datetime.now()  # - datetime.timedelta(days = 10)# Right now
-    start = datetime.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
+    end = dt.datetime.now()  # - datetime.timedelta(days = 10)# Right now
+    start = dt.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
     logger.info("Gathering range data")
-    data = {}
     for i in range(int(ndays)):
         logger.info(" %s to %s", start, end)
-        data.update(run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__"))
+        # Fresh per day: a key that raises NoStats or fails for this day mustn't inherit the later day's value.
+        data = run_gathering_functions(infobase_db, coverstore_db, start, end, prefix="admin_range__")
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
-        start = end - datetime.timedelta(days=1)
+        start = end - dt.timedelta(days=1)
 
     # Gather participation scores for the previous hour
     if int(ndays) == 1:

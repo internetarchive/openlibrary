@@ -1,117 +1,608 @@
+# If you change how the code review bot behaves here, update docs/code-review-bot.md to match.
 name: Code Review Action
 
+# @openlibrary-bot's code review (instructions in code_review.md). It posts one review with inline
+# comments. A re-review covers the PR's diff in the files changed since its last one, skipping merges
+# of the base branch. The JavaScript the steps
+# run lives in .github/scripts/code_review/.
+#
+# Jobs:
+#   analyze  runs the model on the untrusted PR. It has no write permission and no PAT.
+#   post     re-checks the analysis and posts the review. It holds the review PAT and runs no model.
+#   resolve  resolves the bot's threads `post` lists as fixed or dismissed, and does nothing else.
+#   pending  marks the head `code-review=pending` while the review runs.
+#   status   posts the `code-review` commit status.
+#   decline  replies to an @openlibrary-bot comment from someone who can't ask for a review.
+#   skipped  replies to an @openlibrary-bot comment when there's nothing to review.
+#   stacked  replies to a review request on a PR stacked on another branch, which starts no review.
+#   decline, skipped and stacked post fixed text with a PAT and run no model.
+# A prompt injection in a PR can change what the review says, but the job that read it has nothing
+# to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
+#
+# A security concern is published only when it is about code the PR adds; one about existing code
+# is held back, along with anything else whose text reads as security-related, and the rest of the
+# review is posted. gate.cjs decides: `analyze` runs it before uploading the analysis and `post`
+# runs it again before posting. What is held back is never logged, because logs and artifacts on a
+# public repo are public.
+#
+# Forks: the status is required, so fork PRs must be able to earn it, and posting it needs secrets.
+# So the trigger is pull_request_target, which runs this file as it is on the base branch, with
+# secrets. That is safe only because `analyze` never executes PR content: it checks out the base
+# branch, extracts the PR head as inert files, and has no build, install, test, cache, cloud-auth
+# or setup-* step (code_review_status_gate.test.js checks this). No job checks out the PR head or
+# keeps checkout credentials.
+#
+# Required status: `status` posts `code-review` on the reviewed SHA, and a ruleset requires it.
+# `synchronize` is not a trigger here: a new head is pending until it is reviewed. With
+# handle_push_trigger on, code_review_awaiting.yml requests that review once pushes stop.
+# A green status means a review ran clean on this commit. It is not an approval.
+#
+# We don't run PR-Agent (https://github.com/The-PR-Agent/pr-agent): it has no disclosure gate, no
+# model job without write access, and no SHA-bound status. Where the two overlap we use its names
+# and behaviour (.pr_agent.toml settings, ticket compliance).
 on:
-  pull_request:
-    types: [review_requested, opened, ready_for_review]
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    # The model runs when the team `openlibrary-agentic-code-reviewer` is requested.
+    # auto_assign_reviewer.yml requests it on new PRs; otherwise a maintainer does. GitHub's
+    # re-request button requests the bot user, not the team, so that is accepted too.
+    types: [review_requested]
   issue_comment:
     types: [created]
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "Debug: manually run the code review trigger on a specific existing PR"
+        description: "Debug: manually run the code reviewer on a specific existing PR"
         required: true
         type: string
-
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+      full_review:
+        description: "Review the whole PR again, even a commit already reviewed (e.g. after a bot change)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
+  # One group per PR, and runs are never cancelled. A run cancelled after posting its review but
+  # before `status` would leave the head without a status. A second trigger waits instead, and on
+  # the same head the range step finds the existing review and skips the model.
+  # Not one repo-wide group: GitHub keeps only one pending run per group and drops the rest.
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
-  respond:
+  analyze:
     runs-on: ubuntu-latest
-    # Placeholder scaffold for #13163 -- trigger wiring only, no review logic yet.
-    #
-    # Three trigger paths:
-    #   1. review_requested with openlibrary-bot as the reviewer -- covers both a
-    #      human manually requesting it, and auto_assign_reviewer.yml's automated
-    #      request. No staff-login check here: requesting *any* reviewer already
-    #      requires write/triage access on GitHub's side, so this isn't an open door.
-    #   2. opened / ready_for_review where the PR's own author is openlibrary-bot --
-    #      GitHub rejects requesting a PR's own author as a reviewer (422), so a
-    #      self-authored PR can never reach this workflow via path 1. This is the
-    #      direct substitute for "add openlibrary-bot as a reviewer on its own PR",
-    #      which is not literally possible.
-    #   3. issue_comment @-mention on a PR -- open to any commenter, including
-    #      external contributors with only read access, so this path keeps an
-    #      explicit staff allowlist (mirrors pr_autoresponder.yml / issue_enrichment.md).
-    #
-    # Draft PRs never trigger a review, on any path -- enforced again defensively
-    # inside the job itself (see Step 1), since issue_comment's payload has no
-    # PR draft field to check at the `if:` level.
+    # Runs on:
+    #   - a non-draft PR's review request for the team or the bot. A PR can't request its own author
+    #     but can request a team, so the team path also reviews the bot's own PRs. Only for PRs into
+    #     the default branch: pull_request_target runs this file and its scripts as they are on the
+    #     PR's base branch, so for a PR stacked on another PR's branch it would run that branch's
+    #     unmerged copy of the bot. `stacked` says how to ask instead.
+    #   - an @openlibrary-bot comment on a PR, from staff or the PR's author. The author is allowed
+    #     because a fork contributor may not see the re-request button but can always comment.
+    #   - workflow_dispatch, which needs write access and also reviews drafts.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
-        github.event_name == 'pull_request' &&
+        github.event_name == 'pull_request_target' &&
+        github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
+        github.event.pull_request.base.ref == github.event.repository.default_branch &&
         (
-          github.event.requested_reviewer.login == 'openlibrary-bot' ||
-          github.event.pull_request.user.login == 'openlibrary-bot'
+          github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+          github.event.requested_reviewer.login == 'openlibrary-bot'
         )
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
         contains(github.event.comment.body, '@openlibrary-bot') &&
         github.event.comment.user.login != 'openlibrary-bot' &&
-        contains(fromJSON('["mekarpeles","cdrini","jimchamp","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+        (
+          contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+          github.event.comment.user.login == github.event.issue.user.login
+        )
       )
+    permissions:
+      contents: read
+      pull-requests: read
+      # The range step reads the head's commit statuses.
+      statuses: read
+      # The linked-issues step reads the issues a PR links to.
+      issues: read
+      # claude-code-action's OIDC token exchange needs this, and GitHub accepts only `write` or
+      # `none`. It grants no repository write access. Removing it broke the PR auto-responder (#13604).
+      id-token: write
+    outputs:
+      pr: ${{ steps.range.outputs.pr }}
+      head_sha: ${{ steps.range.outputs.head_sha }}
+      base_sha: ${{ steps.range.outputs.base_sha }}
+      incremental: ${{ steps.range.outputs.incremental }}
+      skip: ${{ steps.range.outputs.skip }}
+      # Why a run skipped (draft, closed or reviewed), and the commit already reviewed, for `skipped`.
+      skip_reason: ${{ steps.range.outputs.skip_reason }}
+      skip_sha: ${{ steps.range.outputs.skip_sha }}
+      # From .pr_agent.toml, read before the model ran.
+      inline_key_issues: ${{ steps.range.outputs.inline_key_issues }}
+      push_review_minutes: ${{ steps.range.outputs.push_review_minutes }}
+      # On a re-review, the files it covers (JSON), set before the model ran. `post` cuts its diff to them.
+      files: ${{ steps.range.outputs.files }}
+      # On a repost after only base merges, the commit whose review carries the verdict.
+      verdict_sha: ${{ steps.range.outputs.verdict_sha }}
+      # 'true' when this head was already reviewed but its status is missing or wrong: `post` is
+      # skipped and `status` re-posts the status from the existing review.
+      repost: ${{ steps.range.outputs.repost }}
+      # Whether the whole review was withheld (malformed), whether part of it was held back, and
+      # whether what wasn't published blocks. One bit each, never a count or content.
+      withheld: ${{ steps['analyze-gate'].outputs.withheld }}
+      held_back: ${{ steps['analyze-gate'].outputs.held_back }}
+      withheld_blocking: ${{ steps['analyze-gate'].outputs.withheld_blocking }}
+      # Blocking findings in the published review. Bracket form because `-` would parse as minus.
+      public_findings_count: ${{ steps['analyze-gate'].outputs.public_findings_count }}
     steps:
-      - name: Acknowledge trigger (placeholder -- no review logic yet)
+      # The base branch, never the PR head. github.sha is the commit this workflow was loaded from:
+      # the base branch tip under pull_request_target, the default branch otherwise. Not
+      # pull_request.base.sha, which GitHub updates only when the PR is pushed, so on an older PR
+      # it can predate these scripts. The github-script steps below require the scripts from here.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Resolve review range (incremental since our last pass)
+        id: range
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          # A full review of the whole PR, even of a commit already reviewed: for re-running the bot
+          # after a change to it. Maintainers only (the same list as analyze's `if`), since each one
+          # costs a full model run: a dispatch, or an "@openlibrary-bot full review" comment.
+          FULL_REVIEW: >-
+            ${{
+              (github.event_name == 'workflow_dispatch' && inputs.full_review) ||
+              (
+                github.event_name == 'issue_comment' &&
+                contains(github.event.comment.body, '@openlibrary-bot full review') &&
+                contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+              )
+            }}
+        with:
+          script: |
+            const { resolveRange } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/range.cjs`);
+            await resolveRange({ github, context, core, require, process });
+
+      # The PR's title and description (pr-description.json), for the model to check against the
+      # diff, and ticket context after PR-Agent's `require_ticket_analysis_review`: the issues the PR
+      # links to (linked-issues.json). Both are untrusted text, so anything the model writes about
+      # them still goes through the gate. A failure here leaves the files empty.
+      - name: Fetch linked issues (ticket context)
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ steps.range.outputs.pr }}
+          TICKET_ANALYSIS: ${{ steps.range.outputs.ticket_analysis }}
+        with:
+          script: |
+            const { fetchLinkedIssues } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/linked_issues.cjs`);
+            await fetchLinkedIssues({ github, context, core, require, process });
+
+      - name: Fetch PR head into a ref (never into the working tree)
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        env:
+          PR: ${{ steps.range.outputs.pr }}
+        run: |
+          git fetch --no-tags --depth=50 origin "pull/${PR}/head:refs/remotes/pr/head"
+
+      - name: Extract the PR head as inert files (the model has no shell to read git with)
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        run: |
+          mkdir pr-head
+          # $GIT_DIR/info/attributes outranks the PR's own .gitattributes, so the PR cannot hide
+          # files (export-ignore), rewrite them (export-subst, ident) or run filters (filter).
+          ATTR="$(git rev-parse --git-path info/attributes)"
+          mkdir -p "$(dirname "$ATTR")"
+          printf '* -export-ignore -export-subst -ident -filter -text -eol\n' > "$ATTR"
+          git archive --format=tar refs/remotes/pr/head | tar -x -C pr-head --no-same-owner
+          rm -f "$ATTR"
+          # Symlinks could point Read at files outside the workspace; agent config in a PR
+          # could be picked up as instructions or settings.
+          find pr-head -type l -delete
+          find pr-head \( -iname .claude -o -iname .mcp.json -o -iname claude.md -o -iname claude.local.md \) -prune -exec rm -rf {} +
+          # Nothing is left executable. Not `chmod -R a-x,a+X`: `X` keys off the original
+          # mode, so that leaves executable files executable.
+          find pr-head -type f -exec chmod a-x {} +
+
+      - name: Review
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        # Pinned, not the floating `@v1`: later versions report success while producing nothing
+        # in workflows that set `allowed_non_write_users` (as in issue_enrichment.yml and pr_autoresponder.yml).
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/code_review.md
+
+            Review PR #${{ steps.range.outputs.pr }}. Your range and diff are already on disk --
+            read `review-range.json` and `review.diff` rather than assuming anything from this line.
+          # No shell: `git log --output=` and friends write arbitrary files, and `rg --pre` /
+          # `git grep -O` run programs. Each tool is scoped to the workspace, and bare Grep/Glob
+          # are not -- they reach outside it. Spell the write scope `Edit(...)`: at this pin
+          # `Write(./review.json)` silently denies every write, including review.json, which
+          # would withhold every review while looking like the gate working.
+          # --max-turns only stops a review that is stuck. review.json is written at the end, so a
+          # review that hits the limit posts nothing. Keep it well above what real reviews use:
+          # in Nov 2026 the median was 24 turns, the 90th percentile 39, and the most 47.
+          claude_args: >-
+            --max-turns 75
+            --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
+            --disallowedTools "Bash WebFetch WebSearch"
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
+          # The job's read-only token, not a PAT: this job reads untrusted PR content.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Both are the defaults at this pin. Either one would write the model's text into the
+          # public run log or step summary, past the gate.
+          show_full_output: false
+          display_report: false
+          # The action rejects anyone without write access, but a PR's author can re-run the review in
+          # two ways, and fork authors only have read access: by commenting (the `if` above vets the
+          # commenter), or with GitHub's re-request button next to openlibrary-bot, which GitHub lets
+          # a PR's author use. So allow exactly the commenter on a comment, and on a re-request of the
+          # bot, the requester only when they wrote the PR; other triggers are unchanged. This job has
+          # no write access either way. Setting it turns on the action's subprocess sandbox for that
+          # run (see the pin note above); the review step has no shell.
+          allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
+
+      # A review.json that breaks the format is withheld in full, so give the model one try to fix it.
+      - name: Check the review's format
+        id: format
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const prNumber = context.eventName === 'workflow_dispatch'
-              ? Number(context.payload.inputs.pr_number)
-              : (context.payload.pull_request
-                  ? context.payload.pull_request.number
-                  : context.payload.issue.number);
+            const { checkFormat } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/analyze_gate.cjs`);
+            await checkFormat({ core, require, process });
 
-            // Defensive draft check -- issue_comment's payload has no PR draft
-            // field, and this also re-confirms the pull_request-path checks
-            // above in case GitHub's payload state lagged the actual PR state.
-            const { data: pr } = await github.rest.pulls.get({
-              owner, repo, pull_number: prNumber,
-            });
-            if (pr.draft) {
-              core.info(`PR #${prNumber} is a draft -- skipping.`);
-              return;
-            }
+      # Same as Review (see the notes there) except the prompt.
+      - name: Fix the review's format
+        if: steps.format.outputs.malformed == 'true'
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/code_review.md
 
-            // Idempotency: this workflow can be reached by multiple overlapping
-            // paths (e.g. opened -> auto-assign -> review_requested), so guard
-            // against posting more than one placeholder.
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner, repo, issue_number: prNumber, per_page: 100,
-            });
-            if (comments.some((c) => (c.body || '').includes('<!-- ol-pr-review-bot -->'))) {
-              core.info(`PR #${prNumber} already has a placeholder comment -- skipping.`);
-              return;
-            }
+            You reviewed PR #${{ steps.range.outputs.pr }}, but `review.json` doesn't match the format above.
+            Fix it so it does, keeping your findings. If it's missing, review the PR and write it.
+          claude_args: >-
+            --max-turns 75
+            --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
+            --disallowedTools "Bash WebFetch WebSearch"
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: false
+          display_report: false
+          allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
 
-            let trigger;
-            if (context.eventName === 'workflow_dispatch') {
-              trigger = 'a manual debug dispatch';
-            } else if (context.eventName === 'issue_comment') {
-              trigger = 'an @-mention';
-            } else if (pr.user.login === 'openlibrary-bot') {
-              trigger = 'its own PR being opened (self-authored, cannot request itself as reviewer)';
-            } else {
-              trigger = 'a reviewer request';
-            }
+      - name: Gate the analysis before upload
+        id: analyze-gate
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          OFF_DIMENSIONS: ${{ steps.range.outputs.off_dimensions }}
+          INLINE_KEY_ISSUES: ${{ steps.range.outputs.inline_key_issues }}
+        with:
+          script: |
+            const { gateAnalysis } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/analyze_gate.cjs`);
+            await gateAnalysis({ core, require, process });
 
-            await github.rest.issues.createComment({
-              owner, repo, issue_number: prNumber,
-              body: [
-                `👀 Code review was requested via ${trigger}, but the automated reviewer isn't built yet — tracked in #13163.`,
-                '',
-                'This comment only confirms the trigger fired correctly. No review was performed.',
-                '',
-                '<!-- ol-pr-review-bot -->',
-              ].join('\n'),
-            });
+      - name: Upload analysis
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: code-review-${{ steps.range.outputs.pr }}
+          # review.json only, as rewritten by the gate step. review.diff, pr.diff and review-range.json
+          # were on disk while the model ran; `post` re-derives them from job outputs.
+          path: review.json
+          if-no-files-found: error
+          retention-days: 7
+
+  post:
+    needs: analyze
+    if: needs.analyze.outputs.skip == 'false' && needs.analyze.outputs.repost != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout and the diff fetch below, with the job's own GITHUB_TOKEN
+      pull-requests: write
+    outputs:
+      # A JSON list of review thread ids for the resolve job, set only once the review is posted.
+      resolve_thread_ids: ${{ steps.post.outputs.resolve_thread_ids }}
+    steps:
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
+      # Before the artifact download, because a checkout empties the workspace.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: /.github/scripts/
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: code-review-${{ needs.analyze.outputs.pr }}
+
+      - name: Re-fetch the reviewed diff (anchors are validated against this, not analyze's copy)
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          FILES: ${{ needs.analyze.outputs.files }}
+        with:
+          script: |
+            const { refetchDiff } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/post.cjs`);
+            await refetchDiff({ github, context, core, require, process });
+
+      - name: Validate anchors and post one batched review
+        id: post
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.analyze.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
+          INLINE_KEY_ISSUES: ${{ needs.analyze.outputs.inline_key_issues }}
+          PUSH_REVIEW_MINUTES: ${{ needs.analyze.outputs.push_review_minutes }}
+          HELD_BACK: ${{ needs.analyze.outputs.held_back }}
+          WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
+        with:
+          # Fine-grained PAT with only Pull requests: read and write, on this repo.
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          script: |
+            const { validateAndPost } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/post.cjs`);
+            await validateAndPost({ github, context, core, require, process });
+
+  # Resolves the review threads `post` listed, and nothing else. resolveReviewThread needs
+  # Contents: write, which we won't give the bot's long-lived PAT (#14533). This job's GITHUB_TOKEN
+  # holds it only while the job runs. It runs no model and reads nothing from the PR: its one input
+  # is post's list of thread ids, which resolve.cjs checks before any API call.
+  resolve:
+    needs: post
+    if: needs.post.outputs.resolve_thread_ids != '' && needs.post.outputs.resolve_thread_ids != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: /.github/scripts/
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve the listed review threads
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          THREAD_IDS: ${{ needs.post.outputs.resolve_thread_ids }}
+        with:
+          # The job's own GITHUB_TOKEN (the default), not a PAT.
+          script: |
+            const { resolveThreads } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/resolve.cjs`);
+            await resolveThreads({ github, core, process });
+
+  # Replies once per person per PR to an @openlibrary-bot comment from someone the `analyze` `if`
+  # turns away, so they know who can ask and that reviews mostly start on their own. The `if` is
+  # analyze's comment branch with the permission check inverted; a test keeps the two in step.
+  decline:
+    if: >
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '@openlibrary-bot') &&
+      github.event.comment.user.login != 'openlibrary-bot' &&
+      github.event.comment.user.type != 'Bot' &&
+      !(
+        contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+        github.event.comment.user.login == github.event.issue.user.login
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say who can ask for a review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          # Commenting on a PR needs Issues: write, which OL_BOT_PR_PAT has (see `pending`).
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replyDecline } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replyDecline({ github, context, core, require, process });
+
+  # Replies once per commit when someone allowed to ask gets no review: a draft, a closed PR, or a
+  # commit already reviewed whose check is up to date. Without it, the 👀 reaction is all they see.
+  skipped:
+    needs: analyze
+    if: >
+      github.event_name == 'issue_comment' &&
+      needs.analyze.outputs.skip == 'true' &&
+      needs.analyze.outputs.skip_reason != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say why there is no review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SKIP_REASON: ${{ needs.analyze.outputs.skip_reason }}
+          SKIP_SHA: ${{ needs.analyze.outputs.skip_sha }}
+        with:
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replySkipped } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replySkipped({ github, context, core, require, process });
+
+  # A review requested on a PR stacked on another branch starts nothing (see analyze), so say how to
+  # get one: an @openlibrary-bot comment runs the default branch's copy of this workflow. Replies
+  # once per PR, with fixed text and a PAT, and runs no model.
+  stacked:
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'review_requested' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.base.ref != github.event.repository.default_branch &&
+      (
+        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+        github.event.requested_reviewer.login == 'openlibrary-bot'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say how to review a stacked PR
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        with:
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replyStacked } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replyStacked({ github, context, core, process });
+
+  # Marks the head code-review=pending, unless it already has a status: analyze may then skip, and
+  # nothing would replace the pending. Same `if` as analyze.
+  pending:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.action == 'review_requested' &&
+        !github.event.pull_request.draft &&
+        github.event.pull_request.base.ref == github.event.repository.default_branch &&
+        (
+          github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+          github.event.requested_reviewer.login == 'openlibrary-bot'
+        )
+      ) || (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        contains(github.event.comment.body, '@openlibrary-bot') &&
+        github.event.comment.user.login != 'openlibrary-bot' &&
+        (
+          contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login) ||
+          github.event.comment.user.login == github.event.issue.user.login
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; every API call uses a bot PAT
+    outputs:
+      pr: ${{ steps.mark.outputs.pr }}
+      head_sha: ${{ steps.mark.outputs.head_sha }}
+    steps:
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: /.github/scripts/
+          sparse-checkout-cone-mode: false
+
+      # A 👀 reaction shows whoever asked that the review started. A PR comment is an issue comment,
+      # so reacting needs Issues: write, which OL_BOT_REVIEW_PAT lacks and OL_BOT_PR_PAT has.
+      - name: React to the review request comment
+        if: github.event_name == 'issue_comment'
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { reactToComment } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/pending.cjs`);
+            await reactToComment({ github, context, core });
+
+      - name: Mark the head as review in progress
+        id: mark
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
+          script: |
+            const { markPending } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/pending.cjs`);
+            await markPending({ github, context, core, process });
+
+  # Posts the required `code-review` status on the reviewed SHA. It is `success` only when:
+  #   - the review was posted, or withheld cleanly;
+  #   - nothing held back from it blocks;
+  #   - its count of blocking findings is known to be 0. A missing or unparseable count fails.
+  #     The count catches findings with no line in the diff to anchor to, which have no thread;
+  #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated), apart
+  #     from the bot's own "Suggestion (won't block)" comments, which never block.
+  # If the head moved since the review, it only marks the reviewed SHA superseded (pending): the new
+  # head needs its own review.
+  # On a repost it rebuilds the verdict from the existing review's marker and the live threads.
+  status:
+    # After resolve, so the open-thread count it reads is current.
+    needs: [analyze, post, resolve, pending]
+    if: always() && (needs.analyze.outputs.skip == 'false' || needs.pending.outputs.head_sha != '')
+    runs-on: ubuntu-latest
+    # API calls use the bot PAT. The default token only checks out the scripts.
+    permissions:
+      contents: read
+    steps:
+      # Only the review scripts, from the same commit as this workflow (see the analyze checkout).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: /.github/scripts/
+          sparse-checkout-cone-mode: false
+
+      - name: Decide the gate and post the code-review status
+        id: decide
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.analyze.outputs.pr || needs.pending.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha || needs.pending.outputs.head_sha }}
+          POST_RESULT: ${{ needs.post.result }}
+          # A job output, not read from the artifact, whose format is not a contract.
+          PUBLIC_FINDINGS_COUNT: ${{ needs.analyze.outputs.public_findings_count }}
+          WITHHELD: ${{ needs.analyze.outputs.withheld }}
+          WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
+          HELD_BACK: ${{ needs.analyze.outputs.held_back }}
+          REPOST: ${{ needs.analyze.outputs.repost }}
+          VERDICT_SHA: ${{ needs.analyze.outputs.verdict_sha }}
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          # Fine-grained PAT with only Commit statuses: write and Pull requests: read (for
+          # reviewThreads), on this repo. Fork-triggered runs hold it too, so keep it that narrow.
+          github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
+          script: |
+            const { postStatus } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/status.cjs`);
+            await postStatus({ github, context, core, process });

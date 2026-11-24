@@ -7,8 +7,9 @@ import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
  *
  * @element ol-pagination
  *
- * @prop {String} mode - Display mode: "full" (default) shows page numbers with arrows,
- *                       "arrows" shows only previous/next arrows (useful when total is unknown)
+ * @prop {"full" | "arrows"} mode - Display mode: "full" (default) shows page numbers
+ *                       with arrows, "arrows" shows only previous/next arrows (useful
+ *                       when total is unknown)
  * @prop {"small" | "medium"} size - Default: "medium". Heights track the shared
  *                                  control-height tokens, so a same-size button lines up.
  * @prop {Number} totalPages - Total number of pages (required for "full" mode)
@@ -89,7 +90,7 @@ export class OlPagination extends LitElement {
             --pagination-icon-size: 18px;
         }
 
-        :host([size="small"]) {
+        :host([size='small']) {
             --pagination-item-height: var(--control-height-small);
             --pagination-font-size: var(--font-size-label-medium);
             --pagination-icon-size: 16px;
@@ -98,6 +99,8 @@ export class OlPagination extends LitElement {
         .pagination {
             display: flex;
             font-size: var(--pagination-font-size);
+            /* Page numbers are control labels, like the buttons beside them. */
+            font-weight: var(--font-weight-button);
             gap: var(--spacing-inline-xs);
         }
 
@@ -113,7 +116,7 @@ export class OlPagination extends LitElement {
             padding: 0 var(--spacing-inset-xs);
             border-radius: var(--border-radius-button);
             background: transparent;
-            color: var(--darker-grey, #444);
+            color: var(--color-text);
             line-height: var(--line-height-control);
             cursor: pointer;
             text-decoration: none;
@@ -126,13 +129,13 @@ export class OlPagination extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
+            .pagination-item:hover:not([aria-disabled='true']):not([aria-current='page']) {
                 background: var(--color-hover-overlay);
             }
         }
 
-        .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
-            transform: scale(0.92);
+        .pagination-item:active:not([aria-disabled='true']):not([aria-current='page']) {
+            transform: scale(var(--press-scale-compact));
         }
 
         .pagination-item:focus {
@@ -140,24 +143,31 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring, #5B8DD9);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
-        .pagination-item[aria-current="page"] {
-            background-color: var(--lightest-grey, #eee);
+        /* The system's one selected look — shared with ol-button[selected]. */
+        .pagination-item[aria-current='page'] {
+            background-color: var(--color-control-selected-bg);
+            color: var(--color-link);
             cursor: default;
             user-select: none;
         }
 
-        .pagination-item[aria-disabled="true"] {
-            color: var(--lighter-grey, #ddd);
+        .pagination-item[aria-disabled='true'] {
+            color: var(--color-disabled-fg);
             cursor: not-allowed;
         }
 
         /* No text to inset — min-width centers the icon. */
         .pagination-arrow {
             padding: 0;
+        }
+
+        /* Previous points toward the start edge, which is the right under RTL. */
+        :host(:dir(rtl)) .pagination-arrow ol-icon {
+            transform: scaleX(-1);
         }
 
         /* Height-matched to the items; natural width, since it's not a target. */
@@ -167,7 +177,7 @@ export class OlPagination extends LitElement {
             justify-content: center;
             height: var(--pagination-item-height);
             padding: 0 var(--spacing-inset-xs);
-            color: var(--mid-grey, #aaa);
+            color: var(--color-icon-muted);
             cursor: default;
             user-select: none;
         }
@@ -252,9 +262,7 @@ export class OlPagination extends LitElement {
      * @returns {Array} Array of focusable elements (buttons or anchors)
      */
     _getFocusableElements() {
-        return Array.from(
-            this.shadowRoot.querySelectorAll('.pagination-item:not([aria-disabled="true"])')
-        );
+        return Array.from(this.shadowRoot.querySelectorAll('.pagination-item:not([aria-disabled="true"])'));
     }
 
     /**
@@ -267,7 +275,7 @@ export class OlPagination extends LitElement {
             count: focusable.length,
             current: focusable.indexOf(this.shadowRoot.activeElement),
             orientation: 'horizontal',
-            wrap: false,
+            wrap: false
         });
         if (target === -1) return;
         e.preventDefault();
@@ -288,7 +296,7 @@ export class OlPagination extends LitElement {
             detail: { page },
             bubbles: true,
             composed: true,
-            cancelable: true,
+            cancelable: true
         });
         this.dispatchEvent(event);
         if (event.defaultPrevented) return;
@@ -308,7 +316,7 @@ export class OlPagination extends LitElement {
             detail: { page },
             bubbles: true,
             composed: true,
-            cancelable: true,
+            cancelable: true
         });
         this.dispatchEvent(event);
         if (event.defaultPrevented) {
@@ -338,18 +346,16 @@ export class OlPagination extends LitElement {
                     class="pagination-item ${className}"
                     aria-label=${label}
                     aria-current=${ariaCurrent}
-                    @click=${(e) => this._handlePageClick(e, page)}
-                >${content}</a>
+                    @click=${e => this._handlePageClick(e, page)}
+                    >${content}</a
+                >
             `;
         }
 
         return html`
-            <button
-                class="pagination-item ${className}"
-                aria-label=${label}
-                aria-current=${ariaCurrent}
-                @click=${() => this._goToPage(page)}
-            >${content}</button>
+            <button class="pagination-item ${className}" aria-label=${label} aria-current=${ariaCurrent} @click=${() => this._goToPage(page)}>
+                ${content}
+            </button>
         `;
     }
 
@@ -364,9 +370,7 @@ export class OlPagination extends LitElement {
         }
 
         const isCurrent = page === this.currentPage;
-        const label = isCurrent
-            ? this._interpolateLabel(this.labelCurrentPage, { page })
-            : this._interpolateLabel(this.labelGoToPage, { page });
+        const label = isCurrent ? this._interpolateLabel(this.labelCurrentPage, { page }) : this._interpolateLabel(this.labelGoToPage, { page });
 
         return this._renderPaginationItem({ page, label, content: page });
     }
@@ -378,22 +382,14 @@ export class OlPagination extends LitElement {
      */
     _renderNavArrow(direction) {
         const isPrev = direction === 'prev';
-        const isDisabled = isPrev
-            ? this.currentPage === 1
-            : this.mode === 'arrows' ? !this.hasNextPage : this.currentPage === this.totalPages;
+        const isDisabled = isPrev ? this.currentPage === 1 : this.mode === 'arrows' ? !this.hasNextPage : this.currentPage === this.totalPages;
 
         if (isDisabled && this.mode !== 'arrows') return html``;
 
         if (isDisabled) {
             const label = isPrev ? this.labelPreviousPage : this.labelNextPage;
             const icon = isPrev ? OlPagination._leftArrowIcon : OlPagination._rightArrowIcon;
-            return html`
-                <span
-                    class="pagination-item pagination-arrow"
-                    aria-disabled="true"
-                    aria-label=${label}
-                >${icon}</span>
-            `;
+            return html` <span class="pagination-item pagination-arrow" aria-disabled="true" aria-label=${label}>${icon}</span> `;
         }
 
         const page = isPrev ? this.currentPage - 1 : this.currentPage + 1;
@@ -413,15 +409,8 @@ export class OlPagination extends LitElement {
         const visiblePages = isArrows ? [] : this._getVisiblePages();
 
         return html`
-            <nav
-                class="pagination"
-                role="navigation"
-                aria-label=${this.labelPagination}
-                @keydown=${this._handleKeyDown}
-            >
-                ${this._renderNavArrow('prev')}
-                ${visiblePages.map(page => this._renderPageButton(page))}
-                ${this._renderNavArrow('next')}
+            <nav class="pagination" role="navigation" aria-label=${this.labelPagination} @keydown=${this._handleKeyDown}>
+                ${this._renderNavArrow('prev')} ${visiblePages.map(page => this._renderPageButton(page))} ${this._renderNavArrow('next')}
             </nav>
         `;
     }

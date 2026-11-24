@@ -10,6 +10,7 @@ import {
     isValidOclc
 } from './idValidation.js';
 import { trimInputValues } from './utils.js';
+import { isValidURL } from './edit.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -20,24 +21,44 @@ let emptyId;
 let i18nStrings;
 
 export function initAddBookImport() {
-    const addBookForm = $('form#addbook');
+    const addBookForm = document.querySelector('form#addbook');
 
-    $('.list-books a').on('click', function() {
-        var li = $(this).parents('li').first();
-        $('input#work').val(`/works/${li.attr('id')}`);
-        addBookForm.trigger('submit');
-    });
-    $('#bookAddCont').on('click', function() {
-        $('input#work').val('none-of-these');
-        addBookForm.trigger('submit');
+    // getResponse() is missing until api.js finishes loading, and throws if the widget never rendered.
+    function captchaSolved() {
+        try {
+            return Boolean(window.grecaptcha?.getResponse?.());
+        } catch {
+            return false;
+        }
+    }
+
+    // On the matches page, picking a book posts the form, so hold it until the captcha is solved.
+    function submitMatchChoice(work) {
+        const needed = document.getElementById('recaptcha-needed');
+        if (needed && !captchaSolved()) {
+            needed.hidden = false;
+            addBookForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        document.querySelector('input#work').value = work;
+        addBookForm.requestSubmit();
+    }
+
+    for (const link of document.querySelectorAll('.list-books a')) {
+        link.addEventListener('click', function () {
+            submitMatchChoice(`/works/${this.closest('li').id}`);
+        });
+    }
+    document.getElementById('bookAddCont')?.addEventListener('click', function () {
+        submitMatchChoice('none-of-these');
     });
 
     // `data-i18n` (and everything below that depends on it) is only rendered on
     // add.html's form. check.html reuses the same #addbook/form[name=edit] markup
     // for its "possible matches" page, but has none of the ID-validation or
     // publish-date fields this block wires up.
-    if (addBookForm[0].dataset.i18n) {
-        i18nStrings = JSON.parse(addBookForm[0].dataset.i18n);
+    if (addBookForm.dataset.i18n) {
+        i18nStrings = JSON.parse(addBookForm.dataset.i18n);
 
         invalidChecksum = i18nStrings.invalid_checksum;
         invalidIsbn10 = i18nStrings.invalid_isbn10;
@@ -46,20 +67,27 @@ export function initAddBookImport() {
         invalidOclc = i18nStrings.invalid_oclc;
         emptyId = i18nStrings.empty_id;
 
-        $('#id_value').on('change', autoCompleteIdName);
-        $('#addbook').on('submit', parseAndValidateId);
-        $('#id_value').on('input', clearErrors);
-        $('#id_name').on('change', clearErrors);
+        document.getElementById('id_value').addEventListener('change', autoCompleteIdName);
+        document.getElementById('addbook').addEventListener('submit', parseAndValidateId);
+        document.getElementById('id_value').addEventListener('input', clearErrors);
+        document.getElementById('id_name').addEventListener('change', clearErrors);
 
-        $('#publish_date').on('blur', validatePublishDate);
+        document.getElementById('publish_date').addEventListener('blur', validatePublishDate);
+
+        // The Book URL field is only rendered for librarians
+        const webBookUrl = document.getElementById('web_book_url');
+        if (webBookUrl) {
+            webBookUrl.addEventListener('blur', validateWebBookUrl);
+            addBookForm.addEventListener('submit', validateWebBookUrl);
+        }
 
         trimInputValues('input');
 
         // Prevents submission if the publish date is > 1 year in the future
-        addBookForm.on('submit', function() {
-            if ($('#publish-date-errors').hasClass('hidden')) {
-                return true;
-            } else return false;
+        addBookForm.addEventListener('submit', function (event) {
+            if (!document.getElementById('publish-date-errors').classList.contains('hidden')) {
+                event.preventDefault();
+            }
         });
     }
 }
@@ -76,7 +104,7 @@ function displayIsbnError(event, errorMessage) {
         const confirm = document.getElementById('confirm-add');
         confirm.classList.remove('hidden');
         const isbnInput = document.getElementById('id_value');
-        isbnInput.focus({focusVisible: true});
+        isbnInput.focus({ focusVisible: true });
         event.preventDefault();
         return;
     }
@@ -89,7 +117,6 @@ function displayIdentifierError(event, errorMessage) {
     errorDiv.classList.remove('hidden');
     errorDiv.textContent = errorMessage;
     event.preventDefault();
-    return;
 }
 
 function clearErrors() {
@@ -106,17 +133,13 @@ function parseAndValidateId(event) {
 
     if (fieldName === 'isbn_10') {
         parseAndValidateIsbn10(event, idValue);
-    }
-    else if (fieldName === 'isbn_13') {
+    } else if (fieldName === 'isbn_13') {
         parseAndValidateIsbn13(event, idValue);
-    }
-    else if (fieldName === 'lccn') {
+    } else if (fieldName === 'lccn') {
         parseAndValidateLccn(event, idValue);
-    }
-    else if (fieldName === 'oclc_numbers') {
+    } else if (fieldName === 'oclc_numbers') {
         parseAndValidateOclc(event, idValue);
-    }
-    else if (!fieldName || !isEmptyId(event, idValue)) {
+    } else if (!fieldName || !isEmptyId(event, idValue)) {
         document.getElementById('id_value').value = idValue.trim();
     }
 }
@@ -171,24 +194,18 @@ function parseAndValidateOclc(event, idValue) {
     document.getElementById('id_value').value = idValue;
 }
 
-function autoCompleteIdName(){
+function autoCompleteIdName() {
     const idValue = document.querySelector('input#id_value').value.trim();
     const idValueIsbn = parseIsbn(idValue);
     const currentSelection = document.getElementById('id_name').value;
 
-    if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)){
+    if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)) {
         document.getElementById('id_name').value = 'isbn_10';
-    }
-
-    else if (isFormatValidIsbn13(idValueIsbn) && isChecksumValidIsbn13(idValueIsbn)){
+    } else if (isFormatValidIsbn13(idValueIsbn) && isChecksumValidIsbn13(idValueIsbn)) {
         document.getElementById('id_name').value = 'isbn_13';
-    }
-
-    else if ((isValidLccn(parseLccn(idValue)))){
+    } else if (isValidLccn(parseLccn(idValue))) {
         document.getElementById('id_name').value = 'lccn';
-    }
-
-    else {
+    } else {
         document.getElementById('id_name').value = currentSelection || '';
     }
 }
@@ -200,7 +217,7 @@ function validatePublishDate() {
     // if it doesn't have even three digits then it can't be a future date
     const tokens = /(\d{3,})/.exec(publish_date);
     const year = new Date().getFullYear();
-    const isValidDate = tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+    const isValidDate = tokens && tokens[1] && parseInt(tokens[1], 10) <= year + 1; // allow one year in future.
 
     const errorDiv = document.getElementById('publish-date-errors');
 
@@ -209,5 +226,26 @@ function validatePublishDate() {
         errorDiv.textContent = i18nStrings['invalid_publish_date'];
     } else {
         errorDiv.classList.add('hidden');
+    }
+}
+
+export function isValidWebBookUrl(value) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return true;
+    }
+    return isValidURL(trimmed) && ['http:', 'https:'].includes(new URL(trimmed).protocol);
+}
+
+function validateWebBookUrl(event) {
+    const input = document.getElementById('web_book_url');
+    const errorDiv = document.getElementById('web-book-url-errors');
+
+    if (isValidWebBookUrl(input.value)) {
+        errorDiv.classList.add('hidden');
+    } else {
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = i18nStrings['invalid_web_book_url'];
+        event?.preventDefault();
     }
 }

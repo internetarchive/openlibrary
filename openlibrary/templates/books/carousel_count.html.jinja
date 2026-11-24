@@ -1,0 +1,11 @@
+{#
+  The " (27)" after a carousel's title. `count` is the shelf's total, not the
+  number of cards shown. With `shelf` (a shelf id), the number is wrapped in its
+  own span so book-state.js can update it as books move between shelves.
+#}
+{% macro carousel_count(count, shelf=none) %}
+    {%- if count is not none %} ({% if shelf %}<span data-shelf-count-for="{{ shelf }}">{{ count }}</span>{% else %}{{ count }}{% endif %}){% endif -%}
+{% endmacro %}
+{% if count is defined %}
+    {{- carousel_count(count, shelf) -}}
+{% endif %}

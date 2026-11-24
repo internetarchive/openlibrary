@@ -5,7 +5,7 @@ import {
     isChecksumValidIsbn13,
     isFormatValidIsbn10,
     isFormatValidIsbn13,
-    isValidLccn,
+    isValidLccn
 } from '../../../plugins/openlibrary/js/idValidation.js';
 
 export function errorDisplay(message, error_output) {
@@ -24,7 +24,6 @@ export function errorDisplay(message, error_output) {
         errorSelector.style.display = 'none';
         errorSelector.innerHTML = '';
     }
-
 }
 
 function validateIsbn10(value) {
@@ -32,9 +31,7 @@ function validateIsbn10(value) {
     if (!isFormatValidIsbn10(isbn10_value)) {
         errorDisplay('ID must be exactly 10 characters [0-9] or X.', '#hiddenEditionIdentifiers');
         return false;
-    } else if (
-        isFormatValidIsbn10(isbn10_value) && !isChecksumValidIsbn10(isbn10_value)
-    ) {
+    } else if (isFormatValidIsbn10(isbn10_value) && !isChecksumValidIsbn10(isbn10_value)) {
         errorDisplay(`ISBN ${isbn10_value} may be invalid. Please confirm if you'd like to add it before saving all changes`, '#hiddenEditionIdentifiers');
     }
     return true;
@@ -46,9 +43,7 @@ function validateIsbn13(value) {
     if (!isFormatValidIsbn13(isbn13_value)) {
         errorDisplay('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4', '#hiddenEditionIdentifiers');
         return false;
-    } else if (
-        isFormatValidIsbn13(isbn13_value) && !isChecksumValidIsbn13(isbn13_value)
-    ) {
+    } else if (isFormatValidIsbn13(isbn13_value) && !isChecksumValidIsbn13(isbn13_value)) {
         errorDisplay(`ISBN ${isbn13_value} may be invalid. Please confirm if you'd like to add it before saving all changes`, '#hiddenEditionIdentifiers');
     }
     return true;
@@ -68,7 +63,7 @@ export function validateIdentifiers(name, value, entries, error_output) {
     let validId = true;
     errorDisplay('', error_output);
     if (name === '' || name === '---') {
-    // if somehow an invalid identifier is passed through
+        // if somehow an invalid identifier is passed through
         errorDisplay('Invalid identifier', error_output);
         return false;
     }

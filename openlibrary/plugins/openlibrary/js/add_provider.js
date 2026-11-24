@@ -1,5 +1,5 @@
 export function initAddProviderRowLink(elem) {
-    elem.addEventListener('click', function() {
+    elem.addEventListener('click', function () {
         let index = Number(elem.dataset.index);
         const tbody = document.querySelector('#provider-table-body');
         tbody.appendChild(createProviderRow(index));
@@ -37,19 +37,19 @@ function createSelectDataCell(index, type, values) {
 }
 
 const accessTypeValues = [
-    {value: '', text: ''},
-    {value: 'read', text: 'Read'},
-    {value: 'listen', text: 'Listen'},
-    {value: 'buy', text: 'Buy'},
-    {value: 'borrow', text: 'Borrow'},
-    {value: 'preview', text: 'Preview'}
+    { value: '', text: '' },
+    { value: 'read', text: 'Read' },
+    { value: 'listen', text: 'Listen' },
+    { value: 'buy', text: 'Buy' },
+    { value: 'borrow', text: 'Borrow' },
+    { value: 'preview', text: 'Preview' }
 ];
 
 const formatValues = [
-    {value: '', text: ''},
-    {value: 'web', text: 'Web'},
-    {value: 'epub', text: 'ePub'},
-    {value: 'pdf', text: 'PDF'}
+    { value: '', text: '' },
+    { value: 'web', text: 'Web' },
+    { value: 'epub', text: 'ePub' },
+    { value: 'pdf', text: 'PDF' }
 ];
 function createSelectOptions(values) {
     let html = '';

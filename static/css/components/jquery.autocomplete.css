@@ -1,9 +1,11 @@
+/* Legacy page-level overlay: keep its z-index band as is and add no new consumers.
+   New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
 /* stylelint-disable no-descending-specificity */
 .ac_results {
   padding: 0;
   margin: 0;
   overflow: auto;
-  z-index: var(--z-index-level-16);
+  z-index: var(--z-index-overlay);
   position: absolute;
   display: none;
   top: -5px;
@@ -54,14 +56,14 @@
 }
 
 .ac_author .action {
-  font-size: 9px;
+  font-size: var(--font-size-label-small);
   color: var(--color-success-fg);
 }
 
 .ac_author .books {
   font-size: var(--font-size-label-medium);
   color: var(--color-success-fg);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 0;
 }
 
@@ -106,7 +108,7 @@
 .ac_work .edition_count {
   font-size: var(--font-size-label-medium);
   color: var(--color-success-fg);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 0;
 }
 
@@ -126,18 +128,4 @@
 
 .ac_work .first_publish_year {
   font-size: var(--font-size-label-medium);
-}
-
-.ac_loading {
-  background: var(--white) url(/static/images/indicator.gif) right center
-    no-repeat;
-}
-
-.ac_odd {
-  background-color: var(--lightest-grey);
-}
-
-.ac_even,
-.ac_odd {
-  background-color: inherit;
 }

@@ -9,8 +9,9 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Query
 
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
+from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
 from openlibrary.plugins.importapi.import_ui import ImportPreviewRequest
-from openlibrary.utils.request_context import req_context, web_ctx_ip
+from openlibrary.utils.request_context import web_ctx_ip
 
 router = APIRouter(tags=["import"])
 
@@ -35,12 +36,16 @@ def _build_preview_response(
         return {"success": False, "error": str(e)}
 
     with web_ctx_ip(client_ip):
-        return dict(req.metadata_provider.do_import(req.identifier, req.save))
+        try:
+            return dict(req.metadata_provider.do_import(req.identifier, req.save))
+        except ValueError as e:
+            return {"success": False, "error": str(e)}
 
 
 @router.get("/import/preview.json")
 def import_preview_json_get(
     _: LibrarianDep,
+    client_ip: ClientIpDep,
     source: Annotated[
         str | None,
         Query(
@@ -50,7 +55,7 @@ def import_preview_json_get(
     provider: Annotated[
         str | None,
         Query(
-            description="Metadata provider: amazon, ia, or marc",
+            description="Metadata provider: amazon, ia, marc, project_gutenberg, or json",
         ),
     ] = None,
     identifier: Annotated[
@@ -65,14 +70,13 @@ def import_preview_json_get(
 
     Requires admin, librarian, or super-librarian role.
     """
-    x_fwd = req_context.get().x_forwarded_for
-    client_ip = x_fwd.split(",")[0].strip() if x_fwd else "127.0.0.1"
     return _build_preview_response(source, provider, identifier, save=False, client_ip=client_ip)
 
 
 @router.post("/import/preview.json")
 def import_preview_json_post(
     _: LibrarianDep,
+    client_ip: ClientIpDep,
     source: Annotated[str | None, Form()] = None,
     provider: Annotated[str | None, Form()] = None,
     identifier: Annotated[str | None, Form()] = None,
@@ -83,6 +87,4 @@ def import_preview_json_post(
 
     Requires admin, librarian, or super-librarian role.
     """
-    x_fwd = req_context.get().x_forwarded_for
-    client_ip = x_fwd.split(",")[0].strip() if x_fwd else "127.0.0.1"
     return _build_preview_response(source, provider, identifier, save=save, client_ip=client_ip)

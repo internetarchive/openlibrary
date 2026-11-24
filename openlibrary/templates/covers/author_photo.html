@@ -8,22 +8,14 @@ $ photo_aspect_ratio_str = 'aspect-ratio: ' + str(photo_aspect_ratio) if photo_a
 $if author_thumbnail_url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <a aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
+            <a href="$author_photo_url" aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
                 <img src="$author_thumbnail_url" itemprop="image" class="cover" style="$photo_aspect_ratio_str" alt="$_('Photo of %(author)s', author=author.name)"/>
             </a>
         </div>
     </div>
-    <div class="hidden">
-        <div class="coverFloat" id="seeImage">
-            <div class="coverFloatHead">
-                <h2>$truncate(author.name or "", 60)</h2>
-                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-            </div>
-            <a class="dialog--close" title="$_('Click to close')">
-                <img src="$author_photo_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
-            </a>
-        </div>
-    </div>
+    <ol-dialog id="seeImage" label="$truncate(author.name or '', 60)" width="medium">
+        <img src="$author_photo_url" loading="lazy" itemprop="image" class="cover cover-preview" alt="$_('Photo of %(author)s', author=author.name)"/>
+    </ol-dialog>
 $else:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">

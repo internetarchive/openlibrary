@@ -1,6 +1,5 @@
 /* Common styling */
-.my-observations,
-.my-notes {
+.my-observations {
   flex: 1;
   padding: 10px;
 }
@@ -49,11 +48,6 @@
   font-size: var(--font-size-title-medium);
 }
 
-.book-note .notes-view-modal-link {
-  margin-top: 1em;
-  text-align: center;
-}
-
 .note-page-buttons {
   display: flex;
   justify-content: space-between;
@@ -88,7 +82,7 @@
 }
 
 .observation-category {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .observation-buttons {

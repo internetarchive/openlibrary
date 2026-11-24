@@ -33,13 +33,17 @@
   z-index: var(--ile-toolbar-z-index);
   font-size: 0.9em;
 }
+/* Toasts also stack at the bottom of the viewport; while the toolbar is shown,
+   lift them above it (its 12px offset + ~40px height) instead of covering it. */
+body.ile-toolbar-open ol-toast-region {
+  bottom: calc(52px + var(--spacing-inset-md));
+}
 #ile-toolbar a {
   padding: 4px 16px;
   display: inline-block;
   color: var(--ile-toolbar-text-color);
   text-decoration: none;
   border-left: 2px dotted var(--ile-toolbar-text-color);
-  transition: background 0.2s;
   cursor: pointer;
 }
 #ile-selection-actions {

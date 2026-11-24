@@ -9,11 +9,14 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend test test-py test-py-uv test-py-integration test-i18n
 
-all: git css js components icons lit-components i18n
+all: git frontend i18n
 
-frontend: css js components icons lit-components
+frontend: node_modules icons
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
+	node scripts/vite/build.mjs
 
 node_modules: package-lock.json package.json
 ifeq ($(LOCAL_DEV),true)
@@ -21,39 +24,17 @@ ifeq ($(LOCAL_DEV),true)
 endif
 
 css: node_modules
-	mkdir -p $(BUILD)/css_new
-	BUILD_DIR=$(BUILD)/css_new npx vite build -c vite-css.config.mjs
-	mkdir -p $(BUILD)/css
-	rm -rf $(BUILD)/css
-	mv $(BUILD)/css_new $(BUILD)/css
+	node scripts/vite/build.mjs --only css
 
 js: node_modules
-	mkdir -p $(BUILD)/js_new
-	BUILD_DIR=$(BUILD)/js_new NODE_ENV=production npx webpack
-	# This adds FSF licensing for AGPLv3 to our js (for librejs)
-	for js in $(BUILD)/js_new/*.js; do \
-		echo "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0" | cat - $$js > /tmp/js && mv /tmp/js $$js; \
-		echo "\n// @license-end"  >> $$js; \
-	done
-	mkdir -p $(BUILD)/js
-	rm -rf $(BUILD)/js
-	mv $(BUILD)/js_new $(BUILD)/js
+	node scripts/vite/build.mjs --only js
 
-components: node_modules
-	mkdir -p $(BUILD)/components_new
-	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
-	mkdir -p $(BUILD)/components
-	rm -rf $(BUILD)/components
-	mv $(BUILD)/components_new $(BUILD)/components
-
-lit-components: node_modules icons
+components: node_modules icons
 	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
 	npx cem analyze
-	mkdir -p $(BUILD)/lit-components_new
-	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
-	mkdir -p $(BUILD)/lit-components
-	rm -rf $(BUILD)/lit-components
-	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
+	node scripts/vite/build.mjs --only components
+
+lit-components: components
 
 icons:
 	# Build the icon sprite and the Lit glyph module from static/icons/src/.
@@ -96,9 +77,14 @@ test-py:
 test-py-uv:
 	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
 
+# Integration tests run the async DB models against a real PostgreSQL started
+# by pytest-postgresql. Requires pg_ctl on PATH (brew install postgresql@14).
+# Skipped by default (pyproject.toml: -m 'not integration'); this target opts in.
+test-py-integration:
+	uv run --with-requirements requirements_test.txt pytest -m integration openlibrary/tests/core/
+
 test-i18n:
-	# Valid locale codes should be added as arguments to validate
-	python ./scripts/i18n-messages validate de es fr hr it ja zh
+	python ./scripts/i18n-messages validate
 
 test:
 	make test-py && npm run test && make test-i18n

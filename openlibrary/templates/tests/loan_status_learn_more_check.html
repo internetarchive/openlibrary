@@ -1,0 +1,5 @@
+$def with (doc, lending_state, book_page)
+$# Test-only: render LoanStatus as a listing (carousel card, search result)
+$# or as the book page, with the lending state already resolved so nothing
+$# is looked up. See openlibrary/tests/test_loan_status_learn_more.py.
+$:macros.LoanStatus(doc, work_key="/works/OL1W", listen=False, lending_state=lending_state, is_book_page=book_page, analytics_override="BookCarousel|{action}Click|test")

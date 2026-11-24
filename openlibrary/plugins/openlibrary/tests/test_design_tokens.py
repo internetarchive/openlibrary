@@ -276,6 +276,20 @@ class TestTokenProperties:
         tokens = _parse_file(write(tmp_path, "c.css", body)).groups[0].tokens
         assert [token.reference for token in tokens] == ["--blue-500", "", ""]
 
+    @pytest.mark.parametrize(
+        ("name", "css_property"),
+        [
+            ("--font-weight-heading", "font-weight"),
+            ("--font-size-label-medium", "font-size"),
+            ("--letter-spacing-overline", "letter-spacing"),
+            ("--line-height-snug", "line-height"),
+            ("--color-text", ""),
+        ],
+    )
+    def test_css_property_is_read_off_the_name(self, tmp_path, name, css_property):
+        category = _parse_file(write(tmp_path, "c.css", f":root {{ {name}: 1; }}"))
+        assert category.groups[0].tokens[0].css_property == css_property
+
 
 class TestDropInternal:
     body = """
@@ -316,7 +330,7 @@ class TestRealTokenFiles:
 
     def test_every_category_parses_and_carries_tokens(self):
         categories = load_token_categories()
-        assert {category.id for category in categories} >= {"colors", "spacing", "font-families", "z-index"}
+        assert {category.id for category in categories} >= {"colors", "spacing", "typography", "z-index"}
         for category in categories:
             assert any(group.tokens for group in category.groups), f"{category.id} parsed no tokens"
 

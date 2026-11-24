@@ -1,0 +1,12 @@
+{# Renders loan expiry if present. #}
+{% macro format_expiry(expiry_utc, expiry_display) -%}
+    {%- if expiry_utc %}
+        <div class="local-date-time">
+            {{ _("Expires") }}
+            <time datetime="{{ expiry_utc }}" title="{{ expiry_utc }}">{{ expiry_display }}</time>
+        </div>
+    {%- endif -%}
+{%- endmacro -%}
+{%- if expiry_utc is defined and expiry_display is defined -%}
+    {{ format_expiry(expiry_utc, expiry_display) }}
+{%- endif -%}

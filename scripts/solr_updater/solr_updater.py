@@ -8,11 +8,10 @@ Changes:
 """
 
 import asyncio
-import datetime
+import datetime as dt
 import itertools
 import json
 import logging
-import re
 import socket
 import sys
 from collections.abc import Iterable, Iterator
@@ -41,11 +40,11 @@ def read_state_file(path, initial_state: str | None = None):
         return open(path).read()
     except OSError:
         logger.error("State file %s is not found. Reading log from the beginning of today", path)
-        return initial_state or f"{datetime.date.today().isoformat()}:0"
+        return initial_state or f"{dt.date.today().isoformat()}:0"
 
 
 def get_default_offset():
-    return datetime.date.today().isoformat() + ":0"
+    return dt.date.today().isoformat() + ":0"
 
 
 class InfobaseLogRecord(TypedDict):
@@ -156,7 +155,7 @@ def find_keys(d: dict | list) -> Iterator[str]:
         return
 
 
-def parse_log(records: Iterable[InfobaseLogRecord], load_ia_scans: bool):
+def parse_log(records: Iterable[InfobaseLogRecord]):
     for rec in records:
         action = rec.get("action")
 
@@ -175,52 +174,16 @@ def parse_log(records: Iterable[InfobaseLogRecord], load_ia_scans: bool):
                     yield from before_keys - after_keys
 
         elif action == "store.put":
-            # A sample record looks like this:
-            # {
-            #   "action": "store.put",
-            #   "timestamp": "2011-12-01T00:00:44.241604",
-            #   "data": {
-            #       "data": {"borrowed": "false", "_key": "ebooks/books/OL5854888M", "_rev": "975708", "type": "ebook", "book_key": "/books/OL5854888M"},
-            #       "key": "ebooks/books/OL5854888M"
-            #   },
-            #   "site": "openlibrary.org"
-            # }
+            # Record shape: {"action": "store.put", "data": {"key": <key>, "data": <store doc>}, ...}
             data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
-            if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
-                edition_key = cast(str | None, data.get("book_key"))
-                if edition_key:
-                    yield edition_key
-            elif load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
-                identifier = cast(str | None, data.get("identifier"))
-                if identifier and is_allowed_itemid(identifier):
-                    yield "/books/ia:" + identifier
-
             # Hack to force updating something from admin interface
             # The admin interface writes the keys to update to a document named
             # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
-            elif key == "solr-force-update":
+            if key == "solr-force-update":
                 keys = cast(list[str], data.get("keys", []))
                 yield from keys
-
-        elif action == "store.delete":
-            data = rec.get("data", {})
-            key = cast(str, data.get("key"))
-            # An ia-scan key is deleted when that book is deleted/darked from IA.
-            # Delete it from OL solr by updating that key
-            if key.startswith("ia-scan/"):
-                ol_key = "/works/ia:" + key.split("/")[-1]
-                yield ol_key
-
-
-def is_allowed_itemid(identifier: str):
-    if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
-        return False
-
-    # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = cast(list[str], config.get("ia_ignore_prefixes", []))
-    return all(not identifier.startswith(prefix) for prefix in ignore_prefixes)
 
 
 async def update_keys(keys: Iterable[str]):
@@ -254,7 +217,6 @@ async def main(
     exclude_edits_containing: str | None = None,
     ol_url="http://openlibrary.org/",  # Has side effects, is read globally
     socket_timeout: int = 10,
-    load_ia_scans: bool = False,
     initial_state: str | None = None,
 ):
     """
@@ -297,7 +259,7 @@ async def main(
 
     while True:
         records = logfile.read_records()
-        keys = parse_log(records, load_ia_scans)
+        keys = parse_log(records)
         count = await update_keys(keys)
 
         if logfile.tell() != offset:
