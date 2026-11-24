@@ -1114,7 +1114,7 @@ msgstr ""
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
 msgstr ""
 
-#: account/create.html type/author/view.html
+#: account/create.html merge/authors.html
 msgid "Success!"
 msgstr ""
 
@@ -5845,6 +5845,22 @@ msgstr ""
 msgid "Reject Merge"
 msgstr ""
 
+#: merge/authors.html
+msgid "Merging Authors..."
+msgstr ""
+
+#: merge/authors.html
+msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
+msgstr ""
+
+#: merge/authors.html
+msgid "Argh!"
+msgstr ""
+
+#: merge/authors.html
+msgid "That merge didn't work. It's our fault, and we've made a note of it."
+msgstr ""
+
 #: merge/works.html
 msgid "Merge Works"
 msgstr ""
@@ -6242,7 +6258,7 @@ msgstr ""
 msgid "Details here"
 msgstr ""
 
-#: recentchanges/merge/view.html type/author/view.html
+#: recentchanges/merge/view.html
 msgid "Duplicates"
 msgstr ""
 
@@ -7081,30 +7097,6 @@ msgstr ""
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
-
-#: type/author/view.html
-msgid "Merging Authors..."
-msgstr ""
-
-#: type/author/view.html
-msgid "In progress..."
-msgstr ""
-
-#: type/author/view.html
-msgid "Refresh the page?"
-msgstr ""
-
-#: type/author/view.html
-msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
-
-#: type/author/view.html
-msgid "Argh!"
-msgstr ""
-
-#: type/author/view.html
-msgid "That merge didn't work. It's our fault, and we've made a note of it."
 msgstr ""
 
 #: type/author/view.html

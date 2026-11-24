@@ -144,17 +144,8 @@ $(function () {
     }
 
     // conditionally load for author merge page
-    const mergePageElement = document.querySelector('#author-merge-page');
-    const preMergePageElement = document.getElementById('preMerge');
-    if (mergePageElement || preMergePageElement) {
-        import('./merge').then(module => {
-            if (mergePageElement) {
-                module.initAuthorMergePage();
-            }
-            if (preMergePageElement) {
-                module.initAuthorView();
-            }
-        });
+    if (document.querySelector('#author-merge-page')) {
+        import('./merge').then(module => module.initAuthorMergePage());
     }
 
     // conditionally load for type changing input
