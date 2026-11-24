@@ -62,6 +62,41 @@ cleanup() {
     rm -rf $TMP_DIR
 }
 
+# Put $1 on the clipboard with whatever this machine has.
+copy_to_clipboard() {
+    local tool
+    for tool in pbcopy wl-copy "xclip -selection clipboard" "xsel --clipboard --input" clip.exe; do
+        if command -v "${tool%% *}" >/dev/null 2>&1 && printf '%s' "$1" | $tool 2>/dev/null; then
+            echo "✓ Copied."
+            return
+        fi
+    done
+    # No clipboard tool: ask the terminal itself to copy (OSC 52; iTerm2, kitty, WezTerm,
+    # Windows Terminal and others support it, also over SSH; macOS Terminal.app doesn't).
+    printf '\033]52;c;%s\a' "$(printf '%s' "$1" | base64 | tr -d '\n')"
+    echo "✓ Sent to your terminal's clipboard (if your terminal supports that; otherwise select and copy it)."
+}
+
+# Show a message to paste into Slack, set apart so it's clear what to copy, and wait
+# until it's posted. Pressing c copies it.
+slack_message() {
+    local heading=$1 message=$2 key
+    if [ -t 1 ]; then
+        printf '\033[1m%s\033[0m\n\n\033[1;36m%s\033[0m\n\n' "$heading" "$message"
+    else
+        printf '%s\n\n%s\n\n' "$heading" "$message"
+    fi
+    while true; do
+        read -r -n 1 -p "Press c to copy it, or Enter once it's posted..." key
+        echo ""
+        if [[ "$key" =~ ^[Cc]$ ]]; then
+            copy_to_clipboard "$message"
+        else
+            break
+        fi
+    done
+}
+
 # Show a looping y/n prompt
 wait_yn() {
     local prompt=$1
@@ -964,14 +999,10 @@ deploy_wizard() {
     echo ""
 
     # Announce the deploy
-    echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
-    echo ""
-    echo "Open Library is in the process of deploying its weekly release."
-    echo ""
-    echo "See what's changed: $RELEASE_DIFF_URL"
-    echo "PRs going out: $RELEASE_MERGED_PRS_URL"
-    echo ""
-    read -p "Once announced, press Enter to continue..."
+    slack_message "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:" "Open Library is in the process of deploying its weekly release.
+
+See what's changed: $RELEASE_DIFF_URL
+PRs going out: $RELEASE_MERGED_PRS_URL"
     echo ""
 
     # Deploy olsystem
@@ -1049,9 +1080,7 @@ deploy_wizard() {
         time tag_release
         read -p "Press Enter to continue..."
 
-        echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
-        echo ""
-        echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
+        slack_message "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:" "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
     fi
 }
 
