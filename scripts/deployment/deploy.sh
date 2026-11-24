@@ -979,6 +979,18 @@ recreate_services() {
     time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
 }
 
+# Kubernetes (us-west-1-p01): see scripts/deployment/deploy_k8s.py.
+# Usage: deploy_k8s [full commit SHA]; defaults to the commit the openlibrary step deployed.
+deploy_k8s() {
+    if ! command -v python3 &>/dev/null; then
+        echo "[Error] The Kubernetes step needs python3; install it (e.g. https://www.python.org/downloads/) and run \`deploy.sh k8s <sha>\`."
+        return 1
+    fi
+    # `|| return` so a failure returns from here and deploy.sh's ERR trap cleans up.
+    # -u keeps its output in order with git's when piped (e.g. into tee).
+    python3 -u "$SCRIPT_DIR/deploy_k8s.py" "$DEPLOY_DIR" ${1:+"$1"} || return
+}
+
 deploy_wizard() {
     # Pull openlibrary before continuing so we have latest deploy.sh
     read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
@@ -1067,6 +1079,15 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
         fi
     fi
 
+    # Before the VM restart: Kubernetes replaces its pods gradually, so the two
+    # halves of production are on different versions only while it rolls out.
+    read -p "[Now] Deploy to Kubernetes? [Y/n]..." answer
+    answer=${answer:-Y}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        time deploy_k8s || echo "[Warning] The Kubernetes step didn't finish (see above); \`deploy.sh k8s <sha>\` runs it again."
+        echo ""
+    fi
+
     read -p "[Now] Restart services? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
@@ -1096,6 +1117,8 @@ elif [ "$1" == "images" ]; then
     deploy_images $2
 elif [ "$1" == "tag" ]; then
     tag_deploy
+elif [ "$1" == "k8s" ]; then
+    deploy_k8s "$2"
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
@@ -1113,7 +1136,7 @@ elif [ "$1" == "reset" ]; then
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage|k8s <sha>]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
     echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
