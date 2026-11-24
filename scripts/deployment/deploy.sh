@@ -97,6 +97,11 @@ slack_message() {
     done
 }
 
+# Throw away keys pressed during a long wait, so they can't answer the next question.
+discard_typeahead() {
+    [ -t 0 ] && python3 -c 'import sys, termios; termios.tcflush(sys.stdin, termios.TCIFLUSH)' 2>/dev/null || true
+}
+
 # Show a looping y/n prompt
 wait_yn() {
     local prompt=$1
@@ -1018,6 +1023,9 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
 
     if [ -n "$OLBASE_RUN_ID" ]; then
         gh run watch "$OLBASE_RUN_ID" --repo internetarchive/openlibrary --exit-status --compact --interval 30 || true
+        # Keys pressed during the watch (e.g. Enter to check it's alive) would otherwise
+        # answer the next question, which defaults to running the openlibrary deploy.
+        discard_typeahead
     fi
     until check_olbase_image_up_to_date; do
         read -p "Image still out of date. Check the olbase build, then press Enter to recheck..."
