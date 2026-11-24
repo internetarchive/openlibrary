@@ -1011,7 +1011,12 @@ deploy_k8s() {
         echo "[Info] Not pushed; Kubernetes stays on its current version."
         return 1
     fi
-    git -C "$dir" commit -q -am "ol-web: deploy openlibrary $tag"
+    # The wizard calls this as `deploy_k8s || ...`, which turns off set -e in here,
+    # so every step that can fail needs its own check.
+    if ! git -C "$dir" commit -q -am "ol-web: deploy openlibrary $tag"; then
+        echo "[Error] Couldn't commit; set git user.name and user.email on this machine."
+        return 1
+    fi
     git -C "$dir" push -q origin "HEAD:$K8S_MANIFESTS_BRANCH" || return 1
     echo "✓ Pushed. Argo CD rolls it out in a few minutes; watch the rollout tile:"
     echo "  https://grafana.p01.us-west-1.archive.org/d/ra28gwx/k8s"
