@@ -621,6 +621,40 @@ deploy_openlibrary() {
     echo "time ./scripts/deployment/deploy.sh review"
 }
 
+SPINNER_FRAMES=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+
+# 75 -> "1m15s"
+format_elapsed() {
+    if [ "$1" -lt 60 ]; then
+        echo "${1}s"
+    else
+        printf '%dm%02ds' $(($1 / 60)) $(($1 % 60))
+    fi
+}
+
+# Wait for background job <pid>, then print ✓ or ✗ and how long it took; returns the
+# job's exit status. On a terminal, shows a spinner and the elapsed time meanwhile,
+# after whatever is already on the line.
+wait_with_spinner() {
+    local pid=$1 start=$SECONDS n=0 rc=0
+    if [ -t 1 ]; then
+        printf '%s' $'\e7'  # save the cursor position
+        while kill -0 "$pid" 2>/dev/null; do
+            printf '%s\033[K%s %s' $'\e8' "${SPINNER_FRAMES[n % 10]}" "$(format_elapsed $((SECONDS - start)))"
+            n=$((n + 1))
+            sleep 0.1
+        done
+        printf '%s\033[K' $'\e8'
+    fi
+    wait "$pid" || rc=$?
+    if [ $rc -eq 0 ]; then
+        echo "$(green ✓) ($(format_elapsed $((SECONDS - start))))"
+    else
+        echo "$(red ✗) ($(format_elapsed $((SECONDS - start))))"
+    fi
+    return $rc
+}
+
 deploy_images() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
 
@@ -643,24 +677,23 @@ deploy_images() {
     FIRST_SERVER=$(echo "$HOSTNAMES" | awk '{print $1}')
     echo -n "   Warming nexus cache on ${FIRST_SERVER} ... "
     local WARM_OUTPUT
-    WARM_OUTPUT=$(ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" 2>&1)
-    if [ $? -eq 0 ]; then
-        echo "$(green ✓)"
-    else
-        echo "$(red ✗)"
+    WARM_OUTPUT=$(mktemp)
+    ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" &> "$WARM_OUTPUT" &
+    if ! wait_with_spinner $!; then
         echo "Failed to warm nexus cache on ${FIRST_SERVER}"
         echo "Output:"
-        echo "$WARM_OUTPUT"
+        cat "$WARM_OUTPUT"
+        rm -f "$WARM_OUTPUT"
         return 1
     fi
+    rm -f "$WARM_OUTPUT"
 
-    local pids=()
-    local output_files=()
+    local pids=() output_files=() servers=() results=() times=()
     for SERVER_NAME in $HOSTNAMES; do
-        echo -n "   $SERVER_NAME ... "
         # Make a temporary file to house the output
         OUTPUT_FILE=$(mktemp)
         output_files+=("$OUTPUT_FILE")
+        servers+=("$SERVER_NAME")
         ssh "${SERVER_NAME}${SERVER_SUFFIX}" "
             set -e;
             docker pull openlibrary/olbase@${OLBASE_DIGEST}
@@ -670,28 +703,59 @@ deploy_images() {
             COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
         " &> "$OUTPUT_FILE" &
         pids+=($!)
-        echo "(started in background)"
+        [ -t 1 ] || echo "   $SERVER_NAME ... (started in background)"
     done
 
-    # Convert server domain names string to an array
-    local FAILED=0
-    IFS=' ' read -r -a SERVER_NAMES_ARRAY <<< "$FQDNS"
     echo "Waiting for all servers to finish pulling images..."
+    local i n=0 start=$SECONDS running=${#pids[@]}
+    if [ -t 1 ]; then
+        # One line per server, redrawn in place: a spinner and the elapsed time while it
+        # runs, then ✓ or ✗ and how long it took, as soon as that server finishes.
+        for i in "${!pids[@]}"; do echo; done
+        while [ "$running" -gt 0 ]; do
+            printf '\033[%dA' "${#pids[@]}"  # back up to the first server's line
+            running=0
+            for i in "${!pids[@]}"; do
+                if [ -z "${results[$i]}" ] && ! kill -0 "${pids[$i]}" 2>/dev/null; then
+                    results[$i]=0
+                    wait "${pids[$i]}" || results[$i]=$?
+                    times[$i]=$(format_elapsed $((SECONDS - start)))
+                fi
+                if [ -z "${results[$i]}" ]; then
+                    running=$((running + 1))
+                    printf '\033[K   %-12s %s %s\n' "${servers[$i]}" "${SPINNER_FRAMES[n % 10]}" "$(format_elapsed $((SECONDS - start)))"
+                elif [ "${results[$i]}" -eq 0 ]; then
+                    printf '\033[K   %-12s %s %s\n' "${servers[$i]}" "$(green ✓)" "${times[$i]}"
+                else
+                    printf '\033[K   %-12s %s %s\n' "${servers[$i]}" "$(red ✗)" "${times[$i]}"
+                fi
+            done
+            n=$((n + 1))
+            if [ "$running" -gt 0 ]; then
+                sleep 0.1
+            fi
+        done
+    else
+        for i in "${!pids[@]}"; do
+            echo -n "   ${servers[$i]} ... "
+            results[$i]=0
+            wait "${pids[$i]}" || results[$i]=$?
+            if [ "${results[$i]}" -eq 0 ]; then
+                echo "$(green ✓)"
+            else
+                echo "$(red ✗)"
+            fi
+        done
+    fi
+
+    local FAILED=0
     for i in "${!pids[@]}"; do
-        pid="${pids[$i]}"
-        server="${SERVER_NAMES_ARRAY[$i]}"
-        echo -n "   $server ... "
-        if wait $pid; then
-            echo "$(green ✓)"
-        else
-            echo "$(red ✗)"
-            echo "Failed to pull images on $server"
+        if [ "${results[$i]}" -ne 0 ]; then
+            echo "$(red "Failed to pull images on ${servers[$i]}")"
             echo "Output:"
             cat "${output_files[$i]}"
             FAILED=1
         fi
-
-        # Clean up the output file
         rm -f "${output_files[$i]}"
     done
 
