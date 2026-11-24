@@ -97,37 +97,83 @@ cleanup() {
     rm -rf $TMP_DIR
 }
 
-# Put $1 on the clipboard with whatever this machine has.
+# Where the deploy announcements go: channels in the "archive" Slack workspace, which
+# slack_message opens in the Slack app on 1, 2, 3...
+SLACK_TEAM=T03ST9K7K
+SLACK_CHANNEL_NAMES=(openlibrary-g openlibrary open-librarians-g)
+SLACK_CHANNEL_IDS=(C0ETZV72L C075DJ6G1 C0119PRDV46)
+
+# Put $1 on the clipboard with whatever this machine has. Returns 1 if there was no
+# clipboard tool and it asked the terminal to copy instead, which may not have worked.
 copy_to_clipboard() {
     local tool
     for tool in pbcopy wl-copy "xclip -selection clipboard" "xsel --clipboard --input" clip.exe; do
         if command -v "${tool%% *}" >/dev/null 2>&1 && printf '%s' "$1" | $tool 2>/dev/null; then
-            echo "$(green ✓) Copied."
-            return
+            return 0
         fi
     done
-    # No clipboard tool: ask the terminal itself to copy (OSC 52; iTerm2, kitty, WezTerm,
-    # Windows Terminal and others support it, also over SSH; macOS Terminal.app doesn't).
+    # OSC 52: iTerm2, kitty, WezTerm, Windows Terminal and others support it, also over
+    # SSH; macOS Terminal.app doesn't.
     printf '\033]52;c;%s\a' "$(printf '%s' "$1" | base64 | tr -d '\n')"
-    echo "$(green ✓) Sent to your terminal's clipboard (if your terminal supports that; otherwise select and copy it)."
+    return 1
 }
 
-# Show a message to paste into Slack, set apart so it's clear what to copy, and wait
-# until it's posted. Pressing c copies it.
+# Open Slack channel <id> in the Slack app (macOS `open`, Linux `xdg-open`).
+open_slack_channel() {
+    local url="slack://channel?team=$SLACK_TEAM&id=$1" opener
+    for opener in open xdg-open; do
+        if command -v "$opener" >/dev/null 2>&1 && "$opener" "$url" >/dev/null 2>&1; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Show a message to paste into Slack, set apart so it's clear what to copy, under a
+# checklist: c copies it, 1, 2, 3... open each channel in the Slack app, and each gets a
+# ✓ once done. Returns on Enter. On a terminal the checklist updates in place.
 slack_message() {
-    local heading=$1 message=$2 key
+    local heading=$1 message=$2 key i line note copied="" opened=()
+    local hint="  Press c, then 1-${#SLACK_CHANNEL_NAMES[@]} to open each channel and paste. Press Enter once it's posted everywhere."
     if [ -t 1 ]; then
-        printf '\033[1m%s\033[0m\n\n\033[1;36m%s\033[0m\n\n' "$heading" "$message"
+        # Two blank lines at the end: the checklist and hint, redrawn below.
+        printf '\033[1m%s\033[0m\n\n\033[1;36m%s\033[0m\n\n\n\n' "$heading" "$message"
     else
         printf '%s\n\n%s\n\n' "$heading" "$message"
     fi
+    note=$hint
     while true; do
-        read -r -n 1 -p "Press c to copy it, or Enter once it's posted..." key
-        echo ""
-        if [[ "$key" =~ ^[Cc]$ ]]; then
-            copy_to_clipboard "$message"
+        line="  $(bold c) copy message${copied:+ $(green ✓)}"
+        for i in "${!SLACK_CHANNEL_NAMES[@]}"; do
+            line+="   $(bold $((i + 1))) #${SLACK_CHANNEL_NAMES[$i]}${opened[$i]:+ $(green ✓)}"
+        done
+        if [ -t 1 ]; then
+            printf '\033[2A\r\033[K%s\n\033[K\033[2m%s\033[0m' "$line" "$note"
         else
+            printf '%s\n%s\n' "$line" "$note"
+        fi
+        read -r -s -n 1 key || key=""  # no more input: same as Enter
+        note=$hint
+        if [[ "$key" =~ ^[Cc]$ ]]; then
+            copied=1
+            if ! copy_to_clipboard "$message"; then
+                note="  Asked your terminal to copy it; if pasting doesn't work, select the message and copy it."
+            fi
+        elif [[ "$key" =~ ^[1-9]$ ]] && [ "$key" -le "${#SLACK_CHANNEL_NAMES[@]}" ]; then
+            i=$((key - 1))
+            if open_slack_channel "${SLACK_CHANNEL_IDS[$i]}"; then
+                opened[$i]=1
+            else
+                note="  Couldn't open Slack here; go to #${SLACK_CHANNEL_NAMES[$i]} yourself."
+            fi
+        elif [ -z "$key" ]; then
+            if [ -t 1 ]; then
+                printf '\n'
+            fi
             break
+        fi
+        if [ -t 1 ]; then
+            printf '\n'  # the redraw starts two lines up from a fresh line
         fi
     done
 }
