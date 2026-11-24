@@ -24,8 +24,8 @@ function error(errordiv, input, message) {
 }
 
 function update_len() {
-    var len = $('#excerpts-excerpt').val().length;
-    var color;
+    const len = $('#excerpts-excerpt').val().length;
+    let color;
     if (len > 2000) {
         color = '#e44028';
     } else {
@@ -44,14 +44,13 @@ function update_len() {
  * @return {boolean} is character number below or equal to limit
  */
 function limitChars(textid, limit) {
-    var text = $(`#${textid}`).val();
-    var textlength = text.length;
+    const text = $(`#${textid}`).val();
+    const textlength = text.length;
     if (textlength > limit) {
-        $(`#${textid}`).val(text.substr(0, limit));
+        $(`#${textid}`).val(text.slice(0, limit));
         return false;
-    } else {
-        return true;
     }
+    return true;
 }
 
 /**
@@ -513,36 +512,29 @@ export function initEditLinks() {
  * Initializes edit page.
  *
  * Assumes presence of elements with id:
- *    - '#link_edition'
- *    - '#tabsAddbook'
  *    - '#contentHead'
+ *
+ * A `#tab/field` hash deep-links into the form: <ol-tabs> selects the tab
+ * itself, and this focuses the field with id `tab-field`.
  */
-export function initEdit() {
-    var hash = document.location.hash || '#edition';
-    var tab = hash.split('/')[0];
-    var link = `#link_${tab.substring(1)}`;
-    var fieldname = `:input${hash.replace('/', '-')}`;
-
+export async function initEdit() {
     trimInputValues('.olform input');
 
-    $(link).trigger('click');
-
-    // input field is enabled only after the tab is selected and that takes some time after clicking the link.
-    // wait for 1 sec after clicking the link and focus the input field
-    if ($(fieldname).length !== 0) {
-        setTimeout(function () {
-            // scroll such that top of the content is visible
-            $(fieldname).trigger('focus');
-            $(window).scrollTop($('#contentHead').offset().top);
-        }, 1000);
-    }
+    const [tab, field] = document.location.hash.slice(1).split('/');
+    const input = field && document.getElementById(`${tab}-${field}`);
+    if (!input) return;
+    // The field can only take focus once <ol-tabs> has shown its panel.
+    await customElements.whenDefined('ol-tabs');
+    input.focus();
+    // scroll such that top of the content is visible
+    document.getElementById('contentHead')?.scrollIntoView();
 }
 
 /**
  * Assesses URL validity using built-in URL object.
  * @param string url
  */
-function isValidURL(url) {
+export function isValidURL(url) {
     try {
         new URL(url);
         return true;

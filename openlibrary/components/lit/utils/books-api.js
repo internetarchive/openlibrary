@@ -165,9 +165,9 @@ export async function fetchUserLists() {
  * files the book twice. Asked per book on open, so carousels pay nothing.
  */
 export async function fetchWorkEditions(workKey) {
-    const olid = workKey.split('/').pop();
+    const workOlid = workKey.split('/').pop();
     const url = buildPartialsUrl('WorkEditions');
-    url.searchParams.set('work_id', olid);
+    url.searchParams.set('work_id', workOlid);
     const data = await request(String(url));
     return (data.editions || []).map(key => `/books/${key}`);
 }
@@ -176,8 +176,9 @@ export function addToList(listKey, seedKey) {
     return request(`${listKey}/seeds.json`, json({ add: [{ key: seedKey }] }));
 }
 
-export function removeFromList(listKey, seedKey) {
-    return request(`${listKey}/seeds.json`, json({ remove: [{ key: seedKey }] }));
+/** Takes one or more keys out of the list in a single request. */
+export function removeFromList(listKey, seedKeys) {
+    return request(`${listKey}/seeds.json`, json({ remove: seedKeys.map(key => ({ key })) }));
 }
 
 /** Resolves to `{ key, ... }` of the new list. */

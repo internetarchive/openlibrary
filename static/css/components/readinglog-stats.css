@@ -12,7 +12,7 @@ table.readinglog-stats {
 }
 
 table.readinglog-stats th {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 table.readinglog-stats tr:nth-child(even) {

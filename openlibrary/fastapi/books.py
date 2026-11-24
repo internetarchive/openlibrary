@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-import web
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, BeforeValidator, Field, TypeAdapter
 
@@ -71,10 +70,6 @@ async def get_books(
         }
     """
 
-    # Set up web context for dynlinks compatibility
-    # This ensures web.ctx.get("home") returns correct base URL
-    web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
-
     # Build options dict from params (excluding bibkeys which goes to dynlinks separately)
     options: DynlinksOptions = TypeAdapter(DynlinksOptions).validate_python(params.model_dump(exclude_unset=True))
 
@@ -89,7 +84,11 @@ async def get_books(
             options["format"] = "json"
 
     # Call existing business logic
-    result_str = await dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
+    result_str = await dynlinks.dynlinks(
+        bib_keys=params.bibkeys,
+        options=options,
+        base_url=f"{request.url.scheme}://{request.url.netloc}",
+    )
 
     return wrap_jsonp(request, result_str)
 
@@ -110,9 +109,7 @@ async def get_volumes_multiget(
     Example:
         GET /api/volumes/brief/json/isbn:059035342X|oclc:123456.json
     """
-    web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
-
-    result = await readlinks.readlinks(req, {})
+    result = await readlinks.readlinks(req, {}, base_url=f"{request.url.scheme}://{request.url.netloc}")
     return wrap_jsonp(request, result)
 
 
@@ -137,10 +134,6 @@ async def get_volume(
     Example:
         GET /api/volumes/brief/isbn/059035342X.json
     """
-    # Set up web context for readlinks compatibility
-    # This ensures web.ctx.get("home") returns correct base URL
-    web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
-
     # Build request identifier
     req = f"{idtype}:{idval}"
 
@@ -150,7 +143,7 @@ async def get_volume(
         options["show_all_items"] = show_all_items
 
     # Call existing business logic
-    result = await readlinks.readlinks(req, options)
+    result = await readlinks.readlinks(req, options, base_url=f"{request.url.scheme}://{request.url.netloc}")
 
     # Return the result for this specific request key
     result = result.get(req, [])

@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import functools
 import itertools
 import json
@@ -384,8 +384,9 @@ def _get_changes_v1_raw(query: dict[str, str | int], revision: int | None = None
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
-    versions = web.ctx.site.versions(query)
+    versions = request_context.site.get().versions(query)
 
     for v in versions:
         v.created = v.created.isoformat()
@@ -404,7 +405,7 @@ def get_changes_v1(query: dict[str, str | int], revision: int | None = None) -> 
     def process(v):
         v = Storage(v)
         v.created = parse_datetime(v.created)
-        v.author = v.author and web.ctx.site.get(v.author, lazy=True)
+        v.author = v.author and request_context.site.get().get(v.author, lazy=True)
         return v
 
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
@@ -417,8 +418,9 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
-    changes = web.ctx.site.recentchanges(query)
+    changes = request_context.site.get().recentchanges(query)
     return [c.dict() for c in changes]
 
 
@@ -427,7 +429,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
 
 
 def get_changes_v2(query: dict[str, str | int], revision: int | None = None) -> list[Changeset]:
-    page = web.ctx.site.get(query["key"])
+    page = request_context.site.get().get(query["key"])
 
     def first(seq, default=None):
         try:
@@ -436,7 +438,7 @@ def get_changes_v2(query: dict[str, str | int], revision: int | None = None) -> 
             return default
 
     def process_change(change):
-        change = Changeset.create(web.ctx.site, storify(change))
+        change = Changeset.create(request_context.site.get(), storify(change))
         change.thing = page
         change.key = page.key
         change.revision = first(c.revision for c in change.changes if c.key == page.key)
@@ -481,7 +483,7 @@ def get_history(page: Work | Author | Edition) -> Storage:
 @public
 def get_version(key, revision):
     try:
-        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+        return request_context.site.get().versions({"key": key, "revision": revision, "limit": 1})[0]
     except IndexError:
         return None
 
@@ -496,8 +498,8 @@ def get_recent_author(doc: Work) -> Thing | None:
 
 @public
 def get_recent_accounts(limit=5, offset=0):
-    versions = web.ctx.site.versions({"type": "/type/user", "revision": 1, "limit": limit, "offset": offset})
-    return web.ctx.site.get_many([v.key for v in versions])
+    versions = request_context.site.get().versions({"type": "/type/user", "revision": 1, "limit": limit, "offset": offset})
+    return request_context.site.get().get_many([v.key for v in versions])
 
 
 def get_locale():
@@ -523,7 +525,7 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
     ]
 
     if v.key.startswith("/books/") and not v.get("machine_comment"):
-        thing = v.get("thing") or web.ctx.site.get(v.key, v.revision)
+        thing = v.get("thing") or request_context.site.get().get(v.key, v.revision)
         if (thing.source_records and v.revision == 1) or (
             v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
         ):
@@ -1151,10 +1153,12 @@ def get_populated_languages() -> set[str]:
 
 
 @public
-@functools.cache
+@functools.lru_cache(maxsize=256)
 def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
     e.g. 'en' -> 'eng'
+
+    Bound the cache because language values can come from request input.
     """
     for lang in get_languages().values():
         code = safeget(lambda: lang["identifiers"]["iso_639_1"][0])
@@ -1166,6 +1170,24 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 @public
 def get_identifier_config(identifier: Literal["work", "edition", "author"]) -> Storage:
     return _get_identifier_config(identifier)
+
+
+def format_isni_display_value(isni: str) -> str:
+    """Format an ISNI for human-readable display according to ISO 27729."""
+    normalized = re.sub(r"\s+", "", isni).upper()
+    if re.fullmatch(r"\d{15}[\dX]", normalized):
+        return " ".join(normalized[i : i + 4] for i in range(0, 16, 4))
+
+    return isni
+
+
+@public
+def format_author_identifier_value(identifier_name: str, value: str) -> str:
+    """Format author identifiers for display without changing stored values."""
+    if identifier_name == "isni":
+        return format_isni_display_value(value)
+
+    return value
 
 
 @functools.cache
@@ -1182,7 +1204,7 @@ def _get_identifier_config(identifier: Literal["work", "edition", "author"]) -> 
         identifiers = [Storage(id) for id in id_config.get("identifiers", []) if "name" in id]
 
     if identifier == "edition":
-        thing = web.ctx.site.get("/config/edition")
+        thing = request_context.site.get().get("/config/edition")
         classifications = [Storage(t.dict()) for t in thing.classifications if "name" in t]
         roles = thing.roles
         return Storage(classifications=classifications, identifiers=identifiers, roles=roles)
@@ -1272,7 +1294,7 @@ if config.get("upstream_memcache_servers"):
 
 
 def _get_recent_changes():
-    site = web.ctx.get("site") or delegate.create_site()
+    site = request_context.site.get()
     web.ctx.setdefault("ip", "127.0.0.1")
 
     # The recentchanges can have multiple revisions for a document if it has been
@@ -1322,9 +1344,10 @@ def _get_recent_changes2():
     """
     if "env" not in web.ctx:
         delegate.fakeload()
+        request_context.set_context_from_legacy_web_py()
 
     q = {"bot": False, "limit": 100}
-    changes = web.ctx.site.recentchanges(q)
+    changes = request_context.site.get().recentchanges(q)
 
     def is_ignored(c):
         return (
@@ -1361,7 +1384,7 @@ def _get_blog_feeds():
         stats.end()
 
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
+        pubdate = dt.datetime.strptime(item.find("pubDate").text, "%a, %d %b %Y %H:%M:%S +0000").isoformat()
         return {
             "title": item.find("title").text,
             "link": item.find("link").text,
@@ -1394,9 +1417,9 @@ def create_thing(data: dict) -> Thing:
     """
     Helper method to convert a data object recursively to the correct `Thing`
     classes. Will change the dict to be the same type as when fetched from
-    the database via `web.ctx.site.get`.
+    the database via `site.get().get`.
     """
-    return client.create_thing(web.ctx.site, data["key"], web.ctx.site._process_dict(parse_query(data)))
+    return client.create_thing(request_context.site.get(), data["key"], request_context.site.get()._process_dict(parse_query(data)))
 
 
 @public
@@ -1441,39 +1464,45 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        readable_path = web.ctx.get("readable_path", web.ctx.path) or ""
-        query = web.ctx.query or ""
-        host = web.ctx.host or ""
-        if url := host + readable_path + query:
-            url = "https://" + url
-            parsed_url = urlparse(url)
+        return canonical_url(web.ctx.host or "", web.ctx.get("readable_path", web.ctx.path) or "", web.ctx.query or "")
 
-            parsed_query = parse_qs(parsed_url.query)
-            queries_to_exclude = ["sort", "mode", "v", "type", "debug"]
 
-            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
-            query = parse_urlencode(canonical_query, doseq=True)
-            parsed_url = parsed_url._replace(query=query)
+# Params that do not change what the page is about: presentation (sort, mode,
+# layout), revision and diff selectors (v, a, b), librarian and debug toggles,
+# tracking, read-aloud autostart, and a work's selected edition (every edition
+# has its own /books/ page).
+CANONICAL_QUERY_EXCLUDES = frozenset({"sort", "mode", "v", "type", "debug", "layout", "a", "b", "show_page_status", "edition", "ref", "_autoReadAloud"})
 
-            url = urlunparse(parsed_url)
 
-            return url
-        return ""
+def canonical_url(host: str, readable_path: str, query: str) -> str:
+    """The https:// URL for ``host + readable_path + query``, minus view-only params.
+
+    ``query`` includes its leading "?", like ``web.ctx.query``.
+    """
+    if url := host + readable_path + query:
+        parsed_url = urlparse("https://" + url)
+        canonical_query = {q: v for q, v in parse_qs(parsed_url.query).items() if q not in CANONICAL_QUERY_EXCLUDES}
+        return urlunparse(parsed_url._replace(query=parse_urlencode(canonical_query, doseq=True)))
+    return ""
 
 
 @public
 def render_once(key: str) -> bool:
-    rendered = web.ctx.setdefault("render_once", {})
+    rendered = request_context.rendered_keys.get()
+    if rendered is None:
+        # Preserve standalone template rendering without a shared mutable default.
+        rendered = set()
+        request_context.rendered_keys.set(rendered)
     if key in rendered:
         return False
     else:
-        rendered[key] = True
+        rendered.add(key)
         return True
 
 
 @public
 def today():
-    return datetime.datetime.today()
+    return dt.datetime.today()
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1490,7 +1519,7 @@ class HTMLTagRemover(HTMLParser):
 
 @public
 def get_user_object(username):
-    user = web.ctx.site.get(f"/people/{username}")
+    user = request_context.site.get().get(f"/people/{username}")
     return user
 
 
@@ -1512,6 +1541,21 @@ def reformat_html(html_str: str, max_length: int | None = None) -> str:
         return truncate("".join(content), max_length).strip().replace("\n", "<br>")
     else:
         return "".join(content).strip().replace("\n", "<br>")
+
+
+@public
+def markdown_excerpt(text: str, max_length: int = 200) -> str:
+    """Plain-text excerpt of a markdown field (e.g. a book description) for meta tags.
+
+    Cuts at a word boundary and adds an ellipsis when the text is longer than max_length.
+    """
+    html = get_markdown(str(text or "")).convert()
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.DOTALL | re.IGNORECASE)
+    plain = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
+    plain = re.sub(r" ([,.;:!?)])", r"\1", plain)
+    if len(plain) <= max_length:
+        return plain
+    return plain[:max_length].rsplit(" ", 1)[0].rstrip(",;:—-") + "…"
 
 
 def get_colon_only_loc_pub(pair: str) -> tuple[str, str]:
@@ -1562,9 +1606,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     # the colon is a publisher. This can be exploited by using
     # string.split(";") because everything to the 'left' of a colon is a
     # location, and whatever is to the right is a publisher.
+    locations: list[str] = []
+    publishers: list[str] = []
     if ":" in loc_pub:
-        locations: list[str] = []
-        publishers: list[str] = []
         parts = loc_pub.split(";") if ";" in loc_pub else [loc_pub]
         # Track in indices of values placed into locations or publishers.
         last_placed_index = 0
@@ -1588,15 +1632,13 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
                     locations.append(place.strip(STRIP_CHARS))
                 locations.append(location)  # Preserve location order.
                 last_placed_index = index + 1
+    else:
+        publishers = [loc_pub.strip(STRIP_CHARS)]
 
-        # Clean up and empty list items left over from strip() string replacement.
-        locations = [item for item in locations if item]
-        publishers = [item for item in publishers if item]
-
-        return (locations, publishers)
-
-    # Fall back to making the input a list returning that and an empty location.
-    return ([], [loc_pub.strip(STRIP_CHARS)])
+    # Clean up and empty list items left over from strip() string replacement.
+    locations = [item for item in locations if item]
+    publishers = [item for item in publishers if item]
+    return (locations, publishers)
 
 
 @public
@@ -1622,7 +1664,7 @@ def get_collection_book_count(page) -> int:
     keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
     # A deleted list still resolves to a Thing, and a non-list key to one with no
     # seed_count, so both would otherwise count as a list holding zero books.
-    lists = web.ctx.site.get_many(sorted(keys))
+    lists = request_context.site.get().get_many(sorted(keys))
     return sum(lst.seed_count for lst in lists if lst.type.key == "/type/list")
 
 
@@ -1670,11 +1712,12 @@ def setup() -> None:
     )
 
     from openlibrary.core import helpers as h
-    from openlibrary.core.fulltext import phrase_query
+    from openlibrary.core.fulltext import all_words_query, phrase_query
 
     web.template.Template.globals.update(h.helpers)
     # For the fulltext macros' BookReader links; imported here since core.fulltext imports back into plugins.
     web.template.Template.globals["phrase_query"] = phrase_query
+    web.template.Template.globals["all_words_query"] = all_words_query
 
     if config.get("use_gzip") is True:
         config.middleware.append(GZipMiddleware)

@@ -28,9 +28,7 @@ from openlibrary.utils.template_usage import analyze
 # /upstream/* are stale shadows. When in doubt leave it out -- a missing
 # entry just keeps this check failing (safe). Stale entries fail the
 # staleness check below.
-DB_USED_EXCLUSIONS: dict[str, str] = {
-    "SubjectSearch": "{{SubjectSearch()}} in db-stored /subjects wiki pages (f7b9ae436)",
-}
+DB_USED_EXCLUSIONS: dict[str, str] = {}
 
 # Maintainer-verified without evidence; revisit periodically.
 MANUAL_EXCLUSIONS: dict[str, str] = {

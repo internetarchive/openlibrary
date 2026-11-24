@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import re
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
@@ -21,19 +21,21 @@ def cmp(x, y):
     return (x > y) - (x < y)
 
 
-re_date = map(
-    re.compile,  # type: ignore[arg-type]
-    [
+# A list, not a map() iterator: parse_date() loops over it on every call.
+re_date = [
+    re.compile(pattern)
+    for pattern in (
         r"(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)",
         r"(?P<birth_date>\d+\??)-",
         r"b\.? (?P<birth_date>(?:ca\. )?\d+\??)",
         r"d\.? (?P<death_date>(?:ca\. )?\d+\??)",
         r"(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)",
         r"^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$",
-    ],
-)
+    )
+]
 
 re_ad_bc = re.compile(r"\b(B\.C\.?|A\.D\.?)")
+re_c1_control = re.compile(r"[\u0080-\u009f]")
 re_date_fl = re.compile("^fl[., ]")
 re_number_dot = re.compile(r"\d{2,}[- ]*(\.+)$")
 re_l_in_date = re.compile(r"(l\d|\dl)")
@@ -291,6 +293,11 @@ def tidy_isbn(input):
     return output
 
 
+def strip_c1_controls(s: str) -> str:
+    """Strip UTF-8 for C1 control range U+0080 to U+009F."""
+    return re_c1_control.sub("", s)
+
+
 def strip_count(counts):
     foo = {}
     for i, j in counts:
@@ -346,7 +353,7 @@ def published_in_future_year(publish_year: int) -> bool:
     Some import sources have publication dates in a future year, and the
     likelihood is high that this is bad data. So we don't want to import these.
     """
-    return publish_year > datetime.datetime.now().year
+    return publish_year > dt.datetime.now().year
 
 
 def publication_too_old_and_not_exempt(rec: dict) -> bool:

@@ -3,7 +3,13 @@
 <div class="contrib-page">
     {{ parts.book_header(data.book) }}
     <section class="contrib-section">
-        <h1 class="contrib-question__text">{{ _("%(field)s is already filled in on this edition", field=data.field_label) }}</h1>
+        <h1 class="contrib-question__text">
+            {% if data.on_work %}
+                {{ _("%(field)s is already filled in for this book", field=data.field_label) }}
+            {% else %}
+                {{ _("%(field)s is already filled in on this edition", field=data.field_label) }}
+            {% endif %}
+        </h1>
         <p>{{ _("Someone filled it in since the list was made. Thank you for checking.") }}</p>
         <ol-button href="{{ data.list_url }}">
             {{ _("Back to the list") }}

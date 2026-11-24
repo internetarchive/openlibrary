@@ -1,6 +1,6 @@
 import infogami
 from infogami.utils import delegate
-from openlibrary.utils.sentry import InfogamiSentryProcessor, Sentry, init_sentry
+from openlibrary.utils.sentry import InfogamiSentryProcessor, Sentry, init_sentry, webpy_framework_tag_processor
 
 sentry: Sentry | None = None
 
@@ -17,3 +17,5 @@ def setup():
         sentry.bind_to_webpy_db()
         delegate.add_exception_hook(sentry.capture_exception_webpy)
         delegate.app.add_processor(InfogamiSentryProcessor(delegate.app))
+        # First, so errors in every other processor are tagged too.
+        delegate.app.processors.insert(0, webpy_framework_tag_processor)

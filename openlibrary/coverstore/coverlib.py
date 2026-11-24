@@ -1,7 +1,8 @@
 """Cover management."""
 
-import datetime
+import datetime as dt
 import os
+import re
 from io import BytesIO
 from logging import getLogger
 from typing import TYPE_CHECKING
@@ -19,12 +20,25 @@ logger = getLogger("openlibrary.coverstore.coverlib")
 
 __all__ = ["read_file", "read_image", "save_image"]
 
+# An olid becomes part of an on-disk file path (see make_path_prefix), so it must
+# be a bare identifier. Anything containing a path separator, "..", ":" or other
+# non-identifier character could escape the covers directory and write arbitrary
+# files; reject it before it reaches the filesystem.
+_SAFE_OLID_RE = re.compile(r"\A[A-Za-z0-9_-]+\Z")
+
+
+def _check_olid(olid):
+    if not isinstance(olid, str) or not _SAFE_OLID_RE.match(olid):
+        raise ValueError(f"Invalid olid: {olid!r}")
+
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
     """Save the provided image data, creates thumbnails and adds an entry in the database.
 
-    ValueError is raised if the provided data is not a valid image.
+    ValueError is raised if the provided data is not a valid image or if olid is
+    not a safe identifier.
     """
+    _check_olid(olid)
     prefix = make_path_prefix(olid)
 
     img = write_image(data, prefix)
@@ -53,7 +67,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
 
 def make_path_prefix(olid, date=None):
     """Makes a file prefix for storing an image."""
-    date = date or datetime.date.today()
+    date = date or dt.date.today()
     return "%04d/%02d/%02d/%s-%s" % (
         date.year,
         date.month,

@@ -67,7 +67,10 @@ class OLWSGIServer(Application):
         import infogami
 
         infogami._setup()
-        wsgi_app = self.get_wsgi_app()
+        from infogami.utils import delegate
+        from openlibrary.utils.prometheus import instrument_webpy
+
+        wsgi_app = instrument_webpy(delegate.app, self.get_wsgi_app())
         # setup middleware for handling /static
         wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
         return wsgi_app

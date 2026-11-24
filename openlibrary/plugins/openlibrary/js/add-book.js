@@ -10,6 +10,7 @@ import {
     isValidOclc
 } from './idValidation.js';
 import { trimInputValues } from './utils.js';
+import { isValidURL } from './edit.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -22,16 +23,34 @@ let i18nStrings;
 export function initAddBookImport() {
     const addBookForm = document.querySelector('form#addbook');
 
+    // getResponse() is missing until api.js finishes loading, and throws if the widget never rendered.
+    function captchaSolved() {
+        try {
+            return Boolean(window.grecaptcha?.getResponse?.());
+        } catch {
+            return false;
+        }
+    }
+
+    // On the matches page, picking a book posts the form, so hold it until the captcha is solved.
+    function submitMatchChoice(work) {
+        const needed = document.getElementById('recaptcha-needed');
+        if (needed && !captchaSolved()) {
+            needed.hidden = false;
+            addBookForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        document.querySelector('input#work').value = work;
+        addBookForm.requestSubmit();
+    }
+
     for (const link of document.querySelectorAll('.list-books a')) {
         link.addEventListener('click', function () {
-            const li = this.closest('li');
-            document.querySelector('input#work').value = `/works/${li.id}`;
-            addBookForm.requestSubmit();
+            submitMatchChoice(`/works/${this.closest('li').id}`);
         });
     }
     document.getElementById('bookAddCont')?.addEventListener('click', function () {
-        document.querySelector('input#work').value = 'none-of-these';
-        addBookForm.requestSubmit();
+        submitMatchChoice('none-of-these');
     });
 
     // `data-i18n` (and everything below that depends on it) is only rendered on
@@ -54,6 +73,13 @@ export function initAddBookImport() {
         document.getElementById('id_name').addEventListener('change', clearErrors);
 
         document.getElementById('publish_date').addEventListener('blur', validatePublishDate);
+
+        // The Book URL field is only rendered for librarians
+        const webBookUrl = document.getElementById('web_book_url');
+        if (webBookUrl) {
+            webBookUrl.addEventListener('blur', validateWebBookUrl);
+            addBookForm.addEventListener('submit', validateWebBookUrl);
+        }
 
         trimInputValues('input');
 
@@ -91,7 +117,6 @@ function displayIdentifierError(event, errorMessage) {
     errorDiv.classList.remove('hidden');
     errorDiv.textContent = errorMessage;
     event.preventDefault();
-    return;
 }
 
 function clearErrors() {
@@ -192,7 +217,7 @@ function validatePublishDate() {
     // if it doesn't have even three digits then it can't be a future date
     const tokens = /(\d{3,})/.exec(publish_date);
     const year = new Date().getFullYear();
-    const isValidDate = tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+    const isValidDate = tokens && tokens[1] && parseInt(tokens[1], 10) <= year + 1; // allow one year in future.
 
     const errorDiv = document.getElementById('publish-date-errors');
 
@@ -201,5 +226,26 @@ function validatePublishDate() {
         errorDiv.textContent = i18nStrings['invalid_publish_date'];
     } else {
         errorDiv.classList.add('hidden');
+    }
+}
+
+export function isValidWebBookUrl(value) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return true;
+    }
+    return isValidURL(trimmed) && ['http:', 'https:'].includes(new URL(trimmed).protocol);
+}
+
+function validateWebBookUrl(event) {
+    const input = document.getElementById('web_book_url');
+    const errorDiv = document.getElementById('web-book-url-errors');
+
+    if (isValidWebBookUrl(input.value)) {
+        errorDiv.classList.add('hidden');
+    } else {
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = i18nStrings['invalid_web_book_url'];
+        event?.preventDefault();
     }
 }

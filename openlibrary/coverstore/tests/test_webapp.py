@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import json
 import urllib
 from os import system
@@ -20,23 +20,30 @@ def setup_db():
     """These tests have to run as the openlibrary user."""
     system("dropdb coverstore_test")
     system("createdb coverstore_test")
-    config.db_parameters = {
-        "dbn": "postgres",
-        "db": "coverstore_test",
-        "user": "openlibrary",
-        "pw": "",
-    }
-    db_schema = schema.get_schema("postgres")
-    db = web.database(**config.db_parameters)
-    db.query(db_schema)
-    db.insert("category", name="b")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            config,
+            "db_parameters",
+            {
+                "dbn": "postgres",
+                "db": "coverstore_test",
+                "user": "openlibrary",
+                "pw": "",
+            },
+            raising=False,
+        )
+        db_schema = schema.get_schema("postgres")
+        db = web.database(**config.db_parameters)
+        db.query(db_schema)
+        db.insert("category", name="b")
+        yield
 
 
 @pytest.fixture
-def image_dir(tmpdir):
+def image_dir(tmpdir, monkeypatch):
     tmpdir.mkdir("localdisk")
     tmpdir.mkdir("items")
-    config.data_root = str(tmpdir)
+    monkeypatch.setattr(config, "data_root", str(tmpdir))
 
 
 class Mock:
@@ -158,7 +165,7 @@ class TestUploadedCoverRedirect:
         details = web.storage(
             id=12_000_000,
             uploaded=True,
-            created=datetime.datetime(2021, 9, 26, 0, 45, 9),
+            created=dt.datetime(2021, 9, 26, 0, 45, 9),
             filename="x.jpg",
         )
         monkeypatch.setattr(code, "get_details", lambda coverid, size="": details)

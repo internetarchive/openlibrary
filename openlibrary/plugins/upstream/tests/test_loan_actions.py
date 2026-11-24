@@ -12,6 +12,7 @@ nothing.
 
 import pytest
 import web
+from bs4 import BeautifulSoup
 
 IA_LOAN = {
     "book": "/books/OL1M",
@@ -45,16 +46,22 @@ with the code instead of testing it -- which is why
 def render_actions(render_template, request_context_fixture):
     from infogami.utils import macro
 
+    # The `request` global must be set BEFORE the macros are loaded: a disk
+    # macro captures `web.template.Template.globals` when it is loaded, and
+    # `ReturnForm` reads `$request.fullpath`. Loading first left that resolved
+    # only when some earlier test had already set the global, so the IA cases
+    # passed in a full run and NameError'd in isolation -- an order-dependent
+    # flake under pytest-randomly. Set it first and they stand alone.
+    request_context_fixture(lang="en")
+    web.ctx.path = "/account/loans"
+    web.ctx.fullpath = "/account/loans"
+    web.template.Template.globals["request"] = web.storage(fullpath="/account/loans")
+
     # `macros/` is not on the disk source the render_template fixture builds;
     # only `templates/` is. The Internet Archive branch calls two macros, so
     # without this the IA cases below would fail for a reason that has nothing
     # to do with what they assert.
     macro.diskmacros.load_templates("openlibrary/macros")
-
-    request_context_fixture(lang="en")
-    web.ctx.path = "/account/loans"
-    web.ctx.fullpath = "/account/loans"
-    web.template.Template.globals["request"] = web.storage(fullpath="/account/loans")
 
     def render(loan):
         return render_template("account/loan_actions", loan)
@@ -148,6 +155,22 @@ class TestTheInternetArchiveBranchIsUnchanged:
         out = render_actions(IA_LOAN)
         assert "/borrow/ia/someocaid" in out
         assert "Return book" in out
+
+    def test_the_return_form_posts_the_return_action_to_the_internet_archive(self, render_actions):
+        """Pins the rendered ReturnForm itself -- its action URL and both hidden
+        inputs -- which `tests/fastapi/test_borrow.py` does not (it POSTs to the
+        endpoint directly, never rendering the form). This is the test that must
+        go red if the single-form refactor aims the Internet Archive return
+        anywhere but `/borrow/ia/<ocaid>` or drops a field. Returning an IA book
+        from the live Loans & History page is a worse regression than anything
+        this PR adds, so the control for the refactor lives here."""
+        form = BeautifulSoup(render_actions(IA_LOAN), "lxml").find("form", class_="return-form")
+        assert form is not None
+        assert form["action"] == "/borrow/ia/someocaid"
+        assert form["method"] == "post"
+        hidden = {i["name"]: i.get("value") for i in form.find_all("input", attrs={"type": "hidden"})}
+        assert hidden.get("action") == "return"
+        assert "redirect" in hidden
 
     def test_a_bookreader_loan_is_not_treated_as_a_provider_loan(self, render_actions):
         assert "Borrowed from" not in render_actions(IA_LOAN)

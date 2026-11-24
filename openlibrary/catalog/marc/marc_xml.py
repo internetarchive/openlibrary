@@ -4,6 +4,7 @@ from unicodedata import normalize
 from lxml import etree
 
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcException, MarcFieldBase
+from openlibrary.catalog.utils import strip_c1_controls
 
 data_tag = "{http://www.loc.gov/MARC21/slim}datafield"
 control_tag = "{http://www.loc.gov/MARC21/slim}controlfield"
@@ -28,7 +29,8 @@ def read_marc_file(f):
 
 
 def norm(s: str) -> str:
-    return normalize("NFC", str(s.replace("\xa0", " ")))
+    s = str(s.replace("\xa0", " "))
+    return normalize("NFC", strip_c1_controls(s))
 
 
 def get_text(e: etree._Element) -> str:

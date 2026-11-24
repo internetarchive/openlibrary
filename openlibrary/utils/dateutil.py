@@ -1,7 +1,7 @@
 """Generic date utilities."""
 
 import calendar
-import datetime
+import datetime as dt
 from contextlib import contextmanager
 from sys import stderr
 from time import perf_counter
@@ -17,15 +17,15 @@ WEEK_SECS = DAY_SECS * 7
 
 
 def days_in_current_month() -> int:
-    now = datetime.datetime.now()
+    now = dt.datetime.now()
     return calendar.monthrange(now.year, now.month)[1]
 
 
-def todays_date_minus(**kwargs) -> datetime.date:
-    return datetime.date.today() - datetime.timedelta(**kwargs)
+def todays_date_minus(**kwargs) -> dt.date:
+    return dt.date.today() - dt.timedelta(**kwargs)
 
 
-def date_n_days_ago(n: int | None = None, start=None) -> datetime.date | None:
+def date_n_days_ago(n: int | None = None, start=None) -> dt.date | None:
     """
     Args:
         n (int) - number of days since start
@@ -33,8 +33,8 @@ def date_n_days_ago(n: int | None = None, start=None) -> datetime.date | None:
     Returns:
         A (datetime.date) of `n` days ago if n is provided, else None
     """
-    _start = start or datetime.date.today()
-    return (_start - datetime.timedelta(days=n)) if n else None
+    _start = start or dt.date.today()
+    return (_start - dt.timedelta(days=n)) if n else None
 
 
 DATE_ONE_YEAR_AGO = date_n_days_ago(n=365)
@@ -43,7 +43,7 @@ DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
 DATE_ONE_DAY_AGO = date_n_days_ago(n=1)
 
 
-def parse_date(datestr: str) -> datetime.date:
+def parse_date(datestr: str) -> dt.date:
     """Parses date string.
 
     >>> parse_date("2010")
@@ -57,10 +57,10 @@ def parse_date(datestr: str) -> datetime.date:
     _resize_list(tokens, 3)
 
     yyyy, mm, dd = tokens[:3]
-    return datetime.date(int(yyyy), (mm and int(mm)) or 1, (dd and int(dd)) or 1)
+    return dt.date(int(yyyy), (mm and int(mm)) or 1, (dd and int(dd)) or 1)
 
 
-def parse_daterange(datestr: str) -> tuple[datetime.date, datetime.date]:
+def parse_daterange(datestr: str) -> tuple[dt.date, dt.date]:
     """Parses date range.
 
     >>> parse_daterange("2010-02")
@@ -77,11 +77,11 @@ def parse_daterange(datestr: str) -> tuple[datetime.date, datetime.date]:
         return date, nextday(date)
 
 
-def nextday(date: datetime.date) -> datetime.date:
-    return date + datetime.timedelta(1)
+def nextday(date: dt.date) -> dt.date:
+    return date + dt.timedelta(1)
 
 
-def nextmonth(date: datetime.date) -> datetime.date:
+def nextmonth(date: dt.date) -> dt.date:
     """Returns a new date object with first day of the next month."""
     year, month = date.year, date.month
     month = month + 1
@@ -90,12 +90,12 @@ def nextmonth(date: datetime.date) -> datetime.date:
         month = 1
         year += 1
 
-    return datetime.date(year, month, 1)
+    return dt.date(year, month, 1)
 
 
-def nextyear(date: datetime.date) -> datetime.date:
+def nextyear(date: dt.date) -> dt.date:
     """Returns a new date object with first day of the next year."""
-    return datetime.date(date.year + 1, 1, 1)
+    return dt.date(date.year + 1, 1, 1)
 
 
 def _resize_list(x, size: int) -> None:
@@ -106,7 +106,7 @@ def _resize_list(x, size: int) -> None:
 
 @public
 def current_year() -> int:
-    return datetime.datetime.now().year
+    return dt.datetime.now().year
 
 
 @contextmanager

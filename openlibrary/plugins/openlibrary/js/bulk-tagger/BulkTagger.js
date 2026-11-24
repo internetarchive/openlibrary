@@ -7,7 +7,7 @@ import { debounce } from '../nonjquery_utils.js';
 import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
 import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
 import { Tag } from './models/Tag';
-import { FadingToast } from '../Toast';
+import { showToast } from '../../../../components/lit/toast.js';
 
 /**
  * Maximum amount of search result to be returned by subject
@@ -254,7 +254,7 @@ export class BulkTagger {
                         entry.subjects = entry.subjects.filter(label => !entry.collections.includes(label));
                         for (let i = 0; i < entry.collections.length; ++i) {
                             // Remove collection prefix from label
-                            entry.collections[i] = entry.collections[i].substring(COLLECTION_PREFIX.length);
+                            entry.collections[i] = entry.collections[i].slice(COLLECTION_PREFIX.length);
                         }
                         if (!this.existingSubjects.has(id)) {
                             this.existingSubjects.set(id, []);
@@ -537,10 +537,10 @@ export class BulkTagger {
             if (!response.ok) {
                 this.submitButton.disabled = false;
                 this.submitButton.textContent = 'Submit';
-                new FadingToast('Batch subject update failed. Please try again in a few minutes.').show();
+                showToast('Batch subject update failed. Please try again in a few minutes.', { type: 'error' });
             } else {
                 this.hideTaggingMenu();
-                new FadingToast('Subjects successfully updated.').show();
+                showToast('Subjects successfully updated.', { type: 'success' });
                 this.submitButton.textContent = 'Submit';
                 this.updateFetchedSubjects();
                 this.resetTaggingMenu();
@@ -590,13 +590,7 @@ export class BulkTagger {
      * @returns {Array<String>} The names of the filtered tags
      */
     findMatches(tags, type) {
-        const results = [];
-        tags.reduce((_acc, tag) => {
-            if (tag.tagType === type) {
-                results.push(tag.tagName);
-            }
-        }, []);
-        return results;
+        return tags.filter(t => t.tagType === type).map(t => t.tagName);
     }
 
     /**
@@ -608,7 +602,7 @@ export class BulkTagger {
     updateFetchedSubjects() {
         for (const tag of this.tagsToAdd) {
             this.existingSubjects.forEach(tags => {
-                const tagExists = tags.findIndex(t => t.tagName === tag.tagName && t.tagType === tag.tagType) > -1;
+                const tagExists = tags.some(t => t.tagName === tag.tagName && t.tagType === tag.tagType);
                 if (!tagExists) {
                     tags.push(tag);
                 }

@@ -4,6 +4,7 @@ import {
     getDeepActiveElement,
     getTabbableElements,
     getTabbableFromSlot,
+    hasTabbableElement,
     isFocusable
 } from '../../../openlibrary/components/lit/utils/focus-utils.js';
 
@@ -209,6 +210,27 @@ describe('getTabbableElements', () => {
 
         const found = getTabbableElements(root);
         expect(found.map(el => el.className)).toEqual(['ok']);
+    });
+});
+
+describe('hasTabbableElement', () => {
+    test('is false for a null root or one with no tab stops', () => {
+        const root = document.createElement('div');
+        root.innerHTML = '<span>x</span><a>no href</a>';
+        document.body.appendChild(root);
+        expect(hasTabbableElement(null)).toBe(false);
+        expect(hasTabbableElement(root)).toBe(false);
+    });
+
+    test('stops at the first tab stop', () => {
+        const root = document.createElement('div');
+        root.innerHTML = '<p><button class="first">a</button></p><input class="later">';
+        document.body.appendChild(root);
+        const later = root.querySelector('.later');
+        later.checkVisibility = vi.fn(() => true);
+
+        expect(hasTabbableElement(root)).toBe(true);
+        expect(later.checkVisibility).not.toHaveBeenCalled();
     });
 });
 

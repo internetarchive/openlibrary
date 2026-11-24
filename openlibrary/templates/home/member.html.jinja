@@ -1,0 +1,146 @@
+{#
+  One half of the top of the home page for a signed-in reader, a section about now: `loans` is a card of the
+  books they have out and the holds ready to borrow, `shelves` one row of covers of their Currently Reading and
+  Want to Read books that have a copy free. Each is fetched on its own by home-member.js (HomeMemberPartial)
+  and put in its place in home/member_skeleton.html.jinja. Each carries the section's heading, which the
+  first to arrive supplies. A half with nothing to show renders nothing.
+  The card is made to fit the height of the row of covers beside it, so its arrival moves nothing below.
+  `member` is home_member.build_part(): `member.loans` is the cards, loans first; `member.shelves` the free
+  books, or when availability can't be read (`member.shelves_checked` is false) the shelves' borrowable books.
+#}
+{% set member = member | default(none) %}
+{% set loans = (member.loans | default([])) if member else [] %}
+{% set shelves = (member.shelves | default([])) if member else [] %}
+{# `tip=false` drops the cover's hover card where the title and author are already written beside it.
+   `kind` labels its click, which home-member.js reports: the link is in the cover's shadow root. #}
+{% macro cover(item, cls="", size="", tip=true, fit=false, kind="") %}
+    <ol-book-cover class="{{ cls }}" {% if size %}size="{{ size }}"{% endif %} {% if fit %}fit{% endif %} {% if not tip %}no-tip{% endif %} src="{{ item.cover_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}" data-cover-track="HomeMember|CoverClick|{{ kind or item.kind }}">
+    </ol-book-cover>
+{% endmacro %}
+{% macro action(item, variant="secondary", size="small") %}
+    {% if item.action.form %}
+        <form class="home-now__action"
+              method="post"
+              action="{{ item.action.form.action }}">
+            <input type="hidden" name="action" value="{{ item.action.form.value }}">
+            <ol-button type="submit" variant="{{ variant }}" size="{{ size }}" full-width data-ol-link-track="HomeMember|{{ item.kind }}">
+                {{ item.action.label }}
+            </ol-button>
+        </form>
+    {% else %}
+        <div class="home-now__action">
+            <ol-button variant="{{ variant }}" size="{{ size }}" full-width href="{{ item.action.href }}" data-ol-link-track="HomeMember|{{ item.kind }}">
+                {{ item.action.label }}
+            </ol-button>
+        </div>
+    {% endif %}
+{% endmacro %}
+{% macro status(item) %}
+    <p class="home-status home-status--{{ item.tone }}">
+        {% if item.tone == "ready" %}
+            {{ icon("circle-check-filled", size="sm") }}
+        {% elif item.tone == "urgent" %}
+            {{ icon("clock", size="sm") }}
+        {% endif %}
+        {{ item.status }}
+    </p>
+{% endmacro %}
+{# A way to the rest of a part's books. #}
+{% macro link(href, track, text) %}
+    <a class="home-now__link"
+       href="{{ href }}"
+       data-ol-link-track="HomeMember|{{ track }}"><span>{{ text }}</span></a>
+{% endmacro %}
+{% if loans or shelves %}
+    <div class="home-now__head">
+        <h2 class="home-now__title" id="home-now-title">
+            {% if member.name %}
+                {{ _("Welcome back, %(name)s", name=member.name) }}
+            {% else %}
+                {{ _("Welcome back") }}
+            {% endif %}
+        </h2>
+    </div>
+    {% if loans %}
+        {% set kinds = loans | map(attribute="kind") | unique | list %}
+        <div class="home-now__loans">
+            <div class="home-now__label-row">
+                <h3 class="home-now__label">
+                    {{ icon("book-open", size="sm", extra_class="home-now__label-icon") }}
+                    {% if kinds == ["ready"] %}
+                        {{ _("Ready to Borrow") }}
+                    {% elif "ready" in kinds %}
+                        {{ _("Loans and Holds") }}
+                    {% else %}
+                        {{ _("Checked Out") }}
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="home-now__card">
+                {% if loans | length == 1 %}
+                    {% set item = loans[0] %}
+                    <article class="home-now__main">
+                        {{ cover(item, "home-now__cover", tip=false, fit=true) }}
+                        <div class="home-now__text">
+                            <h4 class="home-now__book">
+                                <a href="{{ item.url }}"
+                                   data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
+                            </h4>
+                            {% if item.author %}<p class="home-now__author">{{ item.author }}</p>{% endif %}
+                            <div class="home-now__main-foot">
+                                {{ action(item, "primary") }}
+                                {{ status(item) }}
+                            </div>
+                        </div>
+                    </article>
+                {% else %}
+                    <ul class="home-now__rest">
+                        {% for item in loans %}
+                            <li class="home-now__item">
+                                <ol-book-cover class="home-now__thumb" size="small" no-tip src="{{ item.thumb_url }}" book-title="{{ item.title }}" authors="{{ item.author }}" href="{{ item.url }}" data-cover-track="HomeMember|CoverClick|{{ item.kind }}">
+                                </ol-book-cover>
+                                <div class="home-now__item-text">
+                                    <a class="home-now__item-title"
+                                       href="{{ item.url }}"
+                                       data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
+                                    {{ status(item) }}
+                                </div>
+                                {{ action(item) }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <nav class="home-now__links" aria-label="{{ _('Your loans') }}">
+                {{ link("/account/loans", "Loans", _("See All Loans")) }}
+            </nav>
+        </div>
+    {% endif %}
+    {% if shelves %}
+        <div class="home-now__shelves">
+            <div class="home-now__label-row">
+                <h3 class="home-now__label">
+                    {{ icon("bookmark", size="sm", extra_class="home-now__label-icon") }}
+                    {{ _("Ready to Read Now") if member.shelves_checked else _("From Your Shelves") }}
+                </h3>
+            </div>
+            <ul class="home-now__wall">
+                {% for item in shelves %}<li>{{ cover(item, "", "small", kind=item.shelf) }}</li>{% endfor %}
+            </ul>
+            {# Where the books come from, in words readers know from the shelf button, each a link to that shelf. #}
+            {% set source_link = "<a class=\"home-now__source-link\" href=\"/account/books/%s\" data-ol-link-track=\"HomeMember|%s\">" %}
+            {# Newstyle gettext escapes its arguments, so the link markup is marked safe going in. #}
+            {% set reading = source_link | format("currently-reading", "CurrentlyReading") | safe %}
+            {% set want = source_link | format("want-to-read", "WantToRead") | safe %}
+            <p class="home-now__links home-now__source">
+                {{ _("From %(reading_start)sCurrently Reading%(link_end)s and %(want_start)sWant to Read%(link_end)s", reading_start=reading, want_start=want, link_end="</a>" | safe) }}
+            </p>
+            {# On a phone the sentence is too long for the line: just the two links. #}
+            <nav class="home-now__links home-now__source-short"
+                 aria-label="{{ _('Your shelves') }}">
+                {{ link("/account/books/currently-reading", "CurrentlyReading", _("Currently Reading")) }}
+                {{ link("/account/books/want-to-read", "WantToRead", _("Want to Read")) }}
+            </nav>
+        </div>
+    {% endif %}
+{% endif %}

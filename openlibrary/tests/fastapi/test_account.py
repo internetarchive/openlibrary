@@ -2,15 +2,28 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
+
+import pytest
+import web
 
 from infogami import config
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
+from openlibrary.fastapi.shared.dependencies import get_client_ip
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 _DEFAULT_HEADER = "LOW ak:sk"
 _SENTINEL = object()
+_CLIENT_IP = "203.0.113.7"
+
+
+@pytest.fixture(autouse=True)
+def _client_ip(fastapi_client):
+    """The bare test app has no middleware to set req_context, which get_client_ip reads."""
+    fastapi_client.app.dependency_overrides[get_client_ip] = lambda: _CLIENT_IP
+    yield
+    fastapi_client.app.dependency_overrides.pop(get_client_ip, None)
 
 
 def _anonymize_post(
@@ -42,15 +55,18 @@ def _anonymize_post(
     if get_by_link_result is _SENTINEL:
         mock_account = MagicMock()
         mock_account.username = "testuser"
-        mock_account.anonymize.return_value = anonymize_return_value or {
-            "new_username": "anonymous-abc123",
-            "booknotes_count": 0,
-            "ratings_count": 0,
-            "observations_count": 0,
-            "bookshelves_count": 0,
-            "merge_request_count": 0,
-            "bestbooks_count": 0,
-        }
+        mock_account.anonymize = AsyncMock(
+            return_value=anonymize_return_value
+            or {
+                "new_username": "anonymous-abc123",
+                "booknotes_count": 0,
+                "ratings_count": 0,
+                "observations_count": 0,
+                "bookshelves_count": 0,
+                "merge_request_count": 0,
+                "bestbooks_count": 0,
+            }
+        )
         get_by_link_return = mock_account
     else:
         mock_account = get_by_link_result
@@ -499,7 +515,7 @@ def test_login_follow_action_subscribes_and_flashes(fastapi_client):
             "openlibrary.fastapi.account.OpenLibraryAccount.get_by_username",
             return_value={"data": {"displayname": "Some Publisher"}},
         ),
-        patch("openlibrary.fastapi.account.PubSub.subscribe") as mock_subscribe,
+        patch("openlibrary.fastapi.account.PubSub.subscribe", new_callable=AsyncMock) as mock_subscribe,
     ):
         mock_audit.return_value = {"ol_username": "testuser"}
         mock_gen_code.return_value = "token"
@@ -539,6 +555,46 @@ def test_login_forwards_s3_headers_to_audit(fastapi_client):
         assert kwargs["s3_secret_key"] == "sk"
 
 
+def _record_ctx_ip(result):
+    """An audit_accounts stand-in that records web.ctx.ip, which Infobase stamps on the transactions it writes."""
+    seen = {}
+
+    def fake_audit(**kwargs):
+        seen["ip"] = web.ctx.get("ip")
+        return result
+
+    return fake_audit, seen
+
+
+def test_login_sets_client_ip_for_infobase_writes(fastapi_client):
+    """audit_accounts can create or activate the OL account; an empty ip made Postgres reject the transaction row."""
+    fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=fake_audit),
+        patch("openlibrary.fastapi.account.generate_login_code_for_user", return_value="token"),
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        response = fastapi_client.post(
+            "/account/login",
+            data={"username": "testuser", "password": "password"},
+            follow_redirects=False,
+        )
+    assert response.status_code == 303
+    assert seen["ip"] == _CLIENT_IP
+
+
+def test_login_json_sets_client_ip_for_infobase_writes(fastapi_client):
+    fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=fake_audit),
+        patch("openlibrary.fastapi.account.generate_login_code_for_user", return_value="token"),
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        response = fastapi_client.post("/account/login", json={"access": "ak", "secret": "sk"})
+    assert response.status_code == 200
+    assert seen["ip"] == _CLIENT_IP
+
+
 class TestAnonymizeAccount:
     def test_success(self, fastapi_client):
         resp, mock_account = _anonymize_post(fastapi_client)
@@ -546,7 +602,7 @@ class TestAnonymizeAccount:
         assert resp.status_code == 200
         data = resp.json()
         assert data["new_username"] == "anonymous-abc123"
-        mock_account.anonymize.assert_called_once_with(test=False)
+        mock_account.anonymize.assert_awaited_once_with(_CLIENT_IP, test=False)
 
     def test_success_with_test_mode(self, fastapi_client):
         resp, mock_account = _anonymize_post(
@@ -555,7 +611,7 @@ class TestAnonymizeAccount:
         )
 
         assert resp.status_code == 200
-        mock_account.anonymize.assert_called_once_with(test=True)
+        mock_account.anonymize.assert_awaited_once_with(_CLIENT_IP, test=True)
 
     def test_hmac_failure(self, fastapi_client):
         resp, _ = _anonymize_post(fastapi_client, hmac_return_value=False)
@@ -606,7 +662,7 @@ class TestAnonymizeAccount:
     def test_internal_error(self, fastapi_client):
         mock_account = MagicMock()
         mock_account.username = "testuser"
-        mock_account.anonymize.side_effect = RuntimeError("something went wrong")
+        mock_account.anonymize = AsyncMock(side_effect=RuntimeError("something went wrong"))
 
         resp, _ = _anonymize_post(fastapi_client, get_by_link_result=mock_account)
 

@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import hashlib
 import hmac
 import socket
@@ -66,10 +66,10 @@ class HMACToken:
 
         err: Exception | None = None
 
-        current_time: float | datetime.datetime = time.time() if unix_time else datetime.datetime.now(datetime.UTC)
+        current_time: float | dt.datetime = time.time() if unix_time else dt.datetime.now(dt.UTC)
         expiry_str = msg.rsplit(delimiter, maxsplit=1)[-1]
         try:
-            expiry: float | datetime.datetime = float(expiry_str) if unix_time else datetime.datetime.fromisoformat(expiry_str)
+            expiry: float | dt.datetime = float(expiry_str) if unix_time else dt.datetime.fromisoformat(expiry_str)
         except ValueError:
             err = ValueError("Invalid timestamp format")
             expiry = 0

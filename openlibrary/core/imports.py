@@ -1,7 +1,6 @@
 """Interface to import queue."""
 
-import contextlib
-import datetime
+import datetime as dt
 import json
 import logging
 import time
@@ -10,20 +9,36 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
 import web
-from psycopg2.errors import UndefinedTable, UniqueViolation
+from psycopg2.errors import UndefinedTable  # noqa: TID251
 from pydantic import ValidationError
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
+from openlibrary.utils.request_context import site
 
-from . import db
+from . import db  # noqa: TID251
 
 logger = logging.getLogger("openlibrary.imports")
 
 STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
+IMPORT_ITEM_STATUSES: Final = (
+    "staged",
+    "needs_review",
+    "pending",
+    "processing",
+    "found",
+    "created",
+    "modified",
+    "failed",
+)
+"""Every status an ``import_item`` row can have."""
+
+BATCH_SORT_COLUMNS: Final = {"added_time": "b.submit_time", "batch_id": "b.id"}
+"""Sort keys accepted by :meth:`Batch.list_summaries`, mapped to SQL columns."""
+
 if TYPE_CHECKING:
-    from web.db import ResultSet
+    from web.db import ResultSet  # noqa: TID251
 
     from openlibrary.core.models import Edition
 
@@ -213,14 +228,7 @@ class Batch(web.storage):
                 counts["skipped_in_flight"] += 1
 
         if to_insert:
-            # Mirrors add_items: bulk insert, falling back per row so one
-            # collision cannot lose the rest of the batch.
-            try:
-                db.get_db().multiple_insert("import_item", to_insert)
-            except UniqueViolation:
-                for item in to_insert:
-                    with contextlib.suppress(UniqueViolation):
-                        db.get_db().insert("import_item", **item)
+            self._insert_items(to_insert)
 
         logger.info(
             "batch %s: %d added, %d refreshed, %d unchanged, %d in flight",
@@ -249,6 +257,27 @@ class Batch(web.storage):
             for item in items
         ]
 
+    @staticmethod
+    def _insert_items(items: list[dict]) -> None:
+        """Insert normalized rows in one statement, leaving duplicate keys alone."""
+        columns = ("batch_id", "ia_id", "status", "data", "submitter")
+        values = []
+        params = {}
+        for index, item in enumerate(items):
+            values.append("(" + ", ".join(f"${column}_{index}" for column in columns) + ")")
+            # Legacy string items omit status, data, and submitter.
+            params.update({f"{column}_{index}": item.get(column, "pending" if column == "status" else None) for column in columns})
+
+        oldb = db.get_db()
+        oldb.query(
+            f"""
+            INSERT INTO import_item ({", ".join(columns)})
+            VALUES {", ".join(values)}
+            ON CONFLICT (batch_id, ia_id) DO NOTHING
+            """,
+            vars=params,
+        )
+
     def add_items(self, items: list[str] | list[dict]) -> None:
         """
         :param items: either a list of `ia_id`  (legacy) or a list of dicts
@@ -263,23 +292,102 @@ class Batch(web.storage):
 
         items = self.dedupe_items(self.normalize_items(items))
         if items:
-            try:
-                # TODO: Upgrade psql and use `INSERT OR IGNORE`
-                # otherwise it will fail on UNIQUE `data`
-                # https://stackoverflow.com/questions/1009584
-                db.get_db().multiple_insert("import_item", items)
-            except UniqueViolation:
-                for item in items:
-                    with contextlib.suppress(UniqueViolation):
-                        db.get_db().insert("import_item", **item)
+            self._insert_items(items)
 
             logger.info("batch %s: added %d items", self.name, len(items))
 
         return None
 
+    def retry_failed(self) -> int:
+        """Re-queue this batch's failed items, returning how many were re-queued.
+
+        Resubmitting a batch can't do this: ``dedupe_items`` skips every
+        ``ia_id`` already in ``import_item``, failed ones included. ``failed``
+        is terminal, so no worker is holding these rows, and ``set_status``
+        keeps ``data`` on failure, so they can be imported again as-is.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='failed'",
+            vars={"batch_id": self.id},
+            status="pending",
+            error=None,
+            import_time=None,
+            ol_key=None,
+        )
+
+    def pause(self) -> int:
+        """Move this batch's pending items to ``needs_review``, returning how many.
+
+        Approving the batch puts them back to ``pending``.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='pending'",
+            vars={"batch_id": self.id},
+            status="needs_review",
+        )
+
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
+
+    @staticmethod
+    def list_summaries(
+        status: str | None = None,
+        sort: str = "added_time",
+        order: str = "desc",
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[int, list[web.storage]]:
+        """Return ``(total, summaries)`` for one page of batches.
+
+        With ``status``, only batches holding at least one item of that status
+        are listed. ``status_counts`` always cover all of a batch's items.
+
+        Batches are driven from ``import_batch`` rather than by grouping
+        ``import_item``, which has far too many rows to aggregate in full on
+        every page view; items are only counted for the batches on the page.
+        """
+        if status is not None and status not in IMPORT_ITEM_STATUSES:
+            raise ValueError(f"invalid import_item status: {status!r}")
+        if sort not in BATCH_SORT_COLUMNS or order not in ("asc", "desc"):
+            raise ValueError(f"invalid sort: {sort!r} {order!r}")
+
+        where = "b.id IN (SELECT batch_id FROM import_item WHERE status = $status)" if status else "1=1"
+        sql_vars = {"status": status, "limit": limit, "offset": offset}
+        total = db.query(f"SELECT COUNT(*) AS count FROM import_batch b WHERE {where}", vars=sql_vars)[0].count
+        batches = list(
+            db.query(
+                f"SELECT b.id AS batch_id, b.name, b.submitter, b.submit_time AS added_time"
+                f" FROM import_batch b WHERE {where}"
+                f" ORDER BY {BATCH_SORT_COLUMNS[sort]} {order}, b.id {order}"
+                " LIMIT $limit OFFSET $offset",
+                vars=sql_vars,
+            )
+        )
+        if not batches:
+            return total, []
+
+        by_id = {}
+        for batch in batches:
+            batch.status_counts = {}
+            batch.comments = None
+            by_id[batch.batch_id] = batch
+        counts = db.query(
+            "SELECT batch_id, status, COUNT(*) AS count, MIN(comments) AS comments, MAX(submitter) AS submitter"
+            " FROM import_item WHERE batch_id IN $batch_ids"
+            " GROUP BY batch_id, status ORDER BY batch_id, status",
+            vars={"batch_ids": list(by_id)},
+        )
+        for row in counts:
+            batch = by_id[row.batch_id]
+            batch.status_counts[row.status] = row.count
+            if row.comments is not None and (batch.comments is None or row.comments < batch.comments):
+                batch.comments = row.comments
+            # import_batch.submitter is not set by every importer.
+            batch.submitter = batch.submitter or row.submitter
+        return total, batches
 
 
 class ImportItem(web.storage):
@@ -289,6 +397,11 @@ class ImportItem(web.storage):
             return map(ImportItem, result)
 
         return None
+
+    def is_pending(self) -> bool:
+        """Whether this item is still ``pending`` in the database, e.g. its batch wasn't paused."""
+        rows = db.select("import_item", what="status", where="id=$id", vars={"id": self.id})
+        return bool(rows) and rows[0].status == "pending"
 
     @staticmethod
     def find_staged_or_pending(identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:
@@ -348,7 +461,7 @@ class ImportItem(web.storage):
                 if reply.get("success") and "edition" in reply:
                     edition = reply["edition"]
                     self.set_status(edition["status"], ol_key=edition["key"])  # type: ignore[index]
-                    return web.ctx.site.get(edition["key"])  # type: ignore[index]
+                    return site.get().get(edition["key"])  # type: ignore[index]
                 else:
                     error_code = reply.get("error_code", "unknown-error")
                     self.set_status("failed", error=error_code)
@@ -391,7 +504,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": datetime.datetime.utcnow(),
+            "import_time": dt.datetime.now(dt.UTC).replace(tzinfo=None),
         }
         if status != "failed":
             d = dict(**d, data=None)

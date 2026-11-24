@@ -19,6 +19,19 @@ The handle is two calls. `site.get()` returns the current site; it's the `site` 
 
 The sync handle isn't going away overnight. Plenty of legacy web.py code still runs through it, and you don't need to migrate a model just to fix something adjacent to it. But don't add new sync queries. When FastAPI work touches a model, migrate it; the pattern below is a few lines per method.
 
+Ruff enforces this with rule `TID251`, which flags imports of `openlibrary.core.db`, `psycopg2`, `web.db` and uses of `web.database`. Tests, `scripts/` and the coverstore service are exempt.
+
+- Files that used the legacy driver before the ban carry `# noqa: TID251` on that line. Never add one.
+- The rule only sees imports, so it can't stop new sync queries in those files. Write them async anyway, with a `_sync` bridge if web.py needs them.
+- When a file's last legacy use goes, Ruff's `RUF100` flags the leftover `noqa`; delete it.
+
+## Legacy connections under FastAPI
+
+web.py opens a fresh `web.database` connection per request; FastAPI keeps each thread's connection between requests. So both FastAPI apps (main and covers) call `openlibrary.utils.legacy_db.install_connection_recovery()` at startup: once a connection is found closed, it's dropped and the next query reconnects.
+
+- psycopg2 only notices a drop when a query fails, so after a database restart each thread fails one request, then recovers.
+- Nothing is retried. A drop inside a transaction fails the rest of it, savepoints included, and the outermost rollback lets the thread reconnect.
+
 ## The async pool: `openlibrary/core/async_db.py`
 
 Single-statement helpers. Each takes a connection from the pool, runs one query, commits, and returns the connection:
@@ -27,7 +40,7 @@ Single-statement helpers. Each takes a connection from the pool, runs one query,
 from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one, fetch_val
 
 rows = await fetch_all("SELECT ... WHERE x = %(x)s", {"x": 1}, row_factory=class_row(MyRow))
-row = await fetch_one("SELECT ...")             # first row, or None
+row = await fetch_one("SELECT ...")  # first row, or None
 count = await fetch_val("SELECT count(*) ...")  # first column of the first row
 await execute("INSERT ...", params)
 ```
@@ -46,7 +59,7 @@ The module docstring documents the details. The parts that trip agents up:
 
 - Placeholders are psycopg3's `%(name)s`, not web.py's `$name`.
 - One pool per event loop. FastAPI's loop gets its pool from the app lifespan (`init_pool()` / `close_pool()` in `openlibrary/asgi_app.py`); anything else (the bridge loop, a pytest loop) gets one lazily on first use. This is why `AsyncConnectionPool` can't be a module-level singleton.
-- Rows map through psycopg row factories. `class_row(Model)` gives typed rows; import it from `async_db`, which guards the psycopg import. Migrated models keep a small dataclass or TypedDict next to them for the row type (`YearlyReadingGoal` in `yearly_reading_goals.py`).
+- Rows map through psycopg row factories. `class_row(Model)` gives typed rows; import it from `async_db`. Migrated models keep a small dataclass or TypedDict next to them for the row type (`YearlyReadingGoal` in `yearly_reading_goals.py`).
 - Missing psycopg with a configured database fails at pool startup, not on the first request.
 
 ## Calling async code from sync web.py code: the bridge
@@ -55,6 +68,7 @@ web.py code can't `await`, so sync callers run async model methods on a persiste
 
 ```python
 from openlibrary.utils.async_utils import async_bridge
+
 
 @classmethod
 def summary_sync(cls) -> dict[str, dict[str, int]]:
@@ -76,7 +90,7 @@ The reading-goals model was the first to move end-to-end. Copy this set:
 - `openlibrary/fastapi/yearly_reading_goals.py` — FastAPI endpoint calling the async model directly
 - `openlibrary/plugins/upstream/yearly_reading_goals.py` — the web.py adapter; it resolves the current user, then bridges with `async_bridge.run`
 - `openlibrary/plugins/openlibrary/partials.py` — `ReadingGoalProgressPartial.generate_async`, an async partial feeding Jinja
-- Tests: `openlibrary/tests/core/test_yearly_reading_goals_async.py` patches the helpers and asserts the query and params; `openlibrary/tests/core/async_db_fakes.py` holds the connection/cursor fakes for helper-level tests
+- Tests: `openlibrary/tests/core/test_yearly_reading_goals.py` patches the helpers and asserts the query and params; `openlibrary/tests/core/async_db_fakes.py` holds the connection/cursor fakes for helper-level tests
 
 ## Testing DB code
 
@@ -96,6 +110,7 @@ async def test_select_by_username(helpers):
     (query, params), _ = helpers.fetch_all.await_args
     assert "username = %(username)s" in query
 
+
 # Integration test — runs the SQL against a real postgres
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -109,10 +124,45 @@ Add integration tests when a method uses postgres-specific SQL (aggregates, `FIL
 
 Run them with `make test-py-integration` (needs `pg_ctl` on `PATH` — `brew install postgresql@14` on macOS).
 
+## Common mistakes
+
+These keep coming up in review. The code review bot reads this section when a PR touches database code, so keep it current.
+
+**Migrating a method to async**
+
+- Every sync caller of a method that became async must switch to its `_sync` bridge. Grep the whole repo: templates, `plugins/`, `views/`, `admin/`, `solr/data_provider.py`, `scripts/`. A sync caller that calls the async method gets a coroutine back, and the page fails with a 500 or shows wrong data. The reverse is a bug too: don't `await` a method that is still sync.
+- Add a `_sync` bridge only where a sync caller exists. A bridge, helper or method with no non-test caller is dead code, and so is a test that exercises only that code.
+- Delete what the migration leaves behind: the old sync method, its unused `_sync` bridge, summary fields nothing reads.
+- Async rows are plain dicts by default. Templetor templates that read `row.attr` need a `class_row` dataclass or `web.storage(row)`. Render the page to prove it works.
+
+**Writing queries**
+
+- `IN %(ids)s` is a syntax error under psycopg3. Pass a list and write `= ANY(%(ids)s)`.
+- One row expected: `fetch_one` with a `class_row` dataclass, returning `T | None`, not `fetch_all(...)[0]`.
+- A count or an exists check: `fetch_val`. Several counts: one query with `count(*) FILTER (WHERE ...)`. Prefer `count(*)` to `count(col)` when they mean the same thing, since it allows index-only scans.
+- No N+1 queries. Batch per-item lookups into one query with `= ANY(...)`.
+- Don't return values only a test reads, like `RETURNING id` that no caller uses.
+- Read-then-write is a race once requests run concurrently. Use `INSERT ... ON CONFLICT` (`likes.py`, `yearly_reading_goals.py`). If the conflict target isn't a unique index, an upsert can't express it, so use a transaction from `connection()`, with a lock if needed.
+- Rewording a query with no change in behaviour isn't a fix. Leave working SQL alone unless it diverges from the patterns here.
+
+**Timestamps**
+
+Tables store UTC in `timestamp without time zone` columns, defaulting to `current_timestamp at time zone 'utc'`.
+
+- Columns with a DB default: leave them out of the `INSERT`, and set `updated = DEFAULT` in the `ON CONFLICT` clause.
+- Values the app supplies: put them in the `INSERT`, and set `col = EXCLUDED.col` on conflict.
+- Never `datetime.now()` (local time) or a bare `CURRENT_TIMESTAMP` (the session's time zone).
+- Test it with the app and the DB session far from UTC: set `TZ` and `PGTZ` to `Pacific/Kiritimati` and assert the stored values are close to UTC now. See `test_add_stamps_utc_timestamps` in `openlibrary/tests/core/test_booknotes.py`.
+
+**Tests**
+
+- Postgres-specific SQL gets an integration test (see [Testing DB code](#testing-db-code)). For SQL, an integration test is worth more than a heavily mocked one.
+- Put tests in the model's existing test file.
+
 ## Rules of thumb
 
 - **New table or new query?** Async helpers from the start.
 - **FastAPI endpoint or partial touching SQL?** Always async. A sync DB call blocks the event-loop worker.
-- **Only touching legacy web.py behavior on a `db.py` model?** Sync is fine; don't half-migrate one flow across both drivers.
+- **Fixing an existing sync query on a `db.py` model?** Edit it in place; don't half-migrate one flow across both drivers. A new query on that model is still async, bridged with `_sync`.
 - **Same model needed in both worlds?** Async method plus a thin `_sync` bridge, or a web.py adapter like `get_reading_goals`.
 - **Page data (works, editions, authors, users)?** Not SQL at all. Use `site.get()` or the API.

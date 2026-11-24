@@ -8,7 +8,7 @@ build is still running and how it ended. These functions read that run list
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import http.client
 import urllib.request
 from typing import TYPE_CHECKING
@@ -70,7 +70,7 @@ def _epoch_ms_to_iso(epoch_ms) -> str:
     """Jenkins timestamps are epoch milliseconds; the panel reads ISO strings."""
     if not epoch_ms:
         return ""
-    return datetime.datetime.fromtimestamp(epoch_ms / 1000, tz=datetime.UTC).isoformat()
+    return dt.datetime.fromtimestamp(epoch_ms / 1000, tz=dt.UTC).isoformat()
 
 
 def _current_stage(run: dict) -> str:

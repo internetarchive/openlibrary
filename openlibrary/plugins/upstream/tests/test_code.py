@@ -410,6 +410,19 @@ class TestIntegratedBookPageRendering:
 
         monkeypatch.setattr(site, "versions", fake_versions)
 
+        # Mock Ratings.get_rating_stats_sync to avoid async DB calls
+        monkeypatch.setattr("openlibrary.core.ratings.Ratings.get_rating_stats_sync", lambda work_id: {"avg_rating": 4.0, "num_ratings": 10})
+        # Mock bookshelf summaries too: this template test uses a fake sync DB,
+        # while migrated bookshelf reads go through the async DB pool.
+        monkeypatch.setattr("openlibrary.core.bookshelves.Bookshelves.get_num_users_by_bookshelf_by_work_id_sync", lambda work_id: {})
+
+        # The real book template now reads observation metrics through the async pool.
+        # Keep this rendering test independent of async database configuration.
+        async def fake_fetch_observation_count(*args, **kwargs):
+            return 0
+
+        monkeypatch.setattr("openlibrary.core.observations.fetch_val", fake_fetch_observation_count)
+
     def test_work_page_renders_open_lending_state_after_groundtruth_fallback(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")
         mock_site.quicksave("/works/OL1W", "/type/work", title="Integration Test Work", edition_count=1)
@@ -479,3 +492,79 @@ class TestIntegratedBookPageRendering:
 
         assert groundtruth_calls == []
         assert 'data-lending-state="open"' in html
+
+    @pytest.mark.parametrize(
+        ("work_fields", "edition_fields", "expected_title", "expected_description"),
+        [
+            # Blurb wins, markdown flattened; author falls back to the edition's own
+            (
+                {"description": "A *desert* planet, and a boy."},
+                {"publish_date": "1965", "authors": [{"key": "/authors/OL1A"}]},
+                "Meta Edition (1965) by Frank Herbert",
+                "A desert planet, and a boy.",
+            ),
+            # No blurb: when and by whom, plus a non-English language
+            (
+                {},
+                {"publish_date": "May 1965", "publishers": ["Chilton"], "languages": [{"key": "/languages/spa"}]},
+                "Meta Edition (1965)",
+                "Edition published in 1965 by Chilton · Spanish",
+            ),
+            # English is left out; no year means no parens
+            ({}, {"publishers": ["Chilton"], "languages": [{"key": "/languages/eng"}]}, "Meta Edition", "Edition published by Chilton"),
+        ],
+    )
+    def test_share_title_and_description(
+        self, monkeypatch, mock_site, render_template, request_context_fixture, work_fields, edition_fields, expected_title, expected_description
+    ):
+        from infogami.utils.context import context
+
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/authors/OL1A", "/type/author", name="Frank Herbert")
+        mock_site.quicksave("/languages/eng", "/type/language", name="English", code="eng")
+        mock_site.quicksave("/languages/spa", "/type/language", name="Spanish", code="spa")
+        mock_site.quicksave("/works/OL3W", "/type/work", title="Meta Work", edition_count=1, **work_fields)
+        mock_site.quicksave("/books/OL3M", "/type/edition", title="Meta Edition", works=[{"key": "/works/OL3W"}], **edition_fields)
+        monkeypatch.setattr(lending, "get_availability", lambda kind, ids: {})
+        monkeypatch.setattr(lending, "get_cached_groundtruth_availability", lambda ocaid: {})
+
+        self._load_fake_request("/books/OL3M", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        page = code.view().GET("/books/OL3M")
+        og = {m.attrs["property"]: m.attrs["content"] for m in context.metatags if "property" in m.attrs}
+
+        assert page.title == expected_title
+        assert og["og:title"] == f"{expected_title} | Open Library"
+        assert context.description == og["og:description"] == expected_description
+
+
+class TestGenericEditSpamCheck:
+    """POST to ?m=edit runs the spam check on every page, not only profiles."""
+
+    @pytest.fixture
+    def saved(self, monkeypatch):
+        saved = Mock(return_value="saved")
+        monkeypatch.setattr(code.core.edit, "POST", saved)
+        monkeypatch.setattr(web, "input", lambda *a, **kw: web.storage(title="x"))
+        monkeypatch.setattr(code, "render_template", lambda *a, **kw: "rejected")
+        return saved
+
+    @pytest.mark.parametrize("key", ["/works/OL1W", "/books/OL1M", "/authors/OL1A", "/people/foo", "/people/foo/lists/OL1L", "/about"])
+    def test_spam_is_refused_on_every_page(self, monkeypatch, saved, key):
+        monkeypatch.setattr(code.spamcheck, "is_spam", lambda i, allow_privileged_edits=False: True)
+        assert code.edit().POST(key) == "rejected"
+        saved.assert_not_called()
+
+    @pytest.mark.parametrize("key", ["/works/OL1W", "/people/foo", "/about"])
+    def test_clean_edit_is_saved(self, monkeypatch, saved, key):
+        monkeypatch.setattr(code.spamcheck, "is_spam", lambda i, allow_privileged_edits=False: False)
+        assert code.edit().POST(key) == "saved"
+
+    @pytest.mark.parametrize(("key", "privileged"), [("/works/OL1W", True), ("/about", True), ("/people/foo", False)])
+    def test_staff_exemption_applies_outside_profiles(self, monkeypatch, saved, key, privileged):
+        """Admins and librarians keep editing wiki and record pages; profile edits stay as strict as before."""
+        is_spam = Mock(return_value=False)
+        monkeypatch.setattr(code.spamcheck, "is_spam", is_spam)
+        code.edit().POST(key)
+        assert is_spam.call_args.kwargs["allow_privileged_edits"] is privileged

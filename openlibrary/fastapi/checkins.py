@@ -15,6 +15,7 @@ from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.plugins.upstream.checkins import is_valid_date, make_date_string
 from openlibrary.utils import extract_numeric_id_from_olid
 
@@ -63,6 +64,7 @@ class CheckInResponse(BaseModel):
     id: int
 
 
+@nonblocking
 @router.post("/works/OL{work_id}W/check-ins")
 @router.post("/works/OL{work_id}W/check-ins.json")
 async def create_or_update_patron_check_in(
@@ -104,6 +106,7 @@ async def create_or_update_patron_check_in(
     return CheckInResponse(status="ok", id=event_id)
 
 
+@nonblocking
 @router.delete("/check-ins/{check_in_id}")
 async def delete_patron_check_in(
     check_in_id: Annotated[int, Path(gt=0)],

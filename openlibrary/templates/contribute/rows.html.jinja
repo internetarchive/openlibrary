@@ -1,0 +1,14 @@
+{#- The dashboard's list: a card per book with its open tasks. Rendered inside dashboard.html.jinja,
+    and on its own by /tasks/rows for a page that rendered placeholders while the pool was being built. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+{% for row in rows %}
+    <li class="contrib-row" data-book-row>
+        {#- Cover and title open the book's first task: it is the common click, and the list is already in priority order. -#}
+        {{ parts.book_header(row.book, compact=True, href=row.tasks[0].url, track="TasksDashboard|OpenTaskTitle|" ~ row.tasks[0].field) }}
+        <ul class="contrib-row__tasks">
+            {% for task in row.tasks %}
+                {{ parts.task_row(task, "TasksDashboard|OpenTask") }}
+            {% endfor %}
+        </ul>
+    </li>
+{% endfor %}

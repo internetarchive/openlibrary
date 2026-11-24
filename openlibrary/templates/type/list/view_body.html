@@ -58,7 +58,7 @@ $def seed_meta_line(seed):
 
     $if sort == 'last_modified' and seed.last_update:
         <span class="time">
-            $:_('Last modified <span>%(date)s</span>', date=datestr(seed.last_update))
+            $:_('Edited <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
 $def seed_attrs(seed):
@@ -91,7 +91,7 @@ $def seed_attrs(seed):
 
         <div class="search-results-stats">
             $if not list.key.startswith('/series/'):
-                $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
+                $:render_jinja_template("search/sort_options.html.jinja", menu=sort_menu(sort, default_sort='index', scheme="lists_seeds"))
             $ layout = get_remembered_layout()
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>

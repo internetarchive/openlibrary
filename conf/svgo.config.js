@@ -7,11 +7,9 @@ module.exports = {
                     removeXMLProcInst: false,
                     collapseGroups: false,
                     mergePaths: false,
-                    cleanupIDs: false,
+                    cleanupIds: false,
                     convertPathData: false,
-                    removeDesc: false,
-                    removeTitle: false,
-                    removeViewBox: false
+                    removeDesc: false
                 }
             }
         }

@@ -1,11 +1,4 @@
 $def with ()
 
-$ q = query_param("q", "")
-
-<form action="/search/subjects" class="olform">
-    <p>
-        <label for="searchSubjects" class="shift">$_("Search for a subject")</label>
-        <input type="text" name="q" id="searchSubjects" size="100" class="larger" placeholder="$_('Search for a subject')" value="$q"/>
-        <input type="submit" class="large" value="$_('Search')"/>
-    </p>
-</form>
+$# Called only from wiki page bodies ({{SubjectSearch()}} on /subjects); no code calls it.
+$:render_jinja_template("SubjectSearch.html.jinja", q=query_param("q", ""))
