@@ -271,6 +271,7 @@ class BooknoteResponse(BaseModel):
     success: str = Field(..., description="Status message")
 
 
+@nonblocking
 @router.post("/works/OL{work_id}W/notes", response_model=BooknoteResponse)
 @router.post("/works/OL{work_id}W/notes.json", response_model=BooknoteResponse)
 async def booknotes_post(
@@ -498,6 +499,7 @@ async def patrons_observations():
     pass
 
 
+@nonblocking
 @router.get(
     "/observations.json",
     description="Returns anonymized community reviews for a list of works.",
@@ -526,6 +528,7 @@ class BestbookCountResponse(BaseModel):
 BestbookAwardOp = Literal["add", "remove", "update"]
 
 
+@nonblocking
 @router.post(
     "/works/OL{work_id}W/awards.json",
     response_model=BestbookAwardResponse,

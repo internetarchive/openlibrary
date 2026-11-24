@@ -89,6 +89,7 @@ async def get_reading_goals_endpoint(
     return ReadingGoalsResponse(status="ok", goal=goals)
 
 
+@nonblocking
 @router.post("/reading-goal.json", response_model=ReadingGoalUpdateResponse)
 async def update_reading_goal_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
