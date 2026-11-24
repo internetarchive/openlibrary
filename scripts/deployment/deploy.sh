@@ -944,82 +944,12 @@ recreate_services() {
     time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
 }
 
-# Kubernetes (us-west-1-p01) runs the ol-web Helm chart from a branch of
-# application-manifests; Argo CD deploys whatever that branch pins. This points
-# it at the commit being deployed: the chart's bump script pins olbase:<sha12>
-# by digest and copies that commit's FastAPI route list, and we push the result.
-K8S_MANIFESTS_REPO=${K8S_MANIFESTS_REPO:-"git@git.archive.org:platform-engineering/application-manifests.git"}
-K8S_MANIFESTS_BRANCH=${K8S_MANIFESTS_BRANCH:-"drini-ol-web"}
-
+# Kubernetes (us-west-1-p01): see scripts/deployment/deploy_k8s.py.
 # Usage: deploy_k8s [full commit SHA]; defaults to the commit the openlibrary step deployed.
 deploy_k8s() {
-    local sha="${1:-}"
-    if [ -z "$sha" ] && [ -d "$DEPLOY_DIR/openlibrary/.git" ]; then
-        sha=$(git -C "$DEPLOY_DIR/openlibrary" rev-parse HEAD)
-    fi
-    if ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
-        echo "[Error] Pass the full 40-character commit SHA to deploy, or run the openlibrary step first."
-        return 1
-    fi
-    local tag=${sha:0:12}
-
-    echo "[Now] Deploying openlibrary $tag to Kubernetes"
-
-    # The VMs run olbase:latest; Kubernetes should run the same build. Both tags
-    # point at one manifest when latest was built from this commit.
-    local tag_meta tag_digest latest_meta latest_digest
-    if ! tag_meta=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/$tag"); then
-        echo "[Error] No openlibrary/olbase:$tag on Docker Hub; has olbase built this commit?"
-        return 1
-    fi
-    if ! latest_meta=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest"); then
-        echo "[Error] Couldn't fetch openlibrary/olbase:latest from Docker Hub."
-        return 1
-    fi
-    tag_digest=$(jq -r '.digest // empty' <<<"$tag_meta")
-    latest_digest=$(jq -r '.digest // empty' <<<"$latest_meta")
-    if [ -z "$tag_digest" ] || [ -z "$latest_digest" ]; then
-        echo "[Error] Docker Hub returned no digest for olbase:$tag or olbase:latest."
-        return 1
-    fi
-    if [ "$tag_digest" != "$latest_digest" ]; then
-        echo "[Warning] olbase:$tag ($tag_digest) is not olbase:latest ($latest_digest),"
-        echo "          so Kubernetes would run a different build from the VMs."
-        read -p "Deploy olbase:$tag to Kubernetes anyway? [y/N]..." answer
-        [[ "${answer:-N}" =~ ^[Yy]$ ]] || return 1
-    fi
-
-    local dir="$DEPLOY_DIR/application-manifests"
-    rm -rf "$dir"
-    echo -n "Cloning application-manifests (branch: $K8S_MANIFESTS_BRANCH) ... "
-    if ! git clone -q --depth=1 --branch "$K8S_MANIFESTS_BRANCH" "$K8S_MANIFESTS_REPO" "$dir"; then
-        echo "✗"
-        echo "[Error] Couldn't clone $K8S_MANIFESTS_REPO; you need access to git.archive.org."
-        return 1
-    fi
-    echo "✓"
-
-    python3 "$dir/ol-web/scripts/bump-openlibrary.py" "$sha" || return 1
-    if git -C "$dir" diff --quiet; then
-        echo "[Info] Kubernetes already runs $tag."
-        return 0
-    fi
-    git -C "$dir" --no-pager diff --stat
-
-    read -p "[Now] Push this to $K8S_MANIFESTS_BRANCH? Argo CD rolls it out. [Y/n]..." answer
-    if [[ ! "${answer:-Y}" =~ ^[Yy]$ ]]; then
-        echo "[Info] Not pushed; Kubernetes stays on its current version."
-        return 1
-    fi
-    # The wizard calls this as `deploy_k8s || ...`, which turns off set -e in here,
-    # so every step that can fail needs its own check.
-    if ! git -C "$dir" commit -q -am "ol-web: deploy openlibrary $tag"; then
-        echo "[Error] Couldn't commit; set git user.name and user.email on this machine."
-        return 1
-    fi
-    git -C "$dir" push -q origin "HEAD:$K8S_MANIFESTS_BRANCH" || return 1
-    echo "✓ Pushed. Argo CD rolls it out in a few minutes; watch the rollout tile:"
-    echo "  https://grafana.p01.us-west-1.archive.org/d/ra28gwx/k8s"
+    # `|| return` so a failure returns from here and deploy.sh's ERR trap cleans up.
+    # -u keeps its output in order with git's when piped (e.g. into tee).
+    python3 -u "$SCRIPT_DIR/deploy_k8s.py" "$DEPLOY_DIR" ${1:+"$1"} || return
 }
 
 deploy_wizard() {
@@ -1119,7 +1049,7 @@ deploy_wizard() {
     read -p "[Now] Deploy to Kubernetes? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-        time deploy_k8s || echo "[Warning] Kubernetes not updated; run \`deploy.sh k8s <sha>\` later."
+        time deploy_k8s || echo "[Warning] The Kubernetes step didn't finish (see above); \`deploy.sh k8s <sha>\` runs it again."
         echo ""
     fi
 
