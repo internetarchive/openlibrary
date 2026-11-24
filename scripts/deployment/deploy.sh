@@ -97,6 +97,11 @@ slack_message() {
     done
 }
 
+# Throw away keys pressed during a long wait, so they can't answer the next question.
+discard_typeahead() {
+    [ -t 0 ] && python3 -c 'import sys, termios; termios.tcflush(sys.stdin, termios.TCIFLUSH)' 2>/dev/null || true
+}
+
 # Show a looping y/n prompt
 wait_yn() {
     local prompt=$1
@@ -1036,6 +1041,9 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
     done
     echo ""
 
+    # Keys pressed during the olbase watch and image check above (e.g. Enter to check
+    # it's alive) would otherwise answer this, and its default runs the deploy.
+    discard_typeahead
     # Y = run every step with its default; p = pick the steps individually.
     read -p "[Now] Run openlibrary deploy? [Y/n/p]..." answer
     answer=${answer:-Y}
