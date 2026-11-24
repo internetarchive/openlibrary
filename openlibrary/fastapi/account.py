@@ -35,6 +35,7 @@ from openlibrary.fastapi.auth import (
     require_authenticated_user,
 )
 from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.i18n import gettext as _
@@ -509,6 +510,7 @@ async def login(
     return response
 
 
+@nonblocking
 @router.post("/account/logout")
 async def logout(request: Request) -> Response:
     """

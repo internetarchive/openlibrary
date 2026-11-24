@@ -9,6 +9,7 @@ from fastapi.responses import Response
 
 from infogami import config
 from openlibrary.core import cache
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 
 router = APIRouter()
 
@@ -99,6 +100,7 @@ async def graphite_graph(name: Annotated[str, Path()]) -> Response:
     )
 
 
+@nonblocking
 @router.get("/cdn/archive.org/{filename}")
 async def ia_js_cdn(filename: Annotated[str, Path()]) -> Response:
     """Proxy Internet Archive JS files."""

@@ -17,6 +17,7 @@ from openlibrary.fastapi.auth import (
 )
 from openlibrary.fastapi.models import parse_comma_separated_list
 from openlibrary.fastapi.shared.dependencies import get_fullpath
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
@@ -227,6 +228,7 @@ class ReadingStateResponse(BaseModel):
     works: dict[str, ReadingStateEntry]
 
 
+@nonblocking
 @router.get("/partials/ReadingState.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def reading_state_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
