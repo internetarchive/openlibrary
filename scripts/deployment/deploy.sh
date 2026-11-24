@@ -967,13 +967,21 @@ deploy_k8s() {
 
     # The VMs run olbase:latest; Kubernetes should run the same build. Both tags
     # point at one manifest when latest was built from this commit.
-    local tag_meta tag_digest latest_digest
+    local tag_meta tag_digest latest_meta latest_digest
     if ! tag_meta=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/$tag"); then
         echo "[Error] No openlibrary/olbase:$tag on Docker Hub; has olbase built this commit?"
         return 1
     fi
-    tag_digest=$(jq -r .digest <<<"$tag_meta")
-    latest_digest=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest" | jq -r .digest)
+    if ! latest_meta=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest"); then
+        echo "[Error] Couldn't fetch openlibrary/olbase:latest from Docker Hub."
+        return 1
+    fi
+    tag_digest=$(jq -r '.digest // empty' <<<"$tag_meta")
+    latest_digest=$(jq -r '.digest // empty' <<<"$latest_meta")
+    if [ -z "$tag_digest" ] || [ -z "$latest_digest" ]; then
+        echo "[Error] Docker Hub returned no digest for olbase:$tag or olbase:latest."
+        return 1
+    fi
     if [ "$tag_digest" != "$latest_digest" ]; then
         echo "[Warning] olbase:$tag ($tag_digest) is not olbase:latest ($latest_digest),"
         echo "          so Kubernetes would run a different build from the VMs."
