@@ -15,7 +15,27 @@ else
     bold() { printf '%s' "$*"; }
 fi
 
+# The same for stderr, decided when printed: $(...) captures stdout, not stderr.
+stderr_red() {
+    if [ -t 2 ] && [ -z "${NO_COLOR:-}" ]; then
+        printf '\033[31m%s\033[0m' "$*"
+    else
+        printf '%s' "$*"
+    fi
+}
+
+# Background jobs and their temp files, so an early exit (error or Ctrl-C) can stop and
+# remove them: background jobs in a script ignore Ctrl-C and would keep running.
+BACKGROUND_PIDS=()
+BACKGROUND_FILES=()
+
 clean_exit() {
+    if [ ${#BACKGROUND_PIDS[@]} -gt 0 ]; then
+        kill "${BACKGROUND_PIDS[@]}" 2>/dev/null || true
+    fi
+    if [ ${#BACKGROUND_FILES[@]} -gt 0 ]; then
+        rm -f "${BACKGROUND_FILES[@]}"
+    fi
     if [ -d "$DEPLOY_DIR" ]; then
         cleanup "$DEPLOY_DIR"
     fi
@@ -23,12 +43,12 @@ clean_exit() {
 }
 
 handle_error() {
-    echo -e "\n\n$(red ERR)" >&2
+    echo -e "\n\n$(stderr_red ERR)" >&2
     clean_exit
 }
 
 handle_exit() {
-    echo -e "\n\n$(red SIGINT)" >&2
+    echo -e "\n\n$(stderr_red SIGINT)" >&2
     clean_exit
 }
 
@@ -623,12 +643,13 @@ deploy_openlibrary() {
 
 SPINNER_FRAMES=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 
-# 75 -> "1m15s"
+# Sets ELAPSED to <seconds> as text, e.g. 75 -> "1m15s". A variable rather than output,
+# since spinners call it every tick and $(...) would start a subshell each time.
 format_elapsed() {
     if [ "$1" -lt 60 ]; then
-        echo "${1}s"
+        ELAPSED="${1}s"
     else
-        printf '%dm%02ds' $(($1 / 60)) $(($1 % 60))
+        printf -v ELAPSED '%dm%02ds' $(($1 / 60)) $(($1 % 60))
     fi
 }
 
@@ -640,17 +661,19 @@ wait_with_spinner() {
     if [ -t 1 ]; then
         printf '%s' $'\e7'  # save the cursor position
         while kill -0 "$pid" 2>/dev/null; do
-            printf '%s\033[K%s %s' $'\e8' "${SPINNER_FRAMES[n % 10]}" "$(format_elapsed $((SECONDS - start)))"
+            format_elapsed $((SECONDS - start))
+            printf '%s\033[K%s %s' $'\e8' "${SPINNER_FRAMES[n % ${#SPINNER_FRAMES[@]}]}" "$ELAPSED"
             n=$((n + 1))
             sleep 0.1
         done
         printf '%s\033[K' $'\e8'
     fi
     wait "$pid" || rc=$?
+    format_elapsed $((SECONDS - start))
     if [ $rc -eq 0 ]; then
-        echo "$(green ✓) ($(format_elapsed $((SECONDS - start))))"
+        echo "$(green ✓) ($ELAPSED)"
     else
-        echo "$(red ✗) ($(format_elapsed $((SECONDS - start))))"
+        echo "$(red ✗) ($ELAPSED)"
     fi
     return $rc
 }
@@ -679,20 +702,25 @@ deploy_images() {
     local WARM_OUTPUT
     WARM_OUTPUT=$(mktemp)
     ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" &> "$WARM_OUTPUT" &
+    BACKGROUND_PIDS=($!)
+    BACKGROUND_FILES=("$WARM_OUTPUT")
     if ! wait_with_spinner $!; then
         echo "Failed to warm nexus cache on ${FIRST_SERVER}"
         echo "Output:"
         cat "$WARM_OUTPUT"
         rm -f "$WARM_OUTPUT"
+        BACKGROUND_PIDS=() BACKGROUND_FILES=()
         return 1
     fi
     rm -f "$WARM_OUTPUT"
+    BACKGROUND_PIDS=() BACKGROUND_FILES=()
 
     local pids=() output_files=() servers=() results=() times=()
     for SERVER_NAME in $HOSTNAMES; do
         # Make a temporary file to house the output
         OUTPUT_FILE=$(mktemp)
         output_files+=("$OUTPUT_FILE")
+        BACKGROUND_FILES+=("$OUTPUT_FILE")
         servers+=("$SERVER_NAME")
         ssh "${SERVER_NAME}${SERVER_SUFFIX}" "
             set -e;
@@ -703,33 +731,41 @@ deploy_images() {
             COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
         " &> "$OUTPUT_FILE" &
         pids+=($!)
+        BACKGROUND_PIDS+=($!)
         [ -t 1 ] || echo "   $SERVER_NAME ... (started in background)"
     done
 
     echo "Waiting for all servers to finish pulling images..."
-    local i n=0 start=$SECONDS running=${#pids[@]}
+    local i n=0 start=$SECONDS running=${#pids[@]} frame line ok_mark fail_mark
     if [ -t 1 ]; then
         # One line per server, redrawn in place: a spinner and the elapsed time while it
-        # runs, then ✓ or ✗ and how long it took, as soon as that server finishes.
+        # runs, then ✓ or ✗ and how long it took, as soon as that server finishes. Each
+        # frame is printed at once, so Ctrl-C can't land with the cursor mid-board.
+        ok_mark=$(green ✓)
+        fail_mark=$(red ✗)
         for i in "${!pids[@]}"; do echo; done
         while [ "$running" -gt 0 ]; do
-            printf '\033[%dA' "${#pids[@]}"  # back up to the first server's line
+            printf -v frame '\033[%dA' "${#pids[@]}"  # back up to the first server's line
             running=0
             for i in "${!pids[@]}"; do
                 if [ -z "${results[$i]}" ] && ! kill -0 "${pids[$i]}" 2>/dev/null; then
                     results[$i]=0
                     wait "${pids[$i]}" || results[$i]=$?
-                    times[$i]=$(format_elapsed $((SECONDS - start)))
+                    format_elapsed $((SECONDS - start))
+                    times[$i]=$ELAPSED
                 fi
                 if [ -z "${results[$i]}" ]; then
                     running=$((running + 1))
-                    printf '\033[K   %-12s %s %s\n' "${servers[$i]}" "${SPINNER_FRAMES[n % 10]}" "$(format_elapsed $((SECONDS - start)))"
+                    format_elapsed $((SECONDS - start))
+                    printf -v line '\033[K   %-12s %s %s\n' "${servers[$i]}" "${SPINNER_FRAMES[n % ${#SPINNER_FRAMES[@]}]}" "$ELAPSED"
                 elif [ "${results[$i]}" -eq 0 ]; then
-                    printf '\033[K   %-12s %s %s\n' "${servers[$i]}" "$(green ✓)" "${times[$i]}"
+                    printf -v line '\033[K   %-12s %s %s\n' "${servers[$i]}" "$ok_mark" "${times[$i]}"
                 else
-                    printf '\033[K   %-12s %s %s\n' "${servers[$i]}" "$(red ✗)" "${times[$i]}"
+                    printf -v line '\033[K   %-12s %s %s\n' "${servers[$i]}" "$fail_mark" "${times[$i]}"
                 fi
+                frame+=$line
             done
+            printf '%s' "$frame"
             n=$((n + 1))
             if [ "$running" -gt 0 ]; then
                 sleep 0.1
@@ -758,6 +794,7 @@ deploy_images() {
         fi
         rm -f "${output_files[$i]}"
     done
+    BACKGROUND_PIDS=() BACKGROUND_FILES=()
 
     return $FAILED
 }
