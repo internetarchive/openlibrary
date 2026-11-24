@@ -1,8 +1,8 @@
 """``@nonblocking``: mark a FastAPI route that never blocks the event loop.
 
 In Kubernetes such routes can be served by FastAPI pods tuned for many concurrent requests on one event loop.
-scripts/generate_fastapi_routes.py lists them under ``fastapiNonblockingRoutes`` in conf/k8s/fastapi-routes.yaml, and
-every other route under ``fastapiRoutes``. The decorator changes nothing else: locally and on the VMs the route behaves the same.
+scripts/generate_fastapi_routes.py lists them under ``nonblocking`` in conf/k8s/fastapi-routes.yaml, and every
+other route under ``default``. The decorator changes nothing else: locally and on the VMs the route behaves the same.
 
 When unsure, leave it off. An unmarked route is always safe; a wrongly marked one stalls every request on its pod.
 """

@@ -49,8 +49,8 @@ def test_routes_are_listed_under_their_group(no_exclusions):
     async def also_fast():
         return {}
 
-    routes = yaml.safe_load(render_routes_yaml(_app_with(router)))
-    assert routes == {"fastapiRoutes": ["GET /plain.json"], "fastapiNonblockingRoutes": ["GET /also-fast.json", "GET /fast.json"]}
+    groups = yaml.safe_load(render_routes_yaml(_app_with(router)))["fastapiRoutes"]
+    assert groups == {"default": ["GET /plain.json"], "nonblocking": ["GET /also-fast.json", "GET /fast.json"]}
 
 
 def test_empty_group_is_an_empty_list(no_exclusions):
@@ -60,7 +60,7 @@ def test_empty_group_is_an_empty_list(no_exclusions):
     def plain():
         return {}
 
-    assert yaml.safe_load(render_routes_yaml(_app_with(router)))["fastapiNonblockingRoutes"] == []
+    assert yaml.safe_load(render_routes_yaml(_app_with(router)))["fastapiRoutes"]["nonblocking"] == []
 
 
 def test_nonblocking_rejects_a_sync_endpoint():
