@@ -508,7 +508,9 @@ async def search_editions_json(
     }
 
 
-@nonblocking
+# Not @nonblocking: WorkSearchScheme reads the language list (convert_iso_to_marc -> get_languages), which is cached
+# per process but loaded from infobase on first use, so a process's first request blocks the event loop on infobase
+# and memcache (~60ms, seen in Server-Timing). Mark it once that list is loaded at startup or without infobase.
 @router.get(
     "/search/facets.json",
     tags=["internal"],

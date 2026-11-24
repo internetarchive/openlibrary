@@ -85,6 +85,7 @@ fastapiRoutes:
     - GET /qrcode
     - GET /redoc
     - GET /search.json
+    - GET /search/facets.json
     - GET /search/inside.json
     - GET /search/lists.json
     - GET /series/{list_id}.json
@@ -113,7 +114,6 @@ fastapiRoutes:
     - GET POST /reading-goal.json
     - GET /search/authors.json
     - GET /search/editions.json
-    - GET /search/facets.json
     - GET /search/subjects.json
     - POST /works/OL{work_id}W/awards.json
     - GET /works/OL{work_id}W/bookshelves.json
