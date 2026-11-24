@@ -11,6 +11,7 @@ import web
 
 from infogami import config
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
+from openlibrary.fastapi.account import _audit_accounts_sync
 from openlibrary.fastapi.shared.dependencies import get_client_ip
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
@@ -628,6 +629,15 @@ def test_login_passes_the_pda_cookie_to_audit_accounts(fastapi_client):
     assert any(c.startswith("flash=") and "print%20disability" in c for c in set_cookies)
     assert any(c.startswith('pda=""') for c in set_cookies)
     assert not any(c.startswith(("flash=", "pda=")) for c in second.headers.get_list("set-cookie"))
+
+
+def test_audit_accounts_does_not_see_a_previous_requests_cookies_on_the_same_thread():
+    """Threadpool threads are reused, and web.cookies() caches per thread."""
+    seen = []
+    with patch("openlibrary.fastapi.account.audit_accounts", side_effect=_record_pda_cookie(seen)):
+        _audit_accounts_sync(_CLIENT_IP, "pda=bard")
+        _audit_accounts_sync(_CLIENT_IP, "")
+    assert seen == ["bard", None]
 
 
 class TestAnonymizeAccount:
