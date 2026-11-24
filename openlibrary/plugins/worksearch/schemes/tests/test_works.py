@@ -4,6 +4,7 @@ import pytest
 import web
 
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.solr.query_utils import luqum_parser
 
 pytestmark = pytest.mark.usefixtures("request_context_fixture")
 
@@ -244,3 +245,29 @@ def test_q_to_solr_params_local_params_fq_not_rewritten_for_editions():
         )
     editions_fq_values = [v for k, v in params if k == "editions.fq"]
     assert not any("OL192489W" in v for v in editions_fq_values)
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"isbn": "foo bar)"},
+        {"isbn": "("},
+        {"isbn": ""},
+        {"title": ""},
+        {"publisher": "   "},
+        {"author": ""},
+        {"subject": ["", "Fiction"]},
+    ],
+)
+def test_build_q_from_params_is_parseable(params):
+    if q := WorkSearchScheme().build_q_from_params(params):
+        luqum_parser(q)
+
+
+def test_build_q_from_params_skips_blank_values():
+    assert WorkSearchScheme().build_q_from_params({"title": "", "isbn": " ", "subject": ["", "Fiction"]}) == "subject:(Fiction)"
+
+
+@pytest.mark.parametrize("query", ["   ", "\t\n "])
+def test_process_user_query_blank(query):
+    assert WorkSearchScheme().process_user_query(query) == ""
