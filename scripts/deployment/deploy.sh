@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Colors for what needs attention. Decided once, here: inside $(green ...) the output
+# is a pipe, not the terminal. Plain when output isn't a terminal (e.g. piped into tee)
+# or NO_COLOR is set.
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    red() { printf '\033[31m%s\033[0m' "$*"; }
+    yellow() { printf '\033[33m%s\033[0m' "$*"; }
+    green() { printf '\033[32m%s\033[0m' "$*"; }
+    bold() { printf '\033[1m%s\033[0m' "$*"; }
+else
+    red() { printf '%s' "$*"; }
+    yellow() { printf '%s' "$*"; }
+    green() { printf '%s' "$*"; }
+    bold() { printf '%s' "$*"; }
+fi
+
 clean_exit() {
     if [ -d "$DEPLOY_DIR" ]; then
         cleanup "$DEPLOY_DIR"
@@ -8,12 +23,12 @@ clean_exit() {
 }
 
 handle_error() {
-    echo -e "\n\nERR" >&2
+    echo -e "\n\n$(red ERR)" >&2
     clean_exit
 }
 
 handle_exit() {
-    echo -e "\n\nSIGINT" >&2
+    echo -e "\n\n$(red SIGINT)" >&2
     clean_exit
 }
 
@@ -67,14 +82,14 @@ copy_to_clipboard() {
     local tool
     for tool in pbcopy wl-copy "xclip -selection clipboard" "xsel --clipboard --input" clip.exe; do
         if command -v "${tool%% *}" >/dev/null 2>&1 && printf '%s' "$1" | $tool 2>/dev/null; then
-            echo "✓ Copied."
+            echo "$(green ✓) Copied."
             return
         fi
     done
     # No clipboard tool: ask the terminal itself to copy (OSC 52; iTerm2, kitty, WezTerm,
     # Windows Terminal and others support it, also over SSH; macOS Terminal.app doesn't).
     printf '\033]52;c;%s\a' "$(printf '%s' "$1" | base64 | tr -d '\n')"
-    echo "✓ Sent to your terminal's clipboard (if your terminal supports that; otherwise select and copy it)."
+    echo "$(green ✓) Sent to your terminal's clipboard (if your terminal supports that; otherwise select and copy it)."
 }
 
 # Show a message to paste into Slack, set apart so it's clear what to copy, and wait
@@ -126,7 +141,7 @@ check_crons() {
 
     # If KILL_CRON is an empty string and there are running jobs, exit early
     if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
-        echo "✗"
+        echo "$(red ✗)"
         echo "Critical cron jobs are currently running. Halting deployment:"
         echo "$RUNNING_CRONS"
         echo ""
@@ -134,7 +149,7 @@ check_crons() {
         echo ""
         exit 1
     else
-        echo "✓"
+        echo "$(green ✓)"
     fi
 }
 
@@ -146,22 +161,22 @@ check_for_local_changes() {
 
     # First check if it doesn't exist
     if ! ssh $SERVER "test -d $REPO_DIR"; then
-        echo "✓ ($REPO_DIR doesn't exist, will be created on deploy)"
+        echo "$(green ✓) ($REPO_DIR doesn't exist, will be created on deploy)"
         return
     fi
 
     # Not a git repo yet (e.g. partial failure before git init) -- skip check
     if ! ssh $SERVER "test -d $REPO_DIR/.git"; then
-        echo "✓ ($REPO_DIR exists but is not a git repo yet)"
+        echo "$(green ✓) ($REPO_DIR exists but is not a git repo yet)"
         return
     fi
 
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
     if [ -z "$OUTPUT" ]; then
-        echo "✓"
+        echo "$(green ✓)"
     else
-        echo "✗"
+        echo "$(red ✗)"
         echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them, or they will be blown away."
         ssh -t $SERVER "
             cd $REPO_DIR
@@ -184,9 +199,9 @@ check_server_access() {
         echo -n "   $SERVER ... "
         DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
         if [ "$DOCKER_ACCESS" == "✓" ]; then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "Could not access $SERVER."
             exit 1
         fi
@@ -210,18 +225,18 @@ copy_to_servers() {
         ssh "$SERVER" "sudo rm -rf $DESTINATION /tmp/$TAR_FILE || true"
 
         if OUTPUT=$(scp "$TAR_PATH" "$SERVER:/tmp/$TAR_FILE" 2>&1); then
-            echo -n "✓."
+            echo -n "$(green ✓)."
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             return 1
         fi
 
         echo -n " Extracting ... "
         if OUTPUT=$(ssh "$SERVER" "sudo tar -xzf /tmp/$TAR_FILE -C $DESTINATION_PARENT" 2>&1); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             ssh "$SERVER" "sudo rm -rf /tmp/$TAR_FILE"
             return 1
@@ -248,7 +263,7 @@ ssh_docker_compose() {
     shift
     local COMPOSE_COMMAND="$*"
 
-    echo -n "[Now] Running \`docker compose $COMPOSE_COMMAND\` on $SERVER:"
+    echo -n "$(bold "[Now] Running \`docker compose $COMPOSE_COMMAND\` on $SERVER:")"
     ssh "$SERVER" "
         set -e
         cd $REPO_DIR
@@ -261,7 +276,7 @@ reset_hard() {
     HOSTNAMES=${SERVERS:-$WEB_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    echo "[Now] Performing clean docker reset of $HOSTNAMES containers"
+    echo "$(bold "[Now] Performing clean docker reset of $HOSTNAMES containers")"
     for SERVER in $FQDNS; do
         echo "Resetting $SERVER container (docker down up)..."
         ssh_docker_compose $SERVER down
@@ -273,7 +288,7 @@ deploy_olsystem() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    echo "[Now] Starting $REPO deployment at $(date)"
+    echo "$(bold "[Now] Starting $REPO deployment at $(date)")"
     echo "Deploying to: $HOSTNAMES"
 
     check_server_access
@@ -333,9 +348,9 @@ deploy_olsystem() {
             fi
             sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             cleanup "${DEPLOY_DIR}/olsystem"
             exit 1
@@ -354,9 +369,9 @@ deploy_olsystem() {
 
     if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
         echo ""
-        echo "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config"
-        echo "          was NOT validated. A bad ruleset will surface as an [emerg]"
-        echo "          the next time nginx restarts (olsystem#420)."
+        echo "$(yellow "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config")"
+        echo "$(yellow "          was NOT validated. A bad ruleset will surface as an [emerg]")"
+        echo "$(yellow "          the next time nginx restarts (olsystem#420).")"
     fi
 
     echo "Finished $REPO deployment at $(date)"
@@ -392,7 +407,7 @@ tag_deploy() {
         REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
         local HEAD_SHA
         HEAD_SHA="$(git -C "$REPO_DIR" rev-parse --short HEAD)"
-        echo "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR"
+        echo "$(yellow "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR")"
         echo "          Local HEAD is $HEAD_SHA — confirm this matches what was deployed."
         read -p "Tag production as $HEAD_SHA from the local repo? [y/N]..." confirm
         confirm=${confirm:-N}
@@ -418,15 +433,15 @@ tag_release() {
     local REPO_DIR="${DEPLOY_DIR}/openlibrary"
     if [ ! -d "$REPO_DIR/.git" ]; then
         REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
-        echo "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR"
+        echo "$(yellow "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR")"
     fi
     LATEST_TAG_NAME=$(git -C "$REPO_DIR" describe --tags --abbrev=0)
-    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
+    echo "$(bold "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME")"
 }
 
 check_olbase_image_up_to_date() {
     local git_branch="${GIT_BRANCH:-master}"
-    echo "[Now] Checking if Docker image is up-to-date"
+    echo "$(bold "[Now] Checking if Docker image is up-to-date")"
 
     # Get latest commit timestamp from GitHub API
     GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/$git_branch"
@@ -443,11 +458,11 @@ check_olbase_image_up_to_date() {
     IMAGE_LAST_UPDATED_TS=$(date_to_timestamp "$IMAGE_LAST_UPDATED")
 
     if [ "$GIT_LAST_UPDATED_TS" -gt "$IMAGE_LAST_UPDATED_TS" ]; then
-        echo "✗ Docker image is NOT up-to-date."
-        echo -e "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
+        echo "$(red "✗ Docker image is NOT up-to-date.")"
+        echo -e "$(bold "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml")"
         return 1
     else
-        echo "✓ Docker image is up-to-date."
+        echo "$(green ✓) Docker image is up-to-date."
         return 0
     fi
 }
@@ -459,7 +474,7 @@ start_olbase_build() {
     local run_url
     run_url=$(gh workflow run olbase.yaml --repo internetarchive/openlibrary --ref "${GIT_BRANCH:-master}" | grep /actions/runs/) || return 1
     OLBASE_RUN_ID=${run_url##*/}
-    echo "✓ Started olbase build: $run_url"
+    echo "$(green ✓) Started olbase build: $run_url"
 }
 
 deploy_openlibrary() {
@@ -467,7 +482,7 @@ deploy_openlibrary() {
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
     local git_branch="${GIT_BRANCH:-master}"
 
-    echo "[Now] Deploying openlibrary"
+    echo "$(bold "[Now] Deploying openlibrary")"
 
     cd $DEPLOY_DIR
     if [ -d "$DEPLOY_DIR/openlibrary" ]; then
@@ -546,9 +561,9 @@ deploy_openlibrary() {
                 sudo git add . > /dev/null
                 sudo git commit -m 'Deployed openlibrary' > /dev/null
             "); then
-                echo "✓"
+                echo "$(green ✓)"
             else
-                echo "⚠"
+                echo "$(yellow ⚠)"
                 echo "$OUTPUT"
                 cleanup "${DEPLOY_DIR}/openlibrary"
                 exit 1
@@ -593,9 +608,9 @@ deploy_openlibrary() {
 
     if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
         echo ""
-        echo "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config"
-        echo "          was NOT validated. A bad ruleset will surface as an [emerg]"
-        echo "          the next time nginx restarts (olsystem#420)."
+        echo "$(yellow "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config")"
+        echo "$(yellow "          was NOT validated. A bad ruleset will surface as an [emerg]")"
+        echo "$(yellow "          the next time nginx restarts (olsystem#420).")"
     fi
 
     echo "Finished production deployment at $(date)"
@@ -619,7 +634,7 @@ deploy_images() {
         echo -n "   Fetching OLBASE_DIGEST ... "
         IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
         OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
-        echo "✓ ($OLBASE_DIGEST)"
+        echo "$(green ✓) ($OLBASE_DIGEST)"
     fi
 
     # Pull on one node first to warm the nexus cache, avoiding Docker Hub rate limits
@@ -630,9 +645,9 @@ deploy_images() {
     local WARM_OUTPUT
     WARM_OUTPUT=$(ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" 2>&1)
     if [ $? -eq 0 ]; then
-        echo "✓"
+        echo "$(green ✓)"
     else
-        echo "✗"
+        echo "$(red ✗)"
         echo "Failed to warm nexus cache on ${FIRST_SERVER}"
         echo "Output:"
         echo "$WARM_OUTPUT"
@@ -667,9 +682,9 @@ deploy_images() {
         server="${SERVER_NAMES_ARRAY[$i]}"
         echo -n "   $server ... "
         if wait $pid; then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "✗"
+            echo "$(red ✗)"
             echo "Failed to pull images on $server"
             echo "Output:"
             cat "${output_files[$i]}"
@@ -684,7 +699,7 @@ deploy_images() {
 }
 
 check_servers_in_sync() {
-    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
+    echo "$(bold "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):")"
     time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh rebuild"
@@ -704,14 +719,14 @@ check_server_storage() {
         AVAILABLE_SIZES=$(ssh $SERVER "sudo df -B1 | grep -E ' /[12]?$' | awk '{print \$4}'")
         for SIZE in $AVAILABLE_SIZES; do
             if [ "$SIZE" -lt 2147483648 ]; then
-                echo "✗ (Less than 2GB free!)"
+                echo "$(red "✗ (Less than 2GB free!)")"
                 ssh $SERVER "sudo df -h | grep -E ' /[12]?$'"
                 FAILED=1
                 SERVER_FAILED=1
             fi
         done
         if [ $SERVER_FAILED -eq 0 ]; then
-            echo "✓"
+            echo "$(green ✓)"
         fi
     done
 
@@ -733,14 +748,14 @@ prune_docker () {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    echo "[Now] Prune docker images/cache..."
+    echo "$(bold "[Now] Prune docker images/cache...")"
 
     PRUNE_CMD=""
     for arg in "$@"; do
         if [[ "$arg" == "image" ]]; then
             PRUNE_CMD+="docker image prune -f;"
         elif [[ "$arg" == "builder" ]]; then
-            read -p "[Warning] Docker on servers MUST NOT be restarted while 'prune builder' running. Continue? [N/y]..." answer
+            read -p "$(yellow "[Warning] Docker on servers MUST NOT be restarted while 'prune builder' running. Continue? [N/y]...")" answer
             answer=${answer:-N}
             if [[ "$answer" =~ ^[Yy]$ ]]; then
                 PRUNE_CMD+="docker builder prune -f;"
@@ -755,15 +770,15 @@ prune_docker () {
         echo -n "   $SERVER ... "
 
         if [[ -z "$PRUNE_CMD" ]]; then
-            echo "[Error] Docker prune ran without image or builder args"
+            echo "$(red "[Error] Docker prune ran without image or builder args")"
             echo "deploy prune [image|builder]+"
             exit 1
         fi
 
         if OUTPUT=$(ssh $SERVER "$PRUNE_CMD" 2>&1); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             return 1
         fi
@@ -874,7 +889,7 @@ check_nginx_config() {
     local CALLER="${1:-olsystem}"
 
     if [[ "$SKIP_NGINX_CHECK" == "1" ]]; then
-        echo "[Warning] Skipping nginx config test (SKIP_NGINX_CHECK=1)"
+        echo "$(yellow "[Warning] Skipping nginx config test (SKIP_NGINX_CHECK=1)")"
         # Re-announced at the end of the deploy. A warning printed only at the
         # moment it is set scrolls past during a 12-minute deploy, and the
         # failure mode for this gate is someone setting the skip once under
@@ -893,9 +908,9 @@ check_nginx_config() {
     local RULE_FAILURE=0
 
     if [[ "$CALLER" == "openlibrary" ]]; then
-        echo "[Now] Re-testing nginx config, now against the newly deployed docker/ configs..."
+        echo "$(bold "[Now] Re-testing nginx config, now against the newly deployed docker/ configs...")"
     else
-        echo "[Now] Testing nginx config against the newly deployed olsystem rules..."
+        echo "$(bold "[Now] Testing nginx config against the newly deployed olsystem rules...")"
     fi
     for SERVER_NAME in $HOSTNAMES; do
         SERVICE=$(nginx_service_for "$SERVER_NAME")
@@ -912,9 +927,9 @@ check_nginx_config() {
             cd /opt/openlibrary
             COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME OLIMAGE='$OLIMAGE' docker compose --profile $SERVER_NAME run --rm --no-deps -T $SERVICE nginx -t
         " 2>&1); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             FAILED=1
             # Classify rather than making a human under time pressure do it. A
@@ -937,7 +952,7 @@ check_nginx_config() {
     if [ $FAILED -eq 1 ]; then
         echo ""
         if [ $RULE_FAILURE -eq 1 ]; then
-            echo "[Error] nginx config test FAILED on one or more hosts (see output above)."
+            echo "$(red "[Error] nginx config test FAILED on one or more hosts (see output above).")"
             if [[ "$CALLER" == "openlibrary" ]]; then
                 echo "        openlibrary is already deployed, but the new config is invalid --"
                 echo "        restarting nginx now would take the site down (olsystem#420)."
@@ -960,7 +975,7 @@ check_nginx_config() {
             fi
         fi
         if [ $CERT_FAILURE -eq 1 ]; then
-            echo "[Error] nginx could not load a TLS certificate (see output above)."
+            echo "$(red "[Error] nginx could not load a TLS certificate (see output above).")"
             if [ $RULE_FAILURE -eq 0 ]; then
                 echo "        No rule syntax error was reported -- this looks like a"
                 echo "        missing cert, not a bad ruleset. On a host where certbot"
@@ -978,7 +993,7 @@ check_nginx_config() {
 }
 
 recreate_services() {
-    echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
+    echo "$(bold "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)")"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
     time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
@@ -988,7 +1003,7 @@ recreate_services() {
 # Usage: deploy_k8s [full commit SHA]; defaults to the commit the openlibrary step deployed.
 deploy_k8s() {
     if ! command -v python3 &>/dev/null; then
-        echo "[Error] The Kubernetes step needs python3; install it (e.g. https://www.python.org/downloads/) and run \`deploy.sh k8s <sha>\`."
+        echo "$(red "[Error] The Kubernetes step needs python3; install it (e.g. https://www.python.org/downloads/) and run \`deploy.sh k8s <sha>\`.")"
         return 1
     fi
     # `|| return` so a failure returns from here and deploy.sh's ERR trap cleans up.
@@ -998,7 +1013,7 @@ deploy_k8s() {
 
 deploy_wizard() {
     # Pull openlibrary before continuing so we have latest deploy.sh
-    read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
+    read -p "$(bold "[Now] Switching to main branch and pulling latest changes? [Y/n]...")" answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         git checkout master
@@ -1025,7 +1040,7 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
     # Deploy olsystem
     echo "[Next] Run olsystem deploy (~2m30 as of 2024-12-06):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh olsystem"
-    read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
+    read -p "$(bold "[Now] Run olsystem deploy now? [Y/n]...")" answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         # deploy_olsystem gates on `nginx -t` itself; see check_nginx_config.
@@ -1045,23 +1060,23 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
     # it's alive) would otherwise answer this, and its default runs the deploy.
     discard_typeahead
     # Y = run every step with its default; p = pick the steps individually.
-    read -p "[Now] Run openlibrary deploy? [Y/n/p]..." answer
+    read -p "$(bold "[Now] Run openlibrary deploy? [Y/n/p]...")" answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[YyPp]$ ]]; then
         if [[ "$answer" =~ ^[Pp]$ ]]; then
-            read -p "[Now] Transfer codebase to servers? [Y/n]..." step_answer
+            read -p "$(bold "[Now] Transfer codebase to servers? [Y/n]...")" step_answer
             step_answer=${step_answer:-Y}
             if [[ "$step_answer" =~ ^[Nn]$ ]]; then
                 SKIP_OL_TRANSFER_CODE=1
             fi
 
-            read -p "[Now] Deploy Docker Images? [Y/n]..." step_answer
+            read -p "$(bold "[Now] Deploy Docker Images? [Y/n]...")" step_answer
             step_answer=${step_answer:-Y}
             if [[ "$step_answer" =~ ^[Nn]$ ]]; then
                 SKIP_OL_TRANSFER_IMAGES=1
             fi
 
-            read -p "[Now] Tag deploy? [Y/n]..." step_answer
+            read -p "$(bold "[Now] Tag deploy? [Y/n]...")" step_answer
             step_answer=${step_answer:-Y}
             if [[ "$step_answer" =~ ^[Yy]$ ]]; then
                 TAG_DEPLOY=1
@@ -1079,7 +1094,7 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
         time check_servers_in_sync
         echo ""
     else
-        read -p "[Now] Check if servers in sync? [Y/n]..." answer
+        read -p "$(bold "[Now] Check if servers in sync? [Y/n]...")" answer
         answer=${answer:-Y}
         if [[ "$answer" =~ ^[Yy]$ ]]; then
             time check_servers_in_sync
@@ -1089,21 +1104,21 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
 
     # Before the VM restart: Kubernetes replaces its pods gradually, so the two
     # halves of production are on different versions only while it rolls out.
-    read -p "[Now] Deploy to Kubernetes? [Y/n]..." answer
+    read -p "$(bold "[Now] Deploy to Kubernetes? [Y/n]...")" answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-        time deploy_k8s || echo "[Warning] The Kubernetes step didn't finish (see above); \`deploy.sh k8s <sha>\` runs it again."
+        time deploy_k8s || echo "$(yellow "[Warning] The Kubernetes step didn't finish (see above); \`deploy.sh k8s <sha>\` runs it again.")"
         echo ""
     fi
 
-    read -p "[Now] Restart services? [N/y]..." answer
+    read -p "$(bold "[Now] Restart services? [N/y]...")" answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time recreate_services
         echo ""
     fi
 
-    read -p "[Now] Create and announce release? [N/y]..." answer
+    read -p "$(bold "[Now] Create and announce release? [N/y]...")" answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time tag_release
