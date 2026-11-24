@@ -41,7 +41,11 @@
                 <ul>
                     <li><a href="/help">{{ _("Help Center") }}</a></li>
                     <li><a href="mailto:openlibrary@archive.org?subject=Support%20Case"
-   title="{{ _('Contact') }}">{{ _("Contact Us") }}</a></li>
+   title="{{ _('Contact') }}"
+   data-contact-link
+   data-contact-note="{{ _('Please write your message above this line.') }}"
+   data-contact-privacy="{{ _('The details below help us look into your message. You can delete anything you would rather not share.') }}"
+   data-contact-username="{{ layout.header.user.username if layout.header.user else '' }}">{{ _("Contact Us") }}</a></li>
                     <li><a href="/help/faq/editing" title="{{ _('Suggest Edits') }}">{{ _("Suggesting Edits") }}</a></li>
                     <li><a href="/books/add" title="{{ _('Add a new book to Open Library') }}">{{ _("Add a Book") }}</a></li>
                     <li><a href="https://github.com/internetarchive/openlibrary/releases"

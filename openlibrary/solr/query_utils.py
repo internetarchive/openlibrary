@@ -3,7 +3,7 @@ from collections.abc import Callable
 from typing import Literal
 
 from luqum.parser import parser
-from luqum.tree import BaseOperation, Group, Item, SearchField, Unary, Word
+from luqum.tree import BaseGroup, BaseOperation, Group, Item, OrOperation, Plus, SearchField, Unary, Word
 
 
 class EmptyTreeError(Exception):
@@ -90,23 +90,19 @@ def escape_unknown_fields(
     >>> escape_unknown_fields('(title:foo) OR (blah:bah)', {'title'}.__contains__)
     '(title:foo) OR (blah\\\\:bah)'
     """
-    tree = parser.parse(query)
-    # Note we use the string of the tree, because it strips spaces
-    # like: "title : foo" -> "title:foo"
-    escaped_query = str(tree)
+    # Edit str(tree) rather than the raw query, since it normalizes spacing
+    # (e.g. "title : foo" -> "title: foo"); reparse it so node positions match.
+    escaped_query = str(parser.parse(query))
+    tree = parser.parse(escaped_query)
     offset = 0
     for sf, _ in luqum_traverse(tree):
         if isinstance(sf, SearchField) and not is_valid_field(sf.name.lower() if lower else sf.name):
-            field = sf.name + r"\:"
-            if hasattr(sf, "head"):
-                # head and tail are used for whitespace between fields;
-                # copy it along to the write space to avoid things smashing
-                # together
-                field = sf.head + field
-
-            # We will be moving left to right, so we need to adjust the offset
-            # to account for the characters we have already replaced
-            escaped_query = escaped_query[: sf.pos + offset] + field + escaped_query[sf.pos + len(field) - 1 + offset :]
+            # sf.pos points at the field name (after any leading whitespace),
+            # and the colon immediately follows it in the normalized string.
+            start = sf.pos + offset
+            end = start + len(sf.name) + 1
+            escaped_query = escaped_query[:start] + sf.name + r"\:" + escaped_query[end:]
+            # Each escape adds a character, shifting later positions right
             offset += 1
     return escaped_query
 
@@ -273,6 +269,41 @@ def luqum_remove_field(query: Item, predicate: Callable[[str], bool]) -> None:
     for sf, parents in luqum_traverse(query):
         if isinstance(sf, SearchField) and predicate(sf.name):
             luqum_remove_child(sf, parents)
+
+
+def _luqum_is_fully_fielded(query: Item) -> bool:
+    if isinstance(query, SearchField):
+        return True
+    return bool(query.children) and all(_luqum_is_fully_fielded(c) for c in query.children)
+
+
+def luqum_remove_unfielded(query: Item) -> Item | None:
+    """
+    In-place removes the unfielded parts of a query (e.g. `foo` in `foo title:bar`),
+    returning what remains, or None if nothing does.
+
+    Never makes the query stricter: an OR or negation containing an unfielded part
+    is removed as a whole, since removing just that part would narrow it.
+
+    >>> from luqum.parser import parser
+    >>> str(luqum_remove_unfielded(parser.parse('foo +title:bar -baz'))).strip()
+    '+title:bar'
+    >>> str(luqum_remove_unfielded(parser.parse('(foo OR title:bar) +publisher:x'))).strip()
+    '+publisher:x'
+    >>> luqum_remove_unfielded(parser.parse('foo bar')) is None
+    True
+    """
+    if _luqum_is_fully_fielded(query):
+        return query
+    if isinstance(query, (BaseOperation, BaseGroup, Plus)) and not isinstance(query, OrOperation):
+        children = tuple(c for c in (luqum_remove_unfielded(c) for c in query.children) if c is not None)
+        if not children:
+            return None
+        if isinstance(query, BaseOperation) and len(children) == 1:
+            return children[0]
+        query.children = children
+        return query
+    return None
 
 
 def luqum_deepcopy(query: Item) -> Item:

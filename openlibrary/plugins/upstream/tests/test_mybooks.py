@@ -1,13 +1,16 @@
 """Tests for the template helpers in openlibrary.plugins.upstream.mybooks."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 import web
 
 from infogami.infobase.client import LazyObject
 from infogami.utils import macro
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, get_reading_states, shelf_button_for, work_key_of
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.plugins.upstream import mybooks
+from openlibrary.plugins.upstream.mybooks import PatronBooknotes, ReadingLog, edition_key_of, get_reading_states, list_seed_of, shelf_button_for, work_key_of
 
 
 class Thing:
@@ -41,6 +44,25 @@ class TestWorkKeyOf:
     def test_a_carousel_hands_an_edition_doc_its_work(self):
         assert work_key_of({"key": "/books/OL2M", "work_key": "/works/OL1W"}) == "/works/OL1W"
 
+    def test_an_orphaned_edition_indexed_as_a_work_has_none(self):
+        # Solr's "fake work" for an edition with no work: the edition's OLID under /works/.
+        assert work_key_of({"key": "/works/OL7M"}) is None
+        assert work_key_of(web.storage(key="/works/OL7M")) is None
+        assert work_key_of({"key": "/books/OL7M", "work_key": "/works/OL7M"}) is None
+
+
+class TestListSeedOf:
+    def test_an_author_or_an_edition_is_its_own_seed(self):
+        assert list_seed_of({"key": "/authors/OL3A"}) == "/authors/OL3A"
+        assert list_seed_of({"key": "/books/OL2M"}) == "/books/OL2M"
+
+    def test_an_orphaned_edition_indexed_as_a_work_is_the_edition(self):
+        assert list_seed_of({"key": "/works/OL7M"}) == "/books/OL7M"
+
+    def test_nothing_else_is_a_seed(self):
+        assert list_seed_of({"key": "/works/OL1W"}) is None
+        assert list_seed_of({}) is None
+
 
 class TestEditionKeyOf:
     def test_an_edition_is_its_own(self):
@@ -68,7 +90,7 @@ class TestShelfButtonFor:
     def render(self, doc, **kwargs):
         with (
             patch("openlibrary.plugins.upstream.mybooks.accounts.get_current_user", return_value=web.storage(key="/people/tester")),
-            patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value={1: FINISHED}) as get_state,
+            patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value={1: FINISHED}) as get_state,
         ):
             html = shelf_button_for(doc, **kwargs)
         return html, get_state
@@ -90,6 +112,16 @@ class TestShelfButtonFor:
         assert 'shelf="3"' in html
         assert 'rating="4"' in html
         assert 'read-date="2026-08" event-id="7"' in html
+
+    def test_an_orphaned_edition_from_search_can_only_join_a_list(self):
+        html, get_state = self.render(web.storage(key="/works/OL7M", title="An orphan", edition_key=["OL7M"]))
+        assert 'work-key="/books/OL7M"' in html
+        assert "lists-only" in html
+        assert "edition-key" not in html
+        get_state.assert_not_called()
+
+        _, get_state = self.render(web.storage(key="/works/OL7M"), async_load=True)
+        get_state.assert_not_called()
 
     def test_the_page_state_is_used_when_given(self):
         html, get_state = self.render(web.storage(key="/works/OL1W", title="Dune"), reading_states={"/works/OL1W": {"shelf": 1}})
@@ -135,7 +167,7 @@ class TestShelfButtonFor:
 
 class TestGetReadingStates:
     def test_signed_out_is_empty_without_querying(self):
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state") as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync") as get_state:
             assert get_reading_states(None, [{"key": "/works/OL1W"}]) == {}
         get_state.assert_not_called()
 
@@ -150,7 +182,7 @@ class TestGetReadingStates:
             1: {"shelf": 1, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": None, "rating": 3, "read_date": None, "event_id": None},
         }
-        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value=states) as get_state:
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state_sync", return_value=states) as get_state:
             result = get_reading_states(web.storage(key="/people/tester"), docs)
 
         assert result == {"/works/OL1W": states[1], "/works/OL2W": states[2]}
@@ -268,6 +300,22 @@ class TestGetNotes:
         assert "My notes for this work" in html
         assert "work-level note" in html
 
+    def test_edition_note_page_links_the_edition_in_one_sentence(self, mock_site, render_template, request_context_fixture):
+        """'My notes for an edition of %(title)s' renders the edition link inside the sentence, escaped."""
+        request_context_fixture(lang="en")
+        macro.load_macros("openlibrary", lazy=True)
+        _save_fixtures(mock_site)
+        mock_site.save({"key": "/books/OL789M", "type": {"key": "/type/edition"}, "title": "Fish & <Chips>"})
+        notes = _make_notes_data((1, [{"edition_id": 123, "notes": "n1"}, {"edition_id": 789, "notes": "n2"}]))
+        with patch.object(Booknotes, "get_notes_grouped_by_work_sync", return_value=notes):
+            entries = _make_patron_booknotes(mock_site).get_notes()
+
+        html = render_template("account/notes", entries, _make_user(mock_site), 1)
+
+        assert 'My notes for an edition of <a href="/books/OL123M/Edition_123">Edition 123</a>' in html
+        assert "Fish &amp; &lt;Chips&gt;</a>" in html
+        assert "<Chips>" not in html
+
     def test_edition_not_in_store_is_none(self, mock_site):
         """An edition referenced in notes but absent from the store is represented as None."""
         mock_site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "W"})
@@ -336,3 +384,69 @@ def test_patron_booknotes_counts_use_sync_booknotes_bridge():
     ):
         assert PatronBooknotes.get_counts("alice") == {"notes": 2, "observations": 3}
         notes_count.assert_called_once_with("alice")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("sort_order", "expected"),
+    [
+        ("desc", "created desc"),
+        ("asc", "created asc"),
+        ("title", "title"),
+        ("old", "old"),
+        ("rating", "rating"),
+        ("want_to_read", "want_to_read"),
+        ("not-a-sort", "created desc"),
+    ],
+)
+async def test_reading_log_passes_sort_to_shelf_query(sort_order, expected):
+    with patch.object(Bookshelves, "get_users_logged_books", new_callable=AsyncMock) as get_users_logged_books:
+        await ReadingLog(user=MagicMock()).get_works_async("want-to-read", sort_order=sort_order)
+
+    assert get_users_logged_books.await_args.kwargs["sort"] == expected
+
+
+def _render_reading_log(monkeypatch, requested: str, owners_page: bool, shelf_count: int = 0, used: str | None = "created desc") -> MagicMock:
+    """Renders a shelf where `requested` is the sort asked for and `used` the one the shelf came back in."""
+    monkeypatch.setattr(web, "input", lambda **defaults: web.storage(defaults, sort=requested))
+    monkeypatch.setattr(mybooks, "add_availability", lambda docs, mode: docs)
+    monkeypatch.setattr(mybooks, "get_internet_archive_id", lambda key: "")
+    monkeypatch.setattr(mybooks, "render", MagicMock())
+    mb = MagicMock(key="want-to-read", is_my_page=owners_page, counts={"want-to-read": shelf_count})
+    mb.readlog.get_works.return_value = MagicMock(docs=[], total_results=0, ratings=[], sort=used)
+
+    mybooks.mybooks_readinglog().render_template(mb)
+    return mb
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "used", "asked_for", "shown"),
+    [
+        ("rating", True, "rating", "rating", "rating"),
+        ("rating", False, "created desc", "desc", "desc"),
+        ("title", False, "title", "title", "title"),
+        ("title", True, "created desc", "title", "desc"),
+        ("title", True, None, "title", None),
+    ],
+)
+def test_reading_log_menu_shows_the_sort_actually_used(monkeypatch, requested, owners_page, used, asked_for, shown):
+    mb = _render_reading_log(monkeypatch, requested, owners_page, used=used)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["sort_order"] == shown
+
+
+@pytest.mark.parametrize(
+    ("requested", "owners_page", "shelf_count", "asked_for", "unavailable"),
+    [
+        ("title", True, 10, "title", []),
+        ("rating", False, 10, "desc", ["rating"]),
+        ("title", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "desc", ["title", "old", "want_to_read"]),
+        ("rating", True, Bookshelves.MAX_SOLR_ORDERED_SHELF_SIZE + 1, "rating", ["title", "old", "want_to_read"]),
+    ],
+)
+def test_reading_log_menu_leaves_out_unavailable_sorts(monkeypatch, requested, owners_page, shelf_count, asked_for, unavailable):
+    mb = _render_reading_log(monkeypatch, requested, owners_page, shelf_count=shelf_count)
+
+    assert mb.readlog.get_works.call_args.kwargs["sort_order"] == asked_for
+    assert mybooks.render["account/reading_log"].call_args.kwargs["unavailable_sorts"] == unavailable

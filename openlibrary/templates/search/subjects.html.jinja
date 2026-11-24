@@ -1,0 +1,66 @@
+{# Takes `q`, `page`, `total_pages`, `commified_num_found` and `search_response` (a SearchResponse, or None without a query). #}
+{% from "search/searchbox.html.jinja" import searchbox %}
+{% from "OlPagination.html.jinja" import ol_pagination %}
+{% from "LoadingIndicator.html.jinja" import loading_indicator %}
+{% macro render_type(subject_type) %}
+    {%- if subject_type == "time" -%}
+        <span class="teal">{{ _("time") }}</span>
+    {%- elif subject_type == "subject" -%}
+        <span class="darkgreen">{{ _("subject") }}</span>
+    {%- elif subject_type == "place" -%}
+        <span class="orange">{{ _("place") }}</span>
+    {%- elif subject_type == "org" -%}
+        <span class="blue">{{ _("org") }}</span>
+    {%- elif subject_type == "event" -%}
+        <span class="grey">{{ _("event") }}</span>
+    {%- elif subject_type == "person" -%}
+        <span class="red">{{ _("person") }}</span>
+    {%- elif subject_type == "work" -%}
+        <span class="black">{{ _("work") }}</span>
+    {%- else -%}
+        {{ subject_type }}
+    {%- endif %}
+{% endmacro %}
+<div id="contentHead">
+    <h1>{{ _("Search Subjects") }}</h1>
+</div>
+<div id="contentBody">
+    {% include "SearchNavigation.html.jinja" %}
+    <div class="section">
+        <form class="siteSearch olform" action="">
+            {{ searchbox(q=q) }}
+        </form>
+    </div>
+    {% if q and search_response and search_response.error %}
+        <strong>
+            {% for line in search_response.error.splitlines() %}
+                {{ line }}
+                {% if not loop.last %}<br>{% endif %}
+            {% endfor %}
+        </strong>
+    {% endif %}
+    {% if q and search_response and not search_response.error %}
+        {% if search_response.num_found %}
+            <p class="search-results-stats">{{ ngettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commified_num_found) }}</p>
+            <ul class="subjectList">
+                {% for doc in search_response.docs %}
+                    {% set name = doc['name'] %}
+                    {% set subject_type = doc.get('subject_type', 'subject') %}
+                    {% set type_prefix = {'person': 'person:', 'place': 'place:', 'time': 'time:'}.get(subject_type, '') %}
+                    {% set slug = name | lower | replace(' ', '_') | replace('?', '') | replace(',', '') | replace('/', '') %}
+                    <li>
+                        <a href="/subjects/{{ type_prefix }}{{ slug }}">{{ name }}</a>
+                        <span class="count">&nbsp;&nbsp;<b>{{ ngettext('%(count)d book', '%(count)d books', doc['work_count'], count=doc['work_count']) }}</b>, {{ render_type(subject_type) }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            {{ ol_pagination(page, total_pages) }}
+        {% else %}
+            <center>
+                <div class="red">{{ _("No <strong>subjects</strong> directly matched your search") | safe }}</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="{{ q }}">{{ loading_indicator(_("Checking Search Inside matches")) }}</div>
+        {% endif %}
+    {% endif %}
+</div>

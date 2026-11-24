@@ -177,7 +177,7 @@ class SolrInternalsParams(BaseModel):
         return "({!edismax " + " ".join(params) + "})" if params else ""
 
     @staticmethod
-    def from_request(request: Request) -> SolrInternalsParams | None:
+    async def from_request(request: Request) -> SolrInternalsParams | None:
         """
         FastAPI dependency that extracts and validates Solr internals params.
 

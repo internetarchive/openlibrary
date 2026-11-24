@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, is_book_page=False, check_loan_status=False, user_lists=None, analytics_override=None, lending_state=None)
+$def with (doc, work_key=None, listen=True, is_book_page=False, check_loan_status=False, user_lists=None, analytics_override=None, lending_state=None, cta_size='medium')
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -7,6 +7,8 @@ $#     preview, search inside, library lookup and status lines
 $# * check_loan_status - whether to check the user's loan status to determine read button
 $# * lending_state - pass in when already resolved (e.g. /works and /books
 $#     pages, via prepare_book_page()) to avoid recomputing it below
+$# * cta_size - ol-button size for the buttons; ol-carousel cards pass 'small'
+$#     (the legacy .cta-btn is sized to match in buttonCta.css)
 $#
 $# Off the book page (carousels, search results, lists, the reading log) a book
 $# always ends in a button: one that can't be read here gets one secondary
@@ -63,7 +65,7 @@ $def learn_more():
   $# at the page where the options are, without competing with Read buttons.
   $# ol-button renders an <a> when given href; full-width fills the button slot.
   <div class="cta-button-group">
-    <ol-button variant="secondary" full-width href="$(work_key or doc.key)" $:analytics_attr('LearnMore')>$_("Learn More")</ol-button>
+    <ol-button variant="secondary" size="$cta_size" full-width href="$(work_key or doc.key)" $:analytics_attr('LearnMore')>$_("Learn More")</ol-button>
   </div>
 
 $if lending_state == 'borrowed':

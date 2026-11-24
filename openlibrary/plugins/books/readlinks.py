@@ -9,11 +9,13 @@ from collections.abc import Iterable
 from collections.abc import Set as AbstractSet
 
 import web
+from fastapi.concurrency import run_in_threadpool
 
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers, ia, lending
 from openlibrary.plugins.books import dynlinks
+from openlibrary.utils.request_context import site
 
 
 def key_to_olid(key):
@@ -32,8 +34,9 @@ async def get_solr_fields_for_works(
 
 
 class ReadProcessor:
-    def __init__(self, options):
+    def __init__(self, options, base_url: str | None = None):
         self.options = options
+        self.base_url = base_url
         self.checked_out_ocaids: AbstractSet[str] = frozenset()
 
     def get_item_status(self, ekey, iaid, collections) -> str:
@@ -213,12 +216,12 @@ class ReadProcessor:
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != "id:"]
 
-        self.docs = await dynlinks.add_availability(dynlinks.query_docs(bib_keys))
+        self.docs = await dynlinks.add_availability(await dynlinks.query_docs(bib_keys))
         if not self.options.get("no_details"):
-            self.detailss = dynlinks.process_result_for_details(self.docs)
+            self.detailss = dynlinks.process_result_for_details(self.docs, self.base_url)
         else:
             self.detailss = {}
-        dp = dynlinks.DataProcessor(await dynlinks.get_checked_out_ocaids(self.docs.values()))
+        dp = dynlinks.DataProcessor(await dynlinks.get_checked_out_ocaids(self.docs.values()), self.base_url)
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
@@ -227,7 +230,8 @@ class ReadProcessor:
         # Note that it's available thru above works/docs
         self.wkey_to_iaids = await get_solr_fields_for_works("ia", self.works, 500)
         iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
-        self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
+        # ia.get_metadata makes blocking memcache and archive.org calls, so run them in a worker thread, not on the event loop.
+        self.iaid_to_meta = await run_in_threadpool(lambda: {iaid: ia.get_metadata(iaid) for iaid in iaids})
         lendable_iaids = [iaid for iaid, meta in self.iaid_to_meta.items() if meta and "inlibrary" in meta.get("collection", [])]
         self.checked_out_ocaids = await lending.get_checked_out_async(lendable_iaids)
 
@@ -243,7 +247,7 @@ class ReadProcessor:
                 "type": "/type/edition",
                 "ocaid": iaids,
             }
-            result = web.ctx.site.things(query)
+            result = site.get().things(query)
             return result
 
         ekeys = lookup_iaids(iaids)
@@ -276,7 +280,7 @@ class ReadProcessor:
         return result
 
 
-async def readlinks(req: str, options: dict):
+async def readlinks(req: str, options: dict, base_url: str | None = None):
     try:
         dbstr = "debug|"
         if req.startswith(dbstr):
@@ -288,7 +292,7 @@ async def readlinks(req: str, options: dict):
                 "show_all_items": True,
             }
             req = req[len(dbstr) :]
-        rp = ReadProcessor(options)
+        rp = ReadProcessor(options, base_url)
 
         if options.get("listofworks"):
             """For load-testing, handle a special syntax"""

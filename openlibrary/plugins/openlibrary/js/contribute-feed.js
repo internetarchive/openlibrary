@@ -10,6 +10,11 @@ const MAX_ROWS = 25;
 const GAP_MS = [3500, 7000];
 // How long to wait before asking again when there are no edits to show.
 const EMPTY_RETRY_MS = 60000;
+// While placeholder rows are up, the server is building the feed in the background: ask again soon, a few
+// times, and fill the placeholders quickly once rows arrive. After that many tries, say the feed is quiet.
+const SKELETON_RETRY_MS = 5000;
+const SKELETON_MAX_TRIES = 12;
+const SKELETON_FILL_GAP_MS = 500;
 const RELATIVE_REFRESH_MS = 30000;
 
 // Short units ("12 min. ago") so the time fits the ledger's margin column.
@@ -97,6 +102,9 @@ function insertRow(list, row) {
     list.querySelectorAll('.is-new').forEach(prev => prev.classList.remove('is-new'));
     li.classList.add('is-entering', 'is-new');
     list.prepend(li);
+    // Each real row takes a placeholder's place, from the bottom, so the list keeps its height.
+    const skeletons = skeletonRows(list);
+    skeletons[skeletons.length - 1]?.remove();
     // Two frames so the entering styles are painted before they transition away.
     requestAnimationFrame(() => requestAnimationFrame(() => li.classList.remove('is-entering')));
     list.closest('section')?.querySelector('[data-feed-empty]')?.setAttribute('hidden', '');
@@ -107,6 +115,26 @@ function insertRow(list, row) {
         extra.classList.add('is-leaving');
         const ms = parseFloat(getComputedStyle(extra).transitionDuration) * 1000;
         setTimeout(() => extra.remove(), ms || 0);
+    }
+}
+
+/**
+ * The placeholder rows still waiting on a real one.
+ * @param {HTMLOListElement} list
+ * @returns {HTMLLIElement[]}
+ */
+function skeletonRows(list) {
+    return [...list.querySelectorAll('[data-feed-skeleton]')];
+}
+
+/**
+ * Stop waiting: drop the placeholders and, with no rows at all, say the feed is quiet.
+ * @param {HTMLOListElement} list
+ */
+function showEmpty(list) {
+    skeletonRows(list).forEach(li => li.remove());
+    if (!list.querySelector('[data-feed-row]')) {
+        list.closest('section')?.querySelector('[data-feed-empty]')?.removeAttribute('hidden');
     }
 }
 
@@ -130,6 +158,7 @@ export function initFeed(list) {
     let cursor = list.dataset.feedCursor || '';
     const queue = [];
     let revealTimer = null;
+    let emptyTries = 0;
 
     const fetchRows = async params => {
         try {
@@ -155,11 +184,14 @@ export function initFeed(list) {
         }
         if (document.hidden) return;
         if (!queue.length) {
-            revealTimer = setTimeout(tick, EMPTY_RETRY_MS);
+            const waiting = skeletonRows(list).length && ++emptyTries < SKELETON_MAX_TRIES;
+            if (!waiting) showEmpty(list);
+            revealTimer = setTimeout(tick, waiting ? SKELETON_RETRY_MS : EMPTY_RETRY_MS);
             return;
         }
         showNext();
-        revealTimer = setTimeout(tick, GAP_MS[0] + Math.random() * (GAP_MS[1] - GAP_MS[0]));
+        const gap = skeletonRows(list).length ? SKELETON_FILL_GAP_MS : GAP_MS[0] + Math.random() * (GAP_MS[1] - GAP_MS[0]);
+        revealTimer = setTimeout(tick, gap);
     };
 
     const stop = () => clearTimeout(revealTimer);

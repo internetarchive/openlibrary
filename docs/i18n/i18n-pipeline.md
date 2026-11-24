@@ -1,7 +1,7 @@
 # i18n Translation Pipeline — which repo is authoritative
 
 > How Open Library's UI translations are stored, generated, and shipped to production. Companion:
-> [[i18n-rendering]] covers *how* a translated string reaches the page (Templetor, Jinja, the
+> [i18n-rendering](i18n-rendering.md) covers *how* a translated string reaches the page (Templetor, Jinja, the
 > `data-i18n` JS bridge); this page is *where translations live* and how they flow.
 
 **Before editing a `.po` file, know which repo owns it.** Two repositories hold Open Library's
@@ -66,10 +66,11 @@ and self-merges → the result is baked into the deploy image.** Each is a real,
    file; a pinned `I18N_REF` ships an exact, verified set. The baked set is recorded in the image at
    `openlibrary/i18n/openlibrary-i18n.txt` (ref + per-locale installed/kept).
 
-**Human contributions** come in through a shared self-hosted **Weblate** instance (openlibrary-i18n#116):
-contributors edit in a UI, which opens PRs on a `weblate/*` branch of `openlibrary-i18n` (never `main`,
-and outside `i18n/` so the AI pipeline neither auto-merges nor pauses on them). AI fills gaps; humans
-correct.
+**Human contributions** come in through a shared self-hosted **Weblate** instance at [openlibrary.org/translate](https://openlibrary.org/translate) (openlibrary-i18n#116):
+contributors edit in a UI, and Weblate opens a sync PR from the `weblate` branch of `openlibrary-i18n`
+(never `main`, and outside `i18n/` so the AI pipeline neither picks it up nor pauses on it).
+`weblate-review.yml` runs an AI abuse review plus file and deploy checks on that PR, then merges it
+automatically so Weblate is never left stuck. AI fills gaps; humans correct.
 
 ### Replicating this for another app (e.g. archive.org)
 
@@ -226,5 +227,5 @@ msgids in openlibrary's `messages.pot`. Exit codes: 0 clean, 1 gating findings, 
 
 ## See also
 
-- [[i18n-rendering]] — how strings get translated in templates and JS
-- [[README]] — index
+- [i18n-rendering](i18n-rendering.md) — how strings get translated in templates and JS
+- [README](../README.md) — index

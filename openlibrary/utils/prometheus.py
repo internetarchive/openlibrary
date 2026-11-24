@@ -1,8 +1,9 @@
 """Per-route Prometheus request metrics, shared by FastAPI and web.py.
 
 Both servers record the same series (``http_requests_total``,
-``http_request_duration_seconds``, ...) from prometheus-fastapi-instrumentator's
-``metrics.default``, told apart by a ``server`` label. web.py copies FastAPI's
+``http_request_duration_seconds``, ...) as prometheus-fastapi-instrumentator's
+``metrics.default``, told apart by a ``server`` label. The request count and per-route
+latency are also labelled ``visitor`` and ``response_type``. web.py copies FastAPI's
 ``handler`` label, the route's path template, so an endpoint keeps its series when
 it moves to FastAPI, or while both serve it; only ``server`` changes.
 
@@ -17,13 +18,15 @@ So when porting a parameterized route, use the ``handler`` web.py reports for it
 Parameters are named ``work_id``, ``edition_id``, ``author_id`` and ``tag_id`` (``OL{work_id}W``),
 ``list_id`` (``{list_id}``, the whole ``OL1L``), ``username`` after ``/people/``, ``title`` for the
 readable-URL slug, and ``key`` otherwise, with ``:path`` if it can contain a ``/``.
+
+Both servers also record how long each request spent in each backend service (see ``record_backend_times``):
+``ol_request_backend_seconds{server, backend}`` and ``ol_request_backend_calls_total{server, backend}``.
 """
 
 from __future__ import annotations
 
 import functools
 import logging
-import os
 import re
 from re import _constants as sre  # type: ignore[attr-defined]
 from re import _parser as sre_parse  # type: ignore[attr-defined]
@@ -31,17 +34,20 @@ from timeit import default_timer
 from typing import TYPE_CHECKING, Literal
 
 import web
-from prometheus_client import REGISTRY, CollectorRegistry, make_wsgi_app, multiprocess
+from prometheus_client import REGISTRY, CollectorRegistry, Counter, Histogram, Summary, make_wsgi_app
 from prometheus_fastapi_instrumentator import metrics, routing
 from starlette.requests import Request
 from starlette.responses import Response
 
 from infogami.utils import app as infogami_app
 from infogami.utils import types
+from openlibrary.utils import server_timing
+from openlibrary.utils.prometheus_multiprocess import metrics_registry
+from openlibrary.utils.request_context import visitor
 from openlibrary.utils.sentry import InfogamiRoute, find_infogami_route
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from fastapi import FastAPI
 
@@ -50,13 +56,123 @@ logger = logging.getLogger("openlibrary.prometheus")
 # Buckets for http_request_duration_seconds, the only per-route latency histogram.
 # (The library's high-resolution histogram has one set of counts for the whole server.)
 LATENCY_BUCKETS = (0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.5, 5, 10, 30, 60)
+# metrics.default's buckets for http_request_duration_highr_seconds, kept so its series don't change
+LATENCY_HIGHR_BUCKETS = (0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 7.5, 10, 30, 60)
 # Regexes, searched for in the handler name, as the instrumentator does
 EXCLUDED_HANDLERS = ("/health", "/metrics")
 
+# A request's total time in one backend, from a single cache hit up to many slow queries
+BACKEND_BUCKETS = (0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5)
+# No handler label, to keep the series few. The calls counter gives the mean time per call:
+# rate(ol_request_backend_seconds_sum) / rate(ol_request_backend_calls_total)
+BACKEND_SECONDS = Histogram(
+    "ol_request_backend_seconds",
+    "Time each request spent in a backend service, all its calls to it together. Only requests that called it.",
+    ("server", "backend"),
+    buckets=BACKEND_BUCKETS,
+)
+BACKEND_CALLS = Counter("ol_request_backend_calls_total", "Calls to a backend service.", ("server", "backend"))
+
 
 def request_metrics(server: Literal["fastapi", "webpy"], registry: CollectorRegistry = REGISTRY) -> Callable[[metrics.Info], None] | None:
-    """The request metrics, labelled ``server``. None if already registered in ``registry``."""
-    return metrics.default(latency_lowr_buckets=LATENCY_BUCKETS, registry=registry, custom_labels={"server": server})
+    """The request metrics, labelled ``server``. None if already registered in ``registry``.
+
+    The same metrics as the instrumentator's ``metrics.default``, plus ``visitor`` (see ``Visitor``) and
+    ``response_type`` (see ``response_type``) labels on the request count and per-route latency.
+    ``metrics.default``'s labels can only have fixed values, and per-request ones aren't planned:
+    https://github.com/trallnag/prometheus-fastapi-instrumentator/discussions/256
+    """
+    try:
+        total = Counter(
+            "http_requests_total",
+            "Total number of requests by method, status and handler.",
+            ("method", "status", "handler", "server", "visitor", "response_type"),
+            registry=registry,
+        )
+        in_size = Summary("http_request_size_bytes", "Content length of incoming requests by handler.", ("handler", "server"), registry=registry)
+        out_size = Summary("http_response_size_bytes", "Content length of outgoing responses by handler.", ("handler", "server"), registry=registry)
+        latency_highr = Histogram(
+            "http_request_duration_highr_seconds", "Latency of all requests, with many buckets.", buckets=LATENCY_HIGHR_BUCKETS, registry=registry
+        )
+        latency = Histogram(
+            "http_request_duration_seconds",
+            "Latency by handler.",
+            ("method", "handler", "server", "visitor", "response_type"),
+            buckets=LATENCY_BUCKETS,
+            registry=registry,
+        )
+    except ValueError as e:
+        if metrics._is_duplicated_time_series(e):
+            return None
+        raise
+
+    def instrumentation(info: metrics.Info) -> None:
+        handler = info.modified_handler
+        label = v.label if (v := visitor.get()) else "anonymous"
+        kind = response_type(info.modified_status, info.response.headers.get("content-type", "") if info.response else "")
+        total.labels(info.method, info.modified_status, handler, server, label, kind).inc()
+        in_size.labels(handler, server).observe(int(info.request.headers.get("Content-Length", 0)))
+        out_size.labels(handler, server).observe(int(info.response.headers.get("Content-Length", 0)) if info.response else 0)
+        latency_highr.observe(info.modified_duration)
+        latency.labels(info.method, handler, server, label, kind).observe(info.modified_duration)
+
+    return instrumentation
+
+
+REDIRECT_STATUSES = {"301", "302", "303", "307", "308"}
+
+
+def response_type(status: str, content_type: str) -> Literal["redirect", "html", "json", "other"]:
+    """What the response was, by its status and ``Content-Type``: ``redirect``, ``html``, ``json`` or ``other``.
+    Redirects go by status, since web.py's carry ``text/html`` too."""
+    if status in REDIRECT_STATUSES:
+        return "redirect"
+    content_type = content_type.lower()
+    if content_type.startswith("text/html"):
+        return "html"
+    if "json" in content_type:
+        return "json"
+    return "other"
+
+
+def backend(name: str) -> str | None:
+    """The backend service a timing is for: ``infobase``, ``memcache``, ``db``, ``solr`` or ``ia``; None if it isn't one.
+
+    ``name`` is a web.py infogami stat (``memcache.get``, ``infobase``, ``db``) or a Server-Timing metric
+    (``solr``, ``db-legacy``, ``ia-loans``). ``archive.org`` is None: ``ia.get_api_response`` times its
+    request as ``ia-metadata`` too. So is ``db-checkout``, waiting for a pool connection, which isn't a query.
+
+    >>> backend("memcache.get_multi"), backend("db-legacy"), backend("ia-loans"), backend("render-jinja")
+    ('memcache', 'db', 'ia', None)
+    """
+    name = name.split(".", maxsplit=1)[0]
+    if name in ("infobase", "memcache", "solr", "db"):
+        return name
+    if name == "db-legacy":
+        return "db"
+    if name == "ia" or name.startswith("ia-"):
+        return "ia"
+    return None
+
+
+def record_backend_times(server: Literal["fastapi", "webpy"], timings: Iterable[tuple[str, int, float]]) -> None:
+    """Record one request's time in each backend it called, from its ``(name, calls, seconds)`` timings."""
+    calls_by_backend: dict[str, int] = {}
+    seconds_by_backend: dict[str, float] = {}
+    for name, calls, seconds in timings:
+        if service := backend(name):
+            calls_by_backend[service] = calls_by_backend.get(service, 0) + calls
+            seconds_by_backend[service] = seconds_by_backend.get(service, 0.0) + seconds
+    for service, seconds in seconds_by_backend.items():
+        BACKEND_SECONDS.labels(server, service).observe(seconds)
+        BACKEND_CALLS.labels(server, service).inc(calls_by_backend[service])
+
+
+def webpy_backend_times(timings: server_timing.RequestTimings) -> list[tuple[str, int, float]]:
+    """A web.py request's timings: infogami's stats (infobase, memcache, legacy DB) in ``web.ctx.stats``,
+    and the Server-Timing ones (Solr, the async DB pool, archive.org), which record into ``timings``."""
+    stats = [(s.name, 1, s.time) for s in web.ctx.get("stats", [])]
+    return stats + [(name, calls, seconds) for name, (calls, seconds, _) in timings.snapshot().items()]
 
 
 @functools.cache
@@ -97,6 +213,7 @@ _CATEGORIES = {
 }
 _VARIABLE_OPS = (sre.IN, sre.ANY, sre.NOT_LITERAL)
 _OLID_PARAMS = {"W": "work_id", "M": "edition_id", "A": "author_id", "T": "tag_id"}
+_OLID = re.compile(r"OL\d+[AMWLT]")
 
 
 def _char_class(items) -> tuple[str, bool]:
@@ -192,10 +309,20 @@ def route_template(pattern: str, path: str) -> str:
     template = ""
     end = 0
     names: set[str] = set()
+    spans: list[list] = []
     for i, can_contain_slash in enumerate(instrumented[1]):
         start, stop = match.span(f"p{i}")
-        if start < end or start == stop:  # unmatched, empty, or inside a part already replaced
+        if start == stop:  # unmatched or empty
             continue
+        if spans and spans[-1][1] == start:  # adjacent, like the digits of a year: one parameter
+            spans[-1][1:] = stop, spans[-1][2] or can_contain_slash
+        else:
+            spans.append([start, stop, can_contain_slash])
+    for start, stop, can_contain_slash in spans:
+        if start < end:  # inside a part already replaced
+            continue
+        if _OLID.fullmatch(path, start, stop):  # e.g. a [^/]+ that matched OL1W: name it as if the route said OL\d+W
+            start, stop = start + 2, stop - 1
         template += path[end:start]
         name = _param_name(template, path[stop:], can_contain_slash)
         if name == "list_id":  # the whole OL1L, as the FastAPI list routes take it
@@ -287,6 +414,9 @@ class WebPyPrometheusProcessor:
 
     def __call__(self, handler):
         requested_path = web.ctx.path  # before e.g. ReadableUrlProcessor rewrites it
+        visitor.set(None)  # so a request that ends before setup_contextvars, like a redirect, doesn't reuse the previous request's
+        # Collects the timings of the code that records Server-Timing in FastAPI, e.g. Solr calls
+        timings, token = server_timing.start_request()
         start = default_timer()
         body = None
         try:
@@ -294,12 +424,13 @@ class WebPyPrometheusProcessor:
             return body
         finally:
             duration = max(default_timer() - start, 0.0)
+            server_timing.end_request(token)
             try:
-                self._record(requested_path, body, duration)
+                self._record(requested_path, body, duration, timings)
             except Exception:
                 logger.exception("Failed to record Prometheus request metrics")
 
-    def _record(self, requested_path: str, body, duration: float) -> None:
+    def _record(self, requested_path: str, body, duration: float, timings: server_timing.RequestTimings) -> None:
         handler = webpy_route_name(requested_path)
         if any(re.search(pattern, handler) for pattern in EXCLUDED_HANDLERS):
             return
@@ -308,6 +439,8 @@ class WebPyPrometheusProcessor:
         request_headers = [(b"content-length", web.ctx.env["CONTENT_LENGTH"].encode())] if web.ctx.env.get("CONTENT_LENGTH") else []
         response = Response(status_code=int(status))
         response.headers["content-length"] = str(_response_size(body))
+        if content_type := _response_header("Content-Type"):
+            response.headers["content-type"] = content_type
         self.instrumentation(
             metrics.Info(
                 request=Request({"type": "http", "method": web.ctx.method, "path": web.ctx.path, "headers": request_headers}),
@@ -319,10 +452,15 @@ class WebPyPrometheusProcessor:
                 modified_duration_without_streaming=duration,
             )
         )
+        record_backend_times("webpy", webpy_backend_times(timings))
+
+
+def _response_header(name: str) -> str | None:
+    return next((value for key, value in web.ctx.get("headers", []) if key.lower() == name.lower()), None)
 
 
 def _response_size(body) -> int:
-    if (length := dict(web.ctx.get("headers", [])).get("Content-Length")) is not None:
+    if (length := _response_header("Content-Length")) is not None:
         return int(length)
     if isinstance(body, str):
         return len(body.encode())
@@ -341,11 +479,7 @@ def instrument_webpy(app: web.application, wsgi_app):
         app.add_processor(web.loadhook(capture_infogami_route))
         _fastapi_app()  # load the routes now, not in the first request
 
-    registry = REGISTRY
-    if "PROMETHEUS_MULTIPROC_DIR" in os.environ:  # one set of metrics for all the gunicorn workers
-        registry = CollectorRegistry()
-        multiprocess.MultiProcessCollector(registry)
-    metrics_app = make_wsgi_app(registry)
+    metrics_app = make_wsgi_app(metrics_registry())
 
     def wrapper(environ, start_response):
         if environ.get("PATH_INFO") == "/metrics":

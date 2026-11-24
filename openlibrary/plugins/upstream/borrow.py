@@ -8,7 +8,7 @@ import logging
 import time
 import urllib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Literal
 
 import web
@@ -32,6 +32,8 @@ from openlibrary.core import (
 )
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_member
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
@@ -181,12 +183,13 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and provider.short_name != "ia"
         and (acquisitions := provider.get_acquisitions(edition))
         # `borrow` as well as `open-access`: a provider that lends its own
-        # copies sends the patron to its own sign-in. Falling through reaches
-        # `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA edition
-        # `ocaid` is infogami's `Nothing`, whose `__radd__` returns the left
-        # operand -- so that path yields a bare `archive.org/stream/` instead
-        # of raising.
-        and acquisitions[0].access in ("open-access", "borrow")
+        # copies sends the patron to its own sign-in. `sample` too: a "Preview"
+        # web link is read on the provider's site (#12345). Falling through
+        # reaches `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA
+        # edition `ocaid` is infogami's `Nothing`, whose `__radd__` returns the
+        # left operand -- so that path yields a bare `archive.org/stream/`
+        # instead of raising.
+        and acquisitions[0].access in ("open-access", "borrow", "sample")
     ):
         stats.increment("ol.loans.webbook")
         url = acquisitions[0].url
@@ -233,12 +236,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
 
     error_redirect = archive_url
 
-    # Strip scheme/host to prevent open-redirect attacks.
-    if i.redirect:
-        parsed = urllib.parse.urlsplit(i.redirect)
-        edition_redirect = urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, parsed.fragment))
-    else:
-        edition_redirect = edition.url()
+    # Only same-site paths; anything else lands on the edition page.
+    edition_redirect = i.redirect if is_safe_redirect(i.redirect) else edition.url()
 
     user = accounts.get_current_user()
 
@@ -247,6 +246,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         ia_itemname = account.itemname if account else None
         s3_keys = parse_s3_cookie(s3_cookie)
         lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
+        home_member.invalidate_cache(user.key.split("/")[-1])  # the home page shows those loans
     if not user or not ia_itemname or not s3_keys:
         return_path = f"{edition_redirect}/borrow?action={action}"
         redirect_url = f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"
@@ -435,7 +435,7 @@ def datetime_from_isoformat(expiry):
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.utcfromtimestamp(seconds)
+    return datetime.fromtimestamp(seconds, UTC).replace(tzinfo=None)
 
 
 def get_bookreader_stream_url(itemid: str) -> str:

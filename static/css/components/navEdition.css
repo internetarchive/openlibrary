@@ -5,5 +5,5 @@
 span.booktitle {
   color: var(--color-text);
   font-family: var(--font-family-title);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }

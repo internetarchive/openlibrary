@@ -392,7 +392,8 @@ export class OlPopover extends LitElement {
                 showPanel
                     ? html`
                           ${
-                              this._mobile || this.blockOutsideClicks
+                              /* No guard when outside clicks don't close: it would catch every click and release none. */
+                              this._mobile || (this.blockOutsideClicks && this.autoClose)
                                   ? html`
                                         <div
                                             class="backdrop ${this._mobile ? '' : 'guard'}"

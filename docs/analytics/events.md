@@ -6,7 +6,7 @@
 
 How Open Library custom interaction events reach Matomo — and the two-pipeline split that has now silently swallowed events three separate times.
 
-See [[core-vitals]] for Matomo *scoring* (Retention Score, dimension 1, `MatomoClient`). This page is about **event tracking wiring**, which is a different failure surface.
+See [core-vitals](core-vitals.md) for Matomo *scoring* (Retention Score, dimension 1, `MatomoClient`). This page is about **event tracking wiring**, which is a different failure surface.
 
 ---
 
@@ -25,7 +25,7 @@ Athena does **not** forward events into Matomo. Confirmed by @scottbarnes on
 [#13038](https://github.com/internetarchive/openlibrary/pull/13038).
 
 `ol_send_event_ping` still looks like the house style — it is the older, more widely-copied idiom
-(`Carousel.js`, `lazy-carousel.js`, `index.js`, `banner-analytics.js` all use it). **Copying it is
+(`lazy-carousel.js`, `index.js`, `banner-analytics.js` all use it). **Copying it is
 how this bug keeps getting reintroduced.** If an event needs to appear in Matomo, it must go through
 `trackEvent()` or carry a `data-ol-link-track` attribute in the light DOM.
 
@@ -284,8 +284,8 @@ missing `action`/`url`, so a malformed cookie fails silently.
 / athena.js (CDN-loaded, guarded by `if (window.archive_analytics)`) · `head.html` analytics block
 (skipped entirely for bots and when `ctx.disable_analytics` is set).
 
-**Depended on by:** [[core-vitals]] Engagement/Retention scoring · any Behaviour → Events reporting.
+**Depended on by:** [core-vitals](core-vitals.md) Engagement/Retention scoring · any Behaviour → Events reporting.
 
 ---
 
-*See [[README]] · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*

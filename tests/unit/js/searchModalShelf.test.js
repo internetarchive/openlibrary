@@ -53,6 +53,18 @@ describe('fetching on intent', () => {
         expect(modal._readingState.get('OL2W')).toEqual(STATE.OL2W);
     });
 
+    test('an edition with no work is left out of the batch, and offers lists only', async () => {
+        // Solr indexes it as a "work" under the edition's own OLID; one of those in the request is a 422 for every row.
+        const orphan = { key: '/works/OL7M', title: 'An orphan' };
+        const modal = makeModal({ results: [WORKS[0], orphan, WORKS[1]] });
+        modal._onShelfIntent();
+        await tick();
+        expect(decodeURIComponent(calls[0])).toContain('work_ids=OL1W,OL2W');
+        const markup = modal._renderShelfButton(orphan, null, orphan.title);
+        expect(markup.strings.join('')).toContain('lists-only');
+        expect(markup.values).toContain('/books/OL7M');
+    });
+
     test('a second intent, or the same rows again, never refetches', async () => {
         const modal = makeModal();
         modal._onShelfIntent();

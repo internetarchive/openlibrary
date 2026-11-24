@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -17,10 +18,12 @@ from openlibrary.catalog.add_book import (
     check_cover_url_host,
     editions_matched,
     find_match,
+    find_matching_work,
     isbns_from_record,
     load,
     load_data,
     normalize_import_record,
+    normalize_record_bibids,
     should_overwrite_promise_item,
     split_subtitle,
     validate_record,
@@ -124,6 +127,114 @@ def test_editions_matched(mock_site, add_languages, ia_writeback):
     assert result == ["/books/OL1M"]
 
 
+def test_find_matching_work_outside_the_default_query_limit(mock_site):
+    """
+    Matching has to consider every work by an author, not just the page the
+    backend returns by default.
+
+    `things()` returns a limited page when no limit is passed -- 20 results in
+    Infobase -- so a work outside that page was invisible to matching, and the
+    import created a duplicate work for a book that was already here.
+    """
+    author_key = "/authors/OL100A"
+    mock_site.save({"key": author_key, "type": {"key": "/type/author"}, "name": "Prolific Author"})
+
+    # Deliberately far more works than any default `things()` page. Fixed-width
+    # OLIDs keep the sort order the mock applies the same as the numeric order, so
+    # the match is placed at a known position: the very end.
+    work_keys = [f"/works/OL{1000 + i}W" for i in range(150)]
+    matching_key = max(work_keys)
+    for i, key in enumerate(work_keys):
+        mock_site.save(
+            {
+                "key": key,
+                "type": {"key": "/type/work"},
+                "title": "Tom Sawyer" if key == matching_key else f"Another Book {i}",
+                "authors": [{"author": {"key": author_key}}],
+            }
+        )
+
+    # Assert the premise rather than trusting it: if the match were inside the
+    # default window this test would pass with or without the paging fix.
+    default_page = mock_site.things({"type": "/type/work", "authors": {"author": {"key": author_key}}})
+    assert len(default_page) < len(work_keys)
+    assert matching_key not in default_page
+
+    edition = {"title": "Tom Sawyer", "authors": [{"key": author_key}]}
+    assert find_matching_work(edition) == matching_key
+
+
+@pytest.mark.parametrize(
+    ("stored_oclc", "incoming_oclc"),
+    [
+        pytest.param("30877728", "ocm30877728", id="ocm-prefix"),
+        pytest.param("30182", "ocm00030182", id="ocm-prefix-with-leading-zeros"),
+        pytest.param("30877728", "ocn30877728", id="ocn-prefix"),
+        pytest.param("30877728", "on30877728", id="on-prefix"),
+        pytest.param("30877728", "(ocolc)30877728", id="ocolc-prefix"),
+        pytest.param("30877728", "30877728", id="bare-number"),
+    ],
+)
+def test_import_preview_matches_equivalent_oclc_numbers(mock_site, add_languages, stored_oclc, incoming_oclc):
+    work = mock_site.quicksave("/works/OL1W", "/type/work", title="Catalog title")
+    edition = mock_site.quicksave(
+        "/books/OL1M",
+        "/type/edition",
+        title="Catalog title",
+        works=[{"key": work.key}],
+        oclc_numbers=[stored_oclc],
+    )
+    assert edition.oclc_numbers == [stored_oclc]
+
+    reply = load(
+        {
+            "title": "Different import title",
+            "source_records": ["test:oclc-preview"],
+            "oclc_numbers": [incoming_oclc],
+        },
+        save=False,
+    )
+
+    assert reply["success"] is True
+    assert reply["preview"] is True
+    assert reply["edition"]["key"] == edition.key
+
+
+def test_normalize_record_bibids_oclc():
+    rec = {
+        "title": "Test Title",
+        "isbn_10": ["0-19-090676-7"],
+        "lccn": ["  2001000001  "],
+        "oclc_numbers": [
+            "ocm30877728",
+            "30877728",
+            "ocm00030182",
+            "ocn123456789",
+            "(OCoLC)987654",
+            "on11223344",
+            "invalid",
+            "",
+            None,
+        ],
+    }
+    cleaned = normalize_record_bibids(rec)
+    assert cleaned["isbn_10"] == ["0190906767"]
+    assert cleaned["lccn"] == ["2001000001"]
+    assert cleaned["oclc_numbers"] == [
+        "30877728",
+        "30182",
+        "123456789",
+        "987654",
+        "11223344",
+    ]
+
+
+def test_normalize_record_bibids_string_oclc():
+    rec = {"oclc_numbers": "ocm30877728"}
+    cleaned = normalize_record_bibids(rec)
+    assert cleaned["oclc_numbers"] == ["30877728"]
+
+
 def test_force_new_wikisource_edition(mock_site, add_languages, ia_writeback):
     rec = {
         "title": "test an import that is not from wikisource",
@@ -164,6 +275,47 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
 
     result = editions_matched(ws_rec, "isbn_10", "0190906768")
     assert result == ["/books/OL1M"]
+
+
+def _gutenberg_rec(pg_id: str = "1661") -> dict:
+    return {
+        "title": "The Adventures of Sherlock Holmes",
+        "authors": [{"name": "Arthur Conan Doyle"}],
+        "source_records": [f"project_gutenberg:{pg_id}"],
+        "identifiers": {"project_gutenberg": [pg_id]},
+    }
+
+
+def test_gutenberg_reimport_matches_by_id(mock_site, add_languages, ia_writeback):
+    first = load(_gutenberg_rec())
+    assert first["edition"]["status"] == "created"
+
+    second = load(_gutenberg_rec())
+    assert second["edition"]["key"] == first["edition"]["key"]
+    assert second["edition"]["status"] != "created"
+
+
+def test_gutenberg_import_matches_librarian_tagged_edition(mock_site, add_languages, ia_writeback):
+    existing = load(
+        {
+            "title": "Adventures of Sherlock Holmes",
+            "publishers": ["Some Publisher"],
+            "source_records": ["test:sherlock"],
+            "identifiers": {"project_gutenberg": ["1661"]},
+        }
+    )
+
+    assert load(_gutenberg_rec())["edition"]["key"] == existing["edition"]["key"]
+
+
+def test_gutenberg_import_ignores_same_title_edition_without_its_id(mock_site, add_languages, ia_writeback):
+    print_edition = load({**_gutenberg_rec(), "source_records": ["test:print"], "identifiers": {}})
+    other_pg = load(_gutenberg_rec("48320"))
+
+    reply = load(_gutenberg_rec())
+    assert reply["edition"]["status"] == "created"
+    assert reply["edition"]["key"] not in (print_edition["edition"]["key"], other_pg["edition"]["key"])
+    assert build_pool(_gutenberg_rec()) == {"project_gutenberg": [reply["edition"]["key"]]}
 
 
 def test_load_without_required_field():
@@ -653,6 +805,9 @@ class Test_From_MARC:
         existing = mock_site.get("/authors/OL1A")
         assert existing.death_date == "1970"
         assert existing.remote_ids.get("isni") == isni
+        # One save of each of the author, work and edition
+        saved_keys = sorted(c["key"] for c in mock_site.changesets[-1]["changes"])
+        assert saved_keys == sorted(["/authors/OL1A", reply["work"]["key"], reply["edition"]["key"]])
 
 
 def test_build_pool(mock_site):
@@ -2108,6 +2263,8 @@ def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
         ("https://m.media-amazon.com/image/123.jpg", True),
         ("http://m.media-amazon.com/image/123.jpg", True),
         ("https://m.MEDIA-amazon.com/image/123.jpg", True),
+        ("https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg", True),
+        ("https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format", True),
     ],
 )
 def test_check_cover_url_host(cover_url: str, is_valid: bool) -> None:
@@ -2138,3 +2295,16 @@ def test_load_author_import_records_without_web_ctx_site(mock_site, monkeypatch,
     assert authors == [{"key": "/authors/OL1A"}]
     assert author_reply[0]["status"] == expected_status
     assert bool(edits) is (expected_status == "modified")
+
+
+def test_modified_author_is_one_serializable_edit(mock_site):
+    """Previews json-encode their edits, and saves should write each author once."""
+    mock_site.save({"type": {"key": "/type/author"}, "key": "/authors/OL1A", "name": "John Doe"})
+    author = mock_site.get("/authors/OL1A")
+    author.name = "John Q. Doe"
+    edits: list = []
+
+    add_book.load_author_import_records([author], edits, "ia:test_item", save=False)
+
+    assert edits == [{**author.dict(), "name": "John Q. Doe"}]
+    json.dumps(edits)

@@ -3,7 +3,73 @@ from io import StringIO
 
 import web
 
-from .. import code
+from .. import code, utils
+
+
+class TestServeDefaultOpenRedirect:
+    """GHSA-8ffj: ``?default=<url>`` on the cover endpoints must not become a 303
+    open redirect to an arbitrary host (phishing under OL's trusted domain)."""
+
+    def test_rejects_external_open_redirect(self):
+        resp = code._serve_default("https://evil.example.com/phish")
+        assert resp.status_code != 303
+        assert resp.headers.get("location") != "https://evil.example.com/phish"
+
+    def test_rejects_scheme_relative_open_redirect(self):
+        resp = code._serve_default("//evil.example.com/phish")
+        assert resp.status_code != 303
+
+    def test_rejects_lookalike_host(self):
+        resp = code._serve_default("https://openlibrary.org.evil.example.com/phish")
+        assert resp.status_code != 303
+
+    def test_rejects_backslash_authority_confusion(self):
+        # urlsplit sees host=openlibrary.org (trusted), but a WHATWG browser
+        # normalises "\" to "/" and navigates to evil.example.com. The guard
+        # must reject the raw backslash rather than validate a different string.
+        resp = code._serve_default("https://evil.example.com\\@openlibrary.org/phish")
+        assert resp.status_code != 303
+
+    def test_allows_trusted_fallback_redirect(self):
+        # The real, legitimate use: OL/IA static fallback images.
+        url = "https://openlibrary.org/static/images/icons/avatar_book.png"
+        resp = code._serve_default(url)
+        assert resp.status_code == 303
+        assert resp.headers["location"] == url
+
+    def test_allows_allowed_cover_host_redirect(self):
+        url = "https://covers.openlibrary.org/b/id/15082914-M.jpg"
+        resp = code._serve_default(url)
+        assert resp.status_code == 303
+        assert resp.headers["location"] == url
+
+    def test_plain_false_default_is_404(self):
+        assert code._serve_default("false").status_code == 404
+
+
+class TestSafeRedirectTarget:
+    """POST siblings (touch/delete/upload) 303 to a user-controlled
+    redirect_url/success_url/referer. utils.safe_redirect_target neutralises the
+    open redirect while preserving same-site and trusted-host targets."""
+
+    def test_relative_path_allowed(self):
+        assert utils.safe_redirect_target("/books/OL1M") == "/books/OL1M"
+
+    def test_trusted_host_allowed(self):
+        url = "https://openlibrary.org/books/OL1M"
+        assert utils.safe_redirect_target(url) == url
+
+    def test_external_host_falls_back(self):
+        assert utils.safe_redirect_target("https://evil.example.com/x") == "/"
+
+    def test_scheme_relative_falls_back(self):
+        assert utils.safe_redirect_target("//evil.example.com/x") == "/"
+
+    def test_backslash_authority_confusion_falls_back(self):
+        assert utils.safe_redirect_target("https://evil.example.com\\@openlibrary.org/x") == "/"
+
+    def test_none_falls_back(self):
+        assert utils.safe_redirect_target(None) == "/"
 
 
 def test_tarindex_path():

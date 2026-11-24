@@ -5,7 +5,7 @@
 #   source /opt/olsystem/bin/build_env.sh   # exports PIP_INDEX_URL (Nexus PyPI mirror)
 #   IANNOTATE_SRC=/opt/iannotate docker compose -f docker/iannotate/compose.yaml up -d --build
 #
-# Single SQLite-backed container — no database server. ol-www0's nginx reaches it
+# Single SQLite-backed container — no database server. ol-www1's nginx reaches it
 # cross-host at http://ol-home0.us.archive.org:8000 (same model as the affiliate-server).
 name: iannotate
 
@@ -30,7 +30,7 @@ services:
       # Holds iannotate.db; persists across restarts, image rebuilds, and redeploys.
       - iannotate_data:/data
     restart: unless-stopped
-    # Published so ol-www0's nginx can reach it cross-host. Verify 8000 is free on
+    # Published so ol-www1's nginx can reach it cross-host. Verify 8000 is free on
     # ol-home0 (the affiliate-server uses 31337).
     ports:
       - 8000:8000

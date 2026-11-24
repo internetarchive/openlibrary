@@ -55,7 +55,8 @@ class TestBorrowPostCore:
         assert "action%3Dborrow" in result.url
 
     def test_lending_limit_hit_returns_flash_and_redirect_to_key(self):
-        user = MagicMock()
+        # A real key: the borrow clears this reader's cached home page section, keyed by username.
+        user = MagicMock(key="/people/reader")
         user.has_borrowed.return_value = False
         account = MagicMock(itemname="ia_item")
         edition = _mock_edition(ocaid="ocaid123", key="/books/OL1M")
@@ -120,6 +121,14 @@ class TestProviderBorrow:
     def test_an_open_access_acquisition_is_still_forwarded(self):
         url = "https://lennyforlibraries.org/v1/api/items/37044817/read"
         mock_render = self._handle(self._lenny("open-access", url), action="read")
+        assert mock_render.call_args.kwargs["url"] == url
+
+    def test_a_sample_acquisition_is_forwarded_to_the_provider(self):
+        """A "Preview" web link (#12345): read_button.html sends it here with
+        action=read, and it used to fall through to a bare archive.org/stream/."""
+        url = "https://gallica.bnf.fr/ark:/12148/bpt6k3398372s"
+        mock_render = self._handle(self._lenny("sample", url), action="read")
+        mock_render.assert_called_once()
         assert mock_render.call_args.kwargs["url"] == url
 
 
@@ -225,6 +234,18 @@ class TestInterstitialWording:
 
     def test_a_hand_off_still_offers_a_way_out(self):
         assert "close-window" in self._render()
+
+    def test_the_countdown_line_renders_a_real_link(self):
+        """Guards against autoescape turning the anchor itself into text:
+        under autoescape `~` escapes every non-Markup operand."""
+        assert '<a href="https://standardebooks.org/x">https://standardebooks.org/x</a>' in self._render()
+
+    def test_the_url_is_html_escaped_in_the_link(self):
+        """An https URL can still carry a quote, so this escaping is what
+        keeps it inside the href attribute."""
+        html = self._render(url='https://e.test/?a="><img src=x onerror=alert(1)>')
+        assert "<img src=x" not in html
+        assert '<a href="https://e.test/?a=&#34;&gt;&lt;img src=x onerror=alert(1)&gt;">' in html
 
 
 class TestBorrowPostAdapter:

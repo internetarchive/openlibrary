@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from starlette.datastructures import MutableHeaders
 
-from openlibrary.utils import server_timing
+from openlibrary.utils import prometheus, server_timing
 
 if TYPE_CHECKING:
     from starlette.applications import Starlette
@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.server_timing")
 
-# Not app endpoints; they'd only dilute the Graphite timings.
-_NO_STATSD = ("/static/", "/health", "/metrics")
+# Not app endpoints; they'd only dilute the Graphite and Prometheus timings.
+_NOT_RECORDED = ("/static/", "/health", "/metrics")
 
 
 class ServerTimingMiddleware:
@@ -43,11 +43,15 @@ class ServerTimingMiddleware:
             await self.app(scope, receive, send_with_timing)
         finally:
             server_timing.end_request(token)
-            if not scope["path"].startswith(_NO_STATSD):
+            if not scope["path"].startswith(_NOT_RECORDED):
                 try:
                     server_timing.send_to_statsd(timings)
                 except Exception:
                     logger.exception("Failed to send Server-Timing stats")
+                try:
+                    prometheus.record_backend_times("fastapi", ((name, calls, seconds) for name, (calls, seconds, _) in timings.snapshot().items()))
+                except Exception:
+                    logger.exception("Failed to record Prometheus backend times")
 
 
 def add_server_timing(app: Starlette) -> None:

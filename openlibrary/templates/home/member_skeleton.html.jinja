@@ -1,0 +1,32 @@
+{#
+  The signed-in reader's section before their books arrive, in the shape it most often takes: one row of
+  covers across the width. The loans card is less common, so it has no skeleton: it arrives in the hidden
+  `.home-now__loans`, at the row's height, and the row narrows to make room (home-member.css).
+  home-member.js fetches the two halves (home/member.html.jinja) and puts each in place of its placeholder as
+  it arrives, or takes the placeholder away when that half has nothing to show.
+  Signed out it is not displayed (home-member.css).
+#}
+<section class="home-now home-now--skeleton">
+    <span class="shift home-now__loading">{{ _("Loading your books") }}</span>
+    <div class="home-now__head" aria-hidden="true">
+        <span class="skeleton home-now__sk-title"></span>
+    </div>
+    <div class="home-now__body">
+        <div class="home-now__loans" hidden></div>
+        <div class="home-now__shelves" aria-hidden="true">
+            <div class="home-now__label-row">
+                <span class="skeleton home-now__sk-line home-now__sk-line--label"></span>
+            </div>
+            <ul class="home-now__wall">
+                {% for _cover in range(14) %}
+                    <li>
+                        <span class="skeleton home-now__sk-cover"></span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="home-now__links">
+                <span class="skeleton home-now__sk-line home-now__sk-line--more"></span>
+            </p>
+        </div>
+    </div>
+</section>

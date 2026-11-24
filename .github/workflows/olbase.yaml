@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: olbase-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # Resolve the openlibrary-i18n ref to a SHA once, so the amd64 and arm64 images
   # bake the same translations even if the branch moves between the two builds.
@@ -59,17 +63,17 @@ jobs:
           persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Login to Docker Hub
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push amd64
         id: build
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
@@ -100,16 +104,16 @@ jobs:
           persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Login to Docker Hub
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
@@ -134,7 +138,7 @@ jobs:
           echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
 
       - name: Login to Docker Hub
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -151,6 +155,14 @@ jobs:
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${AMD64_DIGEST}
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:${TAG_NAME}
+
+          # Tag the same images with the commit SHA so deploys can pin an exact build.
+          docker manifest create openlibrary/olbase:${GITHUB_SHA::12} \
+            openlibrary/olbase@${AMD64_DIGEST} \
+            openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${GITHUB_SHA::12} openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${GITHUB_SHA::12} openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest push openlibrary/olbase:${GITHUB_SHA::12}
 
   # Report which locales the image kept at their committed .po because the
   # openlibrary-i18n file was rejected. Reads the manifest from the pushed amd64

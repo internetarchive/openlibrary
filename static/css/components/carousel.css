@@ -2,7 +2,6 @@
 
 :root {
   --height-blank-cover: 200px;
-  --height-cover-compact: 125px;
 }
 
 /**
@@ -13,7 +12,7 @@
 /* Badly named. Should be renamed "carousel-heading" or similar. */
 .home-h2 {
   font-size: var(--font-size-title-medium);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-heading);
   margin-bottom: 0.5em;
   margin-top: 1.75em;
@@ -85,14 +84,7 @@
   }
 }
 
-.carousel {
-  display: flex;
-  margin-bottom: var(--spacing-stack-md);
-  overflow-x: scroll;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
-}
-
-/* Native rows run edge to edge on phones; slick's overhanging arrows would widen the page. */
+/* Native rows run edge to edge on phones. */
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
   .carousel-container:has(> .carousel--native) {
@@ -116,30 +108,20 @@
 }
 
 .carousel__item {
-  padding: var(--spacing-inset-xs);
-  float: left;
-  height: 100%;
-  margin: 0 var(--spacing-inline-md);
-  min-height: 1px;
-  overflow: hidden;
   box-sizing: border-box;
 }
 
 /* <ol-carousel> sizes and spaces the cards itself. */
 .carousel--native {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+  --ol-carousel-gap: var(--spacing-carousel-gap);
 }
 
-/* Room for the cover rings (OlBookCover.js). */
 .carousel--native > .carousel__item {
-  float: none;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
   text-align: center;
 }
 
-/* Every cover is the same 2:3 box, as wide as its card. */
+/* Every cover gets the same 2:3 slot, as wide as its card; the artwork keeps its own height inside it (OlBookCover.js). */
 .carousel--native .book .book-cover {
   display: block;
   height: auto;
@@ -191,50 +173,18 @@
   white-space: nowrap;
 }
 
-.carousel.carousel--grid .carousel__item {
-  margin: 0; /* Handled by grid gap */
-}
-
-/* Modifiers */
-/* A smaller carousel. */
-.carousel--minimal img {
-  max-height: 100px;
-  width: auto;
-}
-
-.carousel > div {
-  min-width: 130px;
-}
-
-/* Slick's prev/next arrows, which it appends as direct children of the
-   carousel. Pre-styled here so they don't flash as ordinary buttons on slower
-   connections. Kept to `>` so it can't reach the buttons inside a card. */
-.carousel > button {
-  border: 0;
-  position: absolute;
-  color: transparent;
-}
-
-.carousel .book:last-child {
-  margin-right: 0;
-}
-
 /*h2*/
 .carousel .book .book-title {
   font-size: 0.8em;
   margin: var(--spacing-stack-xs) 0;
   color: var(--color-text);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
 .carousel .book .book-title a {
   color: var(--color-link);
   text-decoration: none;
-}
-
-.carousel__item .slick-loading {
-  opacity: 0;
 }
 
 /**
@@ -248,16 +198,15 @@
   border-top: 1px solid var(--book-cover-carousel-border-top);
 }
 
+/* Subtracts the row's own viewport padding (focus-ring room) so the band reads as --spacing-carousel-band. */
+.carousel-container-decorated:has(> .carousel--native) {
+  --ol-carousel-inset: var(--spacing-carousel-gap);
+  padding: calc(var(--spacing-carousel-band) - var(--spacing-inset-xs)) 0;
+}
+
 /* TODO: Document where this is used. This is unlikely to need to be so specific. */
 .carousel-section .SRPCover img {
   box-shadow: 1px 2px 5px 0 var(--book-cover-shadow-color);
-}
-
-/* Hide horizontal scroll bar if JS is going to be loaded */
-.client-js .carousel {
-  margin-bottom: 0;
-  /* hide the overlay until carousel--js has loaded */
-  overflow: hidden;
 }
 
 .carousel__item__blankcover {
@@ -265,7 +214,7 @@
   padding: 33% var(--spacing-inset-sm) var(--spacing-inset-sm);
   text-align: center;
   background: var(--lighter-grey);
-  font-size: 1em;
+  font-size: inherit;
   color: var(--black);
   height: var(--height-blank-cover);
   width: 130px;
@@ -309,24 +258,7 @@
   box-shadow: none;
 }
 
-.carousel--compact .book .book-cover {
-  height: var(--height-cover-compact);
-  position: relative;
-}
-
-.carousel--compact .book .bookcover {
-  height: var(--height-cover-compact);
-}
-
-.carousel--compact .carousel__item__blankcover {
-  height: var(--height-cover-compact);
-  padding: 20% var(--spacing-inset-sm) var(--spacing-inset-sm);
-  margin: 0 auto;
-  width: 130px;
-  box-sizing: border-box;
-}
-
-/* A blank cover is a fixed 130px for slick; in the native row it follows the card. */
+/* In the native row a blank cover follows the card's width. */
 .carousel--native .carousel__item__blankcover {
   width: 100%;
   max-width: 130px;
@@ -355,6 +287,14 @@
   width: 100%;
   box-sizing: border-box;
 }
+/* In <ol-book-cover> the badge is in the overlay slot: along the cover's foot, not its top corner. */
+ol-book-cover > .loan-overlay-badge {
+  top: auto;
+  inset-inline-end: auto;
+  border-radius: 0 0 var(--border-radius-thumbnail)
+    var(--border-radius-thumbnail);
+}
+
 .loan-overlay-badge .local-date-time {
   color: var(--white) !important;
 }
@@ -418,7 +358,7 @@
 
 .loan-overlay-badge__not-downloaded {
   color: var(--red-two);
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .loan-overlay-badge__download-link {
@@ -444,7 +384,8 @@
 
 /* A status line ("Not in Library", "Checked Out") takes the button's slot. The
    control height holds two lines, so it wraps, clamps at two, and the row of
-   cards stays one height. Mirrored in searchResultItemCta.css. */
+   cards stays one height. Mirrored in searchResultItemCta.css. The native
+   row's buttons are small, so its status line is too. */
 .ol-action-row .waitinglist-message {
   display: flex;
   align-items: center;
@@ -465,6 +406,11 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+
+.carousel--native .ol-action-row .waitinglist-message {
+  min-height: var(--control-height-small);
+}
+
 .ol-return-wrapper {
   flex: 0 0 39px;
 }
@@ -508,88 +454,58 @@
   overflow: hidden;
 }
 
-/* Slick's 6/5/4/3/2 cards per width (carousel/Carousel.js). */
-.carousel-skeleton__row:not(.carousel--native) {
-  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
-  --skeleton-columns: 6;
-}
-
-/* Most slick rows have a Preview button, 5px taller than the others. */
-.carousel-skeleton__row:not(.carousel--native) .ol-action-row {
-  padding-bottom: 5px;
-}
-
-.carousel-skeleton__row:not(.carousel--native) > .carousel__item {
-  flex: 0 0 auto;
-  float: none;
-  width: calc(100% / var(--skeleton-columns) - 2 * var(--spacing-inline-md));
-}
-
-@media (max-width: 1200px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 5;
-  }
-}
-
-@media (max-width: 1024px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 4;
-  }
-}
-
-@media (max-width: 600px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 3;
-  }
-}
-
-@media (max-width: 480px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    --skeleton-columns: 2;
-  }
-}
-
-/* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). */
-.carousel-skeleton .carousel-container {
+/* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). A page-rendered
+   book row (My Books) gets the same until it upgrades, not ol-components.css's 8 columns. */
+.carousel-skeleton .carousel-container,
+:where(.carousel-container-decorated):has(> .carousel--native:not(:defined)) {
   container-type: inline-size;
 }
 
-.carousel-skeleton__row.carousel--native {
-  gap: 12px;
+.carousel-skeleton__row.carousel--native,
+:where(.carousel-container-decorated) > .carousel--native:not(:defined) {
+  gap: var(--spacing-carousel-gap);
   padding-block: var(--ol-carousel-viewport-padding);
   padding-inline: var(--ol-carousel-inset, 0);
   /* The book row's own breakpoints (books/custom_carousel.html.jinja), not the component defaults. */
   --skeleton-columns: 7;
 }
 
-.carousel-skeleton__row.carousel--native > .carousel__item {
+.carousel-skeleton__row.carousel--native > .carousel__item,
+:where(.carousel-container-decorated)
+  > .carousel--native:not(:defined)
+  > .carousel__item {
   flex: 0 0 auto;
   width: calc(
     (100cqi - 2 * var(--ol-carousel-inset, 0px)) * 0.94 /
-      var(--skeleton-columns) - 12px + 12px / var(--skeleton-columns)
+      var(--skeleton-columns) - var(--spacing-carousel-gap) +
+      var(--spacing-carousel-gap) / var(--skeleton-columns)
   );
 }
 
 @container (max-width: 1024px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 6;
   }
 }
 
 @container (max-width: 768px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 4;
   }
 }
 
 @container (max-width: 600px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 3;
   }
 }
 
 @container (max-width: 480px) {
-  .carousel-skeleton__row.carousel--native {
+  .carousel-skeleton__row.carousel--native,
+  :where(.carousel-container-decorated) > .carousel--native:not(:defined) {
     --skeleton-columns: 2;
   }
 }
@@ -619,4 +535,8 @@
   height: var(--control-height-medium);
   margin-top: var(--spacing-stack-sm);
   border-radius: var(--border-radius-button);
+}
+
+.carousel--native .carousel-skeleton__button {
+  height: var(--control-height-small);
 }

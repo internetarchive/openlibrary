@@ -29,6 +29,16 @@ $jsdef render_subject_autocomplete_item(item):
         </div>
     </div>
 
+    $# "Not sure" posts "" and clears the field, so it shows checked when the field is unset; the save drops the empty value.
+    <div class="formElement">
+        <div class="label">
+            <label id="label-literary-form">$_("Fiction or nonfiction?")</label>
+        </div>
+        <div class="input">
+            $:render_jinja_template("forms/choice_list.html.jinja", name="work--literary_forms", rows=tag_choices("literary_forms", _("Not sure")), value=(work_tag_keys(work, "literary_forms") or [""])[0], labelled_by="label-literary-form")
+        </div>
+    </div>
+
     <div class="formElement">
         <div class="label">
             <label for="about-subjects">$_("Subject keywords?")</label>

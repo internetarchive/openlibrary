@@ -16,13 +16,15 @@ from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
+from openlibrary.contribute import pitch
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.dateutil import DAY_SECS
 from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
@@ -34,9 +36,41 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.book")
 
 
+def add_edit_saved_flash(*book_keys: str) -> None:
+    """Thank the editor on the page the save lands on and, at most once a day, name the Tasks projects there."""
+    payload = ""
+    try:
+        if pitch.wanted(web.cookies()) and (payload := pitch.encode(book_keys)):
+            web.setcookie(pitch.SEEN_COOKIE, "1", expires=DAY_SECS)
+    except Exception:
+        # The edit is already saved; a cache that can't be read only costs the pitch.
+        logger.exception("Could not build the Tasks pitch")
+    add_flash_message(pitch.FLASH_TYPE, payload)
+
+
+def is_valid_web_book_url(url: str) -> bool:
+    """Blank, or an absolute http(s) URL with a host."""
+    if not url:
+        return True
+    parsed = urllib.parse.urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+def can_add_web_book_url() -> bool:
+    """Only librarians see the Book URL field; spam accounts post it directly to plant links."""
+    user = accounts.get_current_user()
+    return bool(user and user.is_librarian_or_higher())
+
+
+def can_edit_ocaid() -> bool:
+    """Whether the current user may add, change or remove an edition's ocaid. See `User.can_edit_ocaid`."""
+    user = accounts.get_current_user()
+    return bool(user and user.can_edit_ocaid())
+
+
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
-        """Check to see if account is an admin, or more than two years old."""
+        """Trusted users, librarians, admins and accounts over 30 days old skip the captcha."""
         user = accounts.get_current_user()
         account = user and user.get_account()
 
@@ -47,7 +81,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = dt.datetime.utcnow()
+        now_dt = dt.datetime.now(dt.UTC).replace(tzinfo=None)
         delta = now_dt - create_dt
         return delta.days > 30
 
@@ -63,6 +97,7 @@ def make_author(key: str, name: str) -> Author:
     """
     Use author_key and author_name and return an Author.
 
+    >>> _ = getfixture("mock_site")
     >>> make_author("OL123A", "Samuel Clemens")
     <Author: '/authors/OL123A'>
     """
@@ -116,13 +151,13 @@ def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
     if type_ in ("/type/list", "/type/series"):
         # When lists were created they didn't have their sequence registered correctly,
         # so we need to do this a bit differently
-        next_value = web.ctx.site.seq.next_value("list")
+        next_value = site.get().seq.next_value("list")
         key = f"/{type_.rsplit('/', maxsplit=1)[-1]}/OL{next_value}L"
     else:
-        key = web.ctx.site.new_key(type_)
+        key = site.get().new_key(type_)
     data["key"] = key
     data["type"] = {"key": type_}
-    return web.ctx.site.new(key, data)
+    return site.get().new(key, data)
 
 
 class DocSaveHelper:
@@ -140,7 +175,7 @@ class DocSaveHelper:
     def commit(self, **kw) -> None:
         """Saves all the collected docs."""
         if self.docs:
-            web.ctx.site.save_many(self.docs, **kw)
+            site.get().save_many(self.docs, **kw)
 
     def create_authors_from_form_data(self, authors: list[dict], author_names: list[str], _test: bool = False) -> bool:
         """
@@ -212,8 +247,8 @@ class addbook(delegate.page):
             return safe_seeother(f"/account/login?redirect={self.path}")
 
         i = web.input(work=None, author=None)
-        work = i.work and web.ctx.site.get(i.work)
-        author = i.author and web.ctx.site.get(i.author)
+        work = i.work and site.get().get(i.work)
+        author = i.author and site.get().get(i.author)
 
         # pre-filling existing author(s) if adding new edition from existing work page
         authors = (work and work.authors) or []
@@ -229,7 +264,7 @@ class addbook(delegate.page):
         """
         Can a book be added?
         """
-        return web.ctx.site.can_write("/books/add")
+        return site.get().can_write("/books/add")
 
     def POST(self):
         i = web.input(
@@ -247,14 +282,25 @@ class addbook(delegate.page):
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
-        if not accounts.get_current_user():
-            recap = get_recaptcha()
-            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
-                return render_template(
-                    "message.html",
-                    "Recaptcha solution was incorrect",
-                    'Please <a href="javascript:history.back()">go back</a> and try again.',
-                )
+        i.web_book_url = i.web_book_url.strip()
+        if not is_valid_web_book_url(i.web_book_url):
+            return render_template("message.html", _("Invalid Book URL"), _("Please enter a valid URL starting with http:// or https://"))
+
+        if i.id_name == "ocaid" and i.id_value and not can_edit_ocaid():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add an Internet Archive ID."))
+
+        if i.web_book_url and not can_add_web_book_url():
+            return render_template("message.html", _("Permission denied"), _("You are not allowed to add a Book URL."))
+
+        # After the cheap checks, so a typo there doesn't spend the single-use captcha token.
+        recap = get_recaptcha()
+        # Fail closed: bots flood new books during reCAPTCHA outages, and a new account can wait.
+        if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip, fail_open=False):
+            return render_template(
+                "message.html",
+                "Recaptcha solution was incorrect",
+                'Please <a href="javascript:history.back()">go back</a> and try again.',
+            )
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
@@ -269,7 +315,8 @@ class addbook(delegate.page):
 
         if isinstance(match, list):
             # multiple matches
-            return render_template("books/check", i, match)
+            # The choice re-posts here, and captcha tokens are single-use, so it needs its own.
+            return render_template("books/check", i, match, recaptcha=recap)
 
         elif match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition
@@ -310,7 +357,7 @@ class addbook(delegate.page):
         if work_key == "none-of-these":
             return None  # Case 1, from check page
 
-        work = work_key and web.ctx.site.get(work_key)
+        work = work_key and site.get().get(work_key)
         if work:
             edition = self.try_edition_match(
                 work=work,
@@ -411,7 +458,7 @@ class addbook(delegate.page):
             work = result.docs[0]
             publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=("publisher", "publishers", "and"))
 
-            editions = web.ctx.site.get_many(["/books/" + key for key in work.edition_key])
+            editions = site.get().get_many(["/books/" + key for key in work.edition_key])
             for e in editions:
                 if publisher and (not e.publishers or e.publishers[0] != publisher):
                     continue
@@ -667,7 +714,7 @@ class SaveBookHelper:
 
     @staticmethod
     def delete(key, comment=""):
-        doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+        doc = site.get().new(key, {"key": key, "type": {"key": "/type/delete"}})
         doc._save(comment=comment)
 
     def process_input(self, i):
@@ -732,6 +779,9 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
+        if "literary_forms" in work:
+            work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -746,19 +796,22 @@ class SaveBookHelper:
         return trim_doc(work)
 
     def _prevent_ocaid_deletion(self, edition) -> None:
-        # Allow admins to modify ocaid
-        user = accounts.get_current_user()
-        if user and user.is_super_librarian_or_higher():
+        if can_edit_ocaid():
             return
 
-        # read ocaid from form data
-        ocaid = next(
-            (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
-            None,
+        # read ocaid from form data. A top-level `ocaid` field overrides the identifiers
+        # list, since `save` applies it with `edition.update` after `set_identifiers`.
+        ocaid = edition.get(
+            "ocaid",
+            next(
+                (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
+                None,
+            ),
         )
 
-        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
-        if self.edition and self.edition.get("ocaid") and self.edition.get("ocaid") != ocaid:
+        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata.
+        # Adding an ocaid to an edition that has none counts as a change too.
+        if self.edition and (self.edition.get("ocaid") or None) != (ocaid or None):
             logger.warning(
                 "Attempt to change ocaid of %s from %r to %r.",
                 self.edition.key,
@@ -796,14 +849,15 @@ class book_edit(delegate.page):
         i = web.input(v=None)
         v = i.v and safeint(i.v, None)
 
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 "Permission denied to edit " + key + ".",
             )
 
-        edition = web.ctx.site.get(key, v)
+        edition = site.get().get(key, v)
         if edition is None:
             raise web.notfound()
 
@@ -826,7 +880,7 @@ class book_edit(delegate.page):
                 'Please <a href="javascript:history.back()">go back</a> and try again.',
             )
         v = i.v and safeint(i.v, None)
-        edition = web.ctx.site.get(key, v)
+        edition = site.get().get(key, v)
 
         if edition is None:
             raise web.notfound()
@@ -839,7 +893,7 @@ class book_edit(delegate.page):
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
 
-            add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_edit_saved_flash(edition.key)
 
             if i.work_key and i.work_key.startswith("/works/"):
                 url = i.work_key
@@ -862,14 +916,15 @@ class work_edit(delegate.page):
         i = web.input(v=None, _method="GET")
         v = i.v and safeint(i.v, None)
 
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 "Permission denied to edit " + key + ".",
             )
 
-        work = web.ctx.site.get(key, v)
+        work = site.get().get(key, v)
         if work is None:
             raise web.notfound()
 
@@ -892,14 +947,14 @@ class work_edit(delegate.page):
             )
 
         v = i.v and safeint(i.v, None)
-        work = web.ctx.site.get(key, v)
+        work = site.get().get(key, v)
         if work is None:
             raise web.notfound()
 
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
-            add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_edit_saved_flash()
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message("error", str(e))
@@ -910,14 +965,15 @@ class author_edit(delegate.page):
     path = r"(/authors/OL\d+A)/edit"
 
     def GET(self, key):
-        if not web.ctx.site.can_write(key):
+        if not site.get().can_write(key):
+            web.ctx.status = "403 Forbidden"
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 "Permission denied to edit " + key + ".",
             )
 
-        author = web.ctx.site.get(key)
+        author = site.get().get(key)
         if author is None:
             raise web.notfound()
         return render_template("type/author/edit", author)
@@ -925,7 +981,7 @@ class author_edit(delegate.page):
     def POST(self, key):
         if not accounts.get_current_user():
             raise web.unauthorized()
-        author = web.ctx.site.get(key)
+        author = site.get().get(key)
         if author is None:
             raise web.notfound()
 
@@ -939,7 +995,7 @@ class author_edit(delegate.page):
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
             elif "_delete" in i:
-                author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+                author = site.get().new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
@@ -964,7 +1020,7 @@ class daisy(delegate.page):
     path = "(/books/.*)/daisy"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
 
         if not page:
             raise web.notfound()

@@ -1,9 +1,14 @@
 import pytest
 import web
-from prometheus_client import CollectorRegistry
+from prometheus_client import REGISTRY, CollectorRegistry
 
-from openlibrary.utils import prometheus
+from infogami.utils import stats
+from openlibrary.utils import prometheus, server_timing
+from openlibrary.utils.request_context import Visitor, set_context_from_legacy_web_py, visitor
 from openlibrary.utils.sentry import InfogamiRoute
+
+SEED_LISTS = r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+RECENT_CHANGE = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
 
 
 @pytest.mark.parametrize(
@@ -23,6 +28,16 @@ from openlibrary.utils.sentry import InfogamiRoute
         (r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/preview.png", "/people/foo/lists/OL1L/preview.png", "/people/{username}/lists/{list_id}/preview.png"),
         ("/data/ol_dump(_editions|_works)_latest.txt.gz", "/data/ol_dump_editions_latest.txt.gz", "/data/ol_dump_editions_latest.txt.gz"),
         (r"(?<=x)/lookbehind", "/lookbehind", r"(?<=x)/lookbehind"),  # unsupported: the pattern itself
+        # adjacent variable parts are one parameter
+        (r"/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?", "/recentchanges/2026", "/recentchanges/{key}"),
+        (r"/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?", "/recentchanges/2026/10/29/merge-authors", "/recentchanges/{key}/{key2}/{key3}/{key4}"),
+        (r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)", "/recentchanges/2026/10/29/merge-authors/1", "/recentchanges/{key}/{key2}/{key3}/{key4}/{key5}"),
+        (r"/recentchanges(/[^/0-9][^/]*)", "/recentchanges/merge-authors", "/recentchanges/{key}"),
+        # a generic part that matched an OLID is named as if the route said OL\d+W
+        (r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists", "/works/OL1W/lists", "/works/OL{work_id}W/lists"),
+        (r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists", "/subjects/love/lists", "/subjects/{key}/lists"),
+        ("(/books/.*)/daisy", "/books/OL1M/daisy", "/books/OL{edition_id}M/daisy"),
+        (r"/lists/([^/]+)", "/lists/OL1L", "/lists/{list_id}"),
     ],
 )
 def test_route_template(pattern, path, expected):
@@ -60,10 +75,16 @@ def test_with_title_puts_back_the_readable_url_slug():
         (InfogamiRoute("^/books/[^/]*$", path="/books/OL1M"), "/books/OL1M/Some_Title", "/books/OL{edition_id}M/{title}"),
         (InfogamiRoute("^/books/[^/]*$", mode="edit", path="/books/OL1M"), "/books/OL1M/Some_Title", "/books/OL{edition_id}M/{title}?m=edit"),
         (InfogamiRoute("<other>", path="/people/openlibrary"), "/people/openlibrary", "/people/{username}"),
+        (InfogamiRoute(SEED_LISTS, path="/works/OL1W/lists"), "/works/OL1W/Some_Title/lists", "/works/OL{work_id}W/{title}/lists"),
+        (
+            InfogamiRoute(RECENT_CHANGE, path="/recentchanges/2026/10/29/merge-authors/1"),
+            "/recentchanges/2026/10/29/merge-authors/1",
+            "/recentchanges/{key}/{key2}/{key3}/{key4}/{key5}",
+        ),
     ],
 )
 def test_infogami_route_name(monkeypatch, route, requested_path, expected):
-    monkeypatch.setattr(prometheus.infogami_app, "pages", {r"/works/OL(\d+)W/notes": {}, "/addbook": {}})
+    monkeypatch.setattr(prometheus.infogami_app, "pages", {r"/works/OL(\d+)W/notes": {}, "/addbook": {}, SEED_LISTS: {}, RECENT_CHANGE: {}})
     assert prometheus.infogami_route_name(route, requested_path) == expected
 
 
@@ -87,6 +108,23 @@ def app(registry, monkeypatch):
         def GET(self, name=""):
             if name == "missing":
                 raise web.notfound()
+            if name == "old":
+                raise web.seeother("/things/new")
+            web.header("Content-Type", "text/html; charset=utf-8")
+            if name == "librarian":  # as setup_contextvars and then the page header would
+                visitor.set(Visitor(user_key="/people/alice", is_librarian=True))
+            if name == "backends":
+                for stat in ("memcache.get", "memcache.get_multi", "infobase"):
+                    stats.begin(stat)
+                    stats.end()
+                stats.begin("archive.org")  # as ia.get_api_response does
+                with server_timing.timed("ia-metadata"):
+                    pass
+                stats.end()
+                with server_timing.timed("solr"):  # as the Solr client does, even via async_bridge
+                    pass
+                with server_timing.timed("render-jinja"):  # not a backend
+                    pass
             return "hello"
 
         def POST(self, name=""):
@@ -101,8 +139,8 @@ def app(registry, monkeypatch):
     return app
 
 
-def requests_total(registry, handler, status="200"):
-    labels = {"method": "GET", "status": status, "handler": handler, "server": "webpy"}
+def requests_total(registry, handler, status="200", visitor="anonymous", response_type="html"):
+    labels = {"method": "GET", "status": status, "handler": handler, "server": "webpy", "visitor": visitor, "response_type": response_type}
     return registry.get_sample_value("http_requests_total", labels)
 
 
@@ -113,7 +151,7 @@ def test_webpy_records_fastapi_metrics(app, registry):
 
     assert requests_total(registry, "/things/{key}") == 2
     assert requests_total(registry, "/things/{key}", status="404") == 1
-    labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy"}
+    labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy", "visitor": "anonymous", "response_type": "html"}
     assert registry.get_sample_value("http_request_duration_seconds_count", labels) == 3
     assert registry.get_sample_value("http_request_duration_seconds_bucket", labels | {"le": "60.0"}) == 3
     assert registry.get_sample_value("http_response_size_bytes_sum", {"handler": "/things/{key}", "server": "webpy"}) >= 2 * len("hello")
@@ -128,7 +166,7 @@ def test_webpy_finds_the_route_before_the_handler_changes_the_path(app, registry
     monkeypatch.setattr(prometheus, "find_infogami_route", lambda: InfogamiRoute(web.ctx.path))
     monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: route.route)
     app.request("/things/new", method="POST")
-    labels = {"method": "POST", "status": "200", "handler": "/things/new", "server": "webpy"}
+    labels = {"method": "POST", "status": "200", "handler": "/things/new", "server": "webpy", "visitor": "anonymous", "response_type": "other"}
     assert registry.get_sample_value("http_requests_total", labels) == 1
 
 
@@ -136,3 +174,107 @@ def test_webpy_skips_excluded_handlers(app, registry, monkeypatch):
     monkeypatch.setattr(prometheus, "infogami_route_name", lambda route, requested_path: "/metrics")
     app.request("/things/a")
     assert requests_total(registry, "/metrics") is None
+
+
+@pytest.mark.parametrize(("path", "label"), [("/things/a", "anonymous"), ("/things/librarian", "librarian")])
+def test_webpy_records_the_visitor(app, registry, path, label):
+    # A previous request's visitor, which mustn't be counted for this one
+    token = visitor.set(Visitor(user_key="/people/previous", is_librarian=True))
+    try:
+        app.request(path)
+    finally:
+        visitor.reset(token)
+
+    assert requests_total(registry, "/things/{key}", visitor=label) == 1
+    labels = {"method": "GET", "handler": "/things/{key}", "server": "webpy", "visitor": label, "response_type": "html"}
+    assert registry.get_sample_value("http_request_duration_seconds_count", labels) == 1
+
+
+def test_webpy_labels_bots_from_the_request_context(app, registry):
+    def setup_contextvars():  # as openlibrary/plugins/openlibrary/code.py does
+        web.ctx.site = None
+        set_context_from_legacy_web_py()
+
+    app.add_processor(web.loadhook(setup_contextvars))
+    app.request("/things/a", env={"HTTP_USER_AGENT": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"})
+    assert requests_total(registry, "/things/{key}", visitor="bot") == 1
+
+
+@pytest.mark.parametrize(
+    ("status", "content_type", "expected"),
+    [
+        ("303", "text/html", "redirect"),  # web.py's redirects say text/html
+        ("200", "text/html; charset=utf-8", "html"),
+        ("404", "text/html", "html"),
+        ("200", "application/json", "json"),
+        ("200", "application/ld+json", "json"),
+        ("200", "application/rss+xml", "other"),
+        ("304", "", "other"),
+    ],
+)
+def test_response_type(status, content_type, expected):
+    assert prometheus.response_type(status, content_type) == expected
+
+
+def test_webpy_records_the_response_type(app, registry):
+    app.request("/things/a")
+    app.request("/things/old")
+
+    assert requests_total(registry, "/things/{key}") == 1
+    assert requests_total(registry, "/things/{key}", status="303", response_type="redirect") == 1
+
+
+def backend_sample(name, server, backend):
+    return REGISTRY.get_sample_value(name, {"server": server, "backend": backend}) or 0
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("infobase", "infobase"),
+        ("memcache", "memcache"),
+        ("memcache.set_multi", "memcache"),
+        ("db", "db"),
+        ("db-legacy", "db"),
+        ("db-checkout", None),
+        ("solr", "solr"),
+        ("ia", "ia"),
+        ("ia-loans", "ia"),
+        ("archive.org", None),  # timed as ia-metadata too
+        ("render-templetor", None),
+        ("webpy-proxy", None),
+        ("blocking", None),
+        ("get_blog_feeds", None),
+    ],
+)
+def test_backend(name, expected):
+    assert prometheus.backend(name) == expected
+
+
+def test_record_backend_times_observes_each_backend_once_per_request():
+    before = {
+        b: (backend_sample("ol_request_backend_seconds_count", "fastapi", b), backend_sample("ol_request_backend_calls_total", "fastapi", b))
+        for b in ("db", "solr")
+    }
+    sum_before = backend_sample("ol_request_backend_seconds_sum", "fastapi", "db")
+
+    prometheus.record_backend_times("fastapi", [("db", 2, 0.003), ("db-legacy", 1, 0.002), ("solr", 1, 0.01), ("render-jinja", 1, 0.5)])
+
+    assert backend_sample("ol_request_backend_seconds_count", "fastapi", "db") == before["db"][0] + 1
+    assert backend_sample("ol_request_backend_calls_total", "fastapi", "db") == before["db"][1] + 3
+    assert backend_sample("ol_request_backend_seconds_sum", "fastapi", "db") == pytest.approx(sum_before + 0.005)
+    assert backend_sample("ol_request_backend_seconds_count", "fastapi", "solr") == before["solr"][0] + 1
+    assert backend_sample("ol_request_backend_calls_total", "fastapi", "solr") == before["solr"][1] + 1
+
+
+def test_webpy_records_backend_times(app):
+    backends = ("memcache", "infobase", "ia", "solr")
+    before = {b: (backend_sample("ol_request_backend_seconds_count", "webpy", b), backend_sample("ol_request_backend_calls_total", "webpy", b)) for b in backends}
+
+    app.request("/things/backends")
+    app.request("/things/a")  # no backend calls: nothing recorded
+
+    assert {b: backend_sample("ol_request_backend_seconds_count", "webpy", b) - before[b][0] for b in backends} == dict.fromkeys(backends, 1)
+    calls = {b: backend_sample("ol_request_backend_calls_total", "webpy", b) - before[b][1] for b in backends}
+    assert calls == {"memcache": 2, "infobase": 1, "ia": 1, "solr": 1}
+    assert server_timing._current.get() is None  # reset after the request
