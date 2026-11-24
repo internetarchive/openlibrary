@@ -694,3 +694,50 @@ class TestSearchListsEndpoint:
         assert data["docs"] == [{"key": "/people/jane/lists/OL1L"}]
         assert data["num_found"] == 1
         mock_site_context.get.assert_not_called()
+
+
+def _raw_solr_response(docs):
+    return SearchResponse(
+        facet_counts={},
+        sort="",
+        docs=docs,
+        num_found=len(docs),
+        solr_select="",
+        raw_resp={"response": {"numFound": len(docs), "start": 0, "docs": docs}},
+    )
+
+
+def test_subject_search_passes_query_and_pagination(fastapi_client, mock_run_solr_query_async):
+    mock_run_solr_query_async.return_value = _raw_solr_response([{"key": "/subjects/fantasy", "name": "Fantasy", "work_count": 7}])
+
+    response = fastapi_client.get("/search/subjects.json", params={"q": "fantasy", "limit": 5, "page": 2})
+
+    assert response.status_code == 200
+    assert response.json()["docs"] == [{"key": "/subjects/fantasy", "name": "Fantasy", "work_count": 7, "type": "subject", "count": 7}]
+    args, kwargs = mock_run_solr_query_async.call_args
+    assert args[1] == {"q": "fantasy"}
+    assert (kwargs["rows"], kwargs["page"], kwargs["offset"]) == (5, 2, None)
+
+
+def test_subject_search_offset_overrides_page(fastapi_client, mock_run_solr_query_async):
+    mock_run_solr_query_async.return_value = _raw_solr_response([])
+
+    assert fastapi_client.get("/search/subjects.json", params={"offset": 40, "page": 3}).status_code == 200
+    _, kwargs = mock_run_solr_query_async.call_args
+    assert (kwargs["rows"], kwargs["page"], kwargs["offset"]) == (100, None, 40)
+
+
+def test_author_search_passes_query_and_options(fastapi_client, mock_run_solr_query_async):
+    mock_run_solr_query_async.return_value = _raw_solr_response([{"key": "/authors/OL26320A", "name": "J.R.R. Tolkien"}])
+
+    response = fastapi_client.get("/search/authors.json", params={"q": "tolkien", "limit": 3, "fields": "key,name", "sort": "work_count desc"})
+
+    assert response.status_code == 200
+    assert response.json()["docs"] == [{"key": "OL26320A", "name": "J.R.R. Tolkien"}]
+    args, kwargs = mock_run_solr_query_async.call_args
+    assert args[1] == {"q": "tolkien"}
+    assert (kwargs["rows"], kwargs["page"], kwargs["fields"], kwargs["sort"]) == (3, 1, "key,name", "work_count desc")
+
+
+def test_author_search_rejects_a_bad_limit(fastapi_client, mock_run_solr_query_async):
+    assert fastapi_client.get("/search/authors.json", params={"limit": -1}).status_code == 422

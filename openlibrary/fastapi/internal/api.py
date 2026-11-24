@@ -37,6 +37,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.plugins.openlibrary.api import (
     bestbook_award,
     get_bookshelves_summary,
@@ -232,6 +233,7 @@ class RatingsResponse(BaseModel):
         )
 
 
+@nonblocking
 @router.get("/works/OL{work_id}W/ratings.json")
 async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
@@ -300,6 +302,7 @@ async def booknotes_post(
     return BooknoteResponse(success="note added")
 
 
+@nonblocking
 @router.get("/works/OL{work_id}W/bookshelves.json")
 async def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
@@ -460,6 +463,7 @@ class FollowEntry(BaseModel):
     created: datetime | None = None
 
 
+@nonblocking
 @router.get("/people/{username}/follows.json", response_model=list[FollowEntry])
 async def get_patron_follows(
     username: Annotated[str, Path(pattern=r"^[^/]+$")],
@@ -555,6 +559,7 @@ async def post_bestbook_award(
     )
 
 
+@nonblocking
 @router.get("/awards/count.json", response_model=BestbookCountResponse)
 async def get_bestbook_count(
     work_id: Annotated[str | None, Query(pattern=r"^(?:/works/)?(?:OL)?[0-9]+W?$", description="Numeric work ID or work OLID, e.g. 123 or OL123W")] = None,
