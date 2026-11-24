@@ -1023,15 +1023,15 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
 
     if [ -n "$OLBASE_RUN_ID" ]; then
         gh run watch "$OLBASE_RUN_ID" --repo internetarchive/openlibrary --exit-status --compact --interval 30 || true
-        # Keys pressed during the watch (e.g. Enter to check it's alive) would otherwise
-        # answer the next question, which defaults to running the openlibrary deploy.
-        discard_typeahead
     fi
     until check_olbase_image_up_to_date; do
         read -p "Image still out of date. Check the olbase build, then press Enter to recheck..."
     done
     echo ""
 
+    # Keys pressed during the olbase watch and image check above (e.g. Enter to check
+    # it's alive) would otherwise answer this, and its default runs the deploy.
+    discard_typeahead
     # Y = run every step with its default; p = pick the steps individually.
     read -p "[Now] Run openlibrary deploy? [Y/n/p]..." answer
     answer=${answer:-Y}
