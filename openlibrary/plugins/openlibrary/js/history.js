@@ -9,9 +9,9 @@
  * @param {HTMLElement} pageHistoryElement - the #pageHistory table
  */
 export function initHistory(pageHistoryElement) {
-    const i18n = JSON.parse(pageHistoryElement.dataset.i18n);
     const bar = document.getElementById('pageHistoryCompare');
-    if (!bar) return;
+    if (!bar || !pageHistoryElement.dataset.i18n) return;
+    const i18n = JSON.parse(pageHistoryElement.dataset.i18n);
 
     const compareLink = bar.querySelector('[data-compare-link]');
     const clearButton = bar.querySelector('[data-compare-clear]');

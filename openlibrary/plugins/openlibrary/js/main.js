@@ -656,8 +656,8 @@ $(function () {
         import('./stats').then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 
-    // History page comparison
-    const pageHistory = document.querySelector('#pageHistory');
+    // History page comparison (the footer box in lib/history.html reuses the id without data-i18n)
+    const pageHistory = document.querySelector('table#pageHistory[data-i18n]');
     if (pageHistory) {
         import('./history').then(module => module.initHistory(pageHistory));
     }
