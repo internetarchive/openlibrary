@@ -3,7 +3,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: var(--z-index-level-6);
+  z-index: var(--z-index-overlay);
   background: var(--white);
   border-top: 1px solid var(--lighter-grey);
   border-radius: var(--border-radius-overlay) var(--border-radius-overlay) 0 0;

@@ -16,8 +16,7 @@ function isMobileDevice() {
 }
 
 function isIOS() {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent)
-        && !window.navigator.standalone;
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
 }
 
 function attachBorrowTrigger() {
@@ -35,14 +34,14 @@ function incrementVisitCount() {
     localStorage.setItem(VISIT_COUNT_KEY, String(count + 1));
 }
 
-function shouldShowPrompt(){
+function shouldShowPrompt() {
     // Already installed? Never show.
     if (localStorage.getItem(INSTALLED_KEY)) return false;
     if (window.matchMedia('(display-mode: standalone)').matches) return false;
 
     // Check dismiss cooldown (applies to both paths)
     const dismissed = localStorage.getItem(DISMISSED_KEY);
-    if (dismissed && (Date.now() - new Date(dismissed).getTime())< DISMISS_TTL_MS) return false;
+    if (dismissed && Date.now() - new Date(dismissed).getTime() < DISMISS_TTL_MS) return false;
 
     // HIGH-INTENT PATH: just borrowed a book
     const trigger = localStorage.getItem(TRIGGER_KEY);
@@ -85,9 +84,7 @@ function createPrompt(isIOSDevice, onInstall, onDismiss) {
     const descText = isIOSDevice
         ? 'Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong> to install.'
         : 'Add to your home screen for quick access — no app store needed.';
-    const installBtn = isIOSDevice
-        ? ''
-        : '<button class="pwa-install-prompt__btn pwa-install-prompt__btn--install">Add to Home Screen</button>';
+    const installBtn = isIOSDevice ? '' : '<button class="pwa-install-prompt__btn pwa-install-prompt__btn--install">Add to Home Screen</button>';
 
     el.innerHTML = `
     <button class="pwa-install-prompt__close" aria-label="Dismiss">&#x2715;</button>
@@ -108,13 +105,10 @@ function createPrompt(isIOSDevice, onInstall, onDismiss) {
     document.body.appendChild(el);
     setTimeout(() => el.classList.add('pwa-install-prompt--visible'), 50);
 
-    el.querySelector('.pwa-install-prompt__close')
-        .addEventListener('click', () => onDismiss(el));
-    el.querySelector('.pwa-install-prompt__btn--dismiss')
-        .addEventListener('click', () => onDismiss(el));
+    el.querySelector('.pwa-install-prompt__close').addEventListener('click', () => onDismiss(el));
+    el.querySelector('.pwa-install-prompt__btn--dismiss').addEventListener('click', () => onDismiss(el));
     if (!isIOSDevice) {
-        el.querySelector('.pwa-install-prompt__btn--install')
-            .addEventListener('click', () => onInstall(el));
+        el.querySelector('.pwa-install-prompt__btn--install').addEventListener('click', () => onInstall(el));
     }
 }
 
@@ -134,9 +128,13 @@ export default function initPWAInstallPrompt() {
             if (getDeferredInstallPrompt()) {
                 createPrompt(false, install, dismiss);
             } else {
-                window.addEventListener('pwa-install-ready', () => {
-                    createPrompt(false, install, dismiss);
-                }, {once: true});
+                window.addEventListener(
+                    'pwa-install-ready',
+                    () => {
+                        createPrompt(false, install, dismiss);
+                    },
+                    { once: true }
+                );
             }
         });
     }
