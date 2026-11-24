@@ -6,12 +6,14 @@ const collator = new Intl.Collator('en-US', { numeric: true });
 export const DEFAULT_EDITION_LIMIT = 200;
 
 /**
- * Whether the editions response reached the API limit while more editions exist.
- * @param {{ entries: unknown[], size: number }} editionList
+ * Whether the work has more editions than a merge can move.
+ * get_editions asks for one extra edition, so this only looks at the entries it got back:
+ * `size` is a cached count that can be stale in either direction.
+ * @param {{ entries: unknown[] }} editionList
  * @returns {boolean}
  */
 export function isEditionListTruncated(editionList) {
-    return editionList.entries.length === DEFAULT_EDITION_LIMIT && editionList.size > DEFAULT_EDITION_LIMIT;
+    return editionList.entries.length > DEFAULT_EDITION_LIMIT;
 }
 
 /**
@@ -198,7 +200,7 @@ export function get_editions(work_key) {
         // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
         base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
     }
-    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({ limit: DEFAULT_EDITION_LIMIT })}`).then(r => {
+    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({ limit: DEFAULT_EDITION_LIMIT + 1 })}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });
