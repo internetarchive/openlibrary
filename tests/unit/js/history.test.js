@@ -1,18 +1,8 @@
-/**
- * js/history.js is the revision-comparison glue for a page's edit history.
- * Two elements on the site share the #pageHistory id: the real revision table
- * on ?m=history, which carries the compare strings in data-i18n, and the
- * History box in a page footer (templates/lib/history.html), which has neither
- * the attribute nor the comparison bar.
- */
 import { initHistory } from '../../../openlibrary/plugins/openlibrary/js/history';
 
 const I18N = JSON.stringify({ compare_label: 'Compare revisions %(a)s and %(b)s' });
 
-/**
- * Render the parts of the history page the script touches.
- * @param {{tableAttributes?: string, withBar?: boolean}} options
- */
+/** @param {{tableAttributes?: string, withBar?: boolean}} options */
 function mount({ tableAttributes = `data-i18n='${I18N}'`, withBar = true } = {}) {
     document.body.innerHTML = `
         ${withBar ? '<div id="pageHistoryCompare" hidden><a data-compare-link></a><button data-compare-clear></button></div>' : ''}
