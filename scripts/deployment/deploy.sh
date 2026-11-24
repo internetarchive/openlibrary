@@ -947,6 +947,10 @@ recreate_services() {
 # Kubernetes (us-west-1-p01): see scripts/deployment/deploy_k8s.py.
 # Usage: deploy_k8s [full commit SHA]; defaults to the commit the openlibrary step deployed.
 deploy_k8s() {
+    if ! command -v python3 &>/dev/null; then
+        echo "[Error] The Kubernetes step needs python3; install it (e.g. https://www.python.org/downloads/) and run \`deploy.sh k8s <sha>\`."
+        return 1
+    fi
     # `|| return` so a failure returns from here and deploy.sh's ERR trap cleans up.
     # -u keeps its output in order with git's when piped (e.g. into tee).
     python3 -u "$SCRIPT_DIR/deploy_k8s.py" "$DEPLOY_DIR" ${1:+"$1"} || return

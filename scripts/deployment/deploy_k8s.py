@@ -15,20 +15,20 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
-from typing import NoReturn
+from typing import NoReturn, TextIO
 
 REPO = os.environ.get("K8S_MANIFESTS_REPO", "git@git.archive.org:platform-engineering/application-manifests.git")
 BRANCH = os.environ.get("K8S_MANIFESTS_BRANCH", "drini-ol-web")
 RED, YELLOW, GREEN, BOLD = "31", "33", "32", "1"
 
 
-def color(code: str, text: str) -> str:
-    """ANSI color, only on a terminal: piped output (tee, logs) and NO_COLOR stay plain."""
-    return f"\033[{code}m{text}\033[0m" if sys.stdout.isatty() and "NO_COLOR" not in os.environ else text
+def color(code: str, text: str, stream: TextIO = sys.stdout) -> str:
+    """ANSI color, only when `stream` is a terminal: piped output (tee, logs) and NO_COLOR stay plain."""
+    return f"\033[{code}m{text}\033[0m" if stream.isatty() and "NO_COLOR" not in os.environ else text
 
 
 def fail(message: str) -> NoReturn:
-    sys.exit(color(RED, f"[Error] {message}"))
+    sys.exit(color(RED, f"[Error] {message}", sys.stderr))  # sys.exit prints it to stderr
 
 
 def ask(prompt: str, default: str) -> bool:
@@ -54,7 +54,7 @@ def olbase_digest(tag: str) -> str:
 
 def main(deploy_dir: Path, sha: str = "") -> None:
     if not sha and (deploy_dir / "openlibrary/.git").is_dir():
-        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=deploy_dir / "openlibrary", check=True, capture_output=True, text=True).stdout.strip()
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=deploy_dir / "openlibrary", check=True, stdout=subprocess.PIPE, text=True).stdout.strip()
     if not re.fullmatch(r"[0-9a-f]{40}", sha):
         fail("Pass the full 40-character commit SHA to deploy, or run the openlibrary step first.")
     tag = sha[:12]
