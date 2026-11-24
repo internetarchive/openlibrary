@@ -1113,7 +1113,12 @@ PRs going out: $RELEASE_MERGED_PRS_URL"
     echo ""
 
     if [ -n "$OLBASE_RUN_ID" ]; then
+        # Ctrl-C here stops only the watch: while it runs, deploy.sh's own Ctrl-C handler
+        # (which ends the deploy) is swapped for one that just says so. gh still gets the
+        # signal, since a handler, unlike an ignored signal, isn't inherited.
+        trap 'echo ""; echo "Stopped watching; checking the image instead."' SIGINT
         gh run watch "$OLBASE_RUN_ID" --repo internetarchive/openlibrary --exit-status --compact --interval 30 || true
+        trap 'handle_exit' SIGINT
     fi
     until check_olbase_image_up_to_date; do
         read -p "Image still out of date. Check the olbase build, then press Enter to recheck..."
