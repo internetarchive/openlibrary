@@ -944,6 +944,71 @@ recreate_services() {
     time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
 }
 
+# Kubernetes (us-west-1-p01) runs the ol-web Helm chart from a branch of
+# application-manifests; Argo CD deploys whatever that branch pins. This points
+# it at the commit being deployed: the chart's bump script pins olbase:<sha12>
+# by digest and copies that commit's FastAPI route list, and we push the result.
+K8S_MANIFESTS_REPO=${K8S_MANIFESTS_REPO:-"git@git.archive.org:platform-engineering/application-manifests.git"}
+K8S_MANIFESTS_BRANCH=${K8S_MANIFESTS_BRANCH:-"drini-ol-web"}
+
+# Usage: deploy_k8s [full commit SHA]; defaults to the commit the openlibrary step deployed.
+deploy_k8s() {
+    local sha="${1:-}"
+    if [ -z "$sha" ] && [ -d "$DEPLOY_DIR/openlibrary/.git" ]; then
+        sha=$(git -C "$DEPLOY_DIR/openlibrary" rev-parse HEAD)
+    fi
+    if ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "[Error] Pass the full 40-character commit SHA to deploy, or run the openlibrary step first."
+        return 1
+    fi
+    local tag=${sha:0:12}
+
+    echo "[Now] Deploying openlibrary $tag to Kubernetes"
+
+    # The VMs run olbase:latest; Kubernetes should run the same build. Both tags
+    # point at one manifest when latest was built from this commit.
+    local tag_meta tag_digest latest_digest
+    if ! tag_meta=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/$tag"); then
+        echo "[Error] No openlibrary/olbase:$tag on Docker Hub; has olbase built this commit?"
+        return 1
+    fi
+    tag_digest=$(jq -r .digest <<<"$tag_meta")
+    latest_digest=$(curl -fsS "https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest" | jq -r .digest)
+    if [ "$tag_digest" != "$latest_digest" ]; then
+        echo "[Warning] olbase:$tag ($tag_digest) is not olbase:latest ($latest_digest),"
+        echo "          so Kubernetes would run a different build from the VMs."
+        read -p "Deploy olbase:$tag to Kubernetes anyway? [y/N]..." answer
+        [[ "${answer:-N}" =~ ^[Yy]$ ]] || return 1
+    fi
+
+    local dir="$DEPLOY_DIR/application-manifests"
+    rm -rf "$dir"
+    echo -n "Cloning application-manifests (branch: $K8S_MANIFESTS_BRANCH) ... "
+    if ! git clone -q --depth=1 --branch "$K8S_MANIFESTS_BRANCH" "$K8S_MANIFESTS_REPO" "$dir"; then
+        echo "✗"
+        echo "[Error] Couldn't clone $K8S_MANIFESTS_REPO; you need access to git.archive.org."
+        return 1
+    fi
+    echo "✓"
+
+    python3 "$dir/ol-web/scripts/bump-openlibrary.py" "$sha" || return 1
+    if git -C "$dir" diff --quiet; then
+        echo "[Info] Kubernetes already runs $tag."
+        return 0
+    fi
+    git -C "$dir" --no-pager diff --stat
+
+    read -p "[Now] Push this to $K8S_MANIFESTS_BRANCH? Argo CD rolls it out. [Y/n]..." answer
+    if [[ ! "${answer:-Y}" =~ ^[Yy]$ ]]; then
+        echo "[Info] Not pushed; Kubernetes stays on its current version."
+        return 1
+    fi
+    git -C "$dir" commit -q -am "ol-web: deploy openlibrary $tag"
+    git -C "$dir" push -q origin "HEAD:$K8S_MANIFESTS_BRANCH" || return 1
+    echo "✓ Pushed. Argo CD rolls it out in a few minutes; watch the rollout tile:"
+    echo "  https://grafana.p01.us-west-1.archive.org/d/ra28gwx/k8s"
+}
+
 deploy_wizard() {
     # Pull openlibrary before continuing so we have latest deploy.sh
     read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
@@ -1036,6 +1101,15 @@ deploy_wizard() {
         fi
     fi
 
+    # Before the VM restart: Kubernetes replaces its pods gradually, so the two
+    # halves of production are on different versions only while it rolls out.
+    read -p "[Now] Deploy to Kubernetes? [Y/n]..." answer
+    answer=${answer:-Y}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        time deploy_k8s || echo "[Warning] Kubernetes not updated; run \`deploy.sh k8s <sha>\` later."
+        echo ""
+    fi
+
     read -p "[Now] Restart services? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
@@ -1067,6 +1141,8 @@ elif [ "$1" == "images" ]; then
     deploy_images $2
 elif [ "$1" == "tag" ]; then
     tag_deploy
+elif [ "$1" == "k8s" ]; then
+    deploy_k8s "$2"
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
@@ -1084,7 +1160,7 @@ elif [ "$1" == "reset" ]; then
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage|k8s <sha>]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
     echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
