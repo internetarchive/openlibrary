@@ -290,6 +290,8 @@ def site_page_app(monkeypatch) -> Callable[..., FastAPI]:
     from a recognized crawler if it sends ``x-recognized-bot: 1``.
     """
     monkeypatch.setitem(get_jinja_env().globals, "static_url", lambda p: f"/static/{p}")
+    # vue_component_html imports static_url itself rather than using the Jinja global.
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *a, **kw: "")
     # A linked archive.org account, so the header shows the account title (with the joined date).
     monkeypatch.setattr("openlibrary.core.shell.user.get_internet_archive_id", lambda key: "@ia")

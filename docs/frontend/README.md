@@ -53,6 +53,11 @@ Build:
 make components   # via docker compose run --rm home make components — no dev/watch mode documented for this pipeline
 ```
 
+Unlike Lit components, each Vue component is its own `ol-<Name>.js`, so a page that uses one must load that script too. `vue_component_html(name, attrs)` in `openlibrary/plugins/upstream/utils.py` writes both the script tag and the element. Dict and list attributes are JSON- then URL-encoded, so the component reads them with `JSON.parse(decodeURIComponent(...))`.
+
+- **Jinja:** it isn't a Jinja global, so pass it in: `render_jinja_template("x.html.jinja", vue_component_html=vue_component_html)`, then `{{ vue_component_html("BulkSearch") }}`.
+- **Templetor (web.py only):** `$:render_component("MergeUI", attrs=...)` does the same, and writes each script tag only once per request. It keeps that in `web.ctx`, so never use it on FastAPI.
+
 ---
 
 ## Design Tokens (Two-Tier System)
