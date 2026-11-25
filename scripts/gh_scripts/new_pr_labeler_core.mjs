@@ -198,7 +198,7 @@ export function decideGfiAction({ pr, issue, kind, hasCommented }) {
     const issueLabels = labels(issue);
     if (issue.pull_request || issue.state !== 'open' || !issueLabels.includes('Good First Issue')) return skip('not an open Good First Issue');
     if (pr.state !== 'open' || pr.draft) return skip('PR is closed or draft');
-    if (labels(pr).includes('no-automation') || issueLabels.includes('no-automation')) return skip('no-automation');
+    if (labels(pr).includes('Bot: No Automation') || issueLabels.includes('Bot: No Automation')) return skip('Bot: No Automation');
     if (issueLabels.includes('Needs: Triage') || !issueLabels.some(label => /^Priority: \d+$/.test(label))) return skip('issue still needs triage');
     if (['MEMBER', 'OWNER', 'COLLABORATOR'].includes(pr.author_association)) return skip('staff author');
     const author = pr.user.login;

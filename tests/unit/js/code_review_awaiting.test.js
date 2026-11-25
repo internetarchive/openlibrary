@@ -168,10 +168,41 @@ test('requests nothing if a review was requested by hand while waiting', async (
         assert.equal(gh.calls.requested.length, 0, status.description);
     }
 });
-test('a PR with the no-automation label is not reviewed on push', async () => {
-    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', undefined, { labels: [{ name: 'no-automation' }] }));
+test('a PR with the Bot: No Automation label is not reviewed on push', async () => {
+    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', undefined, { labels: [{ name: 'Bot: No Automation' }] }));
     assert.equal(minutes, undefined);
     assert.match(posted[0].description, /Re-request review from openlibrary-bot/);
+});
+test('a PR with the Bot: Fast Review label is reviewed without waiting', async () => {
+    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', undefined, { labels: [{ name: 'Bot: Fast Review' }] }));
+    assert.equal(minutes, '0');
+    assert.match(posted[0].description, /^\d\d:\d\d UTC: review starts now/);
+    assert.ok(posted[0].description.length <= 140);
+});
+test('a PR linked to an issue with the Bot: Fast Review label is reviewed without waiting', async () => {
+    const gh = mockGitHub({ reviews: reviewed });
+    gh.github.rest.issues = { get: async ({ issue_number }) => ({ data: { labels: issue_number === 7 ? [{ name: 'Bot: Fast Review' }] : [] } }) };
+    const ctx = context('synchronize', undefined, { body: 'Closes #7', head: { sha: SHA('a'), ref: 'x' } });
+    const { minutes } = await mark(gh, ctx);
+    assert.equal(minutes, '0');
+});
+test('an unreadable linked issue is logged and the push waits as usual', async () => {
+    const gh = mockGitHub({ reviews: reviewed });
+    gh.github.rest.issues = {
+        get: async () => {
+            throw new Error('Not Found');
+        }
+    };
+    const logged = [];
+    const c = { ...core(), info: m => logged.push(m) };
+    const ctx = context('synchronize', undefined, { body: 'Part of #7', head: { sha: SHA('a'), ref: 'x' } });
+    await markAwaiting({ github: gh.github, context: ctx, core: c, settings: settings(), runUrl: 'u' });
+    assert.equal(c.out.review_after_minutes, '10');
+    assert.ok(logged.some(m => m.includes('#7') && m.includes('Not Found')));
+});
+test('the Bot: Fast Review label does not start a first review', async () => {
+    const { minutes } = await mark(mockGitHub({ reviews: [] }), context('synchronize', undefined, { labels: [{ name: 'Bot: Fast Review' }] }));
+    assert.equal(minutes, undefined);
 });
 
 test('a push to a PR stacked on another branch starts no review and says how to ask', async () => {
