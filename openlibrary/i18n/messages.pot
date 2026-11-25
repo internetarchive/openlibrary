@@ -9486,7 +9486,7 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: openlibrary/core/shell/nav.py openlibrary/plugins/upstream/code.py
+#: openlibrary/core/shell/nav.py openlibrary/fastapi/library_explorer.py openlibrary/plugins/upstream/code.py
 msgid "Library Explorer"
 msgstr ""
 
