@@ -189,7 +189,7 @@ msgstr ""
 msgid "Default sort: date added, newest first."
 msgstr ""
 
-#: admin/inspect/store.html admin/people/index.html batch_import_list.html openlibrary/plugins/worksearch/sort_menu.py status.html type/author/edit.html type/language/view.html
+#: admin/inspect/store.html admin/people/index.html batch_import_list.html openlibrary/plugins/worksearch/sort_menu.py status.html.jinja type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr ""
 
@@ -201,7 +201,7 @@ msgstr ""
 msgid "Added Time"
 msgstr ""
 
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_progress.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html
+#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_list.html batch_import_progress.html batch_import_view.html contribute/admin/index.html.jinja librarian_dashboard/data_quality_table.html status.html.jinja
 msgid "Status"
 msgstr ""
 
@@ -744,31 +744,27 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: status.html
-msgid "Open Library server status"
-msgstr ""
-
-#: status.html
+#: status.html.jinja
 msgid "Server status"
 msgstr ""
 
-#: status.html
+#: status.html.jinja
 msgid "The testing environment panel is only visible to maintainers."
 msgstr ""
 
-#: status.html
+#: status.html.jinja
 msgid "Last Build Result"
 msgstr ""
 
-#: status.html
+#: status.html.jinja
 msgid "View PRs on GitHub"
 msgstr ""
 
-#: status.html
+#: status.html.jinja
 msgid "Show changed files"
 msgstr ""
 
-#: status.html
+#: status.html.jinja
 msgid "System information"
 msgstr ""
 
@@ -10222,6 +10218,10 @@ msgstr ""
 
 #: openlibrary/fastapi/search.py
 msgid "Author search"
+msgstr ""
+
+#: openlibrary/fastapi/status.py openlibrary/plugins/openlibrary/status.py
+msgid "Open Library server status"
 msgstr ""
 
 #: openlibrary/fastapi/tasks.py

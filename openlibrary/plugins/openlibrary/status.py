@@ -10,13 +10,17 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
+import web
+from markupsafe import escape
 from pydantic import BaseModel, Field, field_serializer
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.github import (
     GitHubAPIError,
     GitHubPRInfo,
@@ -31,6 +35,7 @@ from openlibrary.plugins.openlibrary.github import (
     unknown_pr_drift,
 )
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, jenkins_deploy_status, trigger_rebuild
+from openlibrary.plugins.upstream.utils import vue_component_html
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
@@ -45,18 +50,23 @@ _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 class status(delegate.page):
     def GET(self):
-        is_maintainer_user = _is_maintainer()
-        has_testing_state = _load_testing_state() is not None
-        show_testing = has_testing_state and is_maintainer_user
-        return render_template(
-            "status",
-            status_info,
-            dev_merged_status=get_dev_merged_status(),
-            is_maintainer=is_maintainer_user,
-            has_testing_state=has_testing_state,
-            show_testing=show_testing,
-            jenkins_job_url=JENKINS_JOB_URL,
-        )
+        body = render_jinja_template("status.html.jinja", **status_page_values(is_maintainer=_is_maintainer()))
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Open Library server status")))
+
+
+def status_page_values(is_maintainer: bool) -> dict[str, Any]:
+    """What ``status.html.jinja`` shows, on web.py and FastAPI alike."""
+    has_testing_state = _load_testing_state() is not None
+    return {
+        "status": status_info,
+        "dev_merged_status": get_dev_merged_status(),
+        "is_maintainer": is_maintainer,
+        "has_testing_state": has_testing_state,
+        "show_testing": has_testing_state and is_maintainer,
+        "jenkins_job_url": JENKINS_JOB_URL,
+        "vue_component_html": vue_component_html,
+    }
 
 
 def _json_ok() -> delegate.RawText:
@@ -333,6 +343,11 @@ class PRStatus:
             return int(m.group(1))
         else:
             return None
+
+    @property
+    def merge_failed(self) -> bool:
+        """Whether the deploy skipped this PR because it didn't merge."""
+        return self.status.startswith(_MERGE_CONFLICT_PREFIXES)
 
     @property
     def link(self) -> str | None:
@@ -693,7 +708,7 @@ def _merge_conflicted_prs() -> frozenset[int]:
         return frozenset()
     conflicted: set[int] = set()
     for pr in dms.pr_statuses:
-        if not pr.status.startswith(_MERGE_CONFLICT_PREFIXES):
+        if not pr.merge_failed:
             continue
         if pr.pull_id:
             conflicted.add(pr.pull_id)
