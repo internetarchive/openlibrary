@@ -230,13 +230,12 @@ Bot accounts automate bulk metadata corrections and imports via HTTP POSTs to OL
 
 **Applying for a bot account:**
 1. Create a new OL account (separate from personal) with username ending in "Bot" (e.g. `WorkBot`)
-2. Open a GitHub issue requesting bot privileges + membership in the `API` usergroup; tag @mekarpeles or @hornc
+2. Open a GitHub issue requesting bot privileges + membership in the `API` usergroup; tag @mekarpeles
 
 **Bot rules (non-negotiable):**
-- Never run bulk changes (>100 records) until reviewed by @hornc (metadata lead)
 - All bot code must live in `github.com/internetarchive/openlibrary-bots` — create a directory per bot
 - Source data files that a bot reads from must also be committed to that repo
-- Open a PR with @hornc or @mekarpeles as reviewer; wait for approval before running
+- Open a PR with @mekarpeles as reviewer; wait for approval before running
 
 **The right library:** Use `openlibrary-client` (`github.com/internetarchive/openlibrary-client`). The old `openlibrary/api.py` is deprecated.
 
