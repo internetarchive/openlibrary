@@ -524,8 +524,8 @@ describe('Good First Issue assignment', () => {
         [{ issue: { ...issue(), labels: [] } }, 'skip', 'not an open Good First Issue'],
         [{ issue: { ...issue(), state: 'closed' } }, 'skip', 'not an open Good First Issue'],
         [{ issue: { ...issue(), pull_request: {} } }, 'skip', 'not an open Good First Issue'],
-        [{ issue: { ...issue(), labels: ['Good First Issue', 'no-automation'] } }, 'skip', 'no-automation'],
-        [{ pr: { ...pr(), labels: ['no-automation'] } }, 'skip', 'no-automation'],
+        [{ issue: { ...issue(), labels: ['Good First Issue', 'Bot: No Automation'] } }, 'skip', 'Bot: No Automation'],
+        [{ pr: { ...pr(), labels: ['Bot: No Automation'] } }, 'skip', 'Bot: No Automation'],
         ...['MEMBER', 'OWNER', 'COLLABORATOR'].map(author_association => [{ pr: { ...pr(), author_association } }, 'skip', 'staff author']),
         ...['OpenLibrary-Bot', 'dependabot[bot]'].map(login => [{ pr: { ...pr(), user: { login, type: 'User' } } }, 'skip', 'bot author']),
         [{ pr: { ...pr(), state: 'closed' } }, 'skip', 'PR is closed or draft'],
@@ -626,8 +626,8 @@ describe('Good First Issue assignment', () => {
     });
 
     test.each([
-        { pull: { ...pr(), labels: ['no-automation'] } },
-        { ticket: { ...issue(), labels: ['Good First Issue', 'no-automation'] } },
+        { pull: { ...pr(), labels: ['Bot: No Automation'] } },
+        { ticket: { ...issue(), labels: ['Good First Issue', 'Bot: No Automation'] } },
         { pull: { ...pr(), author_association: 'MEMBER' } },
         { pull: { ...pr(), user: { login: 'openlibrary-bot', type: 'User' } } }
     ])('excluded PRs are untouched: %o', async options => {

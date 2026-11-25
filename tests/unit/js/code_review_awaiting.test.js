@@ -168,8 +168,8 @@ test('requests nothing if a review was requested by hand while waiting', async (
         assert.equal(gh.calls.requested.length, 0, status.description);
     }
 });
-test('a PR with the no-automation label is not reviewed on push', async () => {
-    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', undefined, { labels: [{ name: 'no-automation' }] }));
+test('a PR with the Bot: No Automation label is not reviewed on push', async () => {
+    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', undefined, { labels: [{ name: 'Bot: No Automation' }] }));
     assert.equal(minutes, undefined);
     assert.match(posted[0].description, /Re-request review from openlibrary-bot/);
 });
