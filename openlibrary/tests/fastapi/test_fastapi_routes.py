@@ -87,3 +87,8 @@ def test_nonblocking_rejects_sync_dependencies(no_exclusions):
 
     with pytest.raises(SystemExit, match=r"/fast\.json.*blocking_dep"):
         render_routes_yaml(_app_with(router))
+
+
+def test_webpy_health_check_stays_on_webpy():
+    # HAProxy checks web.py on Kubernetes with /health/webpy, which only reaches web.py while FastAPI doesn't serve it.
+    assert "/health/webpy" not in OUTPUT.read_text()
