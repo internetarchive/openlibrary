@@ -222,13 +222,17 @@
       "matchPackageNames": [
         "/^actions//"
       ]
-    },
-    {
-      "matchCategories": ["security"],
-      "groupName": null,
-      "minimumReleaseAge": "0 days",
-      "schedule": ["at any time"],
-      "prConcurrentLimit": 0
     }
-  ]
+  ],
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "groupName": null,
+    "schedule": ["at any time"],
+    "minimumReleaseAge": "0 days",
+    "prConcurrentLimit": 0,
+    "prHourlyLimit": 0,
+    "dependencyDashboardApproval": false,
+    "automerge": false
+  }
 }
