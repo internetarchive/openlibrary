@@ -180,6 +180,50 @@ def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
     assert 'language:("eng" OR "spa")' in editions_fq
 
 
+def test_process_facet_language_missing_bucket_becomes_no_language():
+    """Solr's facet.missing bucket arrives with a None value."""
+    facets = [("eng", 100), (None, 8), ("fre", 5)]
+    assert list(process_facet("language", facets)) == [
+        ("eng", "English", 100),
+        ("none", "No language", 8),
+        ("fre", "French", 5),
+    ]
+
+
+def test_process_facet_missing_bucket_ignored_for_other_fields():
+    assert list(process_facet("subject_facet", [("Fiction", 3), (None, 9)])) == [("Fiction", "Fiction", 3)]
+
+
+def test_process_facet_language_missing_bucket_with_zero_count_is_skipped():
+    assert list(process_facet("language", [(None, 0)])) == []
+
+
+def test_prepare_solr_query_params_no_language_filters_to_works_without_language():
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), {"q": "craigslist", "language": ["none"]})
+    fqs = [v for k, v in params if k == "fq"]
+    assert "-language:[* TO *]" in fqs
+    assert 'language:"none"' not in fqs
+
+
+def test_prepare_solr_query_params_no_language_wins_over_real_languages():
+    """ "No language" is exclusive; a hand-edited URL mixing it with real languages must not AND them."""
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), {"q": "x", "language": ["eng", "none"]})
+    fqs = [v for k, v in params if k == "fq"]
+    assert "-language:[* TO *]" in fqs
+    assert not any("eng" in fq for fq in fqs)
+
+
+def test_prepare_solr_query_params_no_language_mirrored_into_editions_fq():
+    editions_fq = _editions_fq_for({"q": "x", "language": ["none"]})
+    assert "(*:* -language:[* TO *])" in editions_fq
+
+
+def test_prepare_solr_query_params_missing_facet_option():
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), {"q": "x"}, facet=[{"name": "language", "missing": "true"}])
+    assert ("facet.field", "language") in params
+    assert ("f.language.facet.missing", "true") in params
+
+
 def _with_req_context(fn):
     """Run `fn` with a req_context set (the readable-count query reads
     solr_editions off it)."""

@@ -11322,6 +11322,10 @@ msgstr ""
 msgid "Classic eBooks"
 msgstr ""
 
+#: openlibrary/plugins/worksearch/code.py
+msgid "No language"
+msgstr ""
+
 #: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "Filter results for %(facet)s"

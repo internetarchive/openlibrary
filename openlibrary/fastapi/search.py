@@ -537,7 +537,7 @@ async def search_facets_json(
         rows=0,
         page=1,
         fields=["key", "editions"],  # opt into the same edition block-join as /search
-        facet=list(params.field),
+        facet=[{"name": f, "missing": "true"} if f == "language" else f for f in params.field],
         highlight=False,
         request_label="BOOK_SEARCH_FACETS",
         solr_internals_params=solr_internals_params,

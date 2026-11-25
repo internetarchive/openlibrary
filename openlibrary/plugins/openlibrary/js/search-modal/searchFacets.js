@@ -8,6 +8,24 @@
 
 const FACETS_PATH = '/search/facets.json';
 
+// `language` value for works with no language set; mirrors NO_LANGUAGE in worksearch/code.py.
+export const NO_LANGUAGE = 'none';
+// Only shown when "no language" is selected yet has no matches, so the API sent no translated label.
+const NO_LANGUAGE_FALLBACK_LABEL = 'No language';
+
+/**
+ * Applies the "no language" rules to a language selection: it excludes every real
+ * language, so whichever side was just picked wins.
+ *
+ * @param {string[]} selected - Codes the popover reports as selected.
+ * @param {string|null} [added] - The code just added, if this was an addition.
+ * @returns {string[]}
+ */
+export function exclusiveNoLanguage(selected, added) {
+    if (!selected.includes(NO_LANGUAGE)) return selected;
+    return added && added !== NO_LANGUAGE ? selected.filter(c => c !== NO_LANGUAGE) : [NO_LANGUAGE];
+}
+
 // Filter params to drop when counting a given field, where the param name isn't
 // just the field name: /search accepts either spelling of the author filter.
 const OWN_FILTER_PARAMS = {
@@ -70,14 +88,22 @@ export async function fetchFacetCounts(field, searchParams) {
  * @param {Array<{value: string, label: string}>} items - Full catalogue list.
  * @param {Array<{value: string, count: number}>} counts - API response.
  * @param {string[]} selectedValues - Currently selected item values.
+ * @param {string[]} [extraValues] - Count values that aren't in the catalogue but
+ *     should still be listed, using the label from the API (e.g. NO_LANGUAGE).
  * @returns {Array<{value: string, label: string, count: number}>}
  */
-export function mergeFacetCounts(items, counts, selectedValues) {
+export function mergeFacetCounts(items, counts, selectedValues, extraValues = []) {
     const countMap = new Map(counts.map(c => [c.value, c.count]));
     const selectedSet = new Set(selectedValues);
+    const extras = extraValues
+        .filter(value => !items.some(it => it.value === value))
+        .map(value => ({ value, hit: counts.find(c => c.value === value) }))
+        .filter(({ value, hit }) => hit || selectedSet.has(value))
+        // Selected but absent from the counts (no matches): keep it so it can be unticked.
+        .map(({ value, hit }) => ({ value, label: hit?.label ?? NO_LANGUAGE_FALLBACK_LABEL }));
 
-    return items
-        .map(it => ({ ...it, count: countMap.get(it.value) ?? 0 }))
+    return [...items, ...extras]
+        .map(it => Object.assign({}, it, { count: countMap.get(it.value) ?? 0 }))
         .filter(it => it.count > 0 || selectedSet.has(it.value))
         .sort((a, b) => b.count - a.count);
 }

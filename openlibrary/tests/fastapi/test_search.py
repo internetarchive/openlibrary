@@ -465,6 +465,27 @@ class TestSearchFacetsEndpoint:
         assert not any(v["value"] == "lat" for v in data["language"])
         assert all(v["count"] > 0 for v in data["language"])
 
+    def test_language_facet_asks_solr_for_missing_bucket(self, fastapi_client, mock_run_solr_query_async):
+        fastapi_client.get("/search/facets.json?field=language&field=subject_facet&q=craigslist")
+        facet = mock_run_solr_query_async.call_args.kwargs["facet"]
+        assert {"name": "language", "missing": "true"} in facet
+        assert "subject_facet" in facet
+
+    def test_no_language_bucket_is_returned(self, fastapi_client, mock_run_solr_query_async):
+        """The 135-vs-127+1 case from #14492: works with no language show up as `none`."""
+        mock_run_solr_query_async.return_value.facet_counts["language"].append(("none", "No language", 7))
+        response = fastapi_client.get("/search/facets.json?field=language&q=craigslist")
+        assert response.status_code == 200
+        assert {"value": "none", "label": "No language", "count": 7} in response.json()["language"]
+
+    def test_non_language_facets_do_not_request_missing_bucket(self, fastapi_client, mock_run_solr_query_async):
+        fastapi_client.get("/search/facets.json?field=subject_facet&q=tolkien")
+        assert mock_run_solr_query_async.call_args.kwargs["facet"] == ["subject_facet"]
+
+    def test_language_none_filter_is_forwarded(self, fastapi_client, mock_run_solr_query_async):
+        fastapi_client.get("/search/facets.json?field=subject_facet&q=tolkien&language=none")
+        assert mock_run_solr_query_async.call_args.args[1]["language"] == ["none"]
+
     def test_returns_multiple_fields(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?field=language&field=subject_facet&q=tolkien")
         assert response.status_code == 200
