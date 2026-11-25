@@ -6,7 +6,7 @@
  * @returns {UrlParams}
  */
 export function getJsonFromUrl(urlSearch) {
-    const query = urlSearch.substr(1);
+    const query = urlSearch.slice(1);
     const result = {};
     if (query) {
         query.split('&').forEach(part => {
@@ -23,9 +23,9 @@ export function getJsonFromUrl(urlSearch) {
  * @returns {String}
  */
 export function removeURLParameter(url, parameter) {
-    var urlparts = url.split('?');
-    var prefix = urlparts[0];
-    var query, paramPrefix, params, i;
+    const urlparts = url.split('?');
+    const prefix = urlparts[0];
+    let query, paramPrefix, params, i;
     if (urlparts.length >= 2) {
         query = urlparts[1];
         paramPrefix = `${encodeURIComponent(parameter)}=`;
@@ -41,7 +41,6 @@ export function removeURLParameter(url, parameter) {
 
         url = prefix + (params.length > 0 ? `?${params.join('&')}` : '');
         return url;
-    } else {
-        return url;
     }
+    return url;
 }

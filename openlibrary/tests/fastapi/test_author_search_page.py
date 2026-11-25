@@ -1,0 +1,273 @@
+"""`/search/authors` HTML page on FastAPI.
+
+It renders `search/authors.html.jinja`; the web.py handler renders the same
+template until ops routes /search/authors to FastAPI in production. The shell
+around the page is tested in `test_site_page.py` and the JSON API in
+`test_search.py`; these test the page's own body.
+"""
+
+from contextlib import ExitStack
+from html import unescape
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+
+from infogami.utils import macro
+from openlibrary.core.shell.user import ShellUser
+from openlibrary.fastapi.search import pages
+from openlibrary.plugins.worksearch.code import SearchResponse
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+
+
+@pytest.fixture
+def client(site_page_app) -> TestClient:
+    # The site shell renders icons through the Templetor macros; make them available.
+    macro.diskmacros.load_templates("openlibrary/macros")
+    return TestClient(site_page_app(pages))
+
+
+@pytest.fixture(autouse=True)
+def coverstore_url(monkeypatch) -> str:
+    monkeypatch.setattr("openlibrary.fastapi.search.get_coverstore_public_url", lambda: "https://covers.test")
+    return "https://covers.test"
+
+
+def _solr_response(*docs: dict, error: str = "", num_found: int | None = None) -> SearchResponse:
+    return SearchResponse(
+        facet_counts={},
+        sort="",
+        docs=list(docs),
+        num_found=num_found if num_found is not None else len(docs),
+        solr_select="",
+        raw_resp={"response": {"start": 0}},
+        error=error,
+    )
+
+
+def patched_search(stack: ExitStack, response: SearchResponse) -> MagicMock:
+    solr_mock = stack.enter_context(patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True))
+    solr_mock.return_value = response
+    return solr_mock
+
+
+def _author(olid: str = "OL1A", name: str = "Jane Austen", work_count: int = 8, **fields) -> dict:
+    return {"key": f"/authors/{olid}", "name": name, "work_count": work_count, **fields}
+
+
+def test_authors_page_without_query(client):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response())
+        response = client.get("/search/authors")
+
+    # Like web.py, a bare form doesn't query Solr
+    solr_mock.assert_not_called()
+    assert response.status_code == 200
+    html = response.text
+    assert "<title>Author search | Open Library</title>" in html
+    assert 'action="/search/authors"' in html
+    # The search tabs, with Authors selected
+    assert 'data-ol-link-track="SearchNav|SearchAuthors"' in html
+    # Without a query there are no results, stats or pagination
+    assert "search-results-stats" not in html
+    assert "authorList" not in html
+    assert "ol-pagination-wrapper" not in html
+    # ... and no sort menu either
+    assert "sort-options" not in html
+
+
+def test_authors_page_lists_results(client):
+    docs = [
+        _author(
+            "OL1A",
+            "Jane Austen",
+            8,
+            birth_date="1775",
+            death_date="1817",
+            top_subjects=["Fiction", "Romance"],
+            top_work="Pride and Prejudice",
+        ),
+        _author("OL2A", "Mark Twain", 2),
+    ]
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(*docs, num_found=2))
+        response = client.get("/search/authors?q=austen")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "search-results-stats" in html
+    assert "2 hits" in html
+    assert html.count('class="searchResultItem"') == 2
+    assert 'href="/authors/OL1A/Jane_Austen"' in html
+    assert "1775 - 1817" in html
+    assert "<b>8 books</b>" in html
+    assert "about Fiction, Romance" in html
+    assert "including <i>Pride and Prejudice</i>" in html
+    assert 'src="https://covers.test/a/olid/OL1A-M.jpg"' in html
+    # The sort menu offers the author search sorts, with Relevance selected
+    assert 'class="sort-options"' in html
+    assert 'value="relevance"' in html
+    assert "Work Count" in html
+    assert "&#34;value&#34;: &#34;name&#34;" in html
+    # Two results fit on one page, so no pagination
+    assert "ol-pagination-wrapper" not in html
+
+
+def test_authors_page_queries_solr_with_author_scheme(client):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response(_author()))
+        client.get("/search/authors?q=austen&page=3")
+
+    scheme, query = solr_mock.call_args.args
+    assert isinstance(scheme, AuthorSearchScheme)
+    assert query == {"q": "austen"}
+    assert solr_mock.call_args.kwargs == {
+        "offset": 200,  # one page is 100 authors
+        "rows": 100,
+        "fields": "*",
+        "sort": "",
+        "request_label": "AUTHOR_SEARCH",
+    }
+
+
+def test_authors_page_paginates(client):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(_author(), num_found=250))
+        response = client.get("/search/authors?q=austen&page=2")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "ol-pagination-wrapper" in html
+    assert 'total-pages="3"' in html
+    assert 'current-page="2"' in html
+
+
+@pytest.mark.parametrize("page", ["0", "-3"])
+def test_authors_page_clamps_page_to_one(client, page):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response(_author(), num_found=250))
+        response = client.get(f"/search/authors?q=austen&page={page}")
+
+    assert response.status_code == 200
+    assert 'current-page="1"' in response.text
+    assert solr_mock.call_args.kwargs["offset"] == 0
+
+
+@pytest.mark.parametrize("sort_option", ["name", "work_count desc", "birth_date asc"])
+def test_authors_page_forwards_sort(client, sort_option):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response(_author(), num_found=2))
+        response = client.get("/search/authors", params={"q": "austen", "sort": sort_option})
+
+    assert response.status_code == 200
+    assert solr_mock.call_args.kwargs["sort"] == sort_option
+    # The menu opens on the requested sort
+    assert f'value="{sort_option}"' in response.text
+
+
+def test_authors_page_rejects_unknown_sort(client):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response())
+        response = client.get("/search/authors?q=austen&sort=bogus")
+
+    assert response.status_code == 422
+    solr_mock.assert_not_called()
+
+
+def test_authors_page_no_results(client):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response())
+        response = client.get("/search/authors?q=zzzzz")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "No <strong>authors</strong> directly matched your search" in html
+    # The Search Inside matches suggestion carries the query over
+    assert 'id="fulltext-search-suggestion"' in html
+    assert 'data-query="zzzzz"' in html
+    assert "authorList" not in html
+    assert "ol-pagination-wrapper" not in html
+    assert "sort-options" not in html
+
+
+def test_authors_page_solr_error(client):
+    with ExitStack() as stack:
+        solr_error = _solr_response(error="first problem\nsecond problem")
+        solr_error.num_found = None  # as run_solr_query_async returns it on a Solr error
+        patched_search(stack, solr_error)
+        response = client.get("/search/authors?q=broken")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "first problem" in html
+    assert "second problem" in html
+    assert "authorList" not in html
+
+
+def test_authors_page_escapes_query(client):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response())
+        response = client.get("/search/authors?q=%22%3E%3Cscript%3E")
+
+    assert response.status_code == 200
+    # The query is escaped inside the attribute
+    assert 'data-query="&#34;&gt;&lt;script&gt;"' in response.text
+    assert 'data-query=""><' not in response.text
+
+
+def test_authors_page_offers_merge_and_beta_sorts_to_librarians(client, monkeypatch):
+    librarian = ShellUser(key="/people/lib", created=None, ia_id=None, is_librarian=True, is_super_librarian=False, open_merges_count=0)
+    monkeypatch.setattr("openlibrary.fastapi.shared.site_page.load_shell_user", lambda: librarian)
+    docs = [_author("OL1A", "Jane Austen"), _author("OL2A", "Jane Austin")]
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(*docs, num_found=2))
+        response = client.get("/search/authors?q=jane+austen")
+
+    assert response.status_code == 200
+    assert "Is the same author listed twice?" in response.text
+    assert 'href="/authors/merge?records=OL1A,OL2A"' in response.text
+    assert "Birth Date (oldest) (beta: Librarian only)" in response.text
+
+
+def test_authors_page_does_not_offer_merge_to_visitors(client):
+    docs = [_author("OL1A", "Jane Austen"), _author("OL2A", "Jane Austin")]
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(*docs, num_found=2))
+        response = client.get("/search/authors?q=jane+austen")
+
+    assert response.status_code == 200
+    assert "/authors/merge?records=" not in response.text
+    assert "beta: Librarian only" not in response.text
+
+
+def test_concurrent_requests_each_get_their_own_sort_links(site_page_app, webpy_leftovers, fetch_concurrently):
+    """Sort links come from this request: never another request's, or web.py's leftovers in web.ctx."""
+    macro.diskmacros.load_templates("openlibrary/macros")
+    n = 12
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(_author("OL1A"), _author("OL2A"), num_found=2))
+        responses = fetch_concurrently(site_page_app(pages), [(f"/search/authors?q=query-{i}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        assert response.status_code == 200
+        # The sort items are JSON in an attribute; unescape the attribute to read it
+        text = unescape(response.text)
+        assert webpy_leftovers not in text
+        assert f'"url": "/search/authors?q=query-{i}&sort=name"' in text
+        assert not any(f"q=query-{j}&" in text for j in range(n) if j != i)
+
+
+def test_authors_page_strips_query_and_titles_it(client):
+    with ExitStack() as stack:
+        solr_mock = patched_search(stack, _solr_response(_author()))
+        response = client.get("/search/authors?q=%20austen%20")
+
+    assert solr_mock.call_args.args[1] == {"q": "austen"}
+    assert "<title>austen - Author search | Open Library</title>" in response.text
+
+
+def test_authors_page_shows_top_work_without_subjects(client):
+    with ExitStack() as stack:
+        patched_search(stack, _solr_response(_author(top_work="Emma")))
+        response = client.get("/search/authors?q=austen")
+
+    assert "including <i>Emma</i>" in response.text

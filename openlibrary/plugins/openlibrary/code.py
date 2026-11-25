@@ -9,7 +9,6 @@ import logging
 import math
 import os
 import random
-import socket
 import sys
 from time import time
 from urllib.parse import parse_qs, parse_qsl, quote, urlencode
@@ -406,6 +405,21 @@ class health(delegate.page):
         return web.ok("OK")
 
 
+class health_webpy(delegate.page):
+    """Health check that always reaches web.py. On Kubernetes the gateway sends /health to FastAPI,
+    so HAProxy checks web.py with this path instead (olsystem: etc/haproxy/haproxy.cfg, backend ol-web-k8s).
+    FastAPI must never register it.
+
+    Keep it until web.py is retired: removing or porting it would fail that check and move all
+    Kubernetes traffic to the VMs."""
+
+    path = "/health/webpy"
+
+    def GET(self):
+        web.header("Content-Type", "text/plain")
+        return web.ok("OK")
+
+
 def remove_high_priority(query: str) -> str:
     """
     Remove `high_priority=true` and `high_priority=false` from query parameters,
@@ -486,10 +500,17 @@ class BatchImportView(delegate.page):
         if batch is None:
             raise web.notfound()
 
-        i = web.input(page=1, limit=10, sort="added_time asc")
+        i = web.input(page=1, limit=10, sort="added_time asc", status="", error="")
         page = int(i.page)
         limit = int(i.limit)
         sort = i.sort
+        status = i.status if i.status in IMPORT_ITEM_STATUSES else None
+        error = i.error or None
+        items_where = "batch_id=$batch_id"
+        if status:
+            items_where += " AND status=$status"
+        if error:
+            items_where += " AND error=$error"
 
         valid_sort_fields = ["added_time", "import_time", "status"]
         sort_field, sort_order = sort.split()
@@ -499,22 +520,39 @@ class BatchImportView(delegate.page):
 
         offset = (page - 1) * limit
         total_rows = db.query(
-            "SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id",
+            f"SELECT COUNT(*) AS count FROM import_item WHERE {items_where}",
             vars=locals(),
         )[0].count
 
         rows = db.select(
             "import_item",
-            where="batch_id=$batch_id",
+            where=items_where,
             order=f"{sort_field} {sort_order}",
             limit=limit,
             offset=offset,
             vars=locals(),
         )
 
-        status_counts = db.query(
-            "SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status",
-            vars=locals(),
+        status_counts = list(
+            db.query(
+                "SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status",
+                vars=locals(),
+            )
+        )
+        error_counts = list(
+            db.query(
+                "SELECT error, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id AND status='failed' GROUP BY error ORDER BY count DESC, error",
+                vars=locals(),
+            )
+        )
+
+        summary = web.storage(
+            batch_id=batch.id,
+            name=batch.name,
+            submitter=batch.submitter,
+            added_time=batch.submit_time,
+            comments=None,
+            status_counts={sc.status: sc.count for sc in status_counts},
         )
 
         return render_template(
@@ -526,6 +564,11 @@ class BatchImportView(delegate.page):
             limit=limit,
             sort=sort,
             status_counts=status_counts,
+            error_counts=error_counts,
+            status=status,
+            error=error,
+            summary=summary,
+            statuses=IMPORT_ITEM_STATUSES,
         )
 
 
@@ -628,6 +671,23 @@ class BatchImportRetryFailed(delegate.page):
 
         count = Batch(batch[0]).retry_failed()
         add_flash_message("success", ungettext("Re-queued %(count)d failed item.", "Re-queued %(count)d failed items.", count, count=count))
+        return web.seeother(f"/import/batch/{batch_id}")
+
+
+class BatchImportPause(delegate.page):
+    """Move the pending items of `batch_id` to `needs_review`; approving resumes them. Admins only."""
+
+    path = r"/import/batch/pause/(\d+)"
+
+    def POST(self, batch_id):
+        _require_admin()
+
+        batch = db.select("import_batch", where="id=$batch_id", vars={"batch_id": int(batch_id)})
+        if not batch:
+            raise web.notfound()
+
+        count = Batch(batch[0]).pause()
+        add_flash_message("success", ungettext("Paused %(count)d pending item.", "Paused %(count)d pending items.", count, count=count))
         return web.seeother(f"/import/batch/{batch_id}")
 
 
@@ -1027,29 +1087,6 @@ def get_recent_changes(*a, **kw):
         return []
     else:
         return _get_recentchanges(*a, **kw)
-
-
-local_ip = None
-
-
-class invalidate(delegate.page):
-    path = "/system/invalidate"
-
-    def POST(self):
-        global local_ip
-        if local_ip is None:
-            local_ip = socket.gethostbyname(socket.gethostname())
-
-        if web.ctx.ip != "127.0.0.1" and web.ctx.ip.rsplit(".", 1)[0] != local_ip.rsplit(".", 1)[0]:
-            raise Forbidden("Allowed only in the local network.")
-
-        data = json.loads(web.data())
-        if not isinstance(data, list):
-            data = [data]
-        for d in data:
-            thing = client.Thing(site.get(), d["key"], client.storify(d))
-            client._run_hooks("on_new_version", thing)
-        return delegate.RawText("ok")
 
 
 def save_error():

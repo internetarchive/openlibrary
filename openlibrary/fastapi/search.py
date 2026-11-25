@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from math import ceil
 from typing import Annotated, Any, Literal, Self
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
@@ -21,7 +21,7 @@ from pydantic import (
 
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
-from openlibrary.core.helpers import commify
+from openlibrary.core.helpers import commify, urlsafe
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.models import (
@@ -30,8 +30,12 @@ from openlibrary.fastapi.models import (
     SolrInternalsParams,
     parse_comma_separated_list,
 )
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, hit_editions, render_inside_body
+from openlibrary.plugins.upstream.mybooks import get_reading_states_async
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url, vue_component_html
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -43,6 +47,8 @@ from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.sort_menu import SortMenu, SortScheme
 from openlibrary.utils.request_context import req_context, site
 
 router = APIRouter()
@@ -330,17 +336,21 @@ async def search_inside_json(
     )
 
 
+class SubjectSearchRequestParams(Pagination):
+    q: str = Field("", description="The search query")
+
+
+@nonblocking
 @router.get("/search/subjects.json")
 async def search_subjects_json(
-    pagination: Annotated[Pagination, Depends()],
-    q: Annotated[str, Query(description="The search query")] = "",
+    params: Annotated[SubjectSearchRequestParams, Query()],
 ):
     response = await run_solr_query_async(
         SubjectSearchScheme(),
-        {"q": q},
-        offset=pagination.offset,
-        page=pagination.page,
-        rows=pagination.limit,
+        {"q": params.q},
+        offset=params.offset,
+        page=params.page,
+        rows=params.limit,
         sort="work_count desc",
         request_label="SUBJECT_SEARCH_API",
     )
@@ -418,9 +428,10 @@ class AuthorSearchRequestParams(Pagination):
     sort: AuthorSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
 
 
+@nonblocking
 @router.get("/search/authors.json")
 async def search_authors_json(
-    params: Annotated[AuthorSearchRequestParams, Depends()],
+    params: Annotated[AuthorSearchRequestParams, Query()],
 ):
     response = await run_solr_query_async(
         AuthorSearchScheme(),
@@ -455,6 +466,7 @@ class EditionSearchRequestParams(Pagination):
     sort: EditionSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
 
 
+@nonblocking
 @router.get("/search/editions.json", tags=["search"])
 async def search_editions_json(
     params: Annotated[EditionSearchRequestParams, Query()],
@@ -496,6 +508,9 @@ async def search_editions_json(
     }
 
 
+# Not @nonblocking: WorkSearchScheme reads the language list (convert_iso_to_marc -> get_languages), which is cached
+# per process but loaded from infobase on first use, so a process's first request blocks the event loop on infobase
+# and memcache (~60ms, seen in Server-Timing). Mark it once that list is loaded at startup or without infobase.
 @router.get(
     "/search/facets.json",
     tags=["internal"],
@@ -568,6 +583,29 @@ class SearchNav:
 SearchNavDep = Annotated[SearchNav, Depends(SearchNav.from_request)]
 
 
+@dataclass(frozen=True)
+class SortLinks:
+    """What the sort menu (``SortMenu``) needs from the request: the page's path and query to build its links, and who is asking.
+
+    ``path`` is the request path. A page with a readable URL (``/authors/OL1A/Name``) must link from that path.
+    """
+
+    path: str
+    params: Mapping[str, str]  # one value per key, the last if repeated
+    is_bot: bool
+    is_librarian: bool  # sees the beta sorts
+
+    @classmethod
+    def from_request(cls, request: Request, user: CurrentUserDep) -> Self:
+        return cls(request.url.path, dict(request.query_params), req_context.get().is_bot, bool(user and user.is_librarian))
+
+    def menu(self, selected_sort: str | None, *, scheme: SortScheme) -> SortMenu:
+        return SortMenu.build(selected_sort, path=self.path, params=self.params, scheme=scheme, can_see_beta_sorts=self.is_librarian, is_bot=self.is_bot)
+
+
+SortLinksDep = Annotated[SortLinks, Depends(SortLinks.from_request)]
+
+
 class AdvancedSearchForm(BaseModel):
     """Pre-fill for the /advancedsearch form. A ``*_facet`` param fills its field when that is empty."""
 
@@ -633,6 +671,106 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
 
 
+@pages.get("/search/bulk")
+async def bulk_search() -> SitePage:
+    # TODO: Retire the web.py `bulk_search` handler (it still serves /search/bulk
+    # in production) once production routes /search/bulk here.
+    body = render_jinja_template("bulk_search/bulk_search.html.jinja", vue_component_html=vue_component_html)
+    return SitePage(body, page=PageMeta(title=_("Bulk Search (beta)")))
+
+
+class InsideSearchParams(BaseModel):
+    """Query params for /search/inside.
+
+    Plain `str` flags, not `Literal`: web.py answers `readable=yes` by reading it
+    as false, and the page has to render that rather than return a 422.
+    """
+
+    q: str = ""
+    page: int = 1
+    language: list[str] = Field(
+        [],
+        description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored.",
+    )
+    readable: str = Field("", description="'true' keeps only hits on readable (public or borrowable) scans.")
+    phrase: str = Field("true", description="'false' searches all the words instead of the exact phrase.")
+
+
+@dataclass(frozen=True)
+class InsideNav:
+    """The phrase toggles in the results header, each keeping the page's other filters."""
+
+    all_words_href: str
+    phrase_href: str
+
+    @classmethod
+    def from_query(cls, path: str, query: str) -> Self:
+        """``query`` is the raw query string, with or without its leading "?"; repeated params are kept."""
+        pairs = [(key, value) for key, value in parse_qsl(query.lstrip("?"), keep_blank_values=True) if key not in {"page", "phrase"}]
+        return cls(
+            all_words_href=f"{path}?{urlencode([*pairs, ('phrase', 'false')])}",
+            phrase_href=f"{path}?{urlencode(pairs)}" if pairs else path,
+        )
+
+    @classmethod
+    def from_request(cls, request: Request) -> Self:
+        return cls.from_query(request.url.path, request.url.query)
+
+
+InsideNavDep = Annotated[InsideNav, Depends(InsideNav.from_request)]
+
+
+def inside_search_title(q: str) -> str:
+    """Page title for /search/inside: led by the query, as on the other search pages."""
+    return _("%(query)s - Full-text search", query=q) if q else _("Full-text search")
+
+
+@pages.get("/search/inside")
+async def search_inside(params: Annotated[InsideSearchParams, Query()], nav: SearchNavDep, inside_nav: InsideNavDep, user: CurrentUserDep) -> SitePage:
+    # TODO: Retire the web.py `search_inside` handler (it still serves /search/inside
+    # in production) once production routes /search/inside here.
+    query = params.q
+    page = max(1, params.page)
+    readable = params.readable == "true"
+    phrase = params.phrase != "false"
+    # (code, name): FTS takes the name; generated URLs keep the code. Only look the
+    # name up when a language was asked for: the table comes from the database.
+    language = resolve_language(params.language) if params.language else None
+
+    data = (
+        await fulltext_search_async(
+            query,
+            page=page,
+            limit=RESULTS_PER_PAGE,
+            facets=False,
+            readable=readable,
+            language=language[1] if language else None,
+            phrase=phrase,
+        )
+        if query
+        else {}
+    )
+
+    # One reading-state lookup for the page, awaited rather than bridged: the sync
+    # get_reading_states() waits on async_bridge's loop thread, which stalls every
+    # other request this worker is serving for the round trip.
+    reading_states = await get_reading_states_async(user, hit_editions(data))
+
+    body = render_inside_body(
+        nav=nav,
+        inside_nav=inside_nav,
+        query=query,
+        page=page,
+        language=language,
+        readable=readable,
+        phrase=phrase,
+        data=data,
+        reading_states=reading_states,
+    )
+    # The search pages size their covers and rows differently, so they set bodyclass just as the Templetor page did.
+    return SitePage(body, page=PageMeta(title=inside_search_title(query), bodyclass=("search-page",)))
+
+
 def subjects_search_title(q: str) -> str:
     """Page title for /search/subjects: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
     return _("%(query)s - Subject search", query=q) if q else _("Subject search")
@@ -668,3 +806,94 @@ async def search_subjects(nav: SearchNavDep, q: str = "", page: int = 1) -> Site
         total_pages=ceil((response.num_found or 0) / limit) if response else 0,
     )
     return SitePage(body, page=PageMeta(title=subjects_search_title(q)))
+
+
+@dataclass(frozen=True)
+class PublisherResult:
+    """One row of /search/publishers: a publisher's name, page link and book count."""
+
+    name: str
+    key: str
+    count: int
+
+
+def publisher_search_query(q: str) -> dict[str, Any]:
+    """The facet-only Solr query behind /search/publishers, shared with web.py's handler.
+    ``select`` and ``select_async`` take the same arguments, so this splats into either.
+    """
+    return {
+        "query": {"publisher": q, "type": "work"},
+        "facets": ["publisher_facet"],
+        "facet_mincount": 1,
+        "facet_limit": 25,
+        "facet_contains": q,
+        "facet_contains_ignoreCase": "true",
+        "rows": 0,
+    }
+
+
+def publisher_results(facet_values: Iterable[Any]) -> list[PublisherResult]:
+    """Map Solr's ``publisher_facet`` values to the page's rows."""
+    return [PublisherResult(name=p.value, key="/publishers/" + p.value.replace(" ", "_"), count=p.count) for p in facet_values]
+
+
+def publisher_search_title(q: str) -> str:
+    """Page title for /search/publishers: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Publisher search", query=q) if q else _("Publisher search")
+
+
+@pages.get("/search/publishers")
+async def search_publishers(q: str = "") -> SitePage:
+    # TODO: Retire the web.py `publisher_search` handler (it still serves
+    # /search/publishers in production) once production routes it here.
+    result = await get_solr().select_async(**publisher_search_query(q))
+    body = render_jinja_template(
+        "search/publishers.html.jinja",
+        q=q,
+        publishers=publisher_results((result.get("facets") or {}).get("publisher_facet", [])),
+    )
+    return SitePage(body, page=PageMeta(title=publisher_search_title(q)))
+
+
+def authors_search_title(q: str) -> str:
+    """Page title for /search/authors: led by the query, as in Wikipedia's, so tabs and history tell searches apart."""
+    return _("%(query)s - Author search", query=q) if q else _("Author search")
+
+
+@pages.get("/search/authors")
+async def search_authors(nav: SearchNavDep, sort_links: SortLinksDep, user: CurrentUserDep, q: str = "", page: int = 1, sort: AuthorSortOption = "") -> SitePage:  # type: ignore[valid-type]
+    # TODO: Retire the web.py `author_search` handler (it still serves /search/authors
+    # in production) once production routes /search/authors here.
+    q = q.strip()
+    page = max(1, page)
+    limit = 100  # Matches web.py's author_search results_per_page
+    response = (
+        await run_solr_query_async(
+            AuthorSearchScheme(),
+            {"q": q},
+            offset=(page - 1) * limit,
+            rows=limit,
+            fields="*",
+            sort=sort,
+            request_label="AUTHOR_SEARCH",
+        )
+        if q
+        else None
+    )
+    # num_found is None when Solr errors; the template shows the error instead of results.
+    num_found = (response.num_found or 0) if response else 0
+
+    body = render_jinja_template(
+        "search/authors.html.jinja",
+        nav=nav,
+        q=q,
+        sort_menu=sort_links.menu(sort, scheme="authors"),
+        search_response=response,
+        can_merge=bool(user and user.is_librarian),
+        urlsafe=urlsafe,
+        coverstore_url=get_coverstore_public_url(),
+        commified_num_found=commify(num_found),
+        page=page,
+        total_pages=ceil(num_found / limit),
+    )
+    return SitePage(body, page=PageMeta(title=authors_search_title(q)))

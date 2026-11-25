@@ -6,6 +6,17 @@ const collator = new Intl.Collator('en-US', { numeric: true });
 export const DEFAULT_EDITION_LIMIT = 200;
 
 /**
+ * Whether the work has more editions than a merge can move.
+ * get_editions asks for one extra edition, so this only looks at the entries it got back:
+ * `size` is a cached count that can be stale in either direction.
+ * @param {{ entries: unknown[] }} editionList
+ * @returns {boolean}
+ */
+export function isEditionListTruncated(editionList) {
+    return editionList.entries.length > DEFAULT_EDITION_LIMIT;
+}
+
+/**
  * Deep copy of a JSON record. Unlike structuredClone, this also accepts Vue reactive proxies.
  * @template T
  * @param {T} value
@@ -110,7 +121,7 @@ export function merge(master, dupes) {
 
     for (const field in result) {
         sources[field] = [master.key];
-        if (result[field] instanceof Array) {
+        if (Array.isArray(result[field])) {
             for (const el of result[field]) {
                 subsources[field] = {
                     [hash_subel(field, el)]: [master.key]
@@ -124,7 +135,7 @@ export function merge(master, dupes) {
             if (!(field in result) && field !== 'subtitle') {
                 result[field] = dupe[field];
                 sources[field] = [dupe.key];
-            } else if (result[field] instanceof Array) {
+            } else if (Array.isArray(result[field])) {
                 result[field] = result[field].concat(dupe[field]);
                 sources[field].push(dupe.key);
             }
@@ -133,7 +144,7 @@ export function merge(master, dupes) {
 
     // dedup
     for (const key in result) {
-        if (!(result[key] instanceof Array)) continue;
+        if (!Array.isArray(result[key])) continue;
         switch (key) {
             case 'authors': {
                 const authors = cloneJSON(result.authors);
@@ -189,7 +200,7 @@ export function get_editions(work_key) {
         // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
         base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
     }
-    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({ limit: DEFAULT_EDITION_LIMIT })}`).then(r => {
+    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({ limit: DEFAULT_EDITION_LIMIT + 1 })}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });

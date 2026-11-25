@@ -129,7 +129,11 @@ const threadOutcome = (t, pr) => {
 };
 
 const suggestionCount = body => {
-    const m = /### Suggestions \(won't block\)\n\n([\s\S]*?)(\n\n###|\n\n> \[!NOTE\]|$)/.exec(body || '');
+    // The status line the review opens with: "**2 findings** · 1 suggestion on `abc1234`".
+    const status = /^(?:\*\*[^*\n]+\*\*|[^\n]*?) · (\d+) suggestions? on `[0-9a-f]{7}`/m.exec(body || '');
+    if (status) return Number(status[1]);
+    // Reviews posted before that line existed: count the bullets of the Suggestions section.
+    const m = /### Suggestions \(won't block\)\n\n([\s\S]*?)(\n\n###|\n\n> \[!NOTE\]|\n\n<details>|$)/.exec(body || '');
     return m ? (m[1].match(/^- \*\*/gm) || []).length : 0;
 };
 
@@ -209,7 +213,7 @@ function checkThresholds({ runs, reviews }, t = THRESHOLDS, fixed = new Set()) {
     return alerts;
 }
 
-// What a PR changed in the review bot's files, as one diff, cut to `max` characters. PR descriptions
+// What a PR changed in the review bot's files, as one diff, cut to `limit` characters. PR descriptions
 // often don't say which failures a change fixes; the diff does (a removed error message, a new catch).
 const MAX_CHANGES = 5000;
 const botDiff = files =>
@@ -217,9 +221,9 @@ const botDiff = files =>
         .filter(f => BOT_PATHS.some(p => f.filename === p || f.filename.startsWith(`${p}/`)))
         .map(f => `--- ${f.filename}\n${f.patch || '(no textual diff)'}`)
         .join('\n');
-const botChanges = (files, max = MAX_CHANGES) => {
+const botChanges = (files, limit = MAX_CHANGES) => {
     const diff = botDiff(files);
-    return diff.length > max ? `${diff.slice(0, max)}\n[cut at ${max} characters]` : diff;
+    return diff.length > limit ? `${diff.slice(0, limit)}\n[cut at ${limit} characters]` : diff;
 };
 
 // The start of an error message, as it would appear in the code that raised it, or null if too
@@ -330,7 +334,7 @@ async function collect({ github, context, core, require, process }) {
         current,
         previous
     };
-    require('fs').writeFileSync('stats.json', JSON.stringify(stats, null, 2));
+    require('node:fs').writeFileSync('stats.json', JSON.stringify(stats, null, 2));
     core.info(`Collected ${current.runs.total} runs and ${current.reviews.reviews} reviews; ${stats.alerts.length} alert(s).`);
 }
 

@@ -20,7 +20,7 @@ from markupsafe import escape
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
-from infogami.utils.view import public, render, render_template, safeint
+from infogami.utils.view import public, render, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
@@ -33,6 +33,7 @@ from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
+    get_coverstore_public_url,
     get_language_name,
     safeget,
     urlencode,
@@ -46,6 +47,7 @@ from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
 )
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.sort_menu import SortMenu
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
@@ -1138,6 +1140,24 @@ class subject_search(delegate.page):
         return response
 
 
+@public
+def sort_menu(selected_sort: str | None, **kwargs) -> SortMenu:
+    """The sort menu for the web.py page being served; Templetor renders it with search/sort_options.html.jinja.
+
+    ``kwargs`` go to ``SortMenu.build`` (``scheme``, ``default_sort``, ``exclude``).
+    """
+    user = site.get().get_user()
+    return SortMenu.build(
+        selected_sort,
+        path=web.ctx.get("readable_path", web.ctx.path),
+        params=web.input(_method="get"),
+        # Same group as the FastAPI pages (ShellUser.is_librarian): librarians, super-librarians and admins.
+        can_see_beta_sorts=bool(user and user.is_librarian_or_higher()),
+        is_bot=req_context.get().is_bot,
+        **kwargs,
+    )
+
+
 class author_search(delegate.page):
     path = "/search/authors"
 
@@ -1148,7 +1168,7 @@ class author_search(delegate.page):
         page = safeint(i.page, 1) if i.page else 1
         offset = (page - 1) * results_per_page
         sort = i.sort or ""
-        results = (
+        resp = (
             self.get_results(
                 q,
                 offset=offset,
@@ -1159,7 +1179,29 @@ class author_search(delegate.page):
             if q
             else None
         )
-        return render_template("search/authors", q, page, results_per_page, sort, results)
+        # An empty query renders the bare search form, so there is no response to read;
+        # num_found is None when Solr errors.
+        num_found = (resp.num_found or 0) if resp else 0
+        user = site.get().get_user()
+
+        # Local import: openlibrary.fastapi.search imports this module.
+        from openlibrary.fastapi.search import SearchNav, authors_search_title
+
+        body = render_jinja_template(
+            "search/authors.html.jinja",
+            nav=SearchNav.from_query(web.ctx.path, web.input(_method="get")),
+            q=q,
+            sort_menu=sort_menu(sort, scheme="authors"),
+            search_response=resp,
+            can_merge=bool(user and user.is_librarian_or_higher()),
+            urlsafe=urlsafe,
+            coverstore_url=get_coverstore_public_url(),
+            commified_num_found=commify(num_found),
+            page=page,
+            total_pages=ceil(num_found / results_per_page),
+        )
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(authors_search_title(q)))
 
     def get_results(
         self,
@@ -1217,7 +1259,11 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         if "env" not in web.ctx:
             delegate.fakeload()
             set_context_from_legacy_web_py()
-        lst = cast(List, site.get().get(key))
+        list_doc = site.get().get(key)
+        if list_doc is None:
+            return []
+
+        lst = cast(List, list_doc)
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):

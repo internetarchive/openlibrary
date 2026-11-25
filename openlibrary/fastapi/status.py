@@ -1,8 +1,7 @@
 """FastAPI router for server-status endpoints (testing environment, etc.).
 
 The testing-environment endpoints expose the same data that powers the
-/status deploy table on the legacy web.py page, so developers can query it
-via JSON without a browser.
+/status deploy table, so developers can query it via JSON without a browser.
 
 ``/status/testing/stream`` serves the same snapshot as Server-Sent Events,
 fed by ``cache.singleflight_cache``: one fleet-wide compute per
@@ -19,9 +18,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from pydantic import BaseModel, Field
 
+from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.auth import AuthenticatedUser, require_maintainer
+from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
     add_prs,
@@ -31,6 +35,7 @@ from openlibrary.plugins.openlibrary.status import (
     remove_testing_prs,
     restore_prs,
     set_prs_active,
+    status_page_values,
 )
 
 logger = logging.getLogger("openlibrary.fastapi.status")
@@ -40,6 +45,7 @@ router = APIRouter(
     dependencies=[Depends(require_maintainer)],
     include_in_schema=get_ol_env().LOCAL_DEV,
 )
+pages = APIRouter(route_class=SitePageRoute)
 
 _STREAM_TICK_SECONDS = 1.0  # per-tab tick; normally a cache hit, no upstream I/O
 _SNAPSHOT_TTL_SECONDS = 5.0  # fleet-wide: at most one upstream compute per window
@@ -156,3 +162,13 @@ async def deploy_status() -> dict[str, bool | str]:
     result = await deploy_testing_status()
     _invalidate_cached_snapshot()
     return result
+
+
+@pages.get("/status")
+def status_page(user: CurrentUserDep) -> SitePage:
+    """Server status, plus the testing-environment panel for maintainers. Sync: it reads files and infobase."""
+    # The shell's user has no maintainer flag, so only logged-in visitors pay for this second lookup.
+    full_user = get_current_user() if user else None
+    values = status_page_values(is_maintainer=bool(full_user and full_user.is_maintainer()))
+    body = render_jinja_template("status.html.jinja", **values)
+    return SitePage(body, page=PageMeta(title=_("Open Library server status")))

@@ -14,7 +14,8 @@ name: Code Review Action
 #   status   posts the `code-review` commit status.
 #   decline  replies to an @openlibrary-bot comment from someone who can't ask for a review.
 #   skipped  replies to an @openlibrary-bot comment when there's nothing to review.
-#   decline and skipped post fixed text with a PAT and run no model.
+#   stacked  replies to a review request on a PR stacked on another branch, which starts no review.
+#   decline, skipped and stacked post fixed text with a PAT and run no model.
 # A prompt injection in a PR can change what the review says, but the job that read it has nothing
 # to write with. Keep `analyze` and `post` separate, and keep write scopes and PATs out of `analyze`.
 #
@@ -53,6 +54,11 @@ on:
         description: "Debug: manually run the code reviewer on a specific existing PR"
         required: true
         type: string
+      full_review:
+        description: "Review the whole PR again, even a commit already reviewed (e.g. after a bot change)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   # One group per PR, and runs are never cancelled. A run cancelled after posting its review but
@@ -67,9 +73,12 @@ jobs:
     runs-on: ubuntu-latest
     # Runs on:
     #   - a non-draft PR's review request for the team or the bot. A PR can't request its own author
-    #     but can request a team, so the team path also reviews the bot's own PRs.
+    #     but can request a team, so the team path also reviews the bot's own PRs. Only for PRs into
+    #     the default branch: pull_request_target runs this file and its scripts as they are on the
+    #     PR's base branch, so for a PR stacked on another PR's branch it would run that branch's
+    #     unmerged copy of the bot. `stacked` says how to ask instead.
     #   - an @openlibrary-bot comment on a PR, from staff or the PR's author. The author is allowed
-    #     because a fork contributor can't re-request a review but can comment.
+    #     because a fork contributor may not see the re-request button but can always comment.
     #   - workflow_dispatch, which needs write access and also reviews drafts.
     if: >
       github.event_name == 'workflow_dispatch' ||
@@ -77,6 +86,7 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
+        github.event.pull_request.base.ref == github.event.repository.default_branch &&
         (
           github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
           github.event.requested_reviewer.login == 'openlibrary-bot'
@@ -140,14 +150,28 @@ jobs:
       - name: Resolve review range (incremental since our last pass)
         id: range
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          # A full review of the whole PR, even of a commit already reviewed: for re-running the bot
+          # after a change to it. Maintainers only (the same list as analyze's `if`), since each one
+          # costs a full model run: a dispatch, or an "@openlibrary-bot full review" comment.
+          FULL_REVIEW: >-
+            ${{
+              (github.event_name == 'workflow_dispatch' && inputs.full_review) ||
+              (
+                github.event_name == 'issue_comment' &&
+                contains(github.event.comment.body, '@openlibrary-bot full review') &&
+                contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+              )
+            }}
         with:
           script: |
             const { resolveRange } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/range.cjs`);
             await resolveRange({ github, context, core, require, process });
 
-      # Ticket context, after PR-Agent's `require_ticket_analysis_review`: the issues the PR links
-      # to, for the model to check the PR against. Issue text is untrusted, so anything the model
-      # writes about it still goes through the gate. A failure here leaves the list empty.
+      # The PR's title and description (pr-description.json), for the model to check against the
+      # diff, and ticket context after PR-Agent's `require_ticket_analysis_review`: the issues the PR
+      # links to (linked-issues.json). Both are untrusted text, so anything the model writes about
+      # them still goes through the gate. A failure here leaves the files empty.
       - name: Fetch linked issues (ticket context)
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -201,8 +225,11 @@ jobs:
           # are not -- they reach outside it. Spell the write scope `Edit(...)`: at this pin
           # `Write(./review.json)` silently denies every write, including review.json, which
           # would withhold every review while looking like the gate working.
+          # --max-turns only stops a review that is stuck. review.json is written at the end, so a
+          # review that hits the limit posts nothing. Keep it well above what real reviews use:
+          # in Nov 2026 the median was 24 turns, the 90th percentile 39, and the most 47.
           claude_args: >-
-            --max-turns 40
+            --max-turns 75
             --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
             --disallowedTools "Bash WebFetch WebSearch"
           claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
@@ -212,12 +239,44 @@ jobs:
           # public run log or step summary, past the gate.
           show_full_output: false
           display_report: false
-          # The action rejects anyone without write access, but the `if` above also lets a PR's author
-          # re-run the review by commenting, and fork authors only have read access. So on a comment
-          # trigger, allow exactly the commenter, whom the `if` already vetted; other triggers are
-          # unchanged. This job has no write access either way. Setting it turns on the action's
-          # subprocess sandbox for that run (see the pin note above); the review step has no shell.
-          allowed_non_write_users: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}
+          # The action rejects anyone without write access, but a PR's author can re-run the review in
+          # two ways, and fork authors only have read access: by commenting (the `if` above vets the
+          # commenter), or with GitHub's re-request button next to openlibrary-bot, which GitHub lets
+          # a PR's author use. So allow exactly the commenter on a comment, and on a re-request of the
+          # bot, the requester only when they wrote the PR; other triggers are unchanged. This job has
+          # no write access either way. Setting it turns on the action's subprocess sandbox for that
+          # run (see the pin note above); the review step has no shell.
+          allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
+
+      # A review.json that breaks the format is withheld in full, so give the model one try to fix it.
+      - name: Check the review's format
+        id: format
+        if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { checkFormat } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/analyze_gate.cjs`);
+            await checkFormat({ core, require, process });
+
+      # Same as Review (see the notes there) except the prompt.
+      - name: Fix the review's format
+        if: steps.format.outputs.malformed == 'true'
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/code_review.md
+
+            You reviewed PR #${{ steps.range.outputs.pr }}, but `review.json` doesn't match the format above.
+            Fix it so it does, keeping your findings. If it's missing, review the PR and write it.
+          claude_args: >-
+            --max-turns 75
+            --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
+            --disallowedTools "Bash WebFetch WebSearch"
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: false
+          display_report: false
+          allowed_non_write_users: ${{ (github.event_name == 'issue_comment' && github.event.comment.user.login) || (github.event_name == 'pull_request_target' && github.event.requested_reviewer.login == 'openlibrary-bot' && github.event.sender.login == github.event.pull_request.user.login && github.event.sender.login) || '' }}
 
       - name: Gate the analysis before upload
         id: analyze-gate
@@ -225,6 +284,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           OFF_DIMENSIONS: ${{ steps.range.outputs.off_dimensions }}
+          INLINE_KEY_ISSUES: ${{ steps.range.outputs.inline_key_issues }}
         with:
           script: |
             const { gateAnalysis } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/analyze_gate.cjs`);
@@ -235,8 +295,8 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: code-review-${{ steps.range.outputs.pr }}
-          # review.json only, as rewritten by the gate step. review.diff and review-range.json
-          # were on disk while the model ran; `post` re-derives both from job outputs.
+          # review.json only, as rewritten by the gate step. review.diff, pr.diff and review-range.json
+          # were on disk while the model ran; `post` re-derives them from job outputs.
           path: review.json
           if-no-files-found: error
           retention-days: 7
@@ -395,6 +455,43 @@ jobs:
             const { replySkipped } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
             await replySkipped({ github, context, core, require, process });
 
+  # A review requested on a PR stacked on another branch starts nothing (see analyze), so say how to
+  # get one: an @openlibrary-bot comment runs the default branch's copy of this workflow. Replies
+  # once per PR, with fixed text and a PAT, and runs no model.
+  stacked:
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'review_requested' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.base.ref != github.event.repository.default_branch &&
+      (
+        github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
+        github.event.requested_reviewer.login == 'openlibrary-bot'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the checkout below; the reply uses a bot PAT
+    steps:
+      # Only the review scripts and settings, from the same commit as this workflow.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            /.github/scripts/
+            /.pr_agent.toml
+          sparse-checkout-cone-mode: false
+
+      - name: Say how to review a stacked PR
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        with:
+          github-token: ${{ secrets.OL_BOT_PR_PAT }}
+          script: |
+            const { replyStacked } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/reply.cjs`);
+            await replyStacked({ github, context, core, process });
+
   # Marks the head code-review=pending, unless it already has a status: analyze may then skip, and
   # nothing would replace the pending. Same `if` as analyze.
   pending:
@@ -404,6 +501,7 @@ jobs:
         github.event_name == 'pull_request_target' &&
         github.event.action == 'review_requested' &&
         !github.event.pull_request.draft &&
+        github.event.pull_request.base.ref == github.event.repository.default_branch &&
         (
           github.event.requested_team.slug == 'openlibrary-agentic-code-reviewer' ||
           github.event.requested_reviewer.login == 'openlibrary-bot'
@@ -462,7 +560,8 @@ jobs:
   #   - nothing held back from it blocks;
   #   - its count of blocking findings is known to be 0. A missing or unparseable count fails.
   #     The count catches findings with no line in the diff to anchor to, which have no thread;
-  #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated).
+  #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated), apart
+  #     from the bot's own "Suggestion (won't block)" comments, which never block.
   # If the head moved since the review, it only marks the reviewed SHA superseded (pending): the new
   # head needs its own review.
   # On a repost it rebuilds the verdict from the existing review's marker and the live threads.

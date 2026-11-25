@@ -93,16 +93,3 @@ def test_new_api_checks_and_saves_to_current_site(current_site, monkeypatch):
     assert json.loads(code.new().POST()) == "/books/OL1M"
     assert current_site.get("/books/OL1M").title == "New book"
     assert current_site.changesets[-1]["kind"] == "test-create"
-
-
-def test_invalidate_passes_current_site_to_hooks(current_site, monkeypatch):
-    monkeypatch.setattr(code, "local_ip", "127.0.0.1")
-    monkeypatch.setitem(web.ctx, "ip", "127.0.0.1")
-    monkeypatch.setattr(web, "data", lambda: json.dumps({"key": "/books/OL1M", "title": "Updated book"}).encode())
-    run_hooks = Mock()
-    monkeypatch.setattr(code.client, "_run_hooks", run_hooks)
-
-    assert code.invalidate().POST().rawtext == "ok"
-    event, thing = run_hooks.call_args.args
-    assert event == "on_new_version"
-    assert thing._site is current_site

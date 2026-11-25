@@ -50,3 +50,46 @@ export function initConfirmationButtons(buttons) {
         });
     }
 }
+
+/**
+ * /admin/new-accounts: tick rows (shift-click ticks a range), then act on all of them.
+ * The bulk buttons wait for a selection and confirm with their `data-confirm` text.
+ * @param {HTMLFormElement} form
+ */
+export function initNewAccountsReview(form) {
+    const boxes = [...form.querySelectorAll('input[name="username"]')];
+    const all = form.querySelector('.new-accounts__select-all');
+    const status = form.querySelector('.new-accounts__selected');
+    const actions = form.querySelectorAll('.new-accounts__bulk-action');
+    const { selectAll, selectedCount } = status.dataset;
+    let last = null;
+
+    const update = () => {
+        const count = boxes.filter(box => box.checked).length;
+        all.checked = count > 0 && count === boxes.length;
+        all.indeterminate = count > 0 && count < boxes.length;
+        status.textContent = count ? selectedCount.replace('__COUNT__', count) : selectAll;
+        for (const action of actions) action.disabled = !count;
+        for (const box of boxes) box.closest('tr').classList.toggle('new-accounts__row--selected', box.checked);
+    };
+
+    all.addEventListener('change', () => {
+        for (const box of boxes) box.checked = all.checked;
+        update();
+    });
+    form.addEventListener('click', event => {
+        const box = event.target;
+        if (!boxes.includes(box)) return;
+        if (event.shiftKey && last) {
+            const [from, to] = [boxes.indexOf(last), boxes.indexOf(box)].sort((a, b) => a - b);
+            for (const other of boxes.slice(from, to + 1)) other.checked = box.checked;
+        }
+        last = box;
+        update();
+    });
+    form.addEventListener('submit', event => {
+        const message = event.submitter?.closest('ol-button')?.dataset.confirm;
+        if (message && !confirm(message)) event.preventDefault();
+    });
+    update();
+}

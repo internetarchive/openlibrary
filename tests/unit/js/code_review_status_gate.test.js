@@ -41,6 +41,17 @@ test('parseFindings returns null (=> blocks) for absent or malformed input -- NO
     }
 });
 
+test("unresolvedThreadCount skips the bot's suggestion threads, but not a marker someone else wrote", () => {
+    const first = (login, body) => ({ isResolved: false, isOutdated: false, comments: { nodes: [{ author: { login }, body }] } });
+    const marked = `${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — x**`;
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', marked)]), 0, "the bot's suggestion");
+    assert.equal(unresolvedThreadCount([first('someone', marked)]), 1, 'a human copying the marker still blocks');
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', '**MEDIUM · Correctness — x**')]), 1, "the bot's finding");
+    // A finding's text is written by the model and can quote the marker (say, in a PR that edits shared.cjs).
+    const quoting = `**MEDIUM · Correctness — x**\n\nThe line \`${shared.SUGGESTION_MARKER}\` is wrong.\n\n${shared.SUGGESTION_MARKER}`;
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', quoting)]), 1, 'a finding that quotes the marker still blocks');
+});
+
 // ---- unresolvedThreadCount: GitHub's own isResolved/isOutdated are authoritative ----
 test('unresolvedThreadCount counts only threads that are unresolved AND not outdated', () => {
     const threads = [
@@ -200,17 +211,21 @@ test('analyze run steps invoke only allowlisted commands (no shell/interpreter/b
 });
 
 // The model has no shell or network. Fail if claude_args ever allows Bash or drops --disallowedTools.
-test('the Review (model) step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
-    const review = (analyzeJob.steps || []).find(s => (s.uses || '').includes('claude-code-action'));
-    assert.ok(review, 'expected a claude-code-action Review step in analyze');
-    const args = String((review.with && review.with.claude_args) || '');
-    const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
-    assert.ok(disallowed, 'Review step must pass --disallowedTools (the model must have no shell/network)');
-    for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
-        assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `--disallowedTools must include ${tool}`);
+test('every model step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
+    const models = (analyzeJob.steps || []).filter(s => (s.uses || '').includes('claude-code-action'));
+    assert.ok(models.length >= 2, 'expected the Review step and the format-fix step in analyze');
+    for (const model of models) {
+        const args = String((model.with && model.with.claude_args) || '');
+        const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
+        assert.ok(disallowed, `${model.name} must pass --disallowedTools (the model must have no shell/network)`);
+        for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
+            assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `${model.name}: --disallowedTools must include ${tool}`);
+        }
+        const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
+        assert.ok(!/\bBash\b/.test(allowed), `${model.name} must not re-enable Bash via --allowedTools`);
+        assert.equal(model.with.show_full_output, false, `${model.name} must not print the model's text to the public log`);
+        assert.equal(model.with.display_report, false, `${model.name} must not put the model's text in the step summary`);
     }
-    const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
-    assert.ok(!/\bBash\b/.test(allowed), 'Review step must not re-enable Bash via --allowedTools');
 });
 
 test('analyze job holds no PAT and no write permission (the no-write half of the split)', () => {
@@ -500,7 +515,7 @@ test('D3a analyze emits withheld + withheld_blocking outputs, and public_finding
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /res\.publish \? res\.clean\.findings\.filter\(f => f\.severity !== 'low'\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
+        /res\.publish \? res\.clean\.findings\.filter\(blocks\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
 });
@@ -512,7 +527,7 @@ test('every checkout is github.sha (never a PR-head ref or a stale base.sha) wit
     const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
         (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
     );
-    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'status']);
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'stacked', 'status']);
     for (const [job, w] of checkouts) {
         assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
         assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);
@@ -582,4 +597,37 @@ test('a blocking held-back part stays open until its review is dismissed', () =>
     assert.equal(verdictFindings(held), 1);
     assert.equal(verdictFindings({ ...held, state: 'DISMISSED' }), 0);
     assert.equal(verdictFindings({ state: 'DISMISSED', body: 'x\n<!-- ol-pr-review-bot f=2 -->' }), 2);
+});
+
+// ---- A malformed review.json gets one try at a fix before the gate ----
+test('checkFormat says whether the gate would withhold review.json in full', async () => {
+    const { checkFormat } = load(join(SCRIPTS, 'analyze_gate.cjs'));
+    const malformed = async content => {
+        const out = {};
+        const fs = {
+            readFileSync: () => {
+                if (content === null) throw new Error('ENOENT');
+                return content;
+            }
+        };
+        await checkFormat({
+            core: { setOutput: (k, v) => (out[k] = v) },
+            require: id => (id === 'node:fs' ? fs : load(id)),
+            process: { env: { GITHUB_WORKSPACE: '/w' } }
+        });
+        return out.malformed;
+    };
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: [] })), 'false');
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: 'none' })), 'true');
+    assert.equal(await malformed('{"summary": '), 'true');
+    assert.equal(await malformed(null), 'true');
+});
+
+test('the format-fix step runs only when the format check failed, before the gate', () => {
+    const steps = analyzeJob.steps || [];
+    const i = name => steps.findIndex(s => s.name === name);
+    assert.ok(i('Review') < i("Check the review's format"));
+    assert.ok(i("Check the review's format") < i("Fix the review's format"));
+    assert.ok(i("Fix the review's format") < i('Gate the analysis before upload'), 'the gate must check the fixed file');
+    assert.equal(steps[i("Fix the review's format")].if, "steps.format.outputs.malformed == 'true'");
 });

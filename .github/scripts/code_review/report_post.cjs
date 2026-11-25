@@ -12,7 +12,7 @@ const MAX_MARKDOWN = 20000;
 const MAX_ITEMS = 5;
 const MAX_ITEM = 500;
 const MAX_FIXES = 50;
-const FIX_STATUSES = ['fixed', 'probably_fixed'];
+const FIX_STATUSES = new Set(['fixed', 'probably_fixed']);
 
 const str = (x, n) => typeof x === 'string' && x.trim().length > 0 && x.length <= n;
 
@@ -32,7 +32,7 @@ const parseReport = raw => {
     if (!Array.isArray(fixes) || fixes.length > MAX_FIXES) return null;
     for (const f of fixes) {
         if (!f || typeof f !== 'object' || !Number.isInteger(f.failure_id) || !Number.isInteger(f.pr)) return null;
-        if (!FIX_STATUSES.includes(f.status) || !str(f.why, MAX_ITEM)) return null;
+        if (!FIX_STATUSES.has(f.status) || !str(f.why, MAX_ITEM)) return null;
     }
     return { markdown: r.markdown, needs_attention: r.needs_attention, reasons: r.reasons, follow_ups: r.follow_ups, failure_fixes: fixes };
 };
@@ -169,7 +169,7 @@ function render({ stats, report, runUrl }) {
 }
 
 async function publish({ github, context, core, require, process }) {
-    const fs = require('fs');
+    const fs = require('node:fs');
     const stats = JSON.parse(fs.readFileSync('stats.json', 'utf8'));
     const report = fs.existsSync('report.json') ? parseReport(fs.readFileSync('report.json', 'utf8')) : null;
     const { open, issue, summary, title } = render({ stats, report, runUrl: process.env.RUN_URL });

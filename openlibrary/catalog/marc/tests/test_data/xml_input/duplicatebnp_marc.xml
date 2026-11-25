@@ -1,0 +1,47 @@
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+<record>
+  <leader>00877cam a22002891c 4500</leader>
+  <controlfield tag="001">197984</controlfield>
+  <controlfield tag="003">PoLiBN</controlfield>
+  <controlfield tag="005">19981130024400.0</controlfield>
+  <controlfield tag="008">890101m19301931sp     g          b spa  </controlfield>
+  <datafield tag="016" ind1="7" ind2=" ">
+    <subfield code="a">197984</subfield>
+    <subfield code="2">PoLiBN</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2="0">
+    <subfield code="a">PT</subfield>
+    <subfield code="c">BN</subfield>
+    <subfield code="e">RPC</subfield>
+  </datafield>
+  <datafield tag="041" ind1="0" ind2=" ">
+    <subfield code="a">spa</subfield>
+  </datafield>
+  <datafield tag="044" ind1=" " ind2=" ">
+    <subfield code="a">sp </subfield>
+    <subfield code="c">es</subfield>
+  </datafield>
+  <datafield tag="080" ind1=" " ind2=" ">
+    <subfield code="a">012</subfield>
+  </datafield>
+  <datafield tag="080" ind1=" " ind2=" ">
+    <subfield code="a">946&quot;15&quot;(01)</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+    <subfield code="a">Paz, Julián</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2=" ">
+    <subfield code="a">Catálogo de la colección de documentos inéditos para la história de España</subfield>
+    <subfield code="c">por Julían Paz</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Madrid</subfield>
+    <subfield code="b">Instituto de Valencia de Don Juan,</subfield>
+    <subfield code="c">1930-1931</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">2 v.</subfield>
+    <subfield code="c">24 cm</subfield>
+  </datafield>
+</record>
+</collection>

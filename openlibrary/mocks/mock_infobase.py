@@ -145,23 +145,31 @@ class MockSite:
         return Changeset(self, self.changesets[cid])
 
     def recentchanges(self, query):
+        """The filters of Infobase's `recentchanges` that tests use, newest first."""
         limit = query.pop("limit", 1000)
         offset = query.pop("offset", 0)
 
         author = query.pop("author", None)
+        kind = query.pop("kind", None)
+        bot = query.pop("bot", None)
+        begin_date = query.pop("begin_date", None)
+        end_date = query.pop("end_date", None)
 
-        if not author:
-            raise NotImplementedError("MockSite.recentchanges without author not implemented")
+        def is_bot(author_key) -> bool:
+            return bool(author_key and self.docs.get(author_key, {}).get("bot"))
 
-        result = list(
-            itertools.islice(
-                (Changeset(self, c) for c in reversed(self.changesets) if safeget(lambda: c["author"]["key"]) == author),
-                offset,
-                offset + limit,
+        def matches(c) -> bool:
+            author_key = safeget(lambda: c["author"]["key"])
+            return (
+                (author is None or author_key == author)
+                and (kind is None or c["kind"] == kind)
+                and (bot is None or is_bot(author_key) == (str(bot).lower() == "true"))
+                and (begin_date is None or datetime.fromisoformat(c["timestamp"]) >= datetime.fromisoformat(begin_date))
+                # end_date is not included in the interval, as in Infobase.
+                and (end_date is None or datetime.fromisoformat(c["timestamp"]) < datetime.fromisoformat(end_date))
             )
-        )
 
-        return result
+        return list(itertools.islice((Changeset(self, c) for c in reversed(self.changesets) if matches(c)), offset, offset + limit))
 
     def get(self, key, revision=None, lazy=False):
         if revision:
@@ -380,7 +388,8 @@ class MockStore(dict):
         for doc in dict.values(self):
             if type is not None and doc.get("type", "") != type:
                 continue
-            if name is not None and doc.get(name) != value:
+            # A list is indexed by each of its items, as in Infobase.
+            if name is not None and doc.get(name) != value and not (isinstance(doc.get(name), list) and value in doc[name]):
                 continue
 
             yield doc

@@ -294,13 +294,9 @@ class merge_authors(delegate.page):
 
             raise web.seeother(redir_url)
         else:
-            # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
-            redir_url = f"/authors/{i.master}/-/?merge=true&duplicates={','.join(selected)}"
-            if i.mrid:
-                redir_url = f"{redir_url}&mrid={i.mrid}"
-            if i.comment:
-                redir_url = f"{redir_url}&comment={i.comment}"
-            raise web.seeother(redir_url)
+            # merge.js POSTs direct merges to /authors/merge.json. Don't redirect into a merge
+            # here: reloading the target page would run it again (#7506).
+            raise web.badrequest("Use the Merge Authors button to merge authors.")
 
 
 def setup():

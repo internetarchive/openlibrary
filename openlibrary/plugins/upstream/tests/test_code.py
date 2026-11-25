@@ -537,3 +537,34 @@ class TestIntegratedBookPageRendering:
         assert page.title == expected_title
         assert og["og:title"] == f"{expected_title} | Open Library"
         assert context.description == og["og:description"] == expected_description
+
+
+class TestGenericEditSpamCheck:
+    """POST to ?m=edit runs the spam check on every page, not only profiles."""
+
+    @pytest.fixture
+    def saved(self, monkeypatch):
+        saved = Mock(return_value="saved")
+        monkeypatch.setattr(code.core.edit, "POST", saved)
+        monkeypatch.setattr(web, "input", lambda *a, **kw: web.storage(title="x"))
+        monkeypatch.setattr(code, "render_template", lambda *a, **kw: "rejected")
+        return saved
+
+    @pytest.mark.parametrize("key", ["/works/OL1W", "/books/OL1M", "/authors/OL1A", "/people/foo", "/people/foo/lists/OL1L", "/about"])
+    def test_spam_is_refused_on_every_page(self, monkeypatch, saved, key):
+        monkeypatch.setattr(code.spamcheck, "is_spam", lambda i, allow_privileged_edits=False: True)
+        assert code.edit().POST(key) == "rejected"
+        saved.assert_not_called()
+
+    @pytest.mark.parametrize("key", ["/works/OL1W", "/people/foo", "/about"])
+    def test_clean_edit_is_saved(self, monkeypatch, saved, key):
+        monkeypatch.setattr(code.spamcheck, "is_spam", lambda i, allow_privileged_edits=False: False)
+        assert code.edit().POST(key) == "saved"
+
+    @pytest.mark.parametrize(("key", "privileged"), [("/works/OL1W", True), ("/about", True), ("/people/foo", False)])
+    def test_staff_exemption_applies_outside_profiles(self, monkeypatch, saved, key, privileged):
+        """Admins and librarians keep editing wiki and record pages; profile edits stay as strict as before."""
+        is_spam = Mock(return_value=False)
+        monkeypatch.setattr(code.spamcheck, "is_spam", is_spam)
+        code.edit().POST(key)
+        assert is_spam.call_args.kwargs["allow_privileged_edits"] is privileged
