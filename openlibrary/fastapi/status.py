@@ -1,8 +1,7 @@
 """FastAPI router for server-status endpoints (testing environment, etc.).
 
 The testing-environment endpoints expose the same data that powers the
-/status deploy table on the legacy web.py page, so developers can query it
-via JSON without a browser.
+/status deploy table, so developers can query it via JSON without a browser.
 
 ``/status/testing/stream`` serves the same snapshot as Server-Sent Events,
 fed by ``cache.singleflight_cache``: one fleet-wide compute per

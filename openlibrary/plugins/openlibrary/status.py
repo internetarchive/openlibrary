@@ -10,8 +10,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
-import web
-from markupsafe import escape
 from pydantic import BaseModel, Field, field_serializer
 
 from infogami.utils import delegate
@@ -19,8 +17,6 @@ from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.jinja import render_jinja_template
-from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.github import (
     GitHubAPIError,
     GitHubPRInfo,
@@ -48,15 +44,8 @@ _DEPLOY_WINDOW = 10 * 60  # 10 minutes
 _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 
-class status(delegate.page):
-    def GET(self):
-        body = render_jinja_template("status.html.jinja", **status_page_values(is_maintainer=_is_maintainer()))
-        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
-        return web.template.TemplateResult(__body__=body, title=escape(_("Open Library server status")))
-
-
 def status_page_values(is_maintainer: bool) -> dict[str, Any]:
-    """What ``status.html.jinja`` shows, on web.py and FastAPI alike."""
+    """What ``status.html.jinja`` shows."""
     has_testing_state = _load_testing_state() is not None
     return {
         "status": status_info,
@@ -740,11 +729,6 @@ def _ensure_testing_state_file() -> None:
     relevant_environment = False
     if relevant_environment and not TESTING_STATE_FILE.exists():
         TESTING_STATE_FILE.write_text(json.dumps({"last_deploy_at": "", "prs": []}, indent=2))
-
-
-def _is_maintainer() -> bool:
-    user = get_current_user()
-    return bool(user and user.is_maintainer())
 
 
 async def _fetch_drift_infos(prs: list[TestingPR]) -> dict[int, dict]:

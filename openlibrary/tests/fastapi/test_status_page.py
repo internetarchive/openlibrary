@@ -1,4 +1,4 @@
-"""`/status` HTML page on FastAPI, and its web.py handler while that still exists."""
+"""`/status` HTML page."""
 
 from types import SimpleNamespace
 
@@ -75,12 +75,3 @@ def test_status_page_does_not_read_webpy_ctx(client, webpy_leftovers, fetch_conc
         assert webpy_leftovers not in response.text
         # The component's script is on every maintainer's page, not only the first one a thread renders.
         assert ("ol-TestingEnvironment.js" in response.text) == (user == "maintainer")
-
-
-def test_webpy_handler_renders_the_fastapi_body(client, monkeypatch, request_context_fixture):
-    request_context_fixture(lang="en")
-    monkeypatch.setattr(status_module, "_is_maintainer", lambda: True)
-    result = status_module.status().GET()
-
-    assert result.title == "Open Library server status"  # web.py's layout reads the title from here
-    assert str(result) in client.get("/status", headers={"x-user": "maintainer"}).text

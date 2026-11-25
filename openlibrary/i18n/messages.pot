@@ -10220,7 +10220,7 @@ msgstr ""
 msgid "Author search"
 msgstr ""
 
-#: openlibrary/fastapi/status.py openlibrary/plugins/openlibrary/status.py
+#: openlibrary/fastapi/status.py
 msgid "Open Library server status"
 msgstr ""
 
