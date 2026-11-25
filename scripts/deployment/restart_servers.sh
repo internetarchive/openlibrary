@@ -32,3 +32,21 @@ for SERVER in $SERVERS; do
         COMPOSE_FILE=$PRODUCTION HOSTNAME=\$HOSTNAME OLIMAGE=$OLIMAGE docker compose --profile $(echo $SERVER | cut -f1 -d '.') $DOCKER_COMPOSE_COMMAND
     "
 done
+
+# web_haproxy's image never changes, so the up above leaves it running with the haproxy.cfg and FastAPI route files
+# (conf/haproxy) it mounted when it started, which a deploy has since moved aside (see check_nginx_config in deploy.sh).
+# Recreate it after the web heads, so it sends a route to FastAPI only once they serve it. `run` checks the new files.
+if [[ " $SERVER_NAMES " == *" ol-www1 "* && "$DOCKER_COMPOSE_COMMAND" == up* ]]; then
+    SERVER="ol-www1$SERVER_SUFFIX"
+    echo "$SERVER web_haproxy ..."
+    ssh $SERVER "
+        set -e
+        export COMPOSE_FILE=$PRODUCTION HOSTNAME=\$(host $SERVER | cut -d ' ' -f 1)
+        cd /opt/openlibrary
+        if ! docker compose --profile ol-www1 run --rm --no-deps -T web_haproxy haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg; then
+            echo 'web_haproxy config check failed, so web_haproxy still runs the config and FastAPI routes of the previous deploy.' >&2
+            exit 1
+        fi
+        docker compose --profile ol-www1 up -d --no-deps --force-recreate web_haproxy
+    "
+fi
