@@ -129,7 +129,7 @@ def read_control_number(rec: MarcBase) -> dict[str, list[str]] | None:
     # 001 + 003 Control Number and Identifier
     number = rec.get_control("001")
     source = rec.get_control("003")
-    if number and source in AGENCY_MAPPING:
+    if number and source in AGENCY_MAPPING and not number.startswith(LEGACY_BNF_PREFIX):
         return {AGENCY_MAPPING[source]: [number]}
     return None
 
