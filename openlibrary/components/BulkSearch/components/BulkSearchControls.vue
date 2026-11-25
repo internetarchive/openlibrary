@@ -1,30 +1,26 @@
 <template>
     <div class="bulk-search-controls">
         <div>
-            <p v-if="showColumnHint">{{ t('columnHint') }}</p>
-            <p class="bulk-search-instructions">
-                <strong>{{ t('instructions') }}</strong>
-            </p>
+            <p v-if="showColumnHint">Please include a header row. Supported columns include: "Title", "Author", "ISBN".</p>
+            <p class="bulk-search-instructions"><strong>Enter your books below</strong> - one per line, or paste from a spreadsheet.</p>
 
             <select v-model="selectedValue" class="sampleBar">
                 <option v-for="sample in sampleData" :key="sample.source" :value="sample.text">
-                    {{ sample.name || t('trySample') }}
+                    {{ sample.name }}
                 </option>
             </select>
-            <textarea v-model="bulkSearchState.inputText" :placeholder="t('inputPlaceholder')" />
+            <textarea v-model="bulkSearchState.inputText" placeholder="Enter your books..." />
             <br />
             <div class="progressCarousel">
                 <div ref="step1" class="progressCard" :class="{ activeStep: activeStep === 1 }">
                     <div class="numeral">1</div>
                     <div class="info">
                         <div class="heading">
-                            <h3>{{ t('extractHeading') }}</h3>
-                            <p>
-                                <i>{{ t('extractDescription') }}</i>
-                            </p>
+                            <h3>Extract Books</h3>
+                            <p><i>How to convert your books above into structured information, like title and author.</i></p>
                         </div>
                         <label
-                            ><strong> {{ t('extractorLabel') }}</strong> <br />
+                            ><strong> Extractor</strong> <br />
                             <select v-model="bulkSearchState._activeExtractorIndex">
                                 <option v-for="(extractor, index) in bulkSearchState.extractors" :key="index" :value="index">
                                     {{ extractor.label }}
@@ -33,12 +29,12 @@
                         >
 
                         <label v-if="showApiKey"
-                            ><strong>{{ t('apiKeyLabel') }}</strong> <br />
+                            ><strong>OpenAI API Key</strong> <br />
                             <input
                                 v-model="bulkSearchState.extractionOptions.openaiApiKey"
                                 class="api-key-bar"
                                 :type="showPassword ? 'password' : 'text'"
-                                :placeholder="t('apiKeyPlaceholder')"
+                                placeholder="OpenAI API key here...."
                                 @focus="showPassword = false"
                                 @blur="showPassword = true"
                             />
@@ -53,14 +49,12 @@
                     <div class="numeral">2</div>
                     <div class="info">
                         <div class="heading">
-                            <h3>{{ t('matchHeading') }}</h3>
-                            <p>
-                                <i>{{ t('matchDescription') }}</i>
-                            </p>
+                            <h3>Match Books</h3>
+                            <p><i>Once structured data has been found, it's time to match it to a book in OpenLibrary!</i></p>
                         </div>
                         <label
-                            ><strong>{{ t('optionsLabel') }}</strong> <br />
-                            <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> {{ t('useAuthor') }}
+                            ><strong>Options</strong> <br />
+                            <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in search query
                         </label>
                         <button :disabled="loadingMatchedBooks || matchBooksDisabled" @click="matchBooks">
                             {{ matchBooksText }}
@@ -71,19 +65,19 @@
                     <div class="numeral">3</div>
                     <div class="info">
                         <div class="heading">
-                            <h3 class="heading">{{ t('saveHeading') }}</h3>
+                            <h3 class="heading">Save your Matches</h3>
                             <p class="heading">
-                                <i>{{ t('saveDescription') }}</i>
+                                <i> Now that you've found your books, why not save them to your reading log? Or a list?</i>
                             </p>
                         </div>
                         <div v-if="bulkSearchState?.matchedBooks.length < 50">
                             <a id="listMakerLink" :href="bulkSearchState.listUrl" target="_blank"
-                                ><button :disabled="createListDisabled">{{ t('addToList') }}</button></a
+                                ><button :disabled="createListDisabled">Add to list</button></a
                             >
                         </div>
                         <form v-else method="POST" action="/account/lists/add" target="_blank">
                             <input type="hidden" name="seeds" :value="bulkSearchState?.listString" />
-                            <button type="submit">{{ t('addToListSubmit') }}</button>
+                            <button type="submit">Add to List</button>
                         </form>
                     </div>
                 </div>
@@ -101,15 +95,9 @@
 import { sampleData } from '../utils/samples.js';
 import { BulkSearchState } from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js';
-import { bulkSearchString } from '../utils/i18n.js';
 export default {
     props: {
-        bulkSearchState: BulkSearchState,
-        /** Translated UI strings merged in BulkSearch.vue. */
-        strings: {
-            type: Object,
-            required: true
-        }
+        bulkSearchState: BulkSearchState
     },
     data() {
         return {
@@ -137,12 +125,12 @@ export default {
             return false;
         },
         extractBooksText() {
-            if (this.loadingExtractedBooks) return this.t('loading');
-            return this.t('extractButton');
+            if (this.loadingExtractedBooks) return 'Loading...';
+            return 'Extract Books';
         },
         matchBooksText() {
-            if (this.loadingMatchedBooks) return this.t('loading');
-            return this.t('matchButton');
+            if (this.loadingMatchedBooks) return 'Loading...';
+            return 'Match Books';
         },
         showColumnHint() {
             if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor';
@@ -162,9 +150,6 @@ export default {
         }
     },
     methods: {
-        t(key) {
-            return bulkSearchString(this.strings, key);
-        },
         togglePasswordVisibility() {
             this.showPassword = !this.showPassword;
         },

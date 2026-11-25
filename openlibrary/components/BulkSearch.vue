@@ -1,8 +1,8 @@
 <template>
     <div class="ol-bulk-search">
-        <BulkSearchControls :bulk-search-state="bulkSearchState" :strings="strings" />
+        <BulkSearchControls :bulk-search-state="bulkSearchState" />
         <hr />
-        <MatchTable v-if="bulkSearchState.matchedBooks.length" :bulk-search-state="bulkSearchState" :strings="strings" :list-url="bulkSearchState.listUrl" />
+        <MatchTable v-if="bulkSearchState.matchedBooks.length" :bulk-search-state="bulkSearchState" :list-url="bulkSearchState.listUrl" />
     </div>
 </template>
 
@@ -10,24 +10,14 @@
 import BulkSearchControls from './BulkSearch/components/BulkSearchControls.vue';
 import { BulkSearchState } from './BulkSearch/utils/classes.js';
 import MatchTable from './BulkSearch/components/MatchTable.vue';
-import { bulkSearchStringsFromAttr } from './BulkSearch/utils/i18n.js';
 export default {
     components: {
         BulkSearchControls,
         MatchTable
     },
-    props: {
-        /** URI-encoded JSON of translated UI strings; see bulk_search.html.jinja. */
-        i18n: {
-            type: String,
-            default: ''
-        }
-    },
     data() {
-        const strings = bulkSearchStringsFromAttr(this.i18n);
         return {
-            strings,
-            bulkSearchState: new BulkSearchState(strings)
+            bulkSearchState: new BulkSearchState()
         };
     }
 };

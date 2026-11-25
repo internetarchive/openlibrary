@@ -4,8 +4,8 @@
             <thead>
                 <tr>
                     <th rowspan="2" style="width: 4ch">#</th>
-                    <th :colspan="columns.length" style="width: 400px">{{ t('extractedBooks') }}</th>
-                    <th rowspan="2">{{ t('matchedBooks') }}</th>
+                    <th :colspan="columns.length" style="width: 400px">Extracted Books</th>
+                    <th rowspan="2">Matched Books</th>
                 </tr>
                 <tr>
                     <th v-for="(column, colIndex) in columns" :key="colIndex">
@@ -21,7 +21,6 @@
                     :book-match="bookMatch"
                     :index="index"
                     :bulk-search-state="bulkSearchState"
-                    :strings="strings"
                     :columns="columns"
                 />
             </tbody>
@@ -32,18 +31,12 @@
 <script>
 import MatchRow from './MatchRow.vue';
 import { BulkSearchState } from '../utils/classes.js';
-import { bulkSearchString } from '../utils/i18n.js';
 export default {
     components: {
         MatchRow
     },
     props: {
-        bulkSearchState: BulkSearchState,
-        /** Translated UI strings merged in BulkSearch.vue. */
-        strings: {
-            type: Object,
-            required: true
-        }
+        bulkSearchState: BulkSearchState
     },
     computed: {
         columns() {
@@ -53,11 +46,6 @@ export default {
                     .map(col => col.toLowerCase())
             );
             return ['title', 'author', 'isbn'].filter(col => cols.has(col));
-        }
-    },
-    methods: {
-        t(key) {
-            return bulkSearchString(this.strings, key);
         }
     }
 };

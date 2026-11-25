@@ -6,9 +6,9 @@
         </td>
         <td>
             <div class="bookCards">
-                <a :href="searchUrl" :title="t('viewResults')">🔎</a>
-                <BookCard v-for="(doc, docIndex) in bookMatch.solrDocs.docs" :key="docIndex" :doc="doc" :strings="strings" :is-primary="docIndex === 0" />
-                <NoBookCard v-if="bookMatch.solrDocs.numFound === 0" :strings="strings" />
+                <a :href="searchUrl" title="View results in Open Library">🔎</a>
+                <BookCard v-for="(doc, docIndex) in bookMatch.solrDocs.docs" :key="docIndex" :doc="doc" :is-primary="docIndex === 0" />
+                <NoBookCard v-if="bookMatch.solrDocs.numFound === 0" />
             </div>
         </td>
     </tr>
@@ -17,7 +17,6 @@
 <script>
 import { BulkSearchState, BookMatch } from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js';
-import { bulkSearchString } from '../utils/i18n.js';
 import BookCard from './BookCard.vue';
 import NoBookCard from './NoBookCard.vue';
 export default {
@@ -28,11 +27,6 @@ export default {
     props: {
         bulkSearchState: BulkSearchState,
         bookMatch: BookMatch,
-        /** Translated UI strings merged in BulkSearch.vue. */
-        strings: {
-            type: Object,
-            required: true
-        },
         columns: {
             type: Array,
             default: () => []
@@ -45,11 +39,6 @@ export default {
     computed: {
         searchUrl() {
             return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false);
-        }
-    },
-    methods: {
-        t(key) {
-            return bulkSearchString(this.strings, key);
         }
     }
 };

@@ -1,19 +1,11 @@
 <template>
     <div class="noBookCard">
-        <p>{{ strings.noBooksFound }}</p>
+        <p>No Books Found</p>
     </div>
 </template>
 
 <script>
-export default {
-    props: {
-        /** Translated UI strings merged in BulkSearch.vue. */
-        strings: {
-            type: Object,
-            required: true
-        }
-    }
-};
+export default {};
 </script>
 
 <style>

@@ -1,8 +1,6 @@
 export const sampleData = [
-    // The first entry is the placeholder; its label is translated in
-    // BulkSearchControls from the page's i18n strings.
     {
-        name: '',
+        name: 'Try a Sample...',
         source: '',
         text: ''
     },
