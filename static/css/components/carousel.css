@@ -420,7 +420,7 @@ ol-book-cover > .loan-overlay-badge {
 .ol-return-wrapper .return-form {
   display: flex;
   flex: 1;
-  margin-bottom: 0;
+  margin-block: 0;
 }
 .ol-return-wrapper .return-form .cta-btn {
   display: flex;
