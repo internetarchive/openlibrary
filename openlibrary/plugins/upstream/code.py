@@ -1,6 +1,5 @@
 """Upstream customizations."""
 
-import datetime as dt
 import functools
 import hashlib
 import json
@@ -206,100 +205,6 @@ def static_url(path):
     with open(fullpath, "rb") as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
     return f"/static/{path}?v={digest}"
-
-
-class DynamicDocument:
-    """Dynamic document is created by concatenating various rawtext documents in the DB.
-    Used to generate combined js/css using multiple js/css files in the system.
-    """
-
-    def __init__(self, root):
-        self.root = root.removesuffix("/")
-        self.docs = None
-        self._text = None
-        self.last_modified = None
-
-    def update(self):
-        keys = site.get().things({"type": "/type/rawtext", "key~": self.root + "/*"})
-        docs = sorted(site.get().get_many(keys), key=lambda doc: doc.key)
-        if docs:
-            self.last_modified = min(doc.last_modified for doc in docs)
-            self._text = "\n\n".join(doc.get("body", "") for doc in docs)
-        else:
-            self.last_modified = dt.datetime.now(dt.UTC).replace(tzinfo=None)
-            self._text = ""
-
-    def get_text(self):
-        """Returns text of the combined documents"""
-        if self._text is None:
-            self.update()
-        return self._text
-
-    def md5(self):
-        """Returns md5 checksum of the combined documents"""
-        return hashlib.md5(self.get_text().encode("utf-8")).hexdigest()
-
-
-def create_dynamic_document(url, prefix):
-    """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
-    doc = DynamicDocument(prefix)
-
-    if url.endswith(".js"):
-        content_type = "text/javascript"
-    elif url.endswith(".css"):
-        content_type = "text/css"
-    else:
-        content_type = "text/plain"
-
-    class page(delegate.page):
-        """Handler for serving the combined content."""
-
-        path = "__registered_later_without_using_this__"
-
-        def GET(self):
-            i = web.input(v=None)
-            v = doc.md5()
-            if v != i.v:
-                raise web.seeother(web.changequery(v=v))
-
-            if web.modified(etag=v):
-                oneyear = 365 * 24 * 3600
-                web.header("Content-Type", content_type)
-                web.header("Cache-Control", "Public, max-age=%d" % oneyear)
-                web.lastmodified(doc.last_modified)
-                web.expires(oneyear)
-                return delegate.RawText(doc.get_text())
-
-        def url(self):
-            return url + "?v=" + doc.md5()
-
-        def reload(self):
-            doc.update()
-
-    class hook(client.hook):
-        """Hook to update the DynamicDocument when any of the source pages is updated."""
-
-        def on_new_version(self, page):
-            if page.key.startswith(doc.root):
-                doc.update()
-
-    # register the special page
-    delegate.pages[url] = {}
-    delegate.pages[url][None] = page
-    return page
-
-
-all_js = create_dynamic_document("/js/all.js", config.get("js_root", "/js"))
-web.template.Template.globals["all_js"] = all_js()
-
-all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
-web.template.Template.globals["all_css"] = all_css()
-
-
-def reload():
-    """Reload all.css and all.js"""
-    all_css().reload()
-    all_js().reload()
 
 
 @public
