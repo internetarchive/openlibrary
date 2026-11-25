@@ -12,6 +12,7 @@ GET /awards/count.json
 GET /browse.json
 GET /docs
 GET /docs/oauth2-redirect
+GET /explore
 GET /health
 GET /import/preview.json
 GET /languages.json
