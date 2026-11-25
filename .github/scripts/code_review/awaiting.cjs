@@ -6,6 +6,10 @@
 
 const BOT = 'openlibrary-bot';
 const TEAM = 'openlibrary-agentic-code-reviewer';
+// pre-commit.ci's autofix commit is the author's own change reformatted, so it is reviewed like the
+// author's push. It often lands while the review of the commit it fixes is running, which leaves that
+// review superseded; skipping it as a bot push would leave the PR with no review until someone asks.
+const AUTOFIX_BOTS = new Set(['pre-commit-ci[bot]']);
 // The status while a push review waits for pushes to stop. requestAfterQuiet checks the status still
 // starts with it, so a hand-started review (which replaces it with "Review in progress.") isn't
 // followed by a second one. The older wording is still recognised for runs started before the change.
@@ -46,7 +50,8 @@ async function pushReview({ github, owner, repo, payload, settings, reviewedBefo
     // The first review is a maintainer's call (or auto_assign_reviewer.yml's): it is the spend gate.
     if (!reviewedBefore) return 'the PR has not been reviewed yet';
     if ((payload.pull_request.labels || []).some(l => l.name === 'no-automation')) return 'the PR has the no-automation label';
-    if (cfg.push_trigger_ignore_bot_commits && (payload.sender.type === 'Bot' || payload.sender.login === BOT)) return 'a bot pushed';
+    const botPush = (payload.sender.type === 'Bot' && !AUTOFIX_BOTS.has(payload.sender.login)) || payload.sender.login === BOT;
+    if (cfg.push_trigger_ignore_bot_commits && botPush) return 'a bot pushed';
     if (cfg.push_trigger_ignore_merge_commits && (await mergesOnlyBase({ github, owner, repo, payload }))) return 'the push only merged the base branch';
     return null;
 }

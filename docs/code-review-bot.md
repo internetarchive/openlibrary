@@ -76,8 +76,10 @@ master's copy.
 - **Updating the branch from master** (the "Update branch" button, or merging master in) waits
   like any push. Then the bot re-reviews only files where you fixed a merge conflict by hand. If
   there were none, it doesn't run the model and the check gets the previous verdict.
-- **No re-review** for pushes made by bots, or PRs labelled `no-automation`. Ask for a review if
-  you want one.
+- **pre-commit.ci's autofix commit** waits like any push of yours, then gets reviewed. It often
+  lands while the review of your commit is running, which supersedes that review.
+- **No re-review** for pushes made by other bots, or PRs labelled `no-automation`. Ask for a review
+  if you want one.
 
 ```mermaid
 sequenceDiagram
@@ -242,7 +244,7 @@ The full instructions the bot follows are in
 | ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
 | ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
-| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit gets its own review. |
+| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit's check says when it will be reviewed. |
 | ❌ failure | N findings to address. | The review found problems that block. |
 | ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |
 | ❌ failure | Feedback withheld for maintainer review. | Part of the review was held back. See the security note above. |

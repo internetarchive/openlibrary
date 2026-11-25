@@ -111,6 +111,11 @@ test('push_trigger_ignore_bot_commits: a bot push is not reviewed', async () => 
     );
     assert.equal(minutes, '10');
 });
+test("push_trigger_ignore_bot_commits: pre-commit.ci's autofix push is reviewed like the author's", async () => {
+    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', { login: 'pre-commit-ci[bot]', type: 'Bot' }));
+    assert.equal(minutes, '10');
+    assert.match(posted[0].description, /^Waiting for pushes to stop\./);
+});
 test('push_trigger_ignore_merge_commits: a push that only merges the base branch is not reviewed', async () => {
     const baseMerge = { reviews: reviewed, parents: [SHA('p'), SHA('m')], cmpStatus: 'ahead' };
     assert.equal((await mark(mockGitHub(baseMerge))).minutes, undefined);
