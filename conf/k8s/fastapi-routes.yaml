@@ -22,7 +22,7 @@ fastapiRoutes:
     - POST /tasks/admin/{slug}/stop
     - POST /tasks/admin/{slug}/unhide
     - GET /tasks/faq
-    - GET POST /verify_human
+    - GET /verify_human
     # JSON / API
     - POST /account/anonymize.json
     - GET /account/loan-history.json
@@ -104,6 +104,8 @@ fastapiRoutes:
     - GET /works/OL{work_id}W/lists.json
     - POST /works/OL{work_id}W/ratings.json
   nonblocking:
+    # Pages (SitePageRoute)
+    - POST /verify_human
     # JSON / API
     - POST /account/logout
     - GET /awards/count.json

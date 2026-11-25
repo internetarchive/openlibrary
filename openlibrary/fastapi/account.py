@@ -658,6 +658,7 @@ async def verify_human(
     )
 
 
+@nonblocking
 @pages.post("/verify_human")
 async def verify_human_challenge() -> Response:
     """Answer the challenge: set a signed ``vf`` cookie and confirm as JSON."""
