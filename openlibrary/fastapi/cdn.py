@@ -6,8 +6,8 @@ from typing import Annotated
 import httpx
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import Response
-from infogami import config
 
+from infogami import config
 from openlibrary.core import cache
 from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.utils.async_utils import cache_per_event_loop
