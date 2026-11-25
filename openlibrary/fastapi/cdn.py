@@ -10,11 +10,18 @@ from fastapi.responses import Response
 from infogami import config
 from openlibrary.core import cache
 from openlibrary.fastapi.shared.nonblocking import nonblocking
+from openlibrary.utils.async_utils import cache_per_event_loop
 
 router = APIRouter()
 
+# One client per event loop, shared by both proxies. Creating an httpx.AsyncClient
+# builds a new TLS context (loading the CA bundle) synchronously, which held the
+# event loop on every request, and each new client also opened a new connection.
+get_async_session = cache_per_event_loop(httpx.AsyncClient)
+
 ALLOWED_FILES = frozenset({"donate.js", "athena.js"})
 UPSTREAM_BASE = "https://archive.org/includes/"
+UPSTREAM_TIMEOUT = 10.0
 CACHE_MAX_AGE = 86400
 
 # Graphite lives inside the Internet Archive's network and is unreachable from
@@ -71,9 +78,8 @@ async def _fetch_graphite_graph(params: dict[str, str]) -> str | None:
     failure too, so an outage doesn't trigger a fresh upstream fetch per request.
     """
     try:
-        async with httpx.AsyncClient(timeout=GRAPHITE_TIMEOUT) as client:
-            upstream = await client.get(GRAPHITE_RENDER_URL, params=params)
-            upstream.raise_for_status()  # upstream 4xx/5xx → 502 (upstream problem)
+        upstream = await get_async_session().get(GRAPHITE_RENDER_URL, params=params, timeout=GRAPHITE_TIMEOUT)
+        upstream.raise_for_status()  # upstream 4xx/5xx → 502 (upstream problem)
     except httpx.HTTPStatusError, httpx.RequestError:
         return None
     return base64.b64encode(upstream.content).decode("ascii")
@@ -108,9 +114,8 @@ async def ia_js_cdn(filename: Annotated[str, Path()]) -> Response:
         raise HTTPException(status_code=404)
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            upstream = await client.get(UPSTREAM_BASE + filename)
-            upstream.raise_for_status()  # upstream 4xx/5xx → 502 (intentional: upstream problem)
+        upstream = await get_async_session().get(UPSTREAM_BASE + filename, timeout=UPSTREAM_TIMEOUT)
+        upstream.raise_for_status()  # upstream 4xx/5xx → 502 (intentional: upstream problem)
     except httpx.HTTPStatusError, httpx.RequestError:
         # HTTPStatusError: upstream returned 4xx/5xx (including 404 — upstream problem, not bad path)
         # RequestError:    network failure — timeout, DNS error, connection refused
