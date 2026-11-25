@@ -239,21 +239,4 @@ $if person['status'] == "verified" or person['status'] == "active":
 $else:
     <em>$_("Account not activated yet.")</em>
 
-
-<h2>$_("Debug Info")</h2>
-
-<h3>$_("Account Information")</h3>
-$# detect-missing-i18n-skip-line
-<pre>$:json_encode(hasattr(person, "dict") and person.dict(), indent="    ", sort_keys=True)</pre>
-
-<h3>$_("Verifications Links")</h3>
-<div>
-$for link in person.get_links():
-        <strong>$link['_key']</strong>
-        <br/>
-        <pre>$:json_encode(link, indent="    ", sort_keys=True)</pre>
-    </li>
-</div>
-$if not person.get_links():
-    <em>$_("None found")</em>
 </div>

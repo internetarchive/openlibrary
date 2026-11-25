@@ -1259,7 +1259,11 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         if "env" not in web.ctx:
             delegate.fakeload()
             set_context_from_legacy_web_py()
-        lst = cast(List, site.get().get(key))
+        list_doc = site.get().get(key)
+        if list_doc is None:
+            return []
+
+        lst = cast(List, list_doc)
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):

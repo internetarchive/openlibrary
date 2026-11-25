@@ -184,6 +184,7 @@ class gitpull:
 
 class reload:
     def GET(self):
+        raise web.forbidden("Temporarily disabled")
         if servers := config.get("plugin_admin", {}).get("webservers", []):
             body = "".join(self.reload(servers))
         else:
@@ -210,6 +211,7 @@ def local_ip():
 
 class _reload(delegate.page):
     def GET(self):
+        raise web.forbidden("Temporarily disabled")
         # make sure the request is coming from the LAN.
         if web.ctx.ip not in ["127.0.0.1", "0.0.0.0"] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
             return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
@@ -384,6 +386,7 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_su(self, account):
+        raise web.forbidden("Temporarily disabled")
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
