@@ -7,10 +7,12 @@
  * - openlibrary/templates/admin/new_accounts.html.jinja
  * Pages:
  * - /admin
+ * - /status
  */
 
 @import "components/admin-new-accounts.css";
 @import "components/admin-table.css";
+@import "components/status-tables.css";
 @import "components/batch-import-list.css";
 @import "components/flash-messages.css";
 /* Import all common components */

@@ -1,34 +1,4 @@
 {# Takes `status` (dict), `dev_merged_status` (DevMergedStatus or None), `is_maintainer`, `has_testing_state`, `show_testing`, `jenkins_job_url` and `vue_component_html` #}
-<style type="text/css">
-  table th {
-             padding: 2pt;
-             font-weight: bold;
-             }
-
-  td {
-    border: 1px solid #aaa;
-    padding: 4px;
-  }
-
-  table tr.tr-body {
-    display: none;
-    background: #ddd;
-  }
-  #show_changed:checked ~ table tr.tr-body {
-    display: table-row;
-  }
-
-  /* Testing Environment styles live in the TestingEnvironment.vue component's
-     shadow DOM, so the panel needs no page-level stylesheet. */
-
-  /* Maintainer-only notice shown in place of the testing panel. */
-  .testing-env-notice {
-    padding: 8px 12px;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    background: #fff8e1;
-  }
-</style>
 <div id="contentHead">
     <h1>{{ _("Server status") }}</h1>
 </div>
@@ -36,7 +6,7 @@
     {% if show_testing %}
         {% include "TestingEnvironment.html.jinja" %}
     {% elif has_testing_state %}
-        <div class="notice testing-env-notice">{{ _("The testing environment panel is only visible to maintainers.") }}</div>
+        <div class="ol-message">{{ _("The testing environment panel is only visible to maintainers.") }}</div>
     {% endif %}
     {% if dev_merged_status %}
         <h2>{{ _("Last Build Result") }}</h2>
@@ -47,7 +17,7 @@
         {# The checkbox works entirely via CSS and needs to be adjacent to the table #}
         <input type="checkbox" id="show_changed">
         <label for="show_changed">{{ _("Show changed files") }}</label>
-        <table>
+        <table class="status-table">
             <thead>
                 <tr>
                     <th>{{ _("Name") }}</th>
@@ -77,7 +47,7 @@
         <pre>{{ dev_merged_status.footer }}</pre>
     {% endif %}
     <h2>{{ _("System information") }}</h2>
-    <table>
+    <table class="status-table">
         {% for name, value in status.items() %}
             <tr>
                 <th>{{ name }}</th>
