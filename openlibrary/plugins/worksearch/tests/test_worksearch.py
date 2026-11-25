@@ -157,6 +157,19 @@ def test_prepare_solr_query_params_open_access_editions_fq_positive_unwrapped():
     assert "(*:* -ebook_access:public)" not in editions_fq
 
 
+def test_prepare_solr_query_params_author_facet_uses_passed_value():
+    """author_facet is queried as author_key, but the value lives on the
+    author_facet parameter. Renaming the field before the lookup read
+    author_key instead, which 500'd /search and ignored the filter on
+    /search.json."""
+    scheme = WorkSearchScheme()
+    params, _ = _prepare_solr_query_params(
+        scheme, {"q": "tolkien", "author_facet": "OL26320A"}
+    )
+    fqs = [v for k, v in params if k == "fq"]
+    assert 'author_key:"OL26320A"' in fqs
+
+
 def test_prepare_solr_query_params_multiple_languages_or_into_single_fq():
     """Multiple selected languages are additive: a work in *any* of them should
     match, so they must be OR-ed into one fq. Emitting one fq per value AND-s

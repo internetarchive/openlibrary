@@ -459,9 +459,14 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             params.append(("fq", rewrite() if callable(rewrite) else rewrite))
 
     for field in facet_params:
+        # Read the value under the name the caller passed. author_facet is an
+        # alias of author_key in the Solr query, but the request parameter is
+        # still author_facet. Renaming first made param[field] look up
+        # author_key, which KeyError'd /search and dropped the filter on
+        # /search.json.
+        values = param[field]
         if field == "author_facet":
             field = "author_key"
-        values = param[field]
         if isinstance(values, str):
             values = [values]
         non_empty = [val for val in values if val]
