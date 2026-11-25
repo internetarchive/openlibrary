@@ -761,10 +761,6 @@ msgid "View PRs on GitHub"
 msgstr ""
 
 #: status.html.jinja
-msgid "Show changed files"
-msgstr ""
-
-#: status.html.jinja
 msgid "System information"
 msgstr ""
 

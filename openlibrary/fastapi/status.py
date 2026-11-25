@@ -171,4 +171,4 @@ def status_page(user: CurrentUserDep) -> SitePage:
     full_user = get_current_user() if user else None
     values = status_page_values(is_maintainer=bool(full_user and full_user.is_maintainer()))
     body = render_jinja_template("status.html.jinja", **values)
-    return SitePage(body, page=PageMeta(title=_("Open Library server status")))
+    return SitePage(body, page=PageMeta(title=_("Open Library server status"), cssfile="admin"))
