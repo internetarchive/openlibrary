@@ -8442,12 +8442,9 @@ msgstr ""
 #: TestingEnvironment.html.jinja
 #, python-format
 msgid "%(num)s change will be applied"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "%(num)s changes will be applied"
-msgstr ""
+msgid_plural "%(num)s changes will be applied"
+msgstr[0] ""
+msgstr[1] ""
 
 #: TestingEnvironment.html.jinja
 msgid "Nothing to deploy — testing matches the current set."

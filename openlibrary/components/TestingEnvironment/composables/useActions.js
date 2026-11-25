@@ -1,5 +1,5 @@
 import { ref, shallowRef } from 'vue';
-import { actionErrorMessage, effectiveActive, parsePrNumbers, postAction } from '../utils.js';
+import { actionErrorMessage, effectiveActive, panelString, parsePrNumbers, postAction } from '../utils.js';
 
 // How long a newly added row stays highlighted. Purely client-side: a page
 // refresh clears it, which is the intended behaviour.
@@ -35,11 +35,6 @@ export function useActions({ busy, payload, setToast, strings }) {
     const queue = [];
     let draining = false;
 
-    function text(key, ...args) {
-        const fmt = strings[key] || key;
-        return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
-    }
-
     // No re-fetch here: toggle/remove/restore responses carry the staged
     // rows, and the drain applies only the last one; anything else confirms
     // via the stream (polling covers a dead stream).
@@ -55,7 +50,7 @@ export function useActions({ busy, payload, setToast, strings }) {
             }
             return result;
         } catch {
-            setToast(text('actionFailed'));
+            setToast(panelString(strings, 'actionFailed'));
             return false;
         }
     }

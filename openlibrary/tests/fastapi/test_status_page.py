@@ -1,6 +1,9 @@
 """`/status` HTML page."""
 
+import json
+import re
 from types import SimpleNamespace
+from urllib.parse import unquote
 
 import pytest
 from fastapi.testclient import TestClient
@@ -48,6 +51,17 @@ def test_maintainers_see_build_result_and_panel(client):
     assert html.count('<tr class="red">') == 1
     assert "<td>ol-dev1</td>" in html
     assert '<ol-testing-environment maintainer="true"' in html
+
+
+def test_panel_strings_keep_the_placeholders_the_panel_fills(client):
+    html = client.get("/status", headers={"x-user": "maintainer"}).text
+    strings = json.loads(unquote(re.search(r' i18n="([^"]*)"', html).group(1)))
+
+    assert strings["addFailedNotFound"] == "PR %(num)s does not exist."
+    assert strings["deployingStageBy"] == "Deploying, started %(time)s — %(stage)s by %(user)s"
+    assert strings["behind"]["one"] == "%(num)s commit behind %(sha)s"
+    assert strings["behind"]["other"] == "%(num)s commits behind %(sha)s"
+    assert set(strings["changes"]) == {"one", "two", "few", "many", "other"}
 
 
 @pytest.mark.parametrize("headers", [{}, {"x-user": "visitor"}])
