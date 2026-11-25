@@ -33,7 +33,7 @@ export class OLWeeklyPrompt extends LitElement {
         nominationsJson: { type: String, attribute: 'nominations-json' },
         totalVoters: { type: Number, attribute: 'total-voters' },
         username: { type: String },
-        promptUrl: { type: String, attribute: 'prompt-url' },
+        promptUrl: { type: String, attribute: 'prompt-url' }
     };
 
     static styles = css`
@@ -113,7 +113,7 @@ export class OLWeeklyPrompt extends LitElement {
             height: 116px;
             border-radius: 3px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
             background: var(--lightest-grey, #f0f0f0);
             flex-shrink: 0;
         }
@@ -152,9 +152,15 @@ export class OLWeeklyPrompt extends LitElement {
             line-height: 1;
         }
 
-        .rank-badge[data-rank="1"] { background: #c5922a; }
-        .rank-badge[data-rank="2"] { background: #8d9498; }
-        .rank-badge[data-rank="3"] { background: #a0714f; }
+        .rank-badge[data-rank='1'] {
+            background: #c5922a;
+        }
+        .rank-badge[data-rank='2'] {
+            background: #8d9498;
+        }
+        .rank-badge[data-rank='3'] {
+            background: #a0714f;
+        }
 
         .book-score {
             font-size: 0.7rem;
@@ -303,23 +309,32 @@ export class OLWeeklyPrompt extends LitElement {
     }
 
     _handleNominateClick() {
-        this.dispatchEvent(new CustomEvent('ol-weekly-prompt-nominate', {
-            bubbles: true,
-            composed: true,
-            detail: { username: this.username },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-weekly-prompt-nominate', {
+                bubbles: true,
+                composed: true,
+                detail: { username: this.username }
+            })
+        );
     }
 
     _renderLabel() {
         if (!this.promptDesc) return nothing;
         return html`
             <p class="prompt-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true">
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
                 ${this.promptDesc}
             </p>
@@ -327,28 +342,16 @@ export class OLWeeklyPrompt extends LitElement {
     }
 
     _renderCover(nom, rank) {
-        const badge = rank <= 3 ? html`
-            <span class="rank-badge" data-rank="${rank}" aria-label="Rank ${rank}">
-                ${rank}
-            </span>
-        ` : nothing;
+        const badge = rank <= 3 ? html` <span class="rank-badge" data-rank="${rank}" aria-label="Rank ${rank}"> ${rank} </span> ` : nothing;
 
-        const cover = nom.coverUrl ? html`
-            <img class="book-cover" src="${nom.coverUrl}" alt="" loading="lazy" />
-        ` : html`
-            <div class="book-cover-placeholder" aria-hidden="true">📚</div>
-        `;
+        const cover = nom.coverUrl
+            ? html` <img class="book-cover" src="${nom.coverUrl}" alt="" loading="lazy" /> `
+            : html` <div class="book-cover-placeholder" aria-hidden="true">📚</div> `;
 
         return html`
-            <a class="book-item" href="${nom.workKey || '#'}"
-               aria-label="${nom.title} — ${nom.score} vote${nom.score !== 1 ? 's' : ''}">
-                <div class="book-cover-wrap">
-                    ${cover}
-                    ${badge}
-                </div>
-                <span class="book-score">
-                    <span class="book-score-arrow" aria-hidden="true">▲</span>${nom.score}
-                </span>
+            <a class="book-item" href="${nom.workKey || '#'}" aria-label="${nom.title} — ${nom.score} vote${nom.score !== 1 ? 's' : ''}">
+                <div class="book-cover-wrap">${cover} ${badge}</div>
+                <span class="book-score"> <span class="book-score-arrow" aria-hidden="true">▲</span>${nom.score} </span>
             </a>
         `;
     }
@@ -358,12 +361,19 @@ export class OLWeeklyPrompt extends LitElement {
         if (noms.length === 0) {
             return html`
                 <div class="empty-strip" role="status">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5"
-                        stroke-linecap="round" stroke-linejoin="round"
-                        aria-hidden="true">
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    <svg
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                     </svg>
                     Be the first to nominate a book
                 </div>
@@ -371,9 +381,7 @@ export class OLWeeklyPrompt extends LitElement {
         }
         return html`
             <div class="book-strip" role="list" aria-label="Top nominations">
-                ${noms.map((nom, i) => html`
-                    <div role="listitem">${this._renderCover(nom, i + 1)}</div>
-                `)}
+                ${noms.map((nom, i) => html` <div role="listitem">${this._renderCover(nom, i + 1)}</div> `)}
             </div>
         `;
     }
@@ -389,17 +397,29 @@ export class OLWeeklyPrompt extends LitElement {
 
     _renderCTA() {
         const href = this.username
-            ? (this.promptUrl ? `${this.promptUrl}#nominate` : '#nominate')
-            : (this.promptUrl ? `/account/login?redirect=${encodeURIComponent(this.promptUrl)}` : '/account/login');
+            ? this.promptUrl
+                ? `${this.promptUrl}#nominate`
+                : '#nominate'
+            : this.promptUrl
+              ? `/account/login?redirect=${encodeURIComponent(this.promptUrl)}`
+              : '/account/login';
 
         return html`
             <a class="nominate-btn" href="${href}" @click=${this._handleNominateClick}>
                 Nominate a Book
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true">
-                    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
                 </svg>
             </a>
         `;
@@ -410,28 +430,14 @@ export class OLWeeklyPrompt extends LitElement {
             <div class="prompt-text-col">
                 ${this._renderLabel()}
                 <h2 class="prompt-title">${this.promptTitle}</h2>
-                <div class="footer-row">
-                    ${this._renderStats()}
-                    ${this._renderCTA()}
-                </div>
-                ${this.promptUrl ? html`
-                    <a class="view-all" href="${this.promptUrl}">See all prompts →</a>
-                ` : nothing}
+                <div class="footer-row">${this._renderStats()} ${this._renderCTA()}</div>
+                ${this.promptUrl ? html` <a class="view-all" href="${this.promptUrl}">See all prompts →</a> ` : nothing}
             </div>
         `;
 
-        const booksCol = html`
-            <div class="books-col">
-                ${this._renderBooks()}
-            </div>
-        `;
+        const booksCol = html` <div class="books-col">${this._renderBooks()}</div> `;
 
-        return html`
-            <div class="prompt-card">
-                ${textCol}
-                ${booksCol}
-            </div>
-        `;
+        return html` <div class="prompt-card">${textCol} ${booksCol}</div> `;
     }
 }
 
