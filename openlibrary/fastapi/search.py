@@ -671,6 +671,14 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
 
 
+@pages.get("/search/bulk")
+async def bulk_search() -> SitePage:
+    # TODO: Retire the web.py `bulk_search` handler (it still serves /search/bulk
+    # in production) once production routes /search/bulk here.
+    body = render_jinja_template("bulk_search/bulk_search.html.jinja")
+    return SitePage(body, page=PageMeta(title=_("Bulk Search (beta)")))
+
+
 class InsideSearchParams(BaseModel):
     """Query params for /search/inside.
 

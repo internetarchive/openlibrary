@@ -7,6 +7,7 @@ fastapiRoutes:
     - GET /publishers
     - GET /publishers/{name}
     - GET /search/authors
+    - GET /search/bulk
     - GET /search/inside
     - GET /search/lists
     - GET /search/publishers
