@@ -406,6 +406,21 @@ class health(delegate.page):
         return web.ok("OK")
 
 
+class health_webpy(delegate.page):
+    """Health check that always reaches web.py. On Kubernetes the gateway sends /health to FastAPI,
+    so HAProxy checks web.py with this path instead (olsystem: etc/haproxy/haproxy.cfg, backend ol-web-k8s).
+    FastAPI must never register it.
+
+    Keep it until web.py is retired: removing or porting it would fail that check and move all
+    Kubernetes traffic to the VMs."""
+
+    path = "/health/webpy"
+
+    def GET(self):
+        web.header("Content-Type", "text/plain")
+        return web.ok("OK")
+
+
 def remove_high_priority(query: str) -> str:
     """
     Remove `high_priority=true` and `high_priority=false` from query parameters,
