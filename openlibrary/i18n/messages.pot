@@ -2740,48 +2740,12 @@ msgstr ""
 msgid "No results found."
 msgstr ""
 
-#: admin/ip/index.html
-msgid "[Admin Center] IP Addresses"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "IP Addresses"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "List of Banned IPs"
-msgstr ""
-
-#: admin/ip/index.html admin/people/index.html
-msgid "Date/Time"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "IP address"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "Admin Comment"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "# of edits"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "x minutes ago"
-msgstr ""
-
-#: admin/ip/index.html admin/ip/view.html
-msgid "IP"
-msgstr ""
-
-#: admin/ip/index.html
-msgid "comment"
-msgstr ""
-
 #: admin/ip/view.html admin/people/view.html
 msgid "[Admin Center]"
+msgstr ""
+
+#: admin/ip/view.html
+msgid "IP"
 msgstr ""
 
 #: admin/ip/view.html
@@ -2862,6 +2826,10 @@ msgstr ""
 
 #: admin/people/index.html
 msgid "Recent Accounts"
+msgstr ""
+
+#: admin/people/index.html
+msgid "Date/Time"
 msgstr ""
 
 #: admin/people/index.html

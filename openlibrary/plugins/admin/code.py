@@ -2,7 +2,6 @@
 
 import json
 import logging
-import os
 import re
 import sys
 from collections.abc import Iterable
@@ -25,8 +24,8 @@ from openlibrary.core import (
     cache,
     imports,
 )
-from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.env import get_ol_env
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.models import Work
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext

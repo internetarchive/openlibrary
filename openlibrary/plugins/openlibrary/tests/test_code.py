@@ -93,4 +93,3 @@ def test_new_api_checks_and_saves_to_current_site(current_site, monkeypatch):
     assert json.loads(code.new().POST()) == "/books/OL1M"
     assert current_site.get("/books/OL1M").title == "New book"
     assert current_site.changesets[-1]["kind"] == "test-create"
-
