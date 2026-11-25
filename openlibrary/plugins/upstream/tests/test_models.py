@@ -15,6 +15,21 @@ from openlibrary.utils.request_context import site as site_context
 from .. import models
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("B 2672-2017", "B 2672-2017"),
+        ("B2672-2017", "B 2672-2017"),
+        ("B335972000", "B 33597-2000"),
+        ("b 2672-2017", "B 2672-2017"),
+        ("  B 2672-2017  ", "B 2672-2017"),
+        ("invalid value", "invalid value"),
+    ],
+)
+def test_normalize_deposito_legal(value, expected):
+    assert models.normalize_deposito_legal(value) == expected
+
+
 class TestModels:
     def setup_method(self, method):
         web.ctx.site = MockSite()
@@ -177,6 +192,7 @@ class TestEdition:
         web.ctx.site = MockSite()
         self.site_token = site_context.set(web.ctx.site)
         models.setup()
+        site_context.get().quicksave("/config/edition", "/type/object", classifications=[], roles=[])
 
     def teardown_method(self):
         site_context.reset(self.site_token)
@@ -225,6 +241,38 @@ class TestEdition:
         ed = self._make_edition()
         ed.set_providers([{"url": "", "format": "web"}])
         assert ed.providers[0]["url"] == ""
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            ("B 2672-2017", "B 2672-2017"),
+            ("B2672-2017", "B 2672-2017"),
+            ("B335972000", "B 33597-2000"),
+            ("invalid value", "invalid value"),
+        ],
+    )
+    def test_set_identifiers_normalizes_deposito_legal(self, value, expected):
+        ed = self._make_edition()
+        ed.set_identifiers([{"name": "depósito_legal", "value": value}])
+        assert ed.identifiers["depósito_legal"] == [expected]
+
+    @pytest.mark.parametrize(
+        ("stored_value", "expected_url_value"),
+        [
+            ("B 2672-2017", "B%202672-2017"),
+            ("B2672-2017", "B%202672-2017"),
+            ("B335972000", "B%2033597-2000"),
+        ],
+    )
+    def test_get_identifiers_normalizes_deposito_legal_url(self, stored_value, expected_url_value):
+        ed = self._make_edition()
+        ed.identifiers = {"depósito_legal": [stored_value]}
+        identifier = ed.get_identifiers()["depósito_legal"]
+
+        assert identifier.value == stored_value
+        assert identifier.url.startswith("https://catalogo.bne.es/discovery/search?query=lds16,exact,")
+        assert expected_url_value in identifier.url
+        assert stored_value.replace(" ", "") not in identifier.url
 
     def test_get_ia_meta_fields_no_external_identifier(self):
         ed = self._make_edition(ocaid="testitem00archive")

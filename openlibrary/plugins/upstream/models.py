@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from functools import cached_property
 from typing import cast
+from urllib.parse import quote
 
 import web
 from isbnlib import NotValidISBNError, canonical, mask
@@ -29,6 +30,37 @@ from openlibrary.utils.isbn import (
 )
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.request_context import site
+
+DEPOSITO_LEGAL_IDENTIFIER = "depósito_legal"
+DEPOSITO_LEGAL_YEAR_PATTERN = r"(?:1[89]|20)\d{2}"
+DEPOSITO_LEGAL_WITH_HYPHEN_RE = re.compile(rf"^\s*([A-Za-z]{{1,3}})\s*(\d+)\s*-\s*({DEPOSITO_LEGAL_YEAR_PATTERN})\s*$")
+DEPOSITO_LEGAL_COMPACT_RE = re.compile(rf"^\s*([A-Za-z]{{1,3}})\s*(\d+)({DEPOSITO_LEGAL_YEAR_PATTERN})\s*$")
+
+
+def normalize_deposito_legal(value: str) -> str:
+    """Normalize Biblioteca Nacional de España Depósito Legal identifiers.
+
+    BNE's catalog search expects legal deposit numbers in the form
+    ``<province> <number>-<year>``, e.g. ``B 2672-2017``.
+    """
+    value = value.strip()
+
+    if match := DEPOSITO_LEGAL_WITH_HYPHEN_RE.fullmatch(value):
+        province, number, year = match.groups()
+        return f"{province.upper()} {number}-{year}"
+
+    if match := DEPOSITO_LEGAL_COMPACT_RE.fullmatch(value):
+        province, number, year = match.groups()
+        return f"{province.upper()} {number}-{year}"
+
+    return value
+
+
+def get_identifier_url_value(name: str, value: str) -> str:
+    if name == DEPOSITO_LEGAL_IDENTIFIER:
+        return quote(normalize_deposito_legal(value), safe="")
+
+    return value.replace(" ", "")
 
 
 def follow_redirect(doc):
@@ -281,7 +313,7 @@ class Edition(models.Edition):
                         name=id.name,
                         label=id.label,
                         value=v,
-                        url=id.get("url") and id.url.replace("@@@", v.replace(" ", "")),
+                        url=id.get("url") and id.url.replace("@@@", get_identifier_url_value(id.name, v)),
                     )
 
         for name in names:
@@ -310,6 +342,8 @@ class Edition(models.Edition):
             name, value = id["name"], id["value"]
             if name == "lccn":
                 value = normalize_lccn(value)
+            elif name == DEPOSITO_LEGAL_IDENTIFIER and value is not None:
+                value = normalize_deposito_legal(value)
             # `None` in this field causes errors. See #7999.
             if value is not None:
                 d.setdefault(name, []).append(value)
