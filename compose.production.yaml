@@ -200,6 +200,8 @@ services:
       - webnet
     volumes:
       - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      # The routes to send to FastAPI, from scripts/generate_fastapi_routes.py
+      - ./conf/haproxy:/usr/local/etc/haproxy/openlibrary:ro
     expose:
       - 7072
     ports:
