@@ -39,7 +39,7 @@ jobs:
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
-          # Commit statuses: write and Pull requests: read, on this repo only.
+          # Commit statuses: write, Pull requests: read and Issues: read, on this repo only.
           github-token: ${{ secrets.OL_BOT_COMMIT_STATUS_PAT }}
           script: |
             const dir = `${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review`;

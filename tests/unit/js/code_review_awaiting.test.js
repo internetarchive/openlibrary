@@ -186,6 +186,20 @@ test('a PR linked to an issue with the Bot: Fast Review label is reviewed withou
     const { minutes } = await mark(gh, ctx);
     assert.equal(minutes, '0');
 });
+test('an unreadable linked issue is logged and the push waits as usual', async () => {
+    const gh = mockGitHub({ reviews: reviewed });
+    gh.github.rest.issues = {
+        get: async () => {
+            throw new Error('Not Found');
+        }
+    };
+    const logged = [];
+    const c = { ...core(), info: m => logged.push(m) };
+    const ctx = context('synchronize', undefined, { body: 'Part of #7', head: { sha: SHA('a'), ref: 'x' } });
+    await markAwaiting({ github: gh.github, context: ctx, core: c, settings: settings(), runUrl: 'u' });
+    assert.equal(c.out.review_after_minutes, '10');
+    assert.ok(logged.some(m => m.includes('#7') && m.includes('Not Found')));
+});
 test('the Bot: Fast Review label does not start a first review', async () => {
     const { minutes } = await mark(mockGitHub({ reviews: [] }), context('synchronize', undefined, { labels: [{ name: 'Bot: Fast Review' }] }));
     assert.equal(minutes, undefined);

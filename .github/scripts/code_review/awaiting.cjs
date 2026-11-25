@@ -67,7 +67,7 @@ async function pushReview({ github, owner, repo, payload, settings, reviewedBefo
 }
 
 // Whether the PR or an issue it links to (body, branch name, then title, as the reviewer finds them) has the label.
-async function wantsReviewNow({ github, owner, repo, pr }) {
+async function wantsReviewNow({ github, core, owner, repo, pr }) {
     const has = labels => (labels || []).some(l => (typeof l === 'string' ? l : l.name) === FAST_REVIEW_LABEL);
     if (has(pr.labels)) return true;
     const numbers = [...findIssueNumbers(pr.body, owner, repo), ...branchIssueNumbers(pr.head.ref), ...findIssueNumbers(pr.title, owner, repo)];
@@ -75,8 +75,8 @@ async function wantsReviewNow({ github, owner, repo, pr }) {
         try {
             const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number: n });
             if (!issue.pull_request && has(issue.labels)) return true;
-        } catch {
-            // A missing or unreadable issue just doesn't count.
+        } catch (e) {
+            core.info(`Could not read issue #${n} for the ${FAST_REVIEW_LABEL} label: ${e.message}`);
         }
     }
     return false;
@@ -98,7 +98,7 @@ async function markAwaiting({ github, context, core, settings, runUrl, now = Dat
     const reviewedBefore =
         reviews.some(r => r.user && r.user.login === BOT) || requested.teams.some(t => t.slug === TEAM) || requested.users.some(u => u.login === BOT);
     const skip = await pushReview({ github, owner, repo, payload, settings, reviewedBefore });
-    const minutes = !skip && (await wantsReviewNow({ github, owner, repo, pr })) ? 0 : settings.openlibrary_reviewer.push_review_delay_minutes;
+    const minutes = !skip && (await wantsReviewNow({ github, core, owner, repo, pr })) ? 0 : settings.openlibrary_reviewer.push_review_delay_minutes;
     if (skip) core.info(`No review on this push: ${skip}.`);
     else core.setOutput('review_after_minutes', String(minutes));
 
