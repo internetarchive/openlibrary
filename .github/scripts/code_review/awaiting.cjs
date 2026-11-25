@@ -59,7 +59,7 @@ async function pushReview({ github, owner, repo, payload, settings, reviewedBefo
     if (stacked(payload)) return 'the PR is stacked on another branch';
     // The first review is a maintainer's call (or auto_assign_reviewer.yml's): it is the spend gate.
     if (!reviewedBefore) return 'the PR has not been reviewed yet';
-    if ((payload.pull_request.labels || []).some(l => l.name === 'no-automation')) return 'the PR has the no-automation label';
+    if ((payload.pull_request.labels || []).some(l => l.name === 'Bot: No Automation')) return 'the PR has the Bot: No Automation label';
     const botPush = (payload.sender.type === 'Bot' && !AUTOFIX_BOTS.has(payload.sender.login)) || payload.sender.login === BOT;
     if (cfg.push_trigger_ignore_bot_commits && botPush) return 'a bot pushed';
     if (cfg.push_trigger_ignore_merge_commits && (await mergesOnlyBase({ github, owner, repo, payload }))) return 'the push only merged the base branch';

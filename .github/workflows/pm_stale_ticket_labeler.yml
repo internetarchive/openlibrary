@@ -14,7 +14,7 @@ jobs:
       - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
         with:
           start-date: 2025-01-01
-          exempt-issue-labels: 'no-automation,"Type: Epic"'
+          exempt-issue-labels: '"Bot: No Automation","Type: Epic"'
           exempt-assignees: mekarpeles,cdrini,scottbarnes,raybb,seabelis,hornc,lokesh
           days-before-close: -1  # signifies that neither issues nor pull requests are to be closed
           days-before-issue-stale: 14

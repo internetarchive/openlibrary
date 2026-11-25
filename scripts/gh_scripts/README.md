@@ -28,7 +28,7 @@ The decision and its reason (e.g. "#123 (closing keyword) has no Lead label") ar
 
 Independently of lead assignment and the review-label swap, `gfi_pr_assignment.mjs` checks only the first closing reference. It acts on open issues labeled `Good First Issue` and `Priority: *` with `Needs: Triage` absent. A contributor who has commented on the issue is assigned automatically. Otherwise the PR is closed with recovery instructions; if someone else owns the issue, it is closed as a duplicate. Commenting and reopening (or opening a new PR if reopening is unavailable) lets the contributor recover.
 
-Closed issues, draft/closed PRs, staff (`MEMBER`, `OWNER`, `COLLABORATOR`), bot logins (including `openlibrary-bot`), and issues already assigned to the author are skipped. The GFI step honors `no-automation` on either the issue or PR; bots must honor this opt-out. This does not change the other scripts' opt-out behavior.
+Closed issues, draft/closed PRs, staff (`MEMBER`, `OWNER`, `COLLABORATOR`), bot logins (including `openlibrary-bot`), and issues already assigned to the author are skipped. The GFI step honors `Bot: No Automation` on either the issue or PR; bots must honor this opt-out. This does not change the other scripts' opt-out behavior.
 
 Comments are paginated and a failed read prevents closure. Bot comments carry `<!-- ol-bot -->` and are not repeated on retries; current assignment and PR state prevent repeated mutations. The workflow also runs on `reopened` and passes `PR_AUTHOR_ASSOCIATION`. Each step reports its own failure without blocking the other steps. This is the first repository automation that closes PRs.
 

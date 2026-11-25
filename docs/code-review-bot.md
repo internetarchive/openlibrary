@@ -79,7 +79,7 @@ master's copy.
 - **pre-commit.ci's autofix commit** waits like any push of yours, then gets reviewed. It often
   lands while the review of your commit is running, which supersedes that review.
 - **The `Bot: Fast Review` label** skips the wait; see [Labels](#labels).
-- **No re-review** for pushes made by other bots, or PRs labelled `no-automation`. Ask for a review
+- **No re-review** for pushes made by other bots, or PRs labelled `Bot: No Automation`. Ask for a review
   if you want one.
 
 ```mermaid
@@ -243,7 +243,7 @@ The full instructions the bot follows are in
 | ⏳ pending | Review in progress. | The bot is reviewing this commit. |
 | ⏳ pending | `<time>` UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot. | A re-review starts 10 minutes after the last push. Re-requesting the review starts it right away. |
 | ⏳ pending | `<time>` UTC: review starts now (Bot: Fast Review label). | The PR, or an issue it links to, has the `Bot: Fast Review` label, so the re-review starts without waiting. |
-| ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
+| ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `Bot: No Automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
 | ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
 | ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit's check says when it will be reviewed. |
@@ -331,7 +331,7 @@ A maintainer can add these labels to a PR to change what the bot does with it.
 | Label | What it does |
 |---|---|
 | `Bot: Fast Review` | Skips the wait after a push, so each push is reviewed right away instead of after 10 quiet minutes. Put it on the PR, or on an issue the PR links to, to cover every PR for that issue. |
-| `no-automation` | The bot doesn't re-review pushes to the PR. A review can still be requested by hand. |
+| `Bot: No Automation` | The bot doesn't re-review pushes to the PR. A review can still be requested by hand. |
 
 How `Bot: Fast Review` is applied:
 
