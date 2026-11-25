@@ -11,18 +11,21 @@ const TEAM = 'openlibrary-agentic-code-reviewer';
 // review superseded; skipping it as a bot push would leave the PR with no review until someone asks.
 const AUTOFIX_BOTS = new Set(['pre-commit-ci[bot]']);
 // The status while a push review waits for pushes to stop. requestAfterQuiet checks the status still
-// starts with it, so a hand-started review (which replaces it with "Review in progress.") isn't
-// followed by a second one. The older wordings are still recognised for runs started before a change.
-const WAITING = 'Review starts ~';
+// says so, so a hand-started review (which replaces it with "Review in progress.") isn't followed by
+// a second one. The older wordings are still recognised for runs started before a change.
+const WAITING = /^\d\d:\d\d UTC: review starts /;
 const OLD_WAITING = ['Waiting for pushes to stop.', 'New commits. A review starts after'];
-const isWaiting = description => [WAITING, ...OLD_WAITING].some(p => String(description || '').startsWith(p));
-// "Review starts ~21:36 UTC": when the wait ends if no more commits arrive. The time comes first
+const isWaiting = description => {
+    const text = String(description || '');
+    return WAITING.test(text) || OLD_WAITING.some(p => text.startsWith(p));
+};
+// "21:36 UTC: review starts ...": when the wait ends if no more commits arrive. The time comes first
 // because the checks list cuts long descriptions off. A status shows the same yellow dot while
 // waiting and while reviewing, so the text has to say which, and how to skip the wait. Kept under
 // GitHub's 140-character limit for a status description.
 const waitingText = (minutes, now) => {
     const at = new Date(now + minutes * 60 * 1000).toISOString().slice(11, 16);
-    return `${WAITING}${at} UTC if no more pushes. Comment @openlibrary-bot review to start now.`;
+    return `${at} UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot.`;
 };
 
 // True when the push only merged the base branch into the previous head, as "Update branch" does.

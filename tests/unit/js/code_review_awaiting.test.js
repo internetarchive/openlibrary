@@ -69,7 +69,10 @@ test('a push to a reviewed PR says a review will start, and asks for one after t
     assert.equal(posted.length, 1);
     assert.equal(posted[0].state, 'pending');
     assert.equal(posted[0].sha, SHA('a'));
-    assert.match(posted[0].description, /^Review starts ~\d\d:\d\d UTC if no more pushes\. Comment @openlibrary-bot review to start now\.$/);
+    assert.match(
+        posted[0].description,
+        /^\d\d:\d\d UTC: review starts if there are no more pushes\. To start it now, re-request review from openlibrary-bot\.$/
+    );
     assert.equal(minutes, '10');
 });
 test('push reviews off: a reviewed PR asks for a re-request instead', async () => {
@@ -114,7 +117,7 @@ test('push_trigger_ignore_bot_commits: a bot push is not reviewed', async () => 
 test("push_trigger_ignore_bot_commits: pre-commit.ci's autofix push is reviewed like the author's", async () => {
     const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', { login: 'pre-commit-ci[bot]', type: 'Bot' }));
     assert.equal(minutes, '10');
-    assert.match(posted[0].description, /^Review starts ~/);
+    assert.match(posted[0].description, /^\d\d:\d\d UTC: review starts /);
 });
 test('push_trigger_ignore_merge_commits: a push that only merges the base branch is not reviewed', async () => {
     const baseMerge = { reviews: reviewed, parents: [SHA('p'), SHA('m')], cmpStatus: 'ahead' };
@@ -187,7 +190,10 @@ test('the waiting status names the time the review starts, in UTC', async () => 
     const c = core();
     const now = Date.parse('2026-11-20T21:25:50Z');
     await markAwaiting({ github: gh.github, context: context(), core: c, settings: settings(), runUrl: 'u', now });
-    assert.equal(gh.calls.statuses[0].description, 'Review starts ~21:35 UTC if no more pushes. Comment @openlibrary-bot review to start now.');
+    assert.equal(
+        gh.calls.statuses[0].description,
+        '21:35 UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot.'
+    );
     assert.ok(gh.calls.statuses[0].description.length <= 140);
 });
 test('after the wait, the new waiting text is recognised too; a hand-started review is not followed by another', async () => {
@@ -195,7 +201,7 @@ test('after the wait, the new waiting text is recognised too; a hand-started rev
         {
             context: 'code-review',
             state: 'pending',
-            description: 'Review starts ~21:35 UTC if no more pushes. Comment @openlibrary-bot review to start now.'
+            description: '21:35 UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot.'
         }
     ];
     let gh = mockGitHub({ statuses: fresh });
