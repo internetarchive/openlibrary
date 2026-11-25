@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 from pydantic import BaseModel, Field, field_serializer
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
@@ -31,6 +31,7 @@ from openlibrary.plugins.openlibrary.github import (
     unknown_pr_drift,
 )
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, jenkins_deploy_status, trigger_rebuild
+from openlibrary.plugins.upstream.utils import vue_component_html
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
@@ -43,20 +44,18 @@ _DEPLOY_WINDOW = 10 * 60  # 10 minutes
 _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 
-class status(delegate.page):
-    def GET(self):
-        is_maintainer_user = _is_maintainer()
-        has_testing_state = _load_testing_state() is not None
-        show_testing = has_testing_state and is_maintainer_user
-        return render_template(
-            "status",
-            status_info,
-            dev_merged_status=get_dev_merged_status(),
-            is_maintainer=is_maintainer_user,
-            has_testing_state=has_testing_state,
-            show_testing=show_testing,
-            jenkins_job_url=JENKINS_JOB_URL,
-        )
+def status_page_values(is_maintainer: bool) -> dict[str, Any]:
+    """What ``status.html.jinja`` shows."""
+    has_testing_state = _load_testing_state() is not None
+    return {
+        "status": status_info,
+        "dev_merged_status": get_dev_merged_status(),
+        "is_maintainer": is_maintainer,
+        "has_testing_state": has_testing_state,
+        "show_testing": has_testing_state and is_maintainer,
+        "jenkins_job_url": JENKINS_JOB_URL,
+        "vue_component_html": vue_component_html,
+    }
 
 
 def _json_ok() -> delegate.RawText:
@@ -333,6 +332,11 @@ class PRStatus:
             return int(m.group(1))
         else:
             return None
+
+    @property
+    def merge_failed(self) -> bool:
+        """Whether the deploy skipped this PR because it didn't merge."""
+        return self.status.startswith(_MERGE_CONFLICT_PREFIXES)
 
     @property
     def link(self) -> str | None:
@@ -693,7 +697,7 @@ def _merge_conflicted_prs() -> frozenset[int]:
         return frozenset()
     conflicted: set[int] = set()
     for pr in dms.pr_statuses:
-        if not pr.status.startswith(_MERGE_CONFLICT_PREFIXES):
+        if not pr.merge_failed:
             continue
         if pr.pull_id:
             conflicted.add(pr.pull_id)
@@ -725,11 +729,6 @@ def _ensure_testing_state_file() -> None:
     relevant_environment = False
     if relevant_environment and not TESTING_STATE_FILE.exists():
         TESTING_STATE_FILE.write_text(json.dumps({"last_deploy_at": "", "prs": []}, indent=2))
-
-
-def _is_maintainer() -> bool:
-    user = get_current_user()
-    return bool(user and user.is_maintainer())
 
 
 async def _fetch_drift_infos(prs: list[TestingPR]) -> dict[int, dict]:

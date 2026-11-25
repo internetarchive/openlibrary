@@ -12,6 +12,7 @@ fastapiRoutes:
     - GET /search/lists
     - GET /search/publishers
     - GET /search/subjects
+    - GET /status
     - GET /tasks/admin
     - GET POST /tasks/admin/new
     - GET /tasks/admin/{slug}
