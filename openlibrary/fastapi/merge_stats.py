@@ -1,14 +1,14 @@
-"""The merge-request statistics page and its request-independent inputs."""
+"""/stats/merges: per-librarian counts of closed community edit requests, for librarians and above."""
 
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Annotated, ClassVar, Literal
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, ValidationInfo, field_validator
 
 from openlibrary.core.edits import STATS_RANGES, STATS_SORT_COLUMNS, CommunityEditsQueue, MergeStatsRow, StatsRole, StatsSort
@@ -16,7 +16,6 @@ from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
-from openlibrary.utils.async_utils import async_bridge
 
 if TYPE_CHECKING:
     from openlibrary.core.shell.user import ShellUser
@@ -58,7 +57,9 @@ class MergeStatsNav:
     sorts: Mapping[str, str]
 
     @classmethod
-    def from_query(cls, path: str, query: Sequence[tuple[str, str]]) -> MergeStatsNav:
+    def from_request(cls, request: Request) -> MergeStatsNav:
+        path = request.url.path
+        query = request.query_params.multi_items()
         params: dict[str, list[str]] = {}
         for key, value in query:
             params.setdefault(key, []).append(value)
@@ -83,22 +84,25 @@ class MergeStatsNav:
             sorts={key: link(sort=key, order=order if key == selected else "desc", page=None) for key in STATS_SORT_COLUMNS},
         )
 
-    @classmethod
-    def from_request(cls, request: Request) -> MergeStatsNav:
-        return cls.from_query(request.url.path, request.query_params.multi_items())
-
 
 MergeStatsNavDep = Annotated[MergeStatsNav, Depends(MergeStatsNav.from_request)]
 
 
-def require_stats_user(request: Request, user: CurrentUserDep) -> ShellUser:
+def require_librarian(request: Request, user: CurrentUserDep) -> ShellUser:
+    """Librarians, super-librarians and admins: everyone who submits or reviews merge requests.
+
+    A visitor is sent to log in and back; a member without the role gets a 403.
+    """
     if user is None:
         path = request.url.path + (f"?{request.url.query}" if request.url.query else "")
-        raise HTTPException(303, headers={"Location": "/account/login?" + urlencode({"redirect": path})})
+        raise HTTPException(status.HTTP_303_SEE_OTHER, headers={"Location": "/account/login?" + urlencode({"redirect": path})})
+    if not user.is_librarian:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Only librarians can see merge request statistics")
     return user
 
 
-pages = APIRouter(route_class=SitePageRoute, dependencies=[Depends(require_stats_user)])
+# On the router, so a page added here can't be left ungated.
+pages = APIRouter(route_class=SitePageRoute, dependencies=[Depends(require_librarian)])
 PAGE_SIZE = 25
 
 
@@ -116,13 +120,8 @@ class MergeStatsData:
         total = await CommunityEditsQueue.get_stats_count(role, since=since)
         return cls(rows=rows, total_pages=(total + PAGE_SIZE - 1) // PAGE_SIZE)
 
-    @classmethod
-    def read_sync(cls, form: MergeStatsForm) -> MergeStatsData:
-        """Sync bridge for the temporary web.py wrapper."""
-        return async_bridge.run(cls.read(form))
 
-
-@pages.get("/merges/stats")
+@pages.get("/stats/merges")
 async def merge_stats(form: Annotated[MergeStatsForm, Query()], nav: MergeStatsNavDep) -> SitePage:
     body = render_jinja_template(
         "merge_request_table/merge_request_stats.html.jinja", form=form, nav=nav, data=await MergeStatsData.read(form), rate_label=_("Merged %")

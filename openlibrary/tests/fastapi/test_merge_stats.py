@@ -1,17 +1,16 @@
-"""The stats page's inputs, links and per-request isolation on both servers."""
+"""The stats page's access, inputs, links and per-request isolation."""
 
 import datetime as dt
 from unittest.mock import AsyncMock
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-import web
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
 from openlibrary.core.edits import CommunityEditsQueue
+from openlibrary.core.shell.user import ShellUser
 from openlibrary.fastapi.merge_stats import pages
-from openlibrary.plugins.upstream.edits import community_edits_queue_stats
 
 ROWS = [{"username": "alice", "total": 4, "merged": 3, "declined": 1, "merge_rate": 75.0, "author_requests": 1, "work_requests": 3}]
 
@@ -25,13 +24,31 @@ def stats_queries(monkeypatch):
     return get_stats, get_count
 
 
+def shell_user(is_librarian: bool) -> ShellUser:
+    return ShellUser(key="/people/u", created=None, ia_id=None, is_librarian=is_librarian, is_super_librarian=False, open_merges_count=0)
+
+
 @pytest.fixture
-def client(site_page_app, stats_queries):
-    return TestClient(site_page_app(pages), headers={"x-user": "reader"})
+def client(site_page_app, stats_queries, monkeypatch):
+    """The page as a librarian sees it, unless the test calls ``as_role`` with another role."""
+    roles = {"visitor": None, "member": shell_user(False), "librarian": shell_user(True)}
+    role = {"now": "librarian"}
+    monkeypatch.setattr("openlibrary.fastapi.shared.site_page.load_shell_user", lambda: roles[role["now"]])
+    test_client = TestClient(site_page_app(pages), headers={"x-user": "reader"}, follow_redirects=False)
+    test_client.as_role = lambda name: role.update(now=name)  # type: ignore[attr-defined]
+    return test_client
+
+
+def test_only_librarians_and_above_get_in(client, stats_queries):
+    client.as_role("member")
+    assert client.get("/stats/merges").status_code == 403
+    client.as_role("librarian")
+    assert client.get("/stats/merges").status_code == 200
+    stats_queries[0].assert_awaited_once()
 
 
 def test_stats_page_renders_rows_and_pagination(client, stats_queries):
-    response = client.get("/merges/stats")
+    response = client.get("/stats/merges")
     assert response.status_code == 200
     assert "Community Edit Request Statistics | Open Library" in response.text
     assert "alice" in response.text
@@ -45,7 +62,7 @@ def test_stats_page_renders_rows_and_pagination(client, stats_queries):
 
 @pytest.mark.parametrize(("date_range", "days"), [("year", 365), ("month", 30)])
 def test_filters_reach_the_queries(client, stats_queries, date_range, days):
-    response = client.get(f"/merges/stats?group=submitters&range={date_range}&sort=rate&order=asc&page=2")
+    response = client.get(f"/stats/merges?group=submitters&range={date_range}&sort=rate&order=asc&page=2")
     assert response.status_code == 200
     since = dt.date.today() - dt.timedelta(days=days)
     get_stats, get_count = stats_queries
@@ -55,7 +72,7 @@ def test_filters_reach_the_queries(client, stats_queries, date_range, days):
 
 @pytest.mark.parametrize("query", ["group=other", "range=week", "sort=evil", "order=sideways", "page=abc", "page=1.5"])
 def test_invalid_inputs_are_400_without_reading_database(client, stats_queries, query):
-    response = client.get("/merges/stats?" + query)
+    response = client.get("/stats/merges?" + query)
     assert response.status_code == 400
     for query_mock in stats_queries:
         query_mock.assert_not_awaited()
@@ -63,12 +80,12 @@ def test_invalid_inputs_are_400_without_reading_database(client, stats_queries, 
 
 @pytest.mark.parametrize("page", ["0", "-3"])
 def test_nonpositive_page_is_clamped(client, stats_queries, page):
-    assert client.get(f"/merges/stats?page={page}").status_code == 200
+    assert client.get(f"/stats/merges?page={page}").status_code == 200
     assert stats_queries[0].await_args.kwargs["page"] == 1
 
 
 def test_last_repeated_parameter_wins_and_unknown_is_ignored(client, stats_queries):
-    response = client.get("/merges/stats?group=reviewers&group=submitters&extra=kept&page=2&page=3")
+    response = client.get("/stats/merges?group=reviewers&group=submitters&extra=kept&page=2&page=3")
     assert response.status_code == 200
     assert stats_queries[0].await_args.args == ("submitter",)
     assert stats_queries[0].await_args.kwargs["page"] == 3
@@ -78,7 +95,7 @@ def test_last_repeated_parameter_wins_and_unknown_is_ignored(client, stats_queri
 
 
 def test_links_sort_and_reset_page(client):
-    response = client.get("/merges/stats?sort=merged&order=desc&page=3&range=year")
+    response = client.get("/stats/merges?sort=merged&order=desc&page=3&range=year")
     html = BeautifulSoup(response.text, "html.parser")
     links = {a.get_text(): parse_qs(urlsplit(a["href"]).query) for a in html.select("th a")}
     assert links["Merged ▾"] == {"sort": ["merged"], "order": ["asc"], "range": ["year"]}
@@ -88,7 +105,7 @@ def test_links_sort_and_reset_page(client):
 def test_username_is_escaped_and_url_encoded(client, stats_queries):
     username = "<script>&a=b#c"
     stats_queries[0].return_value = [{**ROWS[0], "username": username}]
-    response = client.get("/merges/stats")
+    response = client.get("/stats/merges")
     assert username not in response.text
     html = BeautifulSoup(response.text, "html.parser")
     link = html.select_one("tbody a")
@@ -99,30 +116,31 @@ def test_username_is_escaped_and_url_encoded(client, stats_queries):
 def test_empty_table(client, stats_queries):
     stats_queries[0].return_value = []
     stats_queries[1].return_value = 0
-    response = client.get("/merges/stats")
+    response = client.get("/stats/merges")
     assert "No entries here!" in response.text
     assert "<ol-pagination" not in response.text
 
 
-def test_visitor_is_sent_to_login_with_full_return_path(site_page_app, stats_queries):
-    client = TestClient(site_page_app(pages))
-    response = client.get("/merges/stats?range=month&page=2", follow_redirects=False)
+def test_visitor_is_sent_to_login_with_full_return_path(client, stats_queries):
+    client.as_role("visitor")
+    response = client.get("/stats/merges?range=month&page=2")
     assert response.status_code == 303
     location = urlsplit(response.headers["location"])
     assert location.path == "/account/login"
-    assert parse_qs(location.query) == {"redirect": ["/merges/stats?range=month&page=2"]}
+    assert parse_qs(location.query) == {"redirect": ["/stats/merges?range=month&page=2"]}
     for query_mock in stats_queries:
         query_mock.assert_not_awaited()
 
 
 def test_head_is_supported(client):
-    response = client.head("/merges/stats")
+    response = client.head("/stats/merges")
     assert response.status_code == 200
     assert response.content == b""
 
 
-def test_concurrent_requests_do_not_read_webpy_leftovers(site_page_app, stats_queries, webpy_leftovers, fetch_concurrently):
-    requests = [(f"/merges/stats?group={'submitters' if i % 2 else 'reviewers'}&extra=request-{i}", {"x-user": "reader"}) for i in range(12)]
+def test_concurrent_requests_do_not_read_webpy_leftovers(site_page_app, stats_queries, webpy_leftovers, fetch_concurrently, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.shared.site_page.load_shell_user", lambda: shell_user(True))
+    requests = [(f"/stats/merges?group={'submitters' if i % 2 else 'reviewers'}&extra=request-{i}", {"x-user": "reader"}) for i in range(12)]
     responses = fetch_concurrently(site_page_app(pages), requests)
     for i, response in enumerate(responses):
         assert response.status_code == 200
@@ -131,34 +149,8 @@ def test_concurrent_requests_do_not_read_webpy_leftovers(site_page_app, stats_qu
         assert not any(f"extra=request-{j}&" in response.text for j in range(12) if i != j)
 
 
-@pytest.mark.parametrize("query", ["", "group=submitters&range=month&sort=rate&order=asc&page=2", "group=reviewers&group=submitters&extra=kept"])
-def test_webpy_wrapper_renders_same_body(monkeypatch, request_context_fixture, client, query):
-    request_context_fixture(lang="en")
-    monkeypatch.setattr(web.ctx, "site", web.storage(get_user=lambda: True), raising=False)
-    monkeypatch.setattr(web.ctx, "path", "/merges/stats", raising=False)
-    monkeypatch.setattr(web.ctx, "env", {"QUERY_STRING": query, "REQUEST_METHOD": "GET"}, raising=False)
-    result = community_edits_queue_stats().GET()
-    assert result.title == "Community Edit Request Statistics"
-    response = client.get("/merges/stats?" + query)
-    assert response.status_code == 200
-    assert BeautifulSoup(str(result), "html.parser").select_one(".merge-stats") == BeautifulSoup(response.text, "html.parser").select_one(".merge-stats")
-
-
-@pytest.mark.parametrize("query", ["group=other", "range=week", "sort=evil", "order=sideways", "page=abc"])
-def test_webpy_wrapper_rejects_invalid_inputs(monkeypatch, request_context_fixture, stats_queries, query):
-    request_context_fixture(lang="en")
-    monkeypatch.setattr(web.ctx, "site", web.storage(get_user=lambda: True), raising=False)
-    monkeypatch.setattr(web.ctx, "env", {"QUERY_STRING": query, "REQUEST_METHOD": "GET"}, raising=False)
-    monkeypatch.setattr(web.ctx, "headers", [], raising=False)
-    result = community_edits_queue_stats().GET()
-    assert isinstance(result, web.HTTPError)
-    assert web.ctx.status == "400 Bad Request"
-    for query_mock in stats_queries:
-        query_mock.assert_not_awaited()
-
-
 def test_nav_preserves_repeated_and_blank_parameters(client):
-    response = client.get("/merges/stats?group=reviewers&group=submitters&extra=one&extra=two&empty=")
+    response = client.get("/stats/merges?group=reviewers&group=submitters&extra=one&extra=two&empty=")
     html = BeautifulSoup(response.text, "html.parser")
     link = html.select(".table-header a")[2]
     assert parse_qs(urlsplit(link["href"]).query, keep_blank_values=True) == {
@@ -172,7 +164,7 @@ def test_nav_preserves_repeated_and_blank_parameters(client):
 @pytest.mark.parametrize("sort", ["total", "merged", "declined", "rate"])
 @pytest.mark.parametrize("order", ["asc", "desc"])
 def test_table_headers_expose_sort_state(client, sort, order):
-    response = client.get(f"/merges/stats?sort={sort}&order={order}")
+    response = client.get(f"/stats/merges?sort={sort}&order={order}")
     html = BeautifulSoup(response.text, "html.parser")
     headers = html.select(".mr-stats-table th")
     assert len(headers) == 7

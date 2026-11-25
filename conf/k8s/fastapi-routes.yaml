@@ -4,7 +4,6 @@ fastapiRoutes:
   default:
     # Pages (SitePageRoute)
     - GET /advancedsearch
-    - GET /merges/stats
     - GET /publishers
     - GET /publishers/{name}
     - GET /search/authors
@@ -13,6 +12,7 @@ fastapiRoutes:
     - GET /search/lists
     - GET /search/publishers
     - GET /search/subjects
+    - GET /stats/merges
     - GET /status
     - GET /tasks/admin
     - GET POST /tasks/admin/new

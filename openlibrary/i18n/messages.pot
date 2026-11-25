@@ -2081,6 +2081,10 @@ msgstr ""
 msgid "Tasks"
 msgstr ""
 
+#: admin/index.html
+msgid "Merge requests"
+msgstr ""
+
 #: admin/index.html admin/menu.html admin/new_accounts.html.jinja
 msgid "Spam review"
 msgstr ""
@@ -5837,7 +5841,7 @@ msgstr ""
 msgid "Declined"
 msgstr ""
 
-#: merge_request_table/merge_request_stats.html.jinja openlibrary/fastapi/merge_stats.py openlibrary/plugins/upstream/edits.py
+#: merge_request_table/merge_request_stats.html.jinja openlibrary/fastapi/merge_stats.py
 msgid "Community Edit Request Statistics"
 msgstr ""
 
@@ -10210,7 +10214,7 @@ msgstr ""
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
 msgstr ""
 
-#: openlibrary/fastapi/merge_stats.py openlibrary/plugins/upstream/edits.py
+#: openlibrary/fastapi/merge_stats.py
 msgid "Merged %"
 msgstr ""
 
