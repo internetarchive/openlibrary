@@ -436,7 +436,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         const reviewed = headSha.slice(0, 7),
             live = String(livePr.head.sha).slice(0, 7);
         core.info(`Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} during the review; posting it on ${reviewed} as a comment.`);
-        supersededLine = `*This review is of \`${reviewed}\`. \`${live}\` was pushed while it ran, so it neither approves nor blocks, and \`${live}\` gets its own review.*`;
+        supersededLine = `*This review is of \`${reviewed}\`. \`${live}\` was pushed while it ran, so this review neither approves nor blocks. \`${live}\` needs its own review: its \`code-review\` check says whether one will start or has to be requested.*`;
     }
 
     const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
