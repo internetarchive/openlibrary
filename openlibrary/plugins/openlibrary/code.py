@@ -1082,6 +1082,7 @@ class invalidate(delegate.page):
     path = "/system/invalidate"
 
     def POST(self):
+        raise Forbidden("Temporarily disabled")
         global local_ip
         if local_ip is None:
             local_ip = socket.gethostbyname(socket.gethostname())
