@@ -13,10 +13,6 @@
         <pre>{{ dev_merged_status.git_status }}</pre>
         <br>
         <a href="{{ dev_merged_status.get_github_search_link() }}">{{ _("View PRs on GitHub") }}</a>
-        •
-        {# The checkbox works entirely via CSS and needs to be adjacent to the table #}
-        <input type="checkbox" id="show_changed">
-        <label for="show_changed">{{ _("Show changed files") }}</label>
         <table class="status-table">
             <thead>
                 <tr>
@@ -34,11 +30,11 @@
                                 <code>{{ pr_status.pull_line }}</code>
                             {% endif %}
                         </td>
-                        <td><code>{{ pr_status.status }}</code></td>
-                    </tr>
-                    <tr class="tr-body">
-                        <td colspan="2">
-                            <pre>{{ pr_status.body }}</pre>
+                        <td>
+                            <details>
+                                <summary><code>{{ pr_status.status }}</code></summary>
+                                <pre>{{ pr_status.body }}</pre>
+                            </details>
                         </td>
                     </tr>
                 {% endfor %}

@@ -7,10 +7,3 @@
   border: 1px solid var(--color-border-muted);
   padding: var(--spacing-inset-xs);
 }
-.status-table .tr-body {
-  display: none;
-  background: var(--color-surface-header);
-}
-:checked ~ .status-table .tr-body {
-  display: table-row;
-}
