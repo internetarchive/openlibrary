@@ -40,6 +40,7 @@ GET /redoc
 GET /search.json
 GET /search/authors
 GET /search/authors.json
+GET /search/bulk
 GET /search/editions.json
 GET /search/facets.json
 GET /search/inside
