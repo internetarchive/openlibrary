@@ -104,8 +104,6 @@ fastapiRoutes:
     - GET /works/OL{work_id}W/lists.json
     - POST /works/OL{work_id}W/ratings.json
   nonblocking:
-    # Pages (SitePageRoute)
-    - POST /verify_human
     # JSON / API
     - POST /account/logout
     - GET /awards/count.json
@@ -118,6 +116,7 @@ fastapiRoutes:
     - GET /search/authors.json
     - GET /search/editions.json
     - GET /search/subjects.json
+    - POST /verify_human
     - POST /works/OL{work_id}W/awards.json
     - GET /works/OL{work_id}W/bookshelves.json
     - POST /works/OL{work_id}W/check-ins
