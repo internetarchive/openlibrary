@@ -78,10 +78,7 @@ master's copy.
   there were none, it doesn't run the model and the check gets the previous verdict.
 - **pre-commit.ci's autofix commit** waits like any push of yours, then gets reviewed. It often
   lands while the review of your commit is running, which supersedes that review.
-- **The `fast-bot-review` label** skips the wait: pushes to a PR with that label, or to a PR linked to an
-  issue with it (in the description, branch name or title), are reviewed right away.
-  The label is read when you push, so adding it during a wait doesn't end that wait; re-request
-  review from openlibrary-bot for that. It only applies to PRs that already have a first review.
+- **The `Bot: Fast Review` label** skips the wait; see [Labels](#labels).
 - **No re-review** for pushes made by other bots, or PRs labelled `no-automation`. Ask for a review
   if you want one.
 
@@ -245,6 +242,7 @@ The full instructions the bot follows are in
 |---|---|---|
 | ⏳ pending | Review in progress. | The bot is reviewing this commit. |
 | ⏳ pending | `<time>` UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot. | A re-review starts 10 minutes after the last push. Re-requesting the review starts it right away. |
+| ⏳ pending | `<time>` UTC: review starts now (Bot: Fast Review label). | The PR, or an issue it links to, has the `Bot: Fast Review` label, so the re-review starts without waiting. |
 | ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
 | ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
@@ -319,12 +317,30 @@ names, though Open Library doesn't run PR-Agent itself.
 | Setting | What it does |
 |---|---|
 | `handle_push_trigger` | Re-review after new commits (on) |
-| `push_review_delay_minutes` | How long to wait with no new pushes before that re-review (10) |
+| `push_review_delay_minutes` | How long to wait with no new pushes before that re-review. The `Bot: Fast Review` label skips it (10) |
 | `push_trigger_ignore_bot_commits`, `push_trigger_ignore_merge_commits` | Skip pushes by bots, and pushes that only merge the base branch |
 | `require_*_review` | Turn each review area on or off; security can't be turned off |
 | `require_ticket_analysis_review` | Check the PR against its linked issues |
 | `inline_key_issues` | Post findings as inline comments, or put them all in the summary |
 | `num_max_findings` | Cap the findings per review |
+
+## Labels
+
+A maintainer can add these labels to a PR to change what the bot does with it.
+
+| Label | What it does |
+|---|---|
+| `Bot: Fast Review` | Skips the wait after a push, so each push is reviewed right away instead of after 10 quiet minutes. Put it on the PR, or on an issue the PR links to, to cover every PR for that issue. |
+| `no-automation` | The bot doesn't re-review pushes to the PR. A review can still be requested by hand. |
+
+How `Bot: Fast Review` is applied:
+
+- **Linked issues count.** The bot looks for the issue number in the PR description, then the branch
+  name, then the title, for up to 5 issues. "Part of #123" and "Closes #123" both count.
+- **Only re-reviews.** It skips the wait on a PR that already has a first review. The first review
+  is still a maintainer's call.
+- **Read at push time.** Adding the label while a wait is already running doesn't end that wait;
+  re-request review from openlibrary-bot to start the review now.
 
 ## How it's built
 

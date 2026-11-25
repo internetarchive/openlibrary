@@ -8,7 +8,7 @@ const { findIssueNumbers, branchIssueNumbers } = require('./linked_issues.cjs');
 
 const BOT = 'openlibrary-bot';
 // A PR with this label, or one linked to an issue with it, skips the quiet period: a push review starts right away.
-const FAST_REVIEW_LABEL = 'fast-bot-review';
+const FAST_REVIEW_LABEL = 'Bot: Fast Review';
 const MAX_ISSUE_LOOKUPS = 5;
 const TEAM = 'openlibrary-agentic-code-reviewer';
 // pre-commit.ci's autofix commit is the author's own change reformatted, so it is reviewed like the
