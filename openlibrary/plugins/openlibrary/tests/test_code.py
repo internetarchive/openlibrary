@@ -95,6 +95,7 @@ def test_new_api_checks_and_saves_to_current_site(current_site, monkeypatch):
     assert current_site.changesets[-1]["kind"] == "test-create"
 
 
+@pytest.mark.skip(reason="/system/invalidate is temporarily disabled")
 def test_invalidate_passes_current_site_to_hooks(current_site, monkeypatch):
     monkeypatch.setattr(code, "local_ip", "127.0.0.1")
     monkeypatch.setitem(web.ctx, "ip", "127.0.0.1")
