@@ -12,16 +12,17 @@ const TEAM = 'openlibrary-agentic-code-reviewer';
 const AUTOFIX_BOTS = new Set(['pre-commit-ci[bot]']);
 // The status while a push review waits for pushes to stop. requestAfterQuiet checks the status still
 // starts with it, so a hand-started review (which replaces it with "Review in progress.") isn't
-// followed by a second one. The older wording is still recognised for runs started before the change.
-const WAITING = 'Waiting for pushes to stop.';
-const OLD_WAITING = 'New commits. A review starts after';
-const isWaiting = description => [WAITING, OLD_WAITING].some(p => String(description || '').startsWith(p));
-// "Review starts ~21:36 UTC": when the wait ends if no more commits arrive. A status shows the
-// same yellow dot while waiting and while reviewing, so the text has to say which, and how to skip
-// the wait. Kept under GitHub's 140-character limit for a status description.
+// followed by a second one. The older wordings are still recognised for runs started before a change.
+const WAITING = 'Review starts ~';
+const OLD_WAITING = ['Waiting for pushes to stop.', 'New commits. A review starts after'];
+const isWaiting = description => [WAITING, ...OLD_WAITING].some(p => String(description || '').startsWith(p));
+// "Review starts ~21:36 UTC": when the wait ends if no more commits arrive. The time comes first
+// because the checks list cuts long descriptions off. A status shows the same yellow dot while
+// waiting and while reviewing, so the text has to say which, and how to skip the wait. Kept under
+// GitHub's 140-character limit for a status description.
 const waitingText = (minutes, now) => {
     const at = new Date(now + minutes * 60 * 1000).toISOString().slice(11, 16);
-    return `${WAITING} Review starts ~${at} UTC, or comment @openlibrary-bot review to start now.`;
+    return `${WAITING}${at} UTC if no more pushes. Comment @openlibrary-bot review to start now.`;
 };
 
 // True when the push only merged the base branch into the previous head, as "Update branch" does.
