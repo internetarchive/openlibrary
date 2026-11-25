@@ -19,8 +19,6 @@ table#editions .cta-button-group,
   margin: 0 auto;
 }
 
-/* The Return form sits in the same column as the button groups, so it takes
-   their width too; otherwise its full-width button spans the whole cell. */
 table#editions .return-form,
 .editions-table .return-form {
   width: 185px;
