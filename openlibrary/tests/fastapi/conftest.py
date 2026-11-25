@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 from collections.abc import Callable
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import httpx
@@ -276,7 +277,7 @@ class FakeSite:
 
     def __init__(self, username: str | None):
         self.username = username
-        self._conn = web.storage(get_auth_token=lambda: username)
+        self._conn = SimpleNamespace(get_auth_token=lambda: username)
 
     def get_user(self):
         return FakeUser(self.username) if self.username else None
