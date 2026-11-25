@@ -176,13 +176,13 @@ class library_explorer(delegate.page):
         # Local imports: this handler is temporary.
         from markupsafe import escape
 
+        from openlibrary.core.jinja import render_jinja_template
         from openlibrary.i18n import gettext as _
 
         context.setdefault("bodyclass", []).extend(("full-width", "library-explorer"))
-        page = render_template("library_explorer")
+        body = render_jinja_template("library_explorer.html.jinja")
         # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
-        page.title = escape(_("Library Explorer"))
-        return page
+        return web.template.TemplateResult(__body__=body, title=escape(_("Library Explorer")))
 
 
 class merge_work(delegate.page):

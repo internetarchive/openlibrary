@@ -1,3 +1,4 @@
+{# Takes no values: the page is the LibraryExplorer component. #}
 <style>
     body.library-explorer {
         background: linear-gradient(to bottom, #f6f1e6 50px, #ebdfc5 218px) !important;
@@ -8,5 +9,7 @@
         display: none;
     }
 </style>
-
-$:render_component('LibraryExplorer')
+<script type="module"
+        src="{{ static_url('build/components/production/ol-LibraryExplorer.js') }}"></script>
+<ol-library-explorer>
+</ol-library-explorer>
