@@ -646,6 +646,10 @@ async def anonymize_account(
     return AnonymizeResponse(**result)
 
 
+# Not @nonblocking, only because it renders Jinja templates (the body and the site shell) on the event loop: the
+# FileSystemLoader stats each template file on every render and reads and compiles it on a process's first use, and
+# the language's translations are read on first use too. Everything else here is CPU only. Mark it once rendering does
+# no file I/O.
 @pages.get("/verify_human")
 async def verify_human(
     next: Annotated[str, Query()] = "/",
