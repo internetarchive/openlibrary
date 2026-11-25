@@ -119,6 +119,13 @@ $ has_profile = person.get_user() is not None
             <button type="submit" name="action" value="su" style="float: right; background: #ffbbbb;">$_("login as this user")</button>
             <div class="small">$:_('Activated on <span class="time">%(date)s</span> from <a href="/admin/ip/%(ip)s">%(ip)s</a>.', date=datestr(person.activated_on, relative=False), ip=v.ip)</div>
         $if person.status == "blocked":
+            $# A revert that ran out of time redirects here with the offset to carry on from
+            $ revert_offset = max(safeint(query_param('revert_offset', '0'), 0), 0)
+            <input type="hidden" name="revert_offset" value="$revert_offset"/>
+            $if revert_offset:
+                <button type="submit" name="action" value="block_account_and_revert" style="float: inline-end; background-color: var(--color-error-bg);">$_("continue reverting edits")</button>
+            $else:
+                <button class="do-confirm" type="submit" name="action" value="block_account_and_revert" style="float: inline-end; background-color: var(--color-error-bg);">$_("revert all edits")</button>
             <button type="submit" name="action" value="unblock_account">$_("unblock this account")</button>
         $elif person.status == "pending":
             <button type="submit" name="action" value="activate_account">$_("activate account")</button>

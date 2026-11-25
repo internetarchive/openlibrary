@@ -8,9 +8,12 @@ import re
 import socket
 import subprocess
 import sys
+import time
 import traceback
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from itertools import batched
 
 import requests
 import web
@@ -20,7 +23,7 @@ from infogami import config
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.context import context
-from infogami.utils.view import add_flash_message, public, render
+from infogami.utils.view import add_flash_message, public, render, safeint
 from openlibrary import accounts
 from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
 from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition
@@ -62,46 +65,78 @@ def register_admin_page(path, cls, label=None, visible=True, librarians=False):
 LIST_CREATE_ACTIONS = ("lists", "create-list", "create-series")
 
 
-def revert_all_user_edits(account: Account) -> tuple[int, int]:
+# Changesets handled per batch of block-and-revert. Each batch is saved before the next starts.
+REVERT_BATCH_SIZE = 100
+# How long one block-and-revert request keeps starting new batches. Keep it well under the
+# proxy's read timeout (nginx defaults to 60s); the admin continues from where it stopped.
+REVERT_TIME_BUDGET_SECONDS = 30
+# Keys per `things` lookup, which is a GET: keeps the URL short, like Site.get_many does.
+THINGS_LOOKUP_CHUNK_SIZE = 100
+
+
+@dataclass
+class RevertProgress:
+    """What one run of revert_all_user_edits did, and where the next one should start."""
+
+    reverted: int = 0  # documents rolled back
+    deleted: int = 0  # documents the account created, now deleted
+    lists_deleted: int = 0  # how many of `deleted` were lists or series
+    next_offset: int | None = None  # None once every changeset has been handled
+
+
+def get_deleted_keys(keys: Iterable[str]) -> set[str]:
+    """Returns the keys which are currently deleted."""
+    deleted: set[str] = set()
+    for chunk in batched(sorted(keys), THINGS_LOOKUP_CHUNK_SIZE, strict=False):
+        # Infobase returns 20 keys unless told otherwise
+        deleted.update(site.get().things({"key": list(chunk), "type": {"key": "/type/delete"}, "limit": len(chunk)}))
+    return deleted
+
+
+def revert_all_user_edits(account: Account, offset: int = 0, time_budget: float | None = None) -> RevertProgress:
     """
-    :return: tuple of (number of edits reverted, number of documents deleted)
+    Reverts the account's edits and deletes the records it created, newest changeset first.
+
+    Works in batches and saves each one before starting the next, so a run that stops early
+    keeps what it did and a repeat run skips the records already deleted. No batch starts
+    after `time_budget` seconds (default REVERT_TIME_BUDGET_SECONDS); `next_offset` then says
+    where to continue.
     """
-    i = 0
-    edit_count = 0
-    stop = False
-    keys_to_delete = set()
-    while not stop:
-        changes = account.get_recentchanges(limit=100, offset=100 * i)
-        added_records: list[list[dict]] = [c.changes for c in changes if c.kind == "add-book"]
-        # Also delete lists and series `created` by this user
-        added_records.extend(
-            [r for r in c.changes if r.get("revision") == 1]  # created, not just edited
-            for c in changes
-            if c.kind in LIST_CREATE_ACTIONS
-        )
-        flattened_records: list[dict] = [record for lst in added_records for record in lst]
-        keys_to_delete |= {r["key"] for r in flattened_records}
+    progress = RevertProgress()
+    deadline = time.monotonic() + (REVERT_TIME_BUDGET_SECONDS if time_budget is None else time_budget)
+    while True:
+        changes = account.get_recentchanges(limit=REVERT_BATCH_SIZE, offset=offset)
+        created_keys: set[str] = set()
+        created_list_keys: set[str] = set()
+        for c in changes:
+            if c.kind == "add-book":
+                created_keys |= {r["key"] for r in c.changes}
+            elif c.kind in LIST_CREATE_ACTIONS:
+                # Also delete lists and series created, not just edited, by this user
+                created_list_keys |= {r["key"] for r in c.changes if r.get("revision") == 1}
 
-        keys_to_revert: dict[str, list[int]] = {item.key: [] for change in changes for item in change.changes}
-        for change in changes:
-            for item in change.changes:
-                keys_to_revert[item.key].append(change.id)
+        already_deleted = get_deleted_keys({r["key"] for c in changes for r in c.changes})
+        keys_to_delete = (created_keys | created_list_keys) - already_deleted
 
-        deleted_keys = site.get().things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
+        # Nothing to do for changesets whose documents are all deleted already
+        pending = [c for c in changes if not already_deleted.issuperset(r["key"] for r in c.changes)]
+        # Don't undelete documents, or restore ones this batch is about to delete
+        _, len_docs = _revert_changes(pending, "Reverted Spam", skip_keys=already_deleted | keys_to_delete)
+        if keys_to_delete:
+            delete_payload = [{"key": key, "type": {"key": "/type/delete"}} for key in sorted(keys_to_delete)]
+            site.get().save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
 
-        changesets_with_deleted_works = {change_id for key in deleted_keys for change_id in keys_to_revert[key]}
+        progress.reverted += len_docs
+        progress.deleted += len(keys_to_delete)
+        progress.lists_deleted += len(keys_to_delete & created_list_keys)
 
-        changeset_ids = [c.id for c in changes if c.id not in changesets_with_deleted_works]
-
-        _, len_docs = revert_changesets(changeset_ids, "Reverted Spam")
-        edit_count += len_docs
-        i += 1
-        if len(changes) < 100:
-            stop = True
-
-    delete_payload = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
-    site.get().save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
-    return edit_count, len(delete_payload)
+        if len(changes) < REVERT_BATCH_SIZE:
+            return progress
+        # The saves above are the admin's changesets, so they don't shift the account's offsets.
+        offset += REVERT_BATCH_SIZE
+        if time.monotonic() >= deadline:
+            progress.next_offset = offset
+            return progress
 
 
 def revert_changesets(changeset_ids: Iterable[int], comment: str):
@@ -111,18 +146,25 @@ def revert_changesets(changeset_ids: Iterable[int], comment: str):
     Note this means that any edits made _after_ the given changeset will
     also be lost.
     """
-
-    def get_doc(key: str, revision: int) -> dict:
-        if revision == 0:
-            return {"key": key, "type": {"key": "/type/delete"}}
-        else:
-            return site.get().get(key, revision).dict()
-
     _site = site.get()
-    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in _site.get_change(cid).changes]
+    return _revert_changes([_site.get_change(cid) for cid in changeset_ids], comment)
+
+
+def _revert_changes(changesets: list, comment: str, skip_keys: Collection[str] = ()):
+    """Reverts changesets which are already loaded, leaving the documents in `skip_keys` alone."""
+    _site = site.get()
+    docs = [
+        _site.get(c["key"], c["revision"] - 1).dict()
+        for changeset in changesets
+        for c in changeset.changes
+        # Revision 1 created the document, so there is nothing to roll it back to
+        if c["revision"] > 1 and c["key"] not in skip_keys
+    ]
     docs = [doc for doc in docs if doc.get("type", {}).get("key") != "/type/delete"]
-    data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-    manifest = site.get().save_many(docs, action="revert", data=data, comment=comment)
+    if not docs:
+        return [], 0
+    data = {"reverted_changesets": [str(changeset.id) for changeset in changesets]}
+    manifest = _site.save_many(docs, action="revert", data=data, comment=comment)
     return manifest, len(docs)
 
 
@@ -331,13 +373,22 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_block_account_and_revert(self, account: Account):
+        # Block first, so the account is stopped even if the revert doesn't finish.
         account.block()
-        edit_count, deleted_count = revert_all_user_edits(account)
+        i = web.input(revert_offset="0")
+        progress = revert_all_user_edits(account, offset=max(safeint(i.revert_offset, 0), 0))
+        done = f"reverted {progress.reverted} edits and deleted {progress.deleted} records ({progress.lists_deleted} of them lists)"
+        if progress.next_offset is None:
+            add_flash_message("info", f"Blocked the account, {done}. All of its edits have been handled.")
+            raise web.seeother(web.ctx.path)
+
+        total = account.get_edit_count()
+        remaining = max(total - progress.next_offset, 0)
         add_flash_message(
             "info",
-            f"Blocked the account and reverted all {edit_count} edits. {deleted_count} records deleted.",
+            f'The account is blocked. This pass {done}. {remaining} of its {total} changesets are still to do: press "continue reverting edits" to carry on.',
         )
-        raise web.seeother(web.ctx.path)
+        raise web.seeother(f"{web.ctx.path}?revert_offset={progress.next_offset}")
 
     def POST_unblock_account(self, account):
         account.unblock()
