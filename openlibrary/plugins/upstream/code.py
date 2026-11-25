@@ -173,7 +173,16 @@ class library_explorer(delegate.page):
     path = "/explore"
 
     def GET(self):
-        return render_template("library_explorer")
+        # Local imports: this handler is temporary.
+        from markupsafe import escape
+
+        from openlibrary.i18n import gettext as _
+
+        context.setdefault("bodyclass", []).extend(("full-width", "library-explorer"))
+        page = render_template("library_explorer")
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        page.title = escape(_("Library Explorer"))
+        return page
 
 
 class merge_work(delegate.page):
