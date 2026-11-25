@@ -15,12 +15,12 @@ from unicodedata import normalize
 
 import httpx
 import web
-from infogami.infobase.client import storify
-from infogami.utils import delegate
-from infogami.utils.view import public, render, safeint
 from markupsafe import escape
 
 from infogami import config
+from infogami.infobase.client import storify
+from infogami.utils import delegate
+from infogami.utils.view import public, render, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
