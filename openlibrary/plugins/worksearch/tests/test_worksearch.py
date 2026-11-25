@@ -183,7 +183,10 @@ def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
 def test_process_facet_language_missing_bucket_becomes_no_language():
     """Solr's facet.missing bucket arrives with a None value."""
     facets = [("eng", 100), (None, 8), ("fre", 5)]
-    assert list(process_facet("language", facets)) == [
+    names = {"/languages/eng": "English", "/languages/fre": "French"}
+    with patch.object(code, "get_language_name", lambda key, lang: names[key]):
+        result = _with_req_context(lambda: list(process_facet("language", facets)))
+    assert result == [
         ("eng", "English", 100),
         ("none", "No language", 8),
         ("fre", "French", 5),
