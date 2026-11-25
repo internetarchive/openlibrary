@@ -78,6 +78,10 @@ master's copy.
   there were none, it doesn't run the model and the check gets the previous verdict.
 - **pre-commit.ci's autofix commit** waits like any push of yours, then gets reviewed. It often
   lands while the review of your commit is running, which supersedes that review.
+- **The `fast-bot-review` label** skips the wait: pushes to a PR with that label, or to a PR linked to an
+  issue with it (in the description, branch name or title), are reviewed right away.
+  The label is read when you push, so adding it during a wait doesn't end that wait; re-request
+  review from openlibrary-bot for that. It only applies to PRs that already have a first review.
 - **No re-review** for pushes made by other bots, or PRs labelled `no-automation`. Ask for a review
   if you want one.
 

@@ -48,7 +48,7 @@ jobs:
             await markAwaiting({ github, context, core, settings, runUrl: process.env.RUN_URL });
 
       - name: Request a review once pushes stop
-        if: steps.mark.outputs.review_after_minutes
+        if: steps.mark.outputs.review_after_minutes != ''
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           MINUTES: ${{ steps.mark.outputs.review_after_minutes }}

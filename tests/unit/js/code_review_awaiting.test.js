@@ -173,6 +173,23 @@ test('a PR with the no-automation label is not reviewed on push', async () => {
     assert.equal(minutes, undefined);
     assert.match(posted[0].description, /Re-request review from openlibrary-bot/);
 });
+test('a PR with the fast-bot-review label is reviewed without waiting', async () => {
+    const { posted, minutes } = await mark(mockGitHub({ reviews: reviewed }), context('synchronize', undefined, { labels: [{ name: 'fast-bot-review' }] }));
+    assert.equal(minutes, '0');
+    assert.match(posted[0].description, /^\d\d:\d\d UTC: review starts now/);
+    assert.ok(posted[0].description.length <= 140);
+});
+test('a PR linked to an issue with the fast-bot-review label is reviewed without waiting', async () => {
+    const gh = mockGitHub({ reviews: reviewed });
+    gh.github.rest.issues = { get: async ({ issue_number }) => ({ data: { labels: issue_number === 7 ? [{ name: 'fast-bot-review' }] : [] } }) };
+    const ctx = context('synchronize', undefined, { body: 'Closes #7', head: { sha: SHA('a'), ref: 'x' } });
+    const { minutes } = await mark(gh, ctx);
+    assert.equal(minutes, '0');
+});
+test('the fast-bot-review label does not start a first review', async () => {
+    const { minutes } = await mark(mockGitHub({ reviews: [] }), context('synchronize', undefined, { labels: [{ name: 'fast-bot-review' }] }));
+    assert.equal(minutes, undefined);
+});
 
 test('a push to a PR stacked on another branch starts no review and says how to ask', async () => {
     const ctx = context();
