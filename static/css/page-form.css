@@ -111,8 +111,6 @@ div#revertLink,
     min-height: 440px;
   }
   /* stylelint-disable selector-max-specificity */
-  #placement,
-  #position,
   #content {
     width: 600px;
     min-height: 440px;

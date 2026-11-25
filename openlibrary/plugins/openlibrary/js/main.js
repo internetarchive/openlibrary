@@ -144,17 +144,8 @@ $(function () {
     }
 
     // conditionally load for author merge page
-    const mergePageElement = document.querySelector('#author-merge-page');
-    const preMergePageElement = document.getElementById('preMerge');
-    if (mergePageElement || preMergePageElement) {
-        import('./merge').then(module => {
-            if (mergePageElement) {
-                module.initAuthorMergePage();
-            }
-            if (preMergePageElement) {
-                module.initAuthorView();
-            }
-        });
+    if (document.querySelector('#author-merge-page')) {
+        import('./merge').then(module => module.initAuthorMergePage());
     }
 
     // conditionally load for type changing input
@@ -656,8 +647,8 @@ $(function () {
         import('./stats').then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 
-    // History page comparison
-    const pageHistory = document.querySelector('#pageHistory');
+    // History page comparison (the footer box in lib/history.html reuses the id without data-i18n)
+    const pageHistory = document.querySelector('table#pageHistory[data-i18n]');
     if (pageHistory) {
         import('./history').then(module => module.initHistory(pageHistory));
     }

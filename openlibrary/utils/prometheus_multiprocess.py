@@ -28,7 +28,15 @@ import os
 import shutil
 from typing import TYPE_CHECKING
 
-from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, CollectorRegistry, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    GC_COLLECTOR,
+    PLATFORM_COLLECTOR,
+    REGISTRY,
+    CollectorRegistry,
+    disable_created_metrics,
+    generate_latest,
+)
 from prometheus_client.mmap_dict import MmapedDict
 from prometheus_client.multiprocess import MultiProcessCollector, mark_process_dead
 from starlette.responses import Response
@@ -152,9 +160,23 @@ def _has_values(path: str) -> bool:
         return False
 
 
+def drop_unused_default_metrics() -> None:
+    """Stop exporting the series prometheus_client adds by default that no dashboard uses.
+
+    Each pod is its own set of series, so on Kubernetes, where pods come and go with autoscaling, these add up:
+    ``<name>_created`` (the time each counter, histogram and summary label set was first seen; ``rate()`` doesn't
+    need it), ``python_gc_*`` and ``python_info``. The ``process_*`` metrics stay. Multiprocess mode exports none of these.
+    """
+    disable_created_metrics()
+    for collector in (GC_COLLECTOR, PLATFORM_COLLECTOR):
+        with contextlib.suppress(KeyError):  # already unregistered
+            REGISTRY.unregister(collector)
+
+
 def metrics_registry() -> CollectorRegistry:
     """The registry to serve at ``/metrics``: all the workers' metrics in multiprocess mode, else this process's."""
     if "PROMETHEUS_MULTIPROC_DIR" not in os.environ:
+        drop_unused_default_metrics()
         return REGISTRY
     registry = CollectorRegistry()
     LockedMultiProcessCollector(registry)

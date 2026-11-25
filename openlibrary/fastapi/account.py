@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Annotated
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Annotated, Any
 from urllib.parse import unquote, urlencode, urlparse
 
 import web
@@ -37,6 +39,7 @@ from openlibrary.fastapi.auth import (
     require_authenticated_user,
 )
 from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.i18n import gettext as _
@@ -357,6 +360,32 @@ def _json_login_error(error: str) -> JSONResponse:
     )
 
 
+@contextmanager
+def _web_ctx_cookies(cookie_header: str) -> Iterator[None]:
+    # web.cookies() parses web.ctx.env once and caches the result in web.ctx, which belongs to the
+    # thread. Threadpool threads are reused, so clear the cache or the last request's cookies leak in.
+    web.ctx.env = {"HTTP_COOKIE": cookie_header}
+    web.ctx.pop("_parsed_cookies", None)
+    try:
+        yield
+    finally:
+        web.ctx.pop("env", None)
+        web.ctx.pop("_parsed_cookies", None)
+
+
+def _audit_accounts_sync(client_ip: str, cookie_header: str, **kwargs) -> Any:
+    # audit_accounts can create or activate the OL account, which writes an
+    # Infobase transaction stamped with web.ctx.ip; FastAPI never sets it.
+    # It reads the print-disability request ("pda" cookie) with web.cookies().
+    with web_ctx_ip(client_ip), _web_ctx_cookies(cookie_header):
+        return audit_accounts(**kwargs)
+
+
+async def _audit_accounts(request: Request, client_ip: str, **kwargs) -> Any:
+    # audit_accounts blocks on calls to IA and Infobase, so keep it off the event loop.
+    return await run_in_threadpool(_audit_accounts_sync, client_ip, request.headers.get("cookie", ""), **kwargs)
+
+
 async def _login_json(request: Request, client_ip: str) -> Response:
     """Mirror web.py's account_login_json for JSON request bodies.
 
@@ -372,11 +401,9 @@ async def _login_json(request: Request, client_ip: str) -> Response:
     if access and secret:
         # audit_accounts can create or activate the OL account, which writes an
         # Infobase transaction stamped with web.ctx.ip; FastAPI never sets it.
-        audit = await run_in_threadpool(
-            _run_with_web_ctx_ip,
+        audit = await _audit_accounts(
+            request,
             client_ip,
-            request.headers.get("cookie", ""),
-            audit_accounts,
             email=None,
             password=None,
             require_link=True,
@@ -484,11 +511,9 @@ async def login(
     # Call the EXACT same audit function that web.py uses
     # audit_accounts can create or activate the OL account, which writes an
     # Infobase transaction stamped with web.ctx.ip; FastAPI never sets it.
-    audit = await run_in_threadpool(
-        _run_with_web_ctx_ip,
+    audit = await _audit_accounts(
+        request,
         client_ip,
-        request.headers.get("cookie", ""),
-        audit_accounts,
         email="" if (access and secret) else username,
         password=password,
         require_link=True,
@@ -529,6 +554,18 @@ async def login(
 
     ol_account = await run_in_threadpool(_set_login_cookies_on_response, response, audit, ol_username, email=email, remember=remember)
 
+    if ol_account and request.cookies.get("pda"):
+        set_flash_cookie(
+            response,
+            "info",
+            _(
+                "Thank you for registering an Open Library account and "
+                "requesting special print disability access. You should receive "
+                "an email detailing next steps in the process."
+            ),
+        )
+        response.delete_cookie("pda")
+
     # Perform any post-login action (same as web.py's perform_post_login_action)
     await _perform_post_login_action(response, action, ol_account)
 
@@ -538,6 +575,7 @@ async def login(
     return response
 
 
+@nonblocking
 @router.post("/account/logout")
 async def logout(request: Request) -> Response:
     """

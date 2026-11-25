@@ -107,6 +107,8 @@ class SearchScheme:
         if q_param == "*:*":
             # This is a special solr syntax; don't process
             return q_param
+        if not q_param.strip():
+            return ""
 
         try:
             q_param = escape_unknown_fields(

@@ -73,33 +73,35 @@ export function initAuthorMergePage() {
             await alertFromTemplate(document.getElementById('noMaster'));
             return;
         }
-        const rows = authorRows();
-        const primary = rows.get(master.value);
-        // Without a matching row there is nothing to summarize; submit as before.
-        if (!confirmTemplate || !primary) {
-            submitMerge();
+        if (!confirmTemplate) {
+            submitMergeRequest();
             return;
         }
-        const i18n = JSON.parse(confirmTemplate.dataset.i18n);
         // Selecting a primary also ticks its own merge box, so drop it here.
-        const duplicates = Array.from(document.querySelectorAll('#mergeForm input[name=merge_key]:checked'))
+        const duplicateKeys = Array.from(document.querySelectorAll('#mergeForm input[name=merge_key]:checked'))
             .map(box => box.value)
-            .filter(key => key !== master.value)
-            .map(key => rows.get(key))
-            .filter(Boolean);
-        if (!duplicates.length) {
+            .filter(key => key !== master.value);
+        if (!duplicateKeys.length) {
             await alertFromTemplate(document.getElementById('noDuplicates'));
             return;
         }
-        const vars = { count: duplicates.length, name: primary.name };
-        const confirmed = await confirmFromTemplate(confirmTemplate, {
-            i18n,
-            message: mergeSummary(primary, duplicates, i18n),
-            title: fmt(plural(i18n.titleForCount, vars.count), vars),
-            confirmLabel: fmt(plural(i18n.confirmForCount, vars.count), vars),
-            destructive: false
-        });
-        if (confirmed) submitMerge();
+        const rows = authorRows();
+        const primary = rows.get(master.value);
+        // Without a matching row there is nothing to summarize; merge without the dialog.
+        if (primary) {
+            const i18n = JSON.parse(confirmTemplate.dataset.i18n);
+            const duplicates = duplicateKeys.map(key => rows.get(key)).filter(Boolean);
+            const vars = { count: duplicates.length, name: primary.name };
+            const confirmed = await confirmFromTemplate(confirmTemplate, {
+                i18n,
+                message: mergeSummary(primary, duplicates, i18n),
+                title: fmt(plural(i18n.titleForCount, vars.count), vars),
+                confirmLabel: fmt(plural(i18n.confirmForCount, vars.count), vars),
+                destructive: false
+            });
+            if (!confirmed) return;
+        }
+        await mergeAuthors(master.value, duplicateKeys, primary?.name);
     });
     $('div.radio').first().find('input[type=radio]').prop('checked', true);
     $('div.checkbox').first().find('input[type=checkbox]').prop('checked', true);
@@ -129,15 +131,71 @@ export function initAuthorMergePage() {
     initRejectButton();
 }
 
-function submitMerge() {
+function setButtonsDisabled(disabled) {
+    for (const button of document.querySelectorAll('.merge-feedback__buttons button')) {
+        button.disabled = disabled;
+    }
+}
+
+function submitMergeRequest() {
     const comment = document.querySelector('#author-merge-comment').value;
     if (comment) {
         document.querySelector('#hidden-comment-input').value = comment;
     }
     $('#mergeForm').trigger('submit');
-    for (const button of document.querySelectorAll('.merge-feedback__buttons button')) {
-        button.disabled = true;
+    setButtonsDisabled(true);
+}
+
+/**
+ * POST the merge from this page and show the result here. Don't move this back
+ * onto a page load: Back and refresh would run the merge again (#7506).
+ *
+ * @param {String} master - OLID of the primary author
+ * @param {Array<String>} duplicates - OLIDs to merge into it
+ * @param {String} [masterName]
+ */
+async function mergeAuthors(master, duplicates, masterName) {
+    const showStatus = state => {
+        for (const message of document.querySelectorAll('#merge-status [data-state]')) {
+            message.hidden = message.dataset.state !== state;
+        }
+    };
+    const data = {
+        master: `/authors/${master}`,
+        duplicates: duplicates.map(key => `/authors/${key}`),
+        olids: [master, ...duplicates].join(',')
+    };
+    const mrid = document.querySelector('#mrid-input')?.value;
+    if (mrid) {
+        data.mrid = mrid;
     }
+    const comment = document.querySelector('#author-merge-comment').value;
+    if (comment) {
+        data.comment = comment;
+    }
+
+    setButtonsDisabled(true);
+    showStatus('pending');
+    let ok = false;
+    try {
+        const response = await fetch('/authors/merge.json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        ok = response.ok;
+    } catch {
+        // Network error; handled below the same as a failed response.
+    }
+    if (!ok) {
+        showStatus('error');
+        setButtonsDisabled(false);
+        return;
+    }
+    const link = document.querySelector('#merge-status a[data-primary-link]');
+    link.href = `/authors/${master}`;
+    link.textContent = masterName || master;
+    showStatus('done');
 }
 
 function initRejectButton() {
@@ -156,48 +214,4 @@ function rejectMerge() {
     const commentInput = document.querySelector('#author-merge-comment');
     const mridInput = document.querySelector('#mrid-input');
     declineRequest(Number(mridInput.value), commentInput.value);
-}
-
-/**
- * Initializes preMerge element on author page.
- *
- * Show 'preMerge' element and launch author merge of duplicate keys into master key.
- * Assumes presence of element with '#preMerge' id and 'data-keys' attribute.
- */
-export function initAuthorView() {
-    const dataKeysJSON = $('#preMerge').data('keys');
-
-    $('#preMerge').show();
-    $('#preMerge').parent().show();
-
-    const data = {
-        master: dataKeysJSON['master'],
-        duplicates: dataKeysJSON['duplicates'],
-        olids: dataKeysJSON['olids']
-    };
-
-    const mrid = dataKeysJSON['mrid'];
-    const comment = dataKeysJSON['comment'];
-
-    if (mrid) {
-        data['mrid'] = mrid;
-    }
-    if (comment) {
-        data['comment'] = comment;
-    }
-
-    $.ajax({
-        url: '/authors/merge.json',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        error: function () {
-            $('#preMerge').fadeOut();
-            $('#errorMerge').fadeIn();
-        },
-        success: function () {
-            $('#preMerge').fadeOut();
-            $('#postMerge').fadeIn();
-        }
-    });
 }

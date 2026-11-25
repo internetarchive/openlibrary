@@ -1114,7 +1114,7 @@ msgstr ""
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
 msgstr ""
 
-#: account/create.html type/author/view.html
+#: account/create.html merge/authors.html
 msgid "Success!"
 msgstr ""
 
@@ -2983,27 +2983,11 @@ msgstr ""
 msgid "%(num)d edits"
 msgstr ""
 
-#: admin/people/view.html
-msgid "Debug Info"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Account Information"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Verifications Links"
-msgstr ""
-
-#: admin/people/view.html
-msgid "None found"
-msgstr ""
-
 #: authors/index.html.jinja
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html.jinja publishers/notfound.html.jinja publishers/view.html.jinja search/advancedsearch.html.jinja search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html.jinja authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html.jinja publishers/notfound.html.jinja publishers/view.html.jinja search/advancedsearch.html.jinja search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -5845,6 +5829,22 @@ msgstr ""
 msgid "Reject Merge"
 msgstr ""
 
+#: merge/authors.html
+msgid "Merging Authors..."
+msgstr ""
+
+#: merge/authors.html
+msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
+msgstr ""
+
+#: merge/authors.html
+msgid "Argh!"
+msgstr ""
+
+#: merge/authors.html
+msgid "That merge didn't work. It's our fault, and we've made a note of it."
+msgstr ""
+
 #: merge/works.html
 msgid "Merge Works"
 msgstr ""
@@ -6242,7 +6242,7 @@ msgstr ""
 msgid "Details here"
 msgstr ""
 
-#: recentchanges/merge/view.html type/author/view.html
+#: recentchanges/merge/view.html
 msgid "Duplicates"
 msgstr ""
 
@@ -7081,30 +7081,6 @@ msgstr ""
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
-
-#: type/author/view.html
-msgid "Merging Authors..."
-msgstr ""
-
-#: type/author/view.html
-msgid "In progress..."
-msgstr ""
-
-#: type/author/view.html
-msgid "Refresh the page?"
-msgstr ""
-
-#: type/author/view.html
-msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
-
-#: type/author/view.html
-msgid "Argh!"
-msgstr ""
-
-#: type/author/view.html
-msgid "That merge didn't work. It's our fault, and we've made a note of it."
 msgstr ""
 
 #: type/author/view.html
@@ -8320,7 +8296,7 @@ msgstr ""
 msgid "See more books by %(name)s"
 msgstr ""
 
-#: SubjectSearch.html
+#: SubjectSearch.html.jinja
 msgid "Search for a subject"
 msgstr ""
 
@@ -10226,6 +10202,10 @@ msgstr ""
 msgid "How well can a patron determine if this edition is relevant to their needs before accessing it?"
 msgstr ""
 
+#: openlibrary/fastapi/account.py openlibrary/plugins/upstream/account.py
+msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+msgstr ""
+
 #: openlibrary/fastapi/publishers.py openlibrary/plugins/worksearch/publishers.py
 #, python-format
 msgid "Publisher: %(name)s"
@@ -11161,10 +11141,6 @@ msgstr ""
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
