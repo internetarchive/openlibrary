@@ -240,7 +240,7 @@ The full instructions the bot follows are in
 | Check | Message | Meaning |
 |---|---|---|
 | ⏳ pending | Review in progress. | The bot is reviewing this commit. |
-| ⏳ pending | Waiting for pushes to stop. Review starts ~`<time>` UTC, or comment @openlibrary-bot review to start now. | A re-review starts 10 minutes after the last push. Commenting starts it right away. |
+| ⏳ pending | `<time>` UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot. | A re-review starts 10 minutes after the last push. Re-requesting the review starts it right away. |
 | ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
 | ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
