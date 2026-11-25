@@ -131,7 +131,7 @@ def haproxy_path_regex(path: str) -> str:
 
 
 def render_haproxy_patterns(app: FastAPI) -> dict[Path, str]:
-    """The HAProxy pattern files: one "METHOD /path" per line, for the method and path pairs the Kubernetes gateway sends to FastAPI.
+    """The HAProxy pattern files: one "METHOD /path" per line, for the method and path pairs that go to FastAPI rather than web.py.
 
     HAPROXY_EXACT is matched as strings and HAPROXY_REGEX as regexes. HEAD isn't listed (see collect_routes), so as on
     Kubernetes, HEAD requests go to web.py.
