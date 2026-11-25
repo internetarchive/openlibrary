@@ -2983,22 +2983,6 @@ msgstr ""
 msgid "%(num)d edits"
 msgstr ""
 
-#: admin/people/view.html
-msgid "Debug Info"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Account Information"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Verifications Links"
-msgstr ""
-
-#: admin/people/view.html
-msgid "None found"
-msgstr ""
-
 #: authors/index.html.jinja
 msgid "Search for an Author"
 msgstr ""

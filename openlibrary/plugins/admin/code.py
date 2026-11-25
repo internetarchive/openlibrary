@@ -384,6 +384,7 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_su(self, account):
+        raise web.forbidden("Temporarily disabled")
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
