@@ -66,8 +66,8 @@
     "viewJenkins": _("View Jenkins"),
     "noPrs": _("No PRs in testing set.")
 } %}
-{{ render_component('TestingEnvironment', attrs={
+{{ vue_component_html('TestingEnvironment', attrs={
     'maintainer': 'true' if is_maintainer else 'false',
     'jenkins-url': jenkins_job_url,
     'i18n': i18n_strings,
-}) | safe }}
+}) }}

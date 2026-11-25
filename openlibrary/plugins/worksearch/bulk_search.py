@@ -5,13 +5,14 @@ from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.utils import vue_component_html
 
 
 class bulk_search(delegate.page):
     path = "/search/bulk"
 
     def GET(self):
-        body = render_jinja_template("bulk_search/bulk_search.html.jinja")
+        body = render_jinja_template("bulk_search/bulk_search.html.jinja", vue_component_html=vue_component_html)
         # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
         return web.template.TemplateResult(__body__=body, title=escape(_("Bulk Search (beta)")))
 
