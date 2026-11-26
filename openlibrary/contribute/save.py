@@ -125,20 +125,31 @@ def _isbn(edition, raw: str, shared_ok: str = "") -> dict[str, list[str]]:
 EARLIEST_PUBLISH_YEAR = 1450
 
 
+def _expand_compact_date(m: re.Match) -> str:
+    """A run of digits written as YYYYMMDD or YYYYMM, split with hyphens ("2005-06-01"); any other run unchanged."""
+    digits = m.group()
+    fmt, out = ("%Y%m%d", "%Y-%m-%d") if len(digits) == 8 else ("%Y%m", "%Y-%m")
+    try:
+        return datetime.strptime(digits, fmt).strftime(out)
+    except ValueError:
+        return digits
+
+
 def _publish_date(raw: str) -> str:
-    """The date as typed, once it names a plausible year. Open Library keeps publish dates as text: "2005", "March 2005"."""
-    date = " ".join(raw.split())
-    if len(date) > 40:
-        raise InvalidAnswer(_("Enter the date with its year, for example 2005 or March 2005."))
-    if re.search(r"\d{5,}", date):
+    """The date as typed, once its latest year is plausible. Open Library keeps publish dates as text: "2005", "March 2005".
+
+    Tasks reads the latest year as the edition's, so only that one is range checked: an earlier year may be the original
+    work's ("2005, facsimile of 1440 ed."). A compact date such as 20050601 is stored with hyphens so its year can be read.
+    """
+    date = re.sub(r"(?<!\d)(\d{8}|\d{6})(?!\d)", _expand_compact_date, " ".join(raw.split()))
+    runs = re.findall(r"\d+", date)
+    years = [int(r) for r in runs if len(r) == 4]
+    if any(len(r) > 4 for r in runs) or (years and not EARLIEST_PUBLISH_YEAR <= max(years) <= datetime.now(UTC).year + 1):
         raise InvalidAnswer(_("That year doesn't look right. Enter the year this edition came out."))
-    years = [int(y) for y in re.findall(r"(?<!\d)\d{4}(?!\d)", date)]
-    if not years:
+    if len(date) > 40 or not years:
         raise InvalidAnswer(_("Enter the date with its year, for example 2005 or March 2005."))
-    current_max_year = datetime.now(UTC).year + 1
-    for y in years:
-        if not EARLIEST_PUBLISH_YEAR <= y <= current_max_year:
-            raise InvalidAnswer(_("That year doesn't look right. Enter the year this edition came out."))
+    if any(int(start) > int(end) for start, end in re.findall(r"(?<!\d)(\d{4}) ?[-–] ?(\d{4})(?!\d)", date)):
+        raise InvalidAnswer(_("Put the earlier year first, for example 1998-2002."))
     return date
 
 
