@@ -3,6 +3,7 @@
 fastapiRoutes:
   default:
     # Pages (SitePageRoute)
+    - GET /about/team
     - GET /advancedsearch
     - GET /explore
     - GET /publishers
