@@ -13,6 +13,7 @@ from openlibrary.utils.request_context import site
 
 from .. import app
 
+IA_GET_TIMEOUT = 5
 re_bad_meta_mrc = re.compile(r"^([^/]+)_meta\.mrc$")
 
 
@@ -30,7 +31,7 @@ class show_ia(app.view):
         error_404 = False
         url = f"https://archive.org/download/{ia}/{ia}_meta.mrc"
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=IA_GET_TIMEOUT)
             response.raise_for_status()
             data = response.content
         except requests.Timeout:
@@ -44,7 +45,7 @@ class show_ia(app.view):
         if error_404:  # no MARC record
             url = f"https://archive.org/download/{ia}/{ia}_meta.xml"
             try:
-                response = requests.get(url)
+                response = requests.get(url, timeout=IA_GET_TIMEOUT)
                 response.raise_for_status()
                 data = response.content
             except requests.Timeout:
