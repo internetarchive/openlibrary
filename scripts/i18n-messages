@@ -42,15 +42,21 @@ def main(cmd, args):
         message_sources = [
             "openlibrary/templates/",
             "openlibrary/macros/",
+            *i18n.JAVASCRIPT_SOURCES,
             # grep can return things in an inconsistent order depending on the system
             *sorted(py_sources),
         ]
 
-        i18n.extract_messages(
+        problems = i18n.extract_messages(
             message_sources,
             verbose="--verbose" in args,
             skip_untracked="--skip-untracked" in args,
         )
+        if problems:
+            print("\nThese strings can't be translated well (see docs/i18n/i18n.md):", file=sys.stderr)
+            for problem in problems:
+                print(problem, file=sys.stderr)
+            sys.exit(1)
     elif cmd == "compile":
         i18n.compile_translations(args)
     elif cmd == "update":

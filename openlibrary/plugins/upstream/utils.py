@@ -32,6 +32,7 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
+from markupsafe import Markup
 from web.template import TemplateResult
 from web.utils import Storage
 
@@ -188,36 +189,48 @@ def kebab_case(upper_camel_case: str) -> str:
 
 
 @public
-def render_component(
-    name: str,
-    attrs: dict | None = None,
-    json_encode: bool = True,
-    asyncDefer=False,
-) -> str:
+def vue_component_html(name: str, attrs: dict | None = None, async_defer: bool = False) -> Markup:
+    """The script tag and custom element that render the Vue component built from ``openlibrary/components/<name>.vue``.
+
+    Reads no request state, so it is safe in Jinja templates served by FastAPI.
+
+    :param name: component name, e.g. ``"BulkSearch"`` for ``<ol-bulk-search>``
+    :param attrs: element attributes. Dicts and lists are JSON- then URL-encoded;
+        the component reads them back with ``JSON.parse(decodeURIComponent(...))``.
     """
-    :param str name: Name of the component (excluding extension)
-    :param dict attrs: attributes to add to the component element
-    """
+    return _vue_component_script(name, async_defer) + _vue_component_element(name, attrs)
+
+
+def _vue_component_script(name: str, async_defer: bool) -> Markup:
     from openlibrary.plugins.upstream.code import static_url
 
-    attrs = attrs or {}
-    attrs_str = ""
-    for key, val in attrs.items():
-        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
-            val = json.dumps(val)
-            # On the Vue side use decodeURIComponent to decode
-            val = urllib.parse.quote(val)
-        attrs_str += f' {key}="{val}"'
-    html = ""
+    url = static_url(f"build/components/production/ol-{name}.js")
+    async_attrs = " async defer" if async_defer else ""
+    return Markup('<script type="module"{} src="{}"></script>').format(async_attrs, url)
 
+
+def _vue_component_element(name: str, attrs: dict | None) -> Markup:
+    tag = kebab_case(name)
+    attrs_html = Markup("")
+    for key, val in (attrs or {}).items():
+        if isinstance(val, dict | list):
+            val = urllib.parse.quote(json.dumps(val))
+        attrs_html += Markup(' {}="{}"').format(key, val)
+    return Markup("<ol-{0}{1}></ol-{0}>").format(tag, attrs_html)
+
+
+@public
+def render_component(name: str, attrs: dict | None = None, asyncDefer=False) -> str:
+    """:func:`vue_component_html` for Templetor pages on web.py.
+
+    Writes each component's script tag only once per request, tracked in ``web.ctx``,
+    so it must not run on FastAPI.
+    """
+    html = Markup("")
     if name not in (included := web.ctx.setdefault("included-components", [])):
-        url = static_url("build/components/production/ol-%s.js" % name)
-        script_attrs = "" if not asyncDefer else "async defer"
-        html += f'<script type="module" {script_attrs} src="{url}"></script>'
+        html += _vue_component_script(name, asyncDefer)
         included.append(name)
-
-    html += f"<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>"
-    return html
+    return html + _vue_component_element(name, attrs)
 
 
 @public
@@ -1417,7 +1430,7 @@ def create_thing(data: dict) -> Thing:
     """
     Helper method to convert a data object recursively to the correct `Thing`
     classes. Will change the dict to be the same type as when fetched from
-    the database via `web.ctx.site.get`.
+    the database via `site.get().get`.
     """
     return client.create_thing(request_context.site.get(), data["key"], request_context.site.get()._process_dict(parse_query(data)))
 

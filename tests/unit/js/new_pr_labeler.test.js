@@ -36,7 +36,7 @@ function planFromIssue(issue) {
 
 describe('getLinkedIssueMetadata', () => {
     test('reads the first Lead and a P0-P2 priority label', () => {
-        const metadata = getLinkedIssueMetadata(issueWithLabels('Type: Bug', 'Lead: @foo', 'Priority: 1'));
+        const metadata = getLinkedIssueMetadata(issueWithLabels('Good First Issue', 'Lead: @foo', 'Priority: 1'));
         expect(metadata).toEqual({ leadName: 'foo', priority: 'Priority: 1' });
     });
 
@@ -131,7 +131,7 @@ describe('findIssueReferences', () => {
 
 describe('needsReviewSwap', () => {
     test('swaps only an open issue that has Needs: Response', () => {
-        expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Type: Bug', 'Needs: Response'] })).toBe(true);
+        expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Good First Issue', 'Needs: Response'] })).toBe(true);
         expect(needsReviewSwap({ state: 'CLOSED', labelNames: ['Needs: Response'] })).toBe(false);
         expect(needsReviewSwap({ state: 'OPEN', labelNames: ['Needs: Review'] })).toBe(false);
     });
@@ -452,7 +452,7 @@ describe('linkify', () => {
 describe('syncNeedsLead', () => {
     // graphql() returns one page of open issues per call (an Error value is
     // thrown); request() records each write, or throws the Error in `errors`.
-    function fakeOctokit(pages, errors = {}) {
+    function fakeSyncOctokit(pages, errors = {}) {
         const writes = [];
         let page = 0;
         return {
@@ -473,8 +473,8 @@ describe('syncNeedsLead', () => {
     const page = (nodes, endCursor = null) => ({ pageInfo: { hasNextPage: Boolean(endCursor), endCursor }, nodes });
 
     test('adds Needs: Lead where there is no lead and removes it where there is one, across pages', async () => {
-        const octokit = fakeOctokit([
-            page([issue(1, 'Type: Bug'), issue(2, 'Lead: @foo', 'Needs: Lead')], 'c1'),
+        const octokit = fakeSyncOctokit([
+            page([issue(1, 'Good First Issue'), issue(2, 'Lead: @foo', 'Needs: Lead')], 'c1'),
             page([issue(3, 'Needs: Lead'), issue(4, 'Lead: @foo')])
         ]);
         const result = await syncNeedsLead(octokit, REPO);
@@ -493,7 +493,7 @@ describe('syncNeedsLead', () => {
 
     test('a failed write is recorded without stopping the rest; a 404 on remove counts as done', async () => {
         const gone = Object.assign(new Error('Label does not exist'), { status: 404 });
-        const octokit = fakeOctokit([page([issue(1), issue(2, 'Lead: @foo', 'Needs: Lead'), issue(3)])], { 1: new Error('403'), 2: gone });
+        const octokit = fakeSyncOctokit([page([issue(1), issue(2, 'Lead: @foo', 'Needs: Lead'), issue(3)])], { 1: new Error('403'), 2: gone });
         const { changes } = await syncNeedsLead(octokit, REPO);
         expect(changes).toEqual([
             { number: 1, change: 'add', error: '403' },
@@ -503,7 +503,7 @@ describe('syncNeedsLead', () => {
     });
 
     test('a listing failure keeps the changes made so far, and the summary says so', async () => {
-        const result = await syncNeedsLead(fakeOctokit([page([issue(1)], 'c1'), new Error('502')]), REPO);
+        const result = await syncNeedsLead(fakeSyncOctokit([page([issue(1)], 'c1'), new Error('502')]), REPO);
         expect(result.changes).toHaveLength(1);
         const summary = formatNeedsLeadSummary(result, REPO);
         expect(summary).toContain('Added to issues with no lead (1): [#1](https://github.com/internetarchive/openlibrary/issues/1)');
@@ -513,7 +513,7 @@ describe('syncNeedsLead', () => {
 
 describe('Good First Issue assignment', () => {
     const pr = () => ({ state: 'open', draft: false, user: { login: 'newcomer' }, labels: [], author_association: 'NONE' });
-    const issue = () => ({ state: 'open', labels: [{ name: 'Good First Issue' }, { name: 'Lead: @mentor' }], assignees: [] });
+    const issue = () => ({ state: 'open', labels: [{ name: 'Good First Issue' }, { name: 'Priority: 2' }, { name: 'Lead: @mentor' }], assignees: [] });
     const comment = (login, body = '') => ({ user: { login }, body });
 
     test.each([
@@ -524,8 +524,8 @@ describe('Good First Issue assignment', () => {
         [{ issue: { ...issue(), labels: [] } }, 'skip', 'not an open Good First Issue'],
         [{ issue: { ...issue(), state: 'closed' } }, 'skip', 'not an open Good First Issue'],
         [{ issue: { ...issue(), pull_request: {} } }, 'skip', 'not an open Good First Issue'],
-        [{ issue: { ...issue(), labels: ['Good First Issue', 'no-automation'] } }, 'skip', 'no-automation'],
-        [{ pr: { ...pr(), labels: ['no-automation'] } }, 'skip', 'no-automation'],
+        [{ issue: { ...issue(), labels: ['Good First Issue', 'Bot: No Automation'] } }, 'skip', 'Bot: No Automation'],
+        [{ pr: { ...pr(), labels: ['Bot: No Automation'] } }, 'skip', 'Bot: No Automation'],
         ...['MEMBER', 'OWNER', 'COLLABORATOR'].map(author_association => [{ pr: { ...pr(), author_association } }, 'skip', 'staff author']),
         ...['OpenLibrary-Bot', 'dependabot[bot]'].map(login => [{ pr: { ...pr(), user: { login, type: 'User' } } }, 'skip', 'bot author']),
         [{ pr: { ...pr(), state: 'closed' } }, 'skip', 'PR is closed or draft'],
@@ -626,8 +626,8 @@ describe('Good First Issue assignment', () => {
     });
 
     test.each([
-        { pull: { ...pr(), labels: ['no-automation'] } },
-        { ticket: { ...issue(), labels: ['Good First Issue', 'no-automation'] } },
+        { pull: { ...pr(), labels: ['Bot: No Automation'] } },
+        { ticket: { ...issue(), labels: ['Good First Issue', 'Bot: No Automation'] } },
         { pull: { ...pr(), author_association: 'MEMBER' } },
         { pull: { ...pr(), user: { login: 'openlibrary-bot', type: 'User' } } }
     ])('excluded PRs are untouched: %o', async options => {
@@ -664,7 +664,7 @@ describe('Good First Issue assignment', () => {
         const api = fakeGfi();
         await run(api);
         api.pull.state = 'open';
-        api.ticket.labels = [{ name: 'Good First Issue' }, { name: 'Lead: @new-mentor' }];
+        api.ticket.labels = [{ name: 'Good First Issue' }, { name: 'Priority: 2' }, { name: 'Lead: @new-mentor' }];
         await run(api);
         expect(api.writes.filter(write => write.route.endsWith('/comments'))).toHaveLength(1);
     });
@@ -682,7 +682,7 @@ describe('Good First Issue assignment', () => {
     });
 
     test('omits the lead mention when the issue has no lead', async () => {
-        const api = fakeGfi({ ticket: { ...issue(), labels: [{ name: 'Good First Issue' }] } });
+        const api = fakeGfi({ ticket: { ...issue(), labels: [{ name: 'Good First Issue' }, { name: 'Priority: 2' }] } });
         await run(api);
         expect(api.writes[0].body).not.toContain('@undefined');
         expect(api.writes[0].body).toContain('reply here and');

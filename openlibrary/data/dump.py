@@ -19,7 +19,6 @@ from datetime import datetime
 import web
 
 from openlibrary.data import db
-from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
 from openlibrary.plugins.openlibrary.processors import urlsafe
 
 logger = logging.getLogger(__file__)
@@ -360,8 +359,6 @@ def main(cmd, args):
         "sort": sort_dump,
         "split": split_dump,
         "index": make_index,
-        "sitemaps": generate_sitemaps,
-        "htmlindex": generate_html_index,
     }.get(cmd)
     if func:
         func(*args, **kwargs)

@@ -4,8 +4,8 @@
             <span v-if="excerpt['excerpt']" :title="`excerpt-${index}`">
                 {{ excerpt['excerpt'].value || excerpt['excerpt'] }}
             </span>
-            <span v-if="excerpt['pages']"> (page: {{ excerpt['pages'] }}) </span>
-            <span v-if="excerpt['page']"> (page: {{ excerpt['page'] }}) </span>
+            <span v-if="excerpt['pages']"> {{ pageLabel(excerpt['pages']) }} </span>
+            <span v-if="excerpt['page']"> {{ pageLabel(excerpt['page']) }} </span>
             <span v-if="excerpt['author']">
                 <a :href="excerpt['author'].key" target="_blank">
                     {{ excerpt['author'].key.slice('/people/'.length) }}
@@ -16,6 +16,8 @@
 </template>
 
 <script>
+import { _, fmt } from '../../plugins/openlibrary/js/i18n.js';
+
 export default {
     props: {
         excerpts: {
@@ -26,6 +28,11 @@ export default {
     computed: {
         fields() {
             return [...new Set(this.excerpts.flatMap(excerpt => Object.keys(excerpt)))];
+        }
+    },
+    methods: {
+        pageLabel(page) {
+            return fmt(_('(page: %(page)s)'), { page });
         }
     }
 };

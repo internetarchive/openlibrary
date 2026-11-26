@@ -31,10 +31,10 @@
                             v-model="master_key"
                             type="radio"
                             name="master_key"
-                            title="Primary Record"
+                            :title="strings.primaryRecord"
                             :value="record.key"
                         />
-                        <input v-model="selected[record.key]" type="checkbox" title="Include in Merge" />
+                        <input v-model="selected[record.key]" type="checkbox" :title="strings.includeInMerge" />
                     </td>
                     <td v-else />
                 </template>
@@ -57,8 +57,9 @@
 
 <script>
 /* eslint no-console: 0 */
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON, isEditionListTruncated } from './utils.js';
 import CONFIGS from '../configs.js';
 
 function olidToKey(olid) {
@@ -103,6 +104,10 @@ export default {
     },
     data() {
         return {
+            strings: {
+                primaryRecord: _('Primary Record'),
+                includeInMerge: _('Include in Merge')
+            },
             master_key: null,
             /** @type {{[key: string]: Boolean}} */
             selected: []
@@ -261,7 +266,7 @@ export default {
                         work.type.key === '/type/work' &&
                         this.selected[work.key] &&
                         work.key !== this.master_key &&
-                        this.editions[work.key].entries.length < this.editions[work.key].size
+                        isEditionListTruncated(this.editions[work.key])
                 )
                 .map(r => r.key);
 

@@ -1,21 +1,14 @@
 """Plugin to provide admin interface."""
 
-import functools
 import json
 import logging
-import os
 import re
-import socket
-import subprocess
 import sys
-import traceback
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 
-import requests
 import web
 
-import openlibrary
 from infogami import config
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
@@ -31,7 +24,12 @@ from openlibrary.core import (
     cache,
     imports,
 )
+from openlibrary.core.env import get_ol_env
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.models import Work
+from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
+from openlibrary.plugins.admin import new_accounts
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.utils.request_context import site
@@ -54,6 +52,10 @@ def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     admin_tasks.append(t)
 
 
+# `lists` is the pre-#12226 action; older changesets still carry it.
+LIST_CREATE_ACTIONS = ("lists", "create-list", "create-series")
+
+
 def revert_all_user_edits(account: Account) -> tuple[int, int]:
     """
     :return: tuple of (number of edits reverted, number of documents deleted)
@@ -65,11 +67,11 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     while not stop:
         changes = account.get_recentchanges(limit=100, offset=100 * i)
         added_records: list[list[dict]] = [c.changes for c in changes if c.kind == "add-book"]
-        # Also delete lists `created` by this user
+        # Also delete lists and series `created` by this user
         added_records.extend(
             [r for r in c.changes if r.get("revision") == 1]  # created, not just edited
             for c in changes
-            if c.kind == "lists"
+            if c.kind in LIST_CREATE_ACTIONS
         )
         flattened_records: list[dict] = [record for lst in added_records for record in lst]
         keys_to_delete |= {r["key"] for r in flattened_records}
@@ -156,64 +158,6 @@ class admin(delegate.page):
 class admin_index:
     def GET(self):
         return web.seeother("/stats")
-
-
-class gitpull:
-    def GET(self):
-        root = os.path.join(os.path.dirname(openlibrary.__file__), os.path.pardir)
-        root = os.path.normpath(root)
-
-        p = subprocess.Popen(
-            "cd %s && git pull" % root,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-        )
-        out = p.stdout.read()
-        p.wait()
-        return "<pre>" + web.websafe(out) + "</pre>"
-
-
-class reload:
-    def GET(self):
-        if servers := config.get("plugin_admin", {}).get("webservers", []):
-            body = "".join(self.reload(servers))
-        else:
-            body = "No webservers specified in the configuration file."
-
-        return render_template("message", "Reload", body)
-
-    def reload(self, servers):
-        for s in servers:
-            s = s.removesuffix("/") + "/_reload"
-            yield "<h3>" + s + "</h3>"
-            try:
-                response = requests.get(s).text
-                yield "<p><pre>" + response[:100] + "</pre></p>"
-            except:
-                yield "<p><pre>%s</pre></p>" % traceback.format_exc()
-
-
-@functools.cache
-def local_ip():
-
-    return socket.gethostbyname(socket.gethostname())
-
-
-class _reload(delegate.page):
-    def GET(self):
-        # make sure the request is coming from the LAN.
-        if web.ctx.ip not in ["127.0.0.1", "0.0.0.0"] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
-            return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
-
-        from infogami.plugins.wikitemplates import code as wikitemplates
-
-        wikitemplates.load_all()
-
-        from openlibrary.plugins.upstream import code as upstream
-
-        upstream.reload()
-        return delegate.RawText("done")
 
 
 class any:
@@ -376,6 +320,7 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_su(self, account):
+        raise web.forbidden("Temporarily disabled")
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
@@ -416,9 +361,50 @@ class people_edits:
         raise web.seeother(web.ctx.fullpath)
 
 
-class ipaddress:
+# The actions offered on the accounts ticked on /admin/new-accounts.
+NEW_ACCOUNT_ACTIONS = ("block_account", "block_account_and_revert", "mark_trusted")
+
+
+class new_accounts_view:
+    """Spam review: young accounts ranked by signs of spam, blocked or marked trusted in bulk."""
+
     def GET(self):
-        return render_template("admin/ip/index")
+        i = web.input(days=None, show=None)
+        report = new_accounts.build_report(
+            site.get(),
+            days=new_accounts.clamp_param(i.days, new_accounts.MAX_ACCOUNT_AGE_DAYS, new_accounts.MAX_ACCOUNT_AGE_DAYS_LIMIT),
+            # ?show=look or ?show=all widen the list; by default it holds only likely spam.
+            show=i.show if i.show in new_accounts.SHOW_CHOICES else new_accounts.LIKELY,
+            spam_words=spamcheck.get_spam_words(),
+        )
+        body = render_jinja_template("admin/new_accounts.html.jinja", report=report)
+        return web.template.TemplateResult(__body__=body, title=_("[Admin Center] Spam review"))
+
+    def POST(self):
+        i = web.input(username=[], action="")
+        if i.action not in NEW_ACCOUNT_ACTIONS:
+            raise web.badrequest()
+        found = [account for name in dict.fromkeys(i.username) if name and (account := accounts.find(username=name))]
+        if not found:
+            add_flash_message("error", _("Select at least one account."))
+        elif i.action == "mark_trusted":
+            for account in found:
+                account.add_tag(new_accounts.TRUSTED_TAG)
+            add_flash_message("info", ungettext("Marked %(count)d account trusted.", "Marked %(count)d accounts trusted.", len(found), count=len(found)))
+        else:
+            edits = deleted = 0
+            for account in found:
+                if not account.is_blocked():
+                    account.block()
+                if i.action == "block_account_and_revert":
+                    reverted, removed = revert_all_user_edits(account)
+                    edits, deleted = edits + reverted, deleted + removed
+            message = ungettext("Blocked %(count)d account.", "Blocked %(count)d accounts.", len(found), count=len(found))
+            if i.action == "block_account_and_revert":
+                message += " " + _("Reverted %(edits)d edits and deleted %(deleted)d records.", edits=edits, deleted=deleted)
+            add_flash_message("info", message)
+        # fullpath keeps ?days= and ?show=
+        raise web.seeother(web.ctx.fullpath)
 
 
 class ipaddress_view:
@@ -637,6 +623,9 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
+        if not get_ol_env().LOCAL_DEV:
+            raise web.forbidden()
+
         import debugpy  # noqa: T100
 
         # Allow other computers to attach to ptvsd at this IP address and port.
@@ -700,16 +689,6 @@ class imports_by_date:
         return render_template("admin/imports_by_date", date=date, summary=summary, items=items)
 
 
-class show_log:
-    def GET(self):
-        i = web.input(name="")
-        logname = i.name
-        filepath = config.get("errorlog", "errors") + "/" + logname + ".html"
-        if os.path.exists(filepath):
-            with open(filepath) as f:
-                return f.read()
-
-
 class pd_dashboard:
     def GET(self):
         dashboard_data = get_pd_dashboard_data()
@@ -718,19 +697,16 @@ class pd_dashboard:
 
 
 def setup():
-    register_admin_page("/admin/git-pull", gitpull, label="git-pull")
-    register_admin_page("/admin/reload", reload, label="Reload Templates")
     register_admin_page("/admin/people", people, label="People")
+    register_admin_page("/admin/new-accounts", new_accounts_view, label="Spam review")
     register_admin_page("/admin/people/([^/]*)", people_view, label="View People")
     register_admin_page("/admin/people/([^/]*)/edits", people_edits, label="Edits")
-    register_admin_page("/admin/ip", ipaddress, label="IP")
     register_admin_page("/admin/ip/(.*)", ipaddress_view, label="View IP")
     register_admin_page(r"/admin/stats/(\d\d\d\d-\d\d-\d\d)", stats, label="Stats JSON")
     register_admin_page("/admin/block", block, label="")
     register_admin_page("/admin/attach_debugger", attach_debugger, label="Attach Debugger")
     register_admin_page("/admin/inspect(?:(/.+))?", inspect, label="")
     register_admin_page("/admin/graphs", _graphs, label="")
-    register_admin_page("/admin/logs", show_log, label="")
     register_admin_page("/admin/permissions", permissions, label="")
     register_admin_page("/admin/solr", solr, label="", librarians=True)
     register_admin_page("/admin/sync", sync_ol_ia, label="", librarians=True)

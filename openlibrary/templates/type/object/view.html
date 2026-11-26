@@ -2,19 +2,6 @@ $def with (page)
 
 $var title: $page.key
 
-<style type="text/css">
-#contentBody ul {
-    margin-bottom: 20px;
-}
-#contentBody li {
-    line-height: 1em;
-    margin-left: 20px;
-}
-.dict {
-    margin-bottom: 2px;
-}
-</style>
-
 $def display(d):
     $if is_thing(d):
         $if d.key:
@@ -49,7 +36,7 @@ $def display_list(d):
 </div>
 
 
-<div id="contentBody">
+<div id="contentBody" class="object-view">
 $:display_dict(page)
 $:render_template("lib/history", page)
 </div>

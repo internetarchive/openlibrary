@@ -1,23 +1,23 @@
 <template>
     <div id="app">
-        <div v-if="!olids.length">No records to merge. Specify some records in the url like so: <code>?records=OL123W,OL234W</code></div>
+        <div v-if="!olids.length">{{ strings.noRecords }} <code>?records=OL123W,OL234W</code></div>
         <template v-else>
             <MergeTable ref="mergeTable" :olids="olids" :show-diffs="showDiffs" :primary="primary" />
             <div class="action-bar">
                 <div class="comment-input">
-                    <label for="comment">Comment: </label>
+                    <label for="comment">{{ strings.comment }} </label>
                     <input v-model="comment" name="comment" type="text" />
                 </div>
                 <div class="btn-group">
                     <button class="merge-btn" :disabled="isDisabled" @click="doMerge">
                         {{ mergeStatus }}
                     </button>
-                    <button v-if="showRejectButton" class="reject-btn" @click="rejectMerge">Reject Merge</button>
+                    <button v-if="showRejectButton" class="reject-btn" @click="rejectMerge">{{ strings.rejectMerge }}</button>
                 </div>
                 <div id="diffs-toggle">
                     <label>
-                        <input v-model="showDiffs" type="checkbox" title="Show textual differences" />
-                        Show text diffs
+                        <input v-model="showDiffs" type="checkbox" :title="strings.showDiffsTitle" />
+                        {{ strings.showDiffs }}
                     </label>
                 </div>
             </div>
@@ -27,13 +27,16 @@
 </template>
 
 <script>
+import { _, fmt } from '../plugins/openlibrary/js/i18n.js';
 import MergeTable from './MergeUI/MergeTable.vue';
 import { do_merge, update_merge_request, createMergeRequest, DEFAULT_EDITION_LIMIT } from './MergeUI/utils.js';
 
-const DO_MERGE = 'Do Merge';
-const REQUEST_MERGE = 'Request Merge';
-const LOADING = 'Loading...';
-const SAVING = 'Saving...';
+const DO_MERGE = _('Do Merge');
+const REQUEST_MERGE = _('Request Merge');
+const LOADING = _('Loading...');
+const SAVING = _('Saving...');
+const DONE = _('Done');
+const REJECT_MERGE = _('Reject Merge');
 
 export default {
     name: 'App',
@@ -59,6 +62,14 @@ export default {
     },
     data() {
         return {
+            strings: {
+                // NOTE: Followed by an example of the URL parameter that lists the records to merge.
+                noRecords: _('No records to merge. Specify some records in the url like so:'),
+                comment: _('Comment:'),
+                rejectMerge: REJECT_MERGE,
+                showDiffsTitle: _('Show textual differences'),
+                showDiffs: _('Show text diffs')
+            },
             url: new URL(location.toString()),
             mergeStatus: LOADING,
             mergeOutput: null,
@@ -104,7 +115,7 @@ export default {
             // A merge writes `works` pointing at the master and copies work-shaped fields
             // onto it, so the target must be a work (see #13390).
             if (master.type.key !== '/type/work') {
-                this.mergeOutput = 'The primary record must be a work — editions can be included in a merge, but not chosen as the primary.';
+                this.mergeOutput = _('The primary record must be a work — editions can be included in a merge, but not chosen as the primary.');
                 return;
             }
 
@@ -113,15 +124,20 @@ export default {
                 // Perform the merge and create new/update existing merge request
                 try {
                     if (unmergeable_works.length) {
-                        throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
+                        throw new Error(
+                            fmt(_('Could not merge: %(works)s has more than %(limit)s editions.'), {
+                                works: unmergeable_works.join(', '),
+                                limit: DEFAULT_EDITION_LIMIT
+                            })
+                        );
                     }
                     const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                     if (r.status === 403) {
-                        throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
+                        throw new Error(_('Merge failed, your account may be missing the /usergroup/api permission.'));
                     }
                     if (!r.ok) {
                         // Don't report success or record the merge request when the save failed
-                        throw new Error(`Merge failed (HTTP ${r.status}): ${await r.text()}`);
+                        throw new Error(fmt(_('Merge failed (HTTP %(status)s): %(message)s'), { status: r.status, message: await r.text() }));
                     }
                     this.mergeOutput = await r.json();
                     if (this.mrid) {
@@ -149,18 +165,18 @@ export default {
                         }
                     });
             }
-            this.mergeStatus = 'Done';
+            this.mergeStatus = DONE;
         },
 
         async rejectMerge() {
             try {
                 await update_merge_request(this.mrid, 'decline', this.comment);
-                this.mergeOutput = 'Merge request closed';
+                this.mergeOutput = _('Merge request closed');
             } catch (e) {
                 this.mergeOutput = e.message;
                 throw e;
             }
-            this.mergeStatus = 'Reject Merge';
+            this.mergeStatus = REJECT_MERGE;
         }
     }
 };

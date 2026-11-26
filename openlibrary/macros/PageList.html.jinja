@@ -1,0 +1,17 @@
+{# `pages`: Things with .key and .type.key. #}
+{% macro page_list(pages, homepath="") %}
+    <!--islist-->
+    <ul>
+        {% for p in pages %}
+            {% if p.type.key != '/type/delete' %}
+                <li>
+                    <a href="{{ homepath }}{{ p.key }}">{{ p.key }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endmacro %}
+{#- Guarded so importing the macro doesn't trip StrictUndefined on `pages`. -#}
+{%- if pages is defined %}
+    {{ page_list(pages, homepath | default("")) }}
+{%- endif %}

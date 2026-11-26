@@ -25,7 +25,7 @@ import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { translate } from './utils/labels.js';
+import { translate } from '../../plugins/openlibrary/js/i18n.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import './OlPopover.js';
 import './OLButton.js';

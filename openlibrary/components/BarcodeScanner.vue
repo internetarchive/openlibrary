@@ -5,19 +5,19 @@
             <details class="barcodescanner__advanced">
                 <summary class="glass-button icon-button">
                     <SettingsIcon />
-                    Advanced
+                    {{ strings.advanced }}
                 </summary>
                 <div class="barcodescanner__controls">
                     <button class="barcodescanner__read-isbn glass-button" :disabled="disableISBNTextButton || canvasInactive" @click="handleISBNDetected">
-                        Read Text ISBN
+                        {{ strings.readTextIsbn }}
                         <br />
-                        <small>For books that print the ISBN without a barcode</small>
+                        <small>{{ strings.readTextIsbnHint }}</small>
                     </button>
                 </div>
             </details>
             <div class="barcodescanner__result-strip">
                 <LazyBookCard v-for="isbnObj in isbnList" :key="isbnObj.isbn" :isbn="isbnObj.isbn" :tentative-cover="isbnObj.cover" />
-                <div class="empty">Point your camera at a barcode! 📷</div>
+                <div class="empty">{{ strings.noBooksYet }}</div>
             </div>
         </div>
     </div>
@@ -28,6 +28,7 @@ import LazyBookCard from './BarcodeScanner/components/LazyBookCard.vue';
 import SettingsIcon from './LibraryExplorer/components/icons/SettingsIcon.vue';
 import Quagga from '@ericblade/quagga2';
 import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js';
+import { _ } from '../plugins/openlibrary/js/i18n.js';
 
 export default {
     components: { LazyBookCard, SettingsIcon },
@@ -45,6 +46,12 @@ export default {
             }
         }
         return {
+            strings: {
+                advanced: _('Advanced'),
+                readTextIsbn: _('Read Text ISBN'),
+                readTextIsbnHint: _('For books that print the ISBN without a barcode'),
+                noBooksYet: _('Point your camera at a barcode! 📷')
+            },
             disableISBNTextButton: false,
             canvasInactive: true,
             lastISBN: null,

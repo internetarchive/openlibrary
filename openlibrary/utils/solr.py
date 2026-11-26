@@ -221,7 +221,7 @@ class Solr:
         """
         if path_or_url.startswith("http"):
             # TODO: Should this only take a path, not a full url? Would need to
-            # update worksearch.code.execute_solr_query accordingly.
+            # update worksearch.search.execute_solr_query accordingly.
             url = path_or_url
         else:
             url = f"{self.base_url}/{path_or_url.lstrip('/')}"

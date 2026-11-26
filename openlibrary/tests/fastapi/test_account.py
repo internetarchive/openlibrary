@@ -2,15 +2,30 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
+import pytest
+import web
+
 from infogami import config
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
+from openlibrary.fastapi.account import _audit_accounts_sync
+from openlibrary.fastapi.shared.dependencies import get_client_ip
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 _DEFAULT_HEADER = "LOW ak:sk"
 _SENTINEL = object()
+_CLIENT_IP = "203.0.113.7"
+
+
+@pytest.fixture(autouse=True)
+def _client_ip(fastapi_client):
+    """The bare test app has no middleware to set req_context, which get_client_ip reads."""
+    fastapi_client.app.dependency_overrides[get_client_ip] = lambda: _CLIENT_IP
+    yield
+    fastapi_client.app.dependency_overrides.pop(get_client_ip, None)
 
 
 def _anonymize_post(
@@ -542,6 +557,89 @@ def test_login_forwards_s3_headers_to_audit(fastapi_client):
         assert kwargs["s3_secret_key"] == "sk"
 
 
+def _record_ctx_ip(result):
+    """An audit_accounts stand-in that records web.ctx.ip, which Infobase stamps on the transactions it writes,
+    and whether it ran on the event loop, which its blocking calls would stall."""
+    seen = {}
+
+    def fake_audit(**kwargs):
+        seen["ip"] = web.ctx.get("ip")
+        try:
+            asyncio.get_running_loop()
+            seen["on_event_loop"] = True
+        except RuntimeError:
+            seen["on_event_loop"] = False
+        return result
+
+    return fake_audit, seen
+
+
+def test_login_sets_client_ip_for_infobase_writes(fastapi_client):
+    """audit_accounts can create or activate the OL account; an empty ip made Postgres reject the transaction row."""
+    fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=fake_audit),
+        patch("openlibrary.fastapi.account.generate_login_code_for_user", return_value="token"),
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        response = fastapi_client.post(
+            "/account/login",
+            data={"username": "testuser", "password": "password"},
+            follow_redirects=False,
+        )
+    assert response.status_code == 303
+    assert seen["ip"] == _CLIENT_IP
+    assert seen["on_event_loop"] is False
+
+
+def test_login_json_sets_client_ip_for_infobase_writes(fastapi_client):
+    fake_audit, seen = _record_ctx_ip({"ol_username": "testuser"})
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=fake_audit),
+        patch("openlibrary.fastapi.account.generate_login_code_for_user", return_value="token"),
+        patch("openlibrary.fastapi.account.OpenLibraryAccount.get_by_email", return_value=None),
+    ):
+        response = fastapi_client.post("/account/login", json={"access": "ak", "secret": "sk"})
+    assert response.status_code == 200
+    assert seen["ip"] == _CLIENT_IP
+    assert seen["on_event_loop"] is False
+
+
+def _record_pda_cookie(seen):
+    def fake_audit(**kwargs):
+        seen.append(web.cookies().get("pda"))
+        return {"ol_username": "testuser"}
+
+    return fake_audit
+
+
+def test_login_passes_the_pda_cookie_to_audit_accounts(fastapi_client):
+    """audit_accounts records a print-disability request from the "pda" cookie; web.py login then flashes and clears it."""
+    seen = []
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts", side_effect=_record_pda_cookie(seen)),
+        patch("openlibrary.fastapi.account._set_login_cookies_on_response", return_value=MagicMock()),
+    ):
+        fastapi_client.cookies.set("pda", "bard")
+        response = fastapi_client.post("/account/login", data={"username": "testuser", "password": "password"}, follow_redirects=False)
+        fastapi_client.cookies.clear()
+        second = fastapi_client.post("/account/login", data={"username": "testuser", "password": "password"}, follow_redirects=False)
+    assert seen == ["bard", None]
+    set_cookies = response.headers.get_list("set-cookie")
+    assert any(c.startswith("flash=") and "print%20disability" in c for c in set_cookies)
+    assert any(c.startswith('pda=""') for c in set_cookies)
+    assert not any(c.startswith(("flash=", "pda=")) for c in second.headers.get_list("set-cookie"))
+
+
+def test_audit_accounts_does_not_see_a_previous_requests_cookies_on_the_same_thread():
+    """Threadpool threads are reused, and web.cookies() caches per thread."""
+    seen = []
+    with patch("openlibrary.fastapi.account.audit_accounts", side_effect=_record_pda_cookie(seen)):
+        _audit_accounts_sync(_CLIENT_IP, "pda=bard")
+        _audit_accounts_sync(_CLIENT_IP, "")
+    assert seen == ["bard", None]
+
+
 class TestAnonymizeAccount:
     def test_success(self, fastapi_client):
         resp, mock_account = _anonymize_post(fastapi_client)
@@ -549,7 +647,7 @@ class TestAnonymizeAccount:
         assert resp.status_code == 200
         data = resp.json()
         assert data["new_username"] == "anonymous-abc123"
-        mock_account.anonymize.assert_awaited_once_with(test=False)
+        mock_account.anonymize.assert_awaited_once_with(_CLIENT_IP, test=False)
 
     def test_success_with_test_mode(self, fastapi_client):
         resp, mock_account = _anonymize_post(
@@ -558,7 +656,7 @@ class TestAnonymizeAccount:
         )
 
         assert resp.status_code == 200
-        mock_account.anonymize.assert_awaited_once_with(test=True)
+        mock_account.anonymize.assert_awaited_once_with(_CLIENT_IP, test=True)
 
     def test_hmac_failure(self, fastapi_client):
         resp, _ = _anonymize_post(fastapi_client, hmac_return_value=False)

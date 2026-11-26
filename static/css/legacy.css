@@ -445,17 +445,6 @@ input.highlight {
 
 /* Search v2 */
 
-/* openlibrary/data/sitemap.py */
-div#placement {
-  width: 960px;
-  margin: 0 auto;
-  text-align: left;
-}
-
-div#position {
-  width: 960px;
-}
-
 div#content {
   clear: both;
   position: relative;
@@ -499,33 +488,6 @@ div#noLogin {
     no-repeat 10px 50%;
   padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
     var(--spacing-inset-sm) 44px;
-}
-
-/* openlibrary/templates/type/author/view.html */
-div#preMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
-    10px 10px;
-}
-
-/* openlibrary/templates/type/author/view.html */
-div#postMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_check.png) no-repeat
-    10px 10px;
-}
-
-/* openlibrary/templates/type/author/view.html */
-div#errorMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
-    10px 10px;
 }
 
 /* FORMS */

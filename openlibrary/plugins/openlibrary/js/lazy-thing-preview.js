@@ -82,30 +82,30 @@ export class LazyThingPreview {
         const editionKeys = keys.filter(key => key.startsWith('/books/'));
         const authorKeys = keys.filter(key => key.startsWith('/authors/'));
         const fields = 'key,type,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions';
-        for (const keys of chunk(workKeys, 100)) {
+        for (const keyChunk of chunk(workKeys, 100)) {
             const resp = await fetch(
                 `/search.json?${new URLSearchParams({
-                    q: `key:(${keys.join(' OR ')})`,
+                    q: `key:(${keyChunk.join(' OR ')})`,
                     fields,
                     limit: '100'
                 })}`
             ).then(r => r.json());
             yield resp.docs;
         }
-        for (const keys of chunk(editionKeys, 100)) {
+        for (const keyChunk of chunk(editionKeys, 100)) {
             const resp = await fetch(
                 `/search.json?${new URLSearchParams({
-                    q: `edition_key:(${keys.map(key => key.split('/').pop()).join(' OR ')})`,
+                    q: `edition_key:(${keyChunk.map(key => key.split('/').pop()).join(' OR ')})`,
                     fields,
                     limit: '100'
                 })}`
             ).then(r => r.json());
             yield resp.docs;
         }
-        for (const keys of chunk(authorKeys, 100)) {
+        for (const keyChunk of chunk(authorKeys, 100)) {
             const resp = await fetch(
                 `/search/authors.json?${new URLSearchParams({
-                    q: `key:(${keys.join(' OR ')})`,
+                    q: `key:(${keyChunk.join(' OR ')})`,
                     fields: 'key,type,name,top_work,top_subjects,birth_date,death_date',
                     limit: '100'
                 })}`

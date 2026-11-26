@@ -1,59 +1,31 @@
-// Unit tests for the CODE-REVIEW STATUS gate (#14453). Covers three things that must not drift:
-//   1. The three pure helpers embedded inline in the `status` job's github-script step; this test
-//      extracts the EXACT text that ships and exercises it, so tested logic == deployed logic:
-//        - parseFindings(raw)                 -- the env->findings derivation, FAIL CLOSED on absent
-//        - unresolvedThreadCount(threads)     -- threads that are unresolved AND not outdated
-//        - decideStatus({postSucceeded,...})  -- the pass/fail + state + non-leaky description
-//      (The public-findings COUNT is produced INSIDE this workflow's analyze-gate step -- the
-//      `public_findings_count` output -- and consumed here via parseFindings, which blocks when absent.)
-//   2. The posted commit-status context string is EXACTLY `code-review` (the branch-protection
-//      ruleset requires that string; a drift makes the required gate unsatisfiable -> every PR blocked).
-//   3. The ANALYZE-EXECUTION INVARIANT: the `analyze` job (which runs with secrets on untrusted fork
-//      PRs under pull_request_target) must NEVER execute PR content -- no build/install/test/cache/
-//      cloud-auth/language-setup step. This is the load-bearing control that makes pull_request_target
-//      safe here, so a CI test fails the build if analyze gains a disallowed action or run command.
+// Tests for the `code-review` status:
+//   1. status.cjs's helpers: parseFindings, unresolvedThreadCount and decideStatus.
+//   2. The status context is exactly `code-review`, the string the ruleset requires.
+//   3. `analyze` never executes PR content. It runs with secrets on fork PRs, so this is what makes
+//      pull_request_target safe.
+//   4. Every checkout is base-repo code with no credentials kept, and every github-script step
+//      runs a module from it.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import yaml from 'js-yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WF = join(here, '..', '..', '..', '.github', 'workflows');
+const SCRIPTS = join(here, '..', '..', '..', '.github', 'scripts', 'code_review');
 const workflowText = readFileSync(join(WF, 'code_review_action.yml'), 'utf8');
-const statusLines = workflowText.split('\n');
+const load = createRequire(import.meta.url);
+const shared = load(join(SCRIPTS, 'shared.cjs'));
+const status = load(join(SCRIPTS, 'status.cjs'));
+const range = load(join(SCRIPTS, 'range.cjs'));
+const post = load(join(SCRIPTS, 'post.cjs'));
+const source = file => readFileSync(join(SCRIPTS, file), 'utf8');
 
-// Extract a `const <name> = (…) => { … };` block from a workflow's lines, keyed on the closing line
-// that matches the declaration's own indentation (so a nested `};` cannot truncate it), and eval it.
-// The helpers are pure -- they close over nothing from the step -- so a bare `new Function` suffices.
-function extractFn(lines, name) {
-    const start = lines.findIndex(l => l.includes(`const ${name} =`));
-    assert.ok(start >= 0, `${name} not found in workflow`);
-    const indent = lines[start].match(/^(\s*)/)[1];
-    const closer = `${indent}};`;
-    const body = [lines[start]];
-    let end = -1;
-    for (let j = start + 1; j < lines.length; j++) {
-        body.push(lines[j]);
-        if (lines[j] === closer) {
-            end = j;
-            break;
-        }
-    }
-    assert.ok(end >= 0, `end of ${name} not found`);
-    const src = body
-        .join('\n')
-        .trim()
-        .replace(new RegExp(`^const ${name} =\\s*`), '')
-        .replace(/;\s*$/, '');
-    // eslint-disable-next-line no-new-func
-    return new Function(`return (${src});`)();
-}
-
-const parseFindings = extractFn(statusLines, 'parseFindings');
-const unresolvedThreadCount = extractFn(statusLines, 'unresolvedThreadCount');
-const decideStatus = extractFn(statusLines, 'decideStatus');
+const { parseFindings, decideStatus } = status;
+const { unresolvedThreadCount } = shared;
 
 // ---- parseFindings: the env->findings derivation. FAIL CLOSED (absent/garbage -> null, blocks) ----
 test('parseFindings returns the integer for a well-formed non-negative count', () => {
@@ -62,12 +34,22 @@ test('parseFindings returns the integer for a well-formed non-negative count', (
     assert.equal(parseFindings(' 7 '), 7);
 });
 test('parseFindings returns null (=> blocks) for absent or malformed input -- NOT 0', () => {
-    // This is the H1 fail-closed guard: before the #14451 producer lands, or on a skip path, the
-    // output is absent. null -> decideStatus blocks. Treating absent as 0/clean would let a review
-    // with only orphaned (summary-only, un-threaded) findings pass. Each of these MUST be null.
+    // A missing count must block: treating it as 0 would pass a review whose only findings have no
+    // thread.
     for (const raw of ['', undefined, null, 'abc', '-1', '3.5', '1e2', 'NaN', '0x3', ' ']) {
         assert.equal(parseFindings(raw), null, `expected null for ${JSON.stringify(raw)}`);
     }
+});
+
+test("unresolvedThreadCount skips the bot's suggestion threads, but not a marker someone else wrote", () => {
+    const first = (login, body) => ({ isResolved: false, isOutdated: false, comments: { nodes: [{ author: { login }, body }] } });
+    const marked = `${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — x**`;
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', marked)]), 0, "the bot's suggestion");
+    assert.equal(unresolvedThreadCount([first('someone', marked)]), 1, 'a human copying the marker still blocks');
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', '**MEDIUM · Correctness — x**')]), 1, "the bot's finding");
+    // A finding's text is written by the model and can quote the marker (say, in a PR that edits shared.cjs).
+    const quoting = `**MEDIUM · Correctness — x**\n\nThe line \`${shared.SUGGESTION_MARKER}\` is wrong.\n\n${shared.SUGGESTION_MARKER}`;
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', quoting)]), 1, 'a finding that quotes the marker still blocks');
 });
 
 // ---- unresolvedThreadCount: GitHub's own isResolved/isOutdated are authoritative ----
@@ -111,8 +93,7 @@ test('decideStatus FAILS when prior feedback is unresolved, even with a clean pa
     assert.equal(many.description, '3 unresolved review threads.');
 });
 test('decideStatus FAILS CLOSED when the findings count is unavailable (null), even with zero unresolved', () => {
-    // H1: an unknown count must NOT pass. null is what parseFindings returns when the producer
-    // output is absent -- a review could have orphaned/summary-only findings we cannot see.
+    // An unknown count must not pass.
     const d = decideStatus({ postSucceeded: true, findings: null, unresolved: 0 });
     assert.equal(d.pass, false);
     assert.equal(d.state, 'failure');
@@ -125,9 +106,7 @@ test('decideStatus never leaks finding content -- description is counts and fixe
         { postSucceeded: true, findings: 2, unresolved: 0 },
         { postSucceeded: true, findings: 0, unresolved: 2 },
         { postSucceeded: true, findings: null, unresolved: 0 },
-        // Withheld paths (D3a): the one describing a withheld finding must be a FIXED phrase with
-        // no count and no content -- the only thing a withheld status may reveal is that a finding
-        // exists (the accepted one-bit leak), never how many, where, or what.
+        // A withheld finding gets a fixed phrase with no count or content.
         { postSucceeded: true, findings: 1, withheld: true, unresolved: 0 },
         { postSucceeded: true, findings: 0, withheld: true, unresolved: 0 },
         { postSucceeded: true, findings: null, withheld: true, unresolved: 0 }
@@ -137,7 +116,7 @@ test('decideStatus never leaks finding content -- description is counts and fixe
         // could carry a finding's content. The withheld-finding template carries NO number.
         assert.match(
             description,
-            /^(Review passed; all feedback resolved\.|No clean review for this commit\.|Review findings count unavailable\.|A finding was delivered privately; maintainer review required\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
+            /^(Review passed; all feedback resolved\.|No clean review for this commit\.|Review findings count unavailable\.|Feedback withheld for maintainer review\.|\d+ findings? to address\.|\d+ unresolved review threads?\.)$/
         );
         // A withheld description must never carry a digit (no count leak).
         if (c.withheld && c.findings) assert.ok(!/\d/.test(description), `withheld description leaked a digit: ${description}`);
@@ -146,31 +125,35 @@ test('decideStatus never leaks finding content -- description is counts and fixe
 
 // ---- Context string: EXACTLY `code-review` (must match the ruleset's required-check string) ----
 test('the status job posts commit status context === "code-review" (ruleset-required string)', () => {
-    // A rename makes the required gate unsatisfiable (ruleset requires a string nothing posts) or
-    // unenforcing. Pin the single source of truth: the createCommitStatus `context:` line.
-    const contextLines = statusLines.filter(l => /^\s*context:\s*/.test(l));
-    assert.equal(contextLines.length, 1, 'expected exactly one `context:` line in the workflow');
-    assert.match(contextLines[0], /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${contextLines[0].trim()}`);
+    // A rename would make the required check unsatisfiable. Check every `context:` line in the
+    // workflow and the modules.
+    const files = readdirSync(SCRIPTS).filter(f => f.endsWith('.cjs'));
+    const contextLines = [workflowText, ...files.map(source)].flatMap(t => t.split('\n')).filter(l => /^\s*context:\s*/.test(l));
+    assert.ok(contextLines.length >= 1, 'expected at least one `context:` line in the code review scripts');
+    for (const line of contextLines) {
+        assert.match(line, /^\s*context:\s*'code-review',?\s*$/, `status context must be exactly 'code-review', got: ${line.trim()}`);
+    }
 });
 
-// ---- ANALYZE-EXECUTION INVARIANT: analyze never executes PR content (the pull_request_target belt) ----
-// analyze runs with secrets on untrusted fork PRs. Its safety rests entirely on "reads the diff as
-// data, never runs it." This asserts that structurally: only an allowlist of actions, and no
-// build/install/test/cache command in any `run:`. Fails the build the moment analyze gains a
-// cache/cloud/setup/exec step -- the #1 regression risk Locke flagged for pull_request_target.
+test('pending fires on the same triggers as analyze, and status runs whenever pending posted', () => {
+    assert.equal(workflow.jobs.pending.if, workflow.jobs.analyze.if);
+    assert.ok(workflow.jobs.status.needs.includes('pending'));
+    assert.match(workflow.jobs.status.if, /needs\.pending\.outputs\.head_sha != ''/);
+});
+
+// ---- analyze never executes PR content ----
+// analyze runs with secrets on fork PRs, so it must treat the PR as data. Only allowlisted actions,
+// and no build/install/test/cache command in any `run:`.
 const workflow = yaml.load(workflowText);
 const analyzeJob = workflow.jobs.analyze;
 
 // Action name = the part before `@`, e.g. `actions/cache` from `actions/cache@<sha>`.
 const ALLOWED_ANALYZE_ACTIONS = new Set(['actions/checkout', 'actions/github-script', 'anthropics/claude-code-action', 'actions/upload-artifact']);
-// ALLOWLIST (not a blocklist -- adversarial review found a blocklist porous: `bash pr-head/x.sh`,
-// `./configure`, `source`, `eval` all slipped a keyword blocklist). analyze's run steps may ONLY
-// fetch + inertly extract the PR head, so only these leading commands are permitted. Anything else
-// (a shell, interpreter, build tool, or executing a path) means analyze might run fork content.
+// An allowlist, because a blocklist missed `bash pr-head/x.sh`, `./configure`, `source` and `eval`.
+// analyze's run steps only fetch and extract the PR head, so only these leading commands are allowed.
 const ANALYZE_RUN_ALLOWED_CMDS = new Set(['git', 'mkdir', 'printf', 'tar', 'rm', 'find', 'chmod', 'cd', 'echo', 'true', ':', 'test', '[']);
-// Belt for execution hidden in args/substitutions even when the leading command is allowed, e.g.
-// `find ... -exec bash {}` or `mkdir "$(sh x)"` or a `./path` / `/abs/path` invocation. `-exec`
-// (find's own flag, hyphen-prefixed) is deliberately NOT matched.
+// Execution hidden in arguments even when the leading command is allowed, e.g. `find ... -exec bash {}`,
+// `mkdir "$(sh x)"` or a `./path` / `/abs/path` invocation. find's own `-exec` flag is not matched.
 const EXEC_SHAPE =
     /(?<![-\w])(bash|sh|zsh|ksh|dash|source|eval|exec|xargs|env|ruby|perl|php|node|nodejs|python[0-9.]*|dotnet|java|gradlew|make|cmake|configure|awk|sed)(?![\w])|(?:^|[\s|&;(])\.{0,2}\/[\w.]/m;
 
@@ -227,20 +210,22 @@ test('analyze run steps invoke only allowlisted commands (no shell/interpreter/b
     }
 });
 
-// The model's shell+network are OFF -- this is the actual injection->exec barrier under
-// pull_request_target, and the adversarial review flagged it was unasserted. Pin it so flipping
-// claude_args to allow Bash (or dropping --disallowedTools) fails CI.
-test('the Review (model) step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
-    const review = (analyzeJob.steps || []).find(s => (s.uses || '').includes('claude-code-action'));
-    assert.ok(review, 'expected a claude-code-action Review step in analyze');
-    const args = String((review.with && review.with.claude_args) || '');
-    const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
-    assert.ok(disallowed, 'Review step must pass --disallowedTools (the model must have no shell/network)');
-    for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
-        assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `--disallowedTools must include ${tool}`);
+// The model has no shell or network. Fail if claude_args ever allows Bash or drops --disallowedTools.
+test('every model step keeps Bash/WebFetch/WebSearch disabled and does not allow a shell', () => {
+    const models = (analyzeJob.steps || []).filter(s => (s.uses || '').includes('claude-code-action'));
+    assert.ok(models.length >= 2, 'expected the Review step and the format-fix step in analyze');
+    for (const model of models) {
+        const args = String((model.with && model.with.claude_args) || '');
+        const disallowed = args.match(/--disallowedTools\s+"([^"]*)"/);
+        assert.ok(disallowed, `${model.name} must pass --disallowedTools (the model must have no shell/network)`);
+        for (const tool of ['Bash', 'WebFetch', 'WebSearch']) {
+            assert.ok(new RegExp(`\\b${tool}\\b`).test(disallowed[1]), `${model.name}: --disallowedTools must include ${tool}`);
+        }
+        const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
+        assert.ok(!/\bBash\b/.test(allowed), `${model.name} must not re-enable Bash via --allowedTools`);
+        assert.equal(model.with.show_full_output, false, `${model.name} must not print the model's text to the public log`);
+        assert.equal(model.with.display_report, false, `${model.name} must not put the model's text in the step summary`);
     }
-    const allowed = (args.match(/--allowedTools\s+"([^"]*)"/) || ['', ''])[1];
-    assert.ok(!/\bBash\b/.test(allowed), 'Review step must not re-enable Bash via --allowedTools');
 });
 
 test('analyze job holds no PAT and no write permission (the no-write half of the split)', () => {
@@ -255,29 +240,29 @@ test('analyze job holds no PAT and no write permission (the no-write half of the
     }
 });
 
-// ============================================================================================
-// #14476 -- make the code-review merge check RELIABLE on every PR. Three defects, red-first.
-//   D1  review + status must describe the SAME commit (post NEITHER if the head moved mid-run).
-//   D2  "already reviewed this SHA" must never mean "no status": a reviewed head with no
-//       code-review status gets the status re-posted (idempotent, from the review-body marker).
-//   D3a status is finding-driven, not withhold-driven: a withhold with 0 findings -> success;
-//       any finding (public or withheld) -> failure with a NON-LEAKY description; absent -> closed.
-// Each helper below is extracted from the EXACT shipped text, so tested logic == deployed logic.
-// ============================================================================================
+// ---- The status always matches the review it describes ----
 
-// ---- D1: headIsCurrent -- the live-head guard shared by `post` and `status` ----
+// ---- The superseded marker: a review of a commit the PR had moved past ----
+test('supersededMarker round-trips', () => {
+    const { supersededMarker, supersededCommit } = shared;
+    const a = 'a'.repeat(40);
+    assert.equal(supersededCommit(`x\n${supersededMarker(a)}`), a);
+    assert.equal(supersededCommit('x\n<!-- ol-pr-review-bot f=0 -->'), null);
+    assert.equal(supersededCommit('<!-- ol-pr-review-bot superseded reviewed=nope -->'), null);
+});
+
+// ---- headIsCurrent: the live-head check `post` and `status` share ----
 test('D1 headIsCurrent is true only when the pinned reviewed SHA still equals the live head', () => {
-    const headIsCurrent = extractFn(statusLines, 'headIsCurrent');
+    const { headIsCurrent } = shared;
     const a = 'a'.repeat(40),
         b = 'b'.repeat(40);
     assert.equal(headIsCurrent(a, a), true, 'same SHA -> current -> safe to post');
     assert.equal(headIsCurrent(a, b), false, 'head moved -> NOT current -> post neither review nor status');
 });
 test('D1 the post step guards createReview with a live-head re-fetch (pulls.get)', () => {
-    // The post job must re-read the live head and bail before createReview when it moved -- otherwise
-    // createReview re-anchors the review to the new head while the status binds the old one (the
-    // ae775e7d strand). Structural: a pulls.get and a headIsCurrent guard precede createReview.
-    const postScript = JSON.stringify(workflow.jobs.post);
+    // `post` must re-read the live head and bail before createReview if it moved; createReview would
+    // otherwise attach the review to the new head while the status goes on the old one.
+    const postScript = post.validateAndPost.toString();
     assert.ok(/pulls\.get/.test(postScript), 'post must re-fetch the live head (pulls.get) before posting');
     assert.ok(/headIsCurrent\(/.test(postScript), 'post must guard the review with a headIsCurrent() call');
     // The guard (pulls.get + headIsCurrent call) must precede the createReview API call. Use the
@@ -286,37 +271,43 @@ test('D1 the post step guards createReview with a live-head re-fetch (pulls.get)
     assert.ok(postScript.indexOf('headIsCurrent(') < postScript.indexOf('pulls.createReview'), 'the head guard must precede pulls.createReview');
 });
 test('D1 the status step guards createCommitStatus with a live-head re-fetch', () => {
-    const s = JSON.stringify(workflow.jobs.status);
+    const s = status.postStatus.toString();
     assert.ok(/pulls\.get/.test(s), 'status must re-fetch the live head (pulls.get) before posting the status');
     assert.ok(/headIsCurrent\(/.test(s), 'status must guard createCommitStatus with a headIsCurrent() call');
     assert.ok(s.indexOf('pulls.get') < s.indexOf('repos.createCommitStatus'), 'the live-head re-fetch must precede repos.createCommitStatus');
     assert.ok(s.indexOf('headIsCurrent(') < s.indexOf('repos.createCommitStatus'), 'the head guard must precede repos.createCommitStatus');
 });
 
-// ---- D2/#14486: STATE-aware skip -- compare the present status STATE to the review's verdict ----
+// ---- Already reviewed: skip only if the present status matches the review's verdict ----
 test('#14486 the range resolver is STATE-aware: it compares the present status to the implied verdict', () => {
-    // The already-reviewed skip must be STATE-aware, not merely presence-aware (the #14486 bug): it may
-    // skip only when the present `code-review` status STATE matches the verdict the review implies for
-    // this head; a stale/contradicting/absent status must route to a repost, never strand the head red.
-    const s = JSON.stringify(workflow.jobs.analyze);
+    // Skip only when the present status matches the verdict the review implies. A stale, contradicting
+    // or missing status must lead to a repost.
+    const s = range.resolveRange.toString();
     assert.ok(/listCommitStatusesForRef/.test(s), "range step must list the head's commit statuses");
     assert.ok(/reviewThreads/.test(s), 'range step must read live review threads to imply the verdict');
     assert.ok(/expectedState/.test(s), 'range step must compute the implied verdict (expectedState)');
     assert.ok(/\.state === expectedState/.test(s), 'range step must skip ONLY when the present status state matches the verdict');
     assert.ok(/context === 'code-review'/.test(s), 'range step must select the code-review status by context');
-    // The old presence-only gate must be gone -- a mere-presence skip is the stale-status bug.
+    // A presence-only skip left stale statuses in place.
     assert.ok(!/codeReviewStatusPresent/.test(s), 'the presence-only skip (codeReviewStatusPresent) must be removed');
     // analyze must still declare a `repost` output so post can be skipped while status recomputes.
     assert.ok(workflow.jobs.analyze.outputs && 'repost' in workflow.jobs.analyze.outputs, 'analyze must expose a `repost` output');
 });
 test('#14486 the resolver and the status job share the same verdict helpers (no drift)', () => {
-    // Both the resolver (expectedState) and the status repost (decideStatus) read the review-body marker
-    // and count unresolved threads. The helpers are byte-identical copies; extractFn returns the first
-    // occurrence (the resolver's). A behavioural drift pin lives in the integration test.
-    const parseReviewMarker = extractFn(statusLines, 'parseReviewMarker');
+    // range.cjs and status.cjs import the helpers from shared.cjs and keep no copy. The integration
+    // test checks that both pick the same review.
+    for (const file of ['range.cjs', 'status.cjs']) {
+        const src = source(file);
+        assert.match(
+            src,
+            /\{[^}]*\bverdictFindings\b[^}]*\bheldBackOpen\b[^}]*\bunresolvedThreadCount\b[^}]*\} = require\('\.\/shared\.cjs'\)/,
+            `${file} imports the shared helpers`
+        );
+        assert.doesNotMatch(src, /const (parseReviewMarker|verdictFindings|heldBackOpen|unresolvedThreadCount) =/, `${file} keeps no copy of its own`);
+    }
+    const { parseReviewMarker } = shared;
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot -->'), null, 'legacy marker -> null -> fail closed');
-    const unresolvedThreadCount = extractFn(statusLines, 'unresolvedThreadCount');
     assert.equal(unresolvedThreadCount([{ isResolved: false, isOutdated: false }]), 1, 'unresolved + current -> blocks');
     assert.equal(
         unresolvedThreadCount([
@@ -328,22 +319,29 @@ test('#14486 the resolver and the status job share the same verdict helpers (no 
     );
 });
 test('D2 parseReviewMarker reads the public findings count from the review-body marker', () => {
-    const parseReviewMarker = extractFn(statusLines, 'parseReviewMarker');
+    const { parseReviewMarker } = shared;
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=0 -->'), 0);
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot f=3 -->'), 3);
-    // A legacy review body with the old marker (no f=) -> null -> the repost FAILS CLOSED (red),
-    // never a fabricated green on a count we cannot read.
+    // A body without an `f=` count -> null -> the repost fails closed.
     assert.equal(parseReviewMarker('text\n<!-- ol-pr-review-bot -->'), null);
     assert.equal(parseReviewMarker(''), null);
     assert.equal(parseReviewMarker(null), null);
 });
 test('D2 the post step embeds the findings-count marker in the review body', () => {
-    // Without an `f=<count>` marker in the posted body, a later status repost cannot reconstruct the
-    // count and would strand the head. The marker is the public findings count (public by construction).
-    assert.ok(/ol-pr-review-bot f=\$\{/.test(workflowText), 'post must embed `<!-- ol-pr-review-bot f=${...} -->` in the review body');
+    // Without an `f=<count>` marker, a repost cannot reconstruct the count.
+    assert.ok(/reviewMarker\(findingCount, heldBackBlocks\)/.test(post.validateAndPost.toString()), 'post must embed the marker in the review body');
+});
+test('the marker counts a blocking held-back part as one more finding', () => {
+    const { reviewMarker, heldBackBlocking, parseReviewMarker } = shared;
+    assert.equal(reviewMarker(2, false), '<!-- ol-pr-review-bot f=2 -->');
+    assert.equal(reviewMarker(0, true), '<!-- ol-pr-review-bot f=0 h=1 -->');
+    assert.equal(parseReviewMarker(reviewMarker(0, true)), 1);
+    assert.equal(parseReviewMarker(reviewMarker(2, true)), 3);
+    assert.equal(heldBackBlocking(reviewMarker(0, true)), true);
+    assert.equal(heldBackBlocking(reviewMarker(0, false)), false);
 });
 
-// ---- D3a: decideStatus withheld paths + withheldFindings + gate findingsTotal ----
+// ---- Withheld reviews: decideStatus, withheldFindings and the gate's findingsTotal ----
 test('D3a decideStatus: a withhold with ZERO findings PASSES (the backstop-false-positive case)', () => {
     // A PR that merely trips the security-term backstop but has no real defect must green itself.
     const d = decideStatus({ postSucceeded: true, findings: 0, withheld: true, unresolved: 0 });
@@ -351,11 +349,11 @@ test('D3a decideStatus: a withhold with ZERO findings PASSES (the backstop-false
     assert.equal(d.state, 'success');
     assert.match(d.description, /passed/i);
 });
-test('D3a decideStatus: a withhold WITH a finding FAILS with the non-leaky private-delivery phrase', () => {
+test('D3a decideStatus: a withhold WITH a finding FAILS with the non-leaky withheld phrase', () => {
     const d = decideStatus({ postSucceeded: true, findings: 1, withheld: true, unresolved: 0 });
     assert.equal(d.pass, false);
     assert.equal(d.state, 'failure');
-    assert.equal(d.description, 'A finding was delivered privately; maintainer review required.');
+    assert.equal(d.description, 'Feedback withheld for maintainer review.');
     assert.ok(!/\d/.test(d.description), 'the withheld description must carry no count');
 });
 test('D3a decideStatus: an unknown finding count on a withheld review FAILS CLOSED', () => {
@@ -364,7 +362,7 @@ test('D3a decideStatus: an unknown finding count on a withheld review FAILS CLOS
     assert.equal(d.state, 'failure');
 });
 test('D3a withheldFindings maps the one-bit blocking signal to 0/1, fail-closed on unknown', () => {
-    const withheldFindings = extractFn(statusLines, 'withheldFindings');
+    const { withheldFindings } = status;
     assert.equal(withheldFindings('true'), 1, 'a blocking withheld finding -> counts as >0 -> failure');
     assert.equal(withheldFindings('false'), 0, 'no blocking withheld finding -> 0 -> success');
     assert.equal(withheldFindings(''), null, 'absent -> null -> fail closed');
@@ -372,11 +370,8 @@ test('D3a withheldFindings maps the one-bit blocking signal to 0/1, fail-closed 
     assert.equal(withheldFindings('garbage'), null, 'anything but true/false -> fail closed');
 });
 
-// ---- D3a: the pre-publication gate reports a trustworthy finding COUNT even when it withholds ----
-// The workflow itself evaluates this exact env string with eval() in both jobs, so the test uses the
-// same mechanism to exercise the shipped gate text verbatim (tested logic == deployed logic).
-// eslint-disable-next-line no-eval
-const gate = eval(workflow.env.REVIEW_GATE_JS);
+// ---- The gate reports a finding count even when it withholds ----
+const gate = load(join(SCRIPTS, 'gate.cjs'));
 const dimNone = note => ({ status: 'none', note });
 const cleanDims = () => ({
     correctness: dimNone('ok'),
@@ -397,35 +392,113 @@ test('D3a gate: a clean publishable review reports findingsTotal (0 and N) and b
         summary: 'has findings',
         dimensions: dims,
         findings: [
-            { dimension: 'correctness', severity: 'low', title: 'a', body: 'b' },
-            { dimension: 'correctness', severity: 'low', title: 'c', body: 'd' }
+            { dimension: 'correctness', severity: 'low', confidence: 8, title: 'a', body: 'b' },
+            { dimension: 'correctness', severity: 'low', confidence: 8, title: 'c', body: 'd' }
         ]
     });
     assert.equal(two.publish, true);
     assert.equal(two.findingsTotal, 2);
 });
-test('D3a gate: a withhold triggered by the backstop with 0 findings is NON-blocking (-> success)', () => {
-    // Summary mentions a security term so the text backstop withholds the public copy, but the MODEL
-    // classified security=none and filed no finding. This is the ONLY greenable withheld case
-    // (Locke constraint 3): pure backstop-vocabulary trip, model-structurally-zero findings.
-    const res = gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: cleanDims(), findings: [] });
-    assert.equal(res.publish, false, 'backstop term in the summary withholds the public text');
-    assert.equal(res.findingsTotal, 0, 'but the model found nothing');
-    assert.equal(res.blocking, false, '-> NON-blocking -> status greens itself');
+test('gate: the text scan reads markup both with tags stripped and with tags kept', () => {
+    const withSummary = summary => !gate.check({ summary, dimensions: cleanDims(), findings: [] }).heldBack;
+    assert.equal(withSummary('Rename the sec<b>ret</b> helper.'), false, 'tags stripped: a word split by a tag');
+    assert.equal(withSummary('Rename the sec<x<y>>ret helper.'), false, 'tags stripped until none are left');
+    assert.equal(withSummary('Label the `<input type="password">` field.'), false, 'tags kept: a tag in a code span is shown as text');
+    assert.equal(withSummary('Wrap the <b>helper</b> name in a <code>tag</code>.'), true, 'harmless markup still publishes');
 });
-test('D3a gate (Locke constraint 3): a MODEL security-classification is blocking regardless of count', () => {
-    // A withhold caused by the model's OWN security classification must be blocking even though the
-    // public findings count stays 0 -- never greenable, no matter what the structured array parses to.
+test('gate: a finding the text scan holds back blocks only when it is not LOW; the rest is published', () => {
+    const dims = cleanDims();
+    dims.correctness = { status: 'findings' };
+    const withFindings = findings => gate.check({ summary: 'fine', dimensions: dims, findings });
+    const low = { dimension: 'correctness', severity: 'low', confidence: 8, title: 'a', body: 'b' };
+    const tripped = { ...low, body: 'This query is open to SQL injection.' };
+    const lowOnly = withFindings([low, tripped]);
+    assert.equal(lowOnly.publish, true);
+    assert.equal(lowOnly.heldBack, true);
+    assert.equal(lowOnly.blocking, false, 'LOW only -> not blocking');
+    assert.deepEqual(lowOnly.clean.findings, [low], 'the other finding is still published');
+    assert.equal(withFindings([low, { ...tripped, severity: 'medium' }]).blocking, true, 'a MEDIUM/HIGH held back -> blocking');
+});
+test('gate: a summary or note the text scan trips is replaced, and the rest is published', () => {
+    const dims = cleanDims();
+    dims.styleguide = dimNone('Checked the password form.');
+    const res = gate.check({ summary: 'This hardens against SQL injection risk.', dimensions: dims, findings: [] });
+    assert.equal(res.publish, true);
+    assert.equal(res.heldBack, true);
+    assert.equal(res.blocking, false, 'no finding was held back -> NON-blocking');
+    assert.equal(res.clean.summary, '');
+    assert.equal(res.clean.dimensions.styleguide.note, gate.heldBackNote);
+    assert.equal(res.clean.dimensions.correctness.note, 'ok');
+    assert.equal(gate.check(res.clean).heldBack, false, 'the replacements pass the gate again');
+});
+
+// A diff adding lines 10-12 of app.py, with line 9 as context.
+const DIFF = 'diff --git a/app.py b/app.py\n--- a/app.py\n+++ b/app.py\n@@ -9,1 +9,4 @@\n x = 1\n+a = 1\n+b = 2\n+c = 3\n';
+const sec = f => ({
+    dimension: 'security',
+    severity: 'high',
+    confidence: 8,
+    title: 'authz gap',
+    body: 'Anyone can edit any list: check the owner.',
+    path: 'app.py',
+    line: 11,
+    ...f
+});
+const withSecurity = (findings, diff = DIFF) => {
     const dims = cleanDims();
     dims.security = { status: 'findings' };
-    const res = gate.check({
-        summary: 'review',
-        dimensions: dims,
-        findings: [{ dimension: 'security', severity: 'high', title: 'authz gap', body: 'missing owner check' }]
-    });
-    assert.equal(res.publish, false, 'a security finding is never published');
-    assert.equal(res.blocking, true, 'model-classified security -> BLOCKING -> failure');
-    assert.ok(res.findingsTotal > 0);
+    return gate.check({ summary: 'review', dimensions: dims, findings }, diff);
+};
+test('gate: addedLines reads only + lines, past hunk headers and lines that look like headers', () => {
+    const added = gate.addedLines(`${DIFF}diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -1,2 +1,2 @@\n---- removed\n++++ added\n kept\n`);
+    assert.deepEqual([...added.get('app.py')], [10, 11, 12]);
+    assert.deepEqual([...added.get('b.py')], [1]);
+});
+test('SECURITY gate: a concern in existing code is held back and blocks; the rest is published', () => {
+    const other = { dimension: 'correctness', severity: 'medium', confidence: 8, title: 'Off by one', body: 'Use <=.' };
+    for (const f of [sec({ scope: 'existing' }), sec({ scope: undefined }), sec({ scope: 'existing', severity: 'low', confidence: 2 })]) {
+        const dims = cleanDims();
+        dims.security = { status: 'findings' };
+        dims.correctness = { status: 'findings' };
+        const res = gate.check({ summary: 'review', dimensions: dims, findings: [f, other] }, DIFF);
+        assert.equal(res.publish, true);
+        assert.equal(res.heldBack, true);
+        assert.equal(res.blocking, true, 'a held-back security finding always blocks');
+        assert.deepEqual(res.clean.findings, [other]);
+        assert.deepEqual(res.clean.dimensions.security, { status: 'none' });
+        assert.ok(!JSON.stringify(res.clean).includes('owner'), 'nothing of it is kept');
+    }
+});
+test('SECURITY gate: a concern the PR introduces is published when it sits on lines the PR adds', () => {
+    const res = withSecurity([sec({ scope: 'introduced', start_line: 10, line: 12 })]);
+    assert.equal(res.heldBack, false);
+    assert.equal(res.clean.findings.length, 1);
+    assert.equal(res.clean.findings[0].scope, 'introduced');
+    assert.deepEqual(res.clean.dimensions.security, { status: 'findings' });
+    assert.equal(withSecurity([sec({ scope: 'introduced', severity: 'low', confidence: 2 })]).clean.findings[0].severity, 'medium', 'it always blocks');
+    // `post` gates the clean copy again, against its own diff.
+    assert.equal(gate.check(JSON.parse(JSON.stringify(res.clean)), DIFF).heldBack, false);
+});
+test('SECURITY gate: an "introduced" concern NOT on lines the PR adds is held back', () => {
+    for (const f of [
+        sec({ scope: 'introduced', line: 9 }), // a context line
+        sec({ scope: 'introduced', start_line: 9, line: 11 }), // starts on a context line
+        sec({ scope: 'introduced', line: 40 }), // not in the diff
+        sec({ scope: 'introduced', path: 'other.py' }),
+        sec({ scope: 'introduced', path: undefined, line: undefined })
+    ]) {
+        const res = withSecurity([f]);
+        assert.equal(res.heldBack, true, JSON.stringify(f));
+        assert.equal(res.blocking, true);
+        assert.deepEqual(res.clean.findings, []);
+    }
+    assert.equal(withSecurity([sec({ scope: 'introduced' })], '').heldBack, true, 'no diff -> held back');
+});
+test('SECURITY gate: an "introduced" concern carrying a credential is held back', () => {
+    assert.equal(withSecurity([sec({ scope: 'introduced', body: `Remove ghp_${'a'.repeat(36)}.` })]).heldBack, true);
+});
+test('gate: a bad scope makes the review unpublishable', () => {
+    assert.equal(withSecurity([sec({ scope: 'new' })]).publish, false);
 });
 test('D3a gate: a structurally malformed review is UNKNOWN and FAILS CLOSED (blocking=true)', () => {
     for (const bad of [null, 'nope', { summary: 5 }, { summary: 'x', dimensions: {}, findings: 'no' }]) {
@@ -436,16 +509,125 @@ test('D3a gate: a structurally malformed review is UNKNOWN and FAILS CLOSED (blo
     }
 });
 test('D3a analyze emits withheld + withheld_blocking outputs, and public_findings_count stays 0 on withhold', () => {
-    // The 1-bit disclosure signal is a dedicated boolean; the COUNT output keeps its documented
-    // "0 on every withhold" invariant so no count ever leaks (Locke Q2).
+    // A withhold is signalled by its own boolean; the count stays 0 so it reveals nothing.
     const outs = workflow.jobs.analyze.outputs || {};
     assert.ok('withheld' in outs, 'analyze must expose `withheld`');
     assert.ok('withheld_blocking' in outs, 'analyze must expose the 1-bit `withheld_blocking`');
     // The gate step must NOT emit the withheld finding count anywhere (count stays 0 on withhold).
     assert.ok(
-        /public_findings_count.*res\.publish \? res\.clean\.findings\.length : 0|res\.publish \? res\.clean\.findings\.length : 0/.test(
-            workflowText.replace(/\n/g, ' ')
-        ),
+        /res\.publish \? res\.clean\.findings\.filter\(blocks\)\.length : 0/.test(source('analyze_gate.cjs').replace(/\n/g, ' ')),
         'public_findings_count must remain `0` on a withhold (no count leak)'
     );
+});
+
+// ---- Checkouts: base-repo code only, no credentials left behind ----
+// Under pull_request_target every job runs with secrets, so a checkout of the PR head would put fork
+// code where a github-script step `require`s it. post, pending and status hold PATs.
+test('every checkout is github.sha (never a PR-head ref or a stale base.sha) with persist-credentials: false', () => {
+    const checkouts = Object.entries(workflow.jobs).flatMap(([job, j]) =>
+        (j.steps || []).filter(s => (s.uses || '').startsWith('actions/checkout@')).map(s => [job, s.with || {}])
+    );
+    assert.deepEqual([...new Set(checkouts.map(([job]) => job))].sort(), ['analyze', 'decline', 'pending', 'post', 'resolve', 'skipped', 'stacked', 'status']);
+    for (const [job, w] of checkouts) {
+        assert.equal(w['persist-credentials'], false, `${job}: checkout must set persist-credentials: false`);
+        assert.equal(w.repository, undefined, `${job}: checkout must be of this repo, not the PR's fork`);
+        const ref = String(w.ref || '');
+        assert.doesNotMatch(ref, /head|merge|refs\/pull|pull_request\.number|github\.ref\b/i, `${job}: checkout must not use a PR-head ref (got ${ref})`);
+        // github.sha is the commit this workflow was loaded from. pull_request.base.sha is stale on a PR
+        // not pushed since master moved, so it can lack the scripts the steps require.
+        assert.equal(ref, '${{ github.sha }}', `${job}: checkout must use github.sha (got ${ref})`);
+    }
+});
+test('post, resolve, pending and status check out only the scripts, before any step that uses them', () => {
+    for (const job of ['post', 'resolve', 'pending', 'status']) {
+        const steps = workflow.jobs[job].steps;
+        assert.ok((steps[0].uses || '').startsWith('actions/checkout@'), `${job}: the checkout is the first step`);
+        assert.equal(steps[0].with['sparse-checkout'], '/.github/scripts/');
+        assert.equal(steps[0].with['sparse-checkout-cone-mode'], false);
+    }
+});
+test('every github-script step runs a code review module from the base checkout, never from pr-head/', () => {
+    for (const [job, j] of Object.entries(workflow.jobs)) {
+        for (const s of j.steps || []) {
+            if (!(s.uses || '').startsWith('actions/github-script@')) continue;
+            const m = /require\(`\$\{process\.env\.GITHUB_WORKSPACE\}\/\.github\/scripts\/code_review\/(\w+\.cjs)`\)/.exec(s.with.script);
+            assert.ok(m, `${job} / ${s.name}: script must require a module from .github/scripts/code_review`);
+            assert.doesNotMatch(s.with.script, /pr-head/);
+            const fn = /await (\w+)\(\{/.exec(s.with.script);
+            assert.ok(fn, `${job} / ${s.name}: script must call the module's function`);
+            assert.equal(typeof load(join(SCRIPTS, m[1]))[fn[1]], 'function', `${m[1]} must export ${fn[1]}`);
+        }
+    }
+});
+
+test('gate: a dimension whose findings were all held back passes the gate again in post', () => {
+    const dims = cleanDims();
+    dims.accessibility = { status: 'findings' };
+    const first = gate.check({
+        summary: 'fine',
+        dimensions: dims,
+        findings: [{ dimension: 'accessibility', severity: 'medium', confidence: 8, title: 'Label', body: 'Guard against injection here.' }]
+    });
+    assert.equal(first.heldBack, true);
+    assert.deepEqual(first.clean.dimensions.accessibility, { status: 'none', note: gate.heldBackNote });
+    const again = gate.check(JSON.parse(JSON.stringify(first.clean)));
+    assert.equal(again.publish, true);
+    assert.equal(again.heldBack, false);
+});
+test('SECURITY gate: moved or reindented code is not "added", so an introduced concern on it is held back', () => {
+    const moved =
+        'diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1,1 +0,0 @@\n-    run(cmd)\ndiff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -0,0 +1,2 @@\n+run(cmd)\n+fresh()\n';
+    assert.deepEqual([...gate.addedLines(moved).get('b.py')], [2]);
+    assert.equal(withSecurity([sec({ scope: 'introduced', path: 'b.py', line: 1 })], moved).heldBack, true);
+    assert.equal(withSecurity([sec({ scope: 'introduced', path: 'b.py', line: 2 })], moved).heldBack, false);
+});
+test('gate: a ticket_url that trips the scan drops that entry', () => {
+    const dims = cleanDims();
+    const tc = [{ ticket_url: 'https://github.com/secret-org/repo/issues/1', ticket_requirements: ['a'], fully_compliant_requirements: ['a'] }];
+    const res = gate.check({ summary: 'fine', dimensions: dims, findings: [], ticket_compliance: tc });
+    assert.equal(res.heldBack, true);
+    assert.deepEqual(res.clean.ticket_compliance, []);
+});
+test('a blocking held-back part stays open until its review is dismissed', () => {
+    const { heldBackOpen, verdictFindings } = shared;
+    const held = { state: 'CHANGES_REQUESTED', body: 'x\n<!-- ol-pr-review-bot f=0 h=1 -->' };
+    const later = { state: 'APPROVED', body: 'y\n<!-- ol-pr-review-bot f=0 -->' };
+    assert.equal(heldBackOpen([held, later]), true);
+    assert.equal(heldBackOpen([{ ...held, state: 'DISMISSED' }, later]), false);
+    assert.equal(verdictFindings(held), 1);
+    assert.equal(verdictFindings({ ...held, state: 'DISMISSED' }), 0);
+    assert.equal(verdictFindings({ state: 'DISMISSED', body: 'x\n<!-- ol-pr-review-bot f=2 -->' }), 2);
+});
+
+// ---- A malformed review.json gets one try at a fix before the gate ----
+test('checkFormat says whether the gate would withhold review.json in full', async () => {
+    const { checkFormat } = load(join(SCRIPTS, 'analyze_gate.cjs'));
+    const malformed = async content => {
+        const out = {};
+        const fs = {
+            readFileSync: () => {
+                if (content === null) throw new Error('ENOENT');
+                return content;
+            }
+        };
+        await checkFormat({
+            core: { setOutput: (k, v) => (out[k] = v) },
+            require: id => (id === 'node:fs' ? fs : load(id)),
+            process: { env: { GITHUB_WORKSPACE: '/w' } }
+        });
+        return out.malformed;
+    };
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: [] })), 'false');
+    assert.equal(await malformed(JSON.stringify({ summary: 'fine', dimensions: cleanDims(), findings: 'none' })), 'true');
+    assert.equal(await malformed('{"summary": '), 'true');
+    assert.equal(await malformed(null), 'true');
+});
+
+test('the format-fix step runs only when the format check failed, before the gate', () => {
+    const steps = analyzeJob.steps || [];
+    const i = name => steps.findIndex(s => s.name === name);
+    assert.ok(i('Review') < i("Check the review's format"));
+    assert.ok(i("Check the review's format") < i("Fix the review's format"));
+    assert.ok(i("Fix the review's format") < i('Gate the analysis before upload'), 'the gate must check the fixed file');
+    assert.equal(steps[i("Fix the review's format")].if, "steps.format.outputs.malformed == 'true'");
 });

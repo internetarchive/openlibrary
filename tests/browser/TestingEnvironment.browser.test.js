@@ -232,7 +232,7 @@ test('removing then restoring a never-deployed row round-trips', async () => {
         await restore.click();
 
         // Undo unstages: the toggle is back and no toast appeared.
-        await expect.element(page.getByRole('button', { name: 'PR #13269 on testing' })).toBeInTheDocument();
+        await expect.element(page.getByRole('button', { name: 'PR 13269 on testing' })).toBeInTheDocument();
         expect(document.querySelector('ol-toast')).toBeNull();
     } finally {
         window.EventSource = realEventSource;
@@ -361,8 +361,8 @@ test('four rapid toggles converge exactly to server state', async () => {
 
     try {
         await render(TestingEnvironment, { props: { maintainer: 'true' } });
-        const pressed = pr => document.querySelector(`button[aria-label="PR #${pr} on testing"]`)?.getAttribute('aria-pressed');
-        const label = pr => `PR #${pr} on testing`;
+        const pressed = pr => document.querySelector(`button[aria-label="PR ${pr} on testing"]`)?.getAttribute('aria-pressed');
+        const label = pr => `PR ${pr} on testing`;
 
         for (const pr of prs) {
             await expect.poll(() => pressed(pr)).toBe('false');
@@ -497,13 +497,13 @@ test('a push dropped mid-queue still converges via the last response', async () 
 
     try {
         await render(TestingEnvironment, { props: { maintainer: 'true' } });
-        const pressed = pr => document.querySelector(`button[aria-label="PR #${pr} on testing"]`)?.getAttribute('aria-pressed');
+        const pressed = pr => document.querySelector(`button[aria-label="PR ${pr} on testing"]`)?.getAttribute('aria-pressed');
 
         await expect.poll(() => pressed(13269)).toBe('false');
         await expect.poll(() => pressed(13270)).toBe('false');
 
-        await page.getByRole('button', { name: 'PR #13269 on testing' }).click();
-        await page.getByRole('button', { name: 'PR #13270 on testing' }).click();
+        await page.getByRole('button', { name: 'PR 13269 on testing' }).click();
+        await page.getByRole('button', { name: 'PR 13270 on testing' }).click();
         await expect.poll(() => patchBodies.length).toBe(1);
         await expect.poll(() => pressed(13269)).toBe('true');
         await expect.poll(() => pressed(13270)).toBe('true');

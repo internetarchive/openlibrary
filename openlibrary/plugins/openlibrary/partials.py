@@ -6,13 +6,14 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
-from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
+from typing import TYPE_CHECKING, Annotated, Any, Literal, NotRequired, TypedDict, Unpack
 from urllib.parse import parse_qs, parse_qsl, quote, quote_plus, urlsplit, urlunsplit
 
 import web
 from markupsafe import Markup
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
 
+from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.book_providers import get_book_provider
 from openlibrary.core import cache
@@ -29,7 +30,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary import home_genres
+from openlibrary.plugins.openlibrary import home_genres, home_member
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -146,6 +147,17 @@ class ReadingStatePartial:
         return {f"OL{work_id}W": state for work_id, state in (await get_reading_state(username, work_ids)).items()}
 
 
+CarouselLayoutName = Literal["ol-carousel", "grid"]
+
+
+def normalize_carousel_layout(layout: str | None) -> CarouselLayoutName:
+    """Anything but "grid" is an <ol-carousel> row, including the pre-slick-removal "carousel" and a missing value."""
+    return "grid" if layout == "grid" else "ol-carousel"
+
+
+CarouselLayout = Annotated[CarouselLayoutName, BeforeValidator(normalize_carousel_layout)]
+
+
 class CarouselLoadMoreParams(BaseModel):
     """Parameters for the carousel load-more partial."""
 
@@ -157,7 +169,7 @@ class CarouselLoadMoreParams(BaseModel):
     subject: str = ""
     hasFulltextOnly: bool = False
     key: str = ""
-    layout: str | None = None
+    layout: CarouselLayout = "ol-carousel"
     published_in: str = ""
 
 
@@ -215,7 +227,7 @@ def _render_carousel_card_loan_status(book, *, work_key: str, key: str, layout: 
         work_key=work_key,
         listen=False,
         analytics_override="BookCarousel|{action}Click|%s" % key,
-        # Only ol-carousel rows shrink .cta-btn to match (buttonCta.css); Slick and grid rows stay medium.
+        # Only ol-carousel rows shrink .cta-btn to match (buttonCta.css); grid rows stay medium.
         cta_size="small" if layout == "ol-carousel" else "medium",
     )
     return Markup(str(macro["__body__"]))
@@ -224,7 +236,7 @@ def _render_carousel_card_loan_status(book, *, work_key: str, key: str, layout: 
 class CarouselCardData(TypedDict):
     url: str
     title: str
-    byline: str
+    cover_label: str  # the cover's title and alt text: the title, and the authors if known
     author_names: list[str]
     year: str
     cover_url: str | Literal[False]
@@ -256,15 +268,16 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
     url = book.get("key") or book.url
     title = book.get("title", "")
     author_names = _resolve_carousel_card_author_names(book)
-    byline = _(" by %(name)s", name=", ".join(author_names)) if author_names else ""
+    # One string for the whole label, so translators can order title and authors (not " by %(name)s" glued on).
+    cover_label = _("%(title)s by %(name)s", title=title, name=", ".join(author_names)) if author_names else title
 
     loan = book.get("loan")
     waitlist_size = 0
     if loan and hasattr(book, "get_waitinglist_size"):
         waitlist_size = book.get_waitinglist_size()
 
-    # Loan cards keep the legacy cover for their overlay badge.
-    book_cover = layout == "ol-carousel" and not loan
+    layout = normalize_carousel_layout(layout)
+    book_cover = layout == "ol-carousel"
 
     expiry = loan.get("expiry") if loan else None
     if expiry:
@@ -278,7 +291,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
     return {
         "url": url,
         "title": title,
-        "byline": byline,
+        "cover_label": cover_label,
         "author_names": author_names,
         "year": str(book.get("first_publish_year") or ""),
         "cover_url": _resolve_carousel_card_cover_url(book),
@@ -805,7 +818,7 @@ class LazyCarouselParams(BaseModel):
     search: bool = False
     has_fulltext_only: bool = True
     url: str | None = None
-    layout: str = "ol-carousel"
+    layout: CarouselLayout = "ol-carousel"
     fallback: str | None = None
     safe_mode: bool = True
     # Link `url` from a "See all" instead of the title.
@@ -861,9 +874,6 @@ class CarouselPartial:
             title=book_data["title"],
             url=book_data["url"],
             key=book_data["key"],
-            grid=book_data["grid"],
-            compact=book_data["compact"],
-            loadjs=book_data["loadjs"],
             config_json=book_data["config_json"],
             cards=book_data["cards"],
             count=book_data["count"],
@@ -1002,14 +1012,11 @@ class BookCarouselData(CarouselCommonData):
     """Data for books/custom_carousel.html.jinja."""
 
     show: bool
-    grid: str
-    compact: str
-    loadjs: str
     config_json: str
     cards: list[str]
     count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
     shelf: int | None
-    layout: str  # "carousel" (slick), "grid", or "ol-carousel"
+    layout: str  # "ol-carousel" or "grid"
 
 
 class CarouselPlaceholderData(TypedDict):
@@ -1020,7 +1027,6 @@ class CarouselPlaceholderData(TypedDict):
     # For macros/CarouselSkeleton.html.jinja.
     title: str
     title_link: bool
-    layout: str
 
 
 class EagerQueryCarouselData(BookCarouselData):
@@ -1040,8 +1046,7 @@ def get_book_carousel_data(
     min_books: int = 1,
     load_more: dict | None = None,
     test: bool = False,
-    compact_mode: bool = False,
-    layout: str = "carousel",
+    layout: str = "ol-carousel",
     full_path: str,
     count: int | None = None,
     shelf: int | None = None,
@@ -1057,16 +1062,13 @@ def get_book_carousel_data(
     url = common.get("url", "")
     key = common.get("key", "")
     books = books or []
+    layout = normalize_carousel_layout(layout)
     if not (test or (books and len(books) >= min_books)):
-        return BookCarouselData(
-            show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf, layout=layout
-        )
+        return BookCarouselData(show=False, title=title, url=url, key=key, config_json="", cards=[], count=count, shelf=shelf, layout=layout)
 
     config = {
-        "booksPerBreakpoint": [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
         "analyticsCategory": "BookCarousel",
         "carouselKey": key,
-        "i18n": {"loading": _("Loading...")},
         "loadMore": (
             {
                 "queryType": load_more.get("queryType", ""),
@@ -1104,9 +1106,6 @@ def get_book_carousel_data(
         title=title,
         url=url,
         key=key,
-        grid="carousel--grid" if layout == "grid" else "",
-        compact="carousel--compact" if compact_mode else "",
-        loadjs="carousel--progressively-enhanced" if layout == "carousel" else "",
         config_json=json_encode(config),
         cards=cards,
         count=count,
@@ -1191,7 +1190,6 @@ class HomeGenrePartial:
                 id=row.key,
                 title=row.title,
                 see_all=True,
-                layout=row.layout,
                 fallback=None,
             )
             for row in (cls.row(genre, s) for s in subgenres)
@@ -1207,6 +1205,30 @@ class HomeGenrePartial:
             config_json=json_encode(genre_row.model_dump(exclude_none=True)),
             subgenre_rows=subgenre_rows,
         )
+        return {"partials": html}
+
+
+class HomeMemberPartial:
+    """One half of the home page's top for a signed-in reader (home_member.py). The page is cached and the
+    same for everyone, so the reader's own part is fetched after load, each half on its own."""
+
+    @classmethod
+    def generate(cls, username: str, part: str = "loans") -> dict:
+        # FastAPI runs this sync handler on a threadpool worker with no web.ctx; the lending calls need one.
+        # Only web.ctx: the request context FastAPI set (language, bot or not) must stay as it is, or
+        # availability takes its bot shortcut and reports every borrowable book as free.
+        if "env" not in web.ctx:
+            delegate.fakeload()
+        variant = home_member.cache_variant(username)
+        if (html := home_member.get_cached_html(username, part, variant)) is not None:
+            return {"partials": html}
+        if not (user := get_user_object(username)):
+            return {"partials": ""}
+        member = home_member.build_part(user, part)
+        html = render_jinja_template("home/member.html.jinja", member=member).strip()
+        # A part that failed to load (a lending outage) is retried on the next view, not kept for five minutes.
+        if member["complete"]:
+            home_member.cache_html(username, part, html, variant)
         return {"partials": html}
 
 
@@ -1239,7 +1261,7 @@ def query_carousel(
     :param search: Whether to include search within collection
     :param has_fulltext_only: Only include readable titles
     :param url: Make the title link to this URL
-    :param layout: ``ol-carousel`` (default), ``grid``, or ``carousel`` for the legacy slick row
+    :param layout: ``ol-carousel`` (default) or ``grid``
     :param user_lang_only: Filter results to ``lang`` when it's a populated ebook language;
         defaults to English when no language is supplied
     :param fallback: Offer to retry the unfiltered query when the language-filtered one has no results
@@ -1287,7 +1309,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "limit": params.get("limit", 20),
         "search": params.get("search", False),
         "has_fulltext_only": params.get("has_fulltext_only", True),
-        "layout": params.get("layout", "ol-carousel"),
+        "layout": normalize_carousel_layout(params.get("layout")),
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
@@ -1297,7 +1319,6 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         fallback=params.get("fallback"),
         title=config.get("title", ""),
         title_link=True,
-        layout=config["layout"],
     )
 
 
@@ -1346,7 +1367,6 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
         fallback=None,
         title=_("On the Same Shelf"),
         title_link=False,
-        layout="ol-carousel",
     )
 
 

@@ -58,10 +58,25 @@ npm run watch               # Dev mode with hot reload
 ### Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
+- **Lint suppressions:** scope them to one line with `# noqa: <CODE>`; never add a file, or a code, to `per-file-ignores` in `pyproject.toml`
 - **JS:** oxlint + oxfmt (ESLint for Vue files only), single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
 - **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
+- **Strings rendered in the browser (Lit, Vue, plain JS):** call `_()` / `ngettext()` from `openlibrary/plugins/openlibrary/js/i18n.js` with the English. Don't add new `data-i18n` attributes, `label-*` translation props or Python-built string dicts for a component; those are an older pattern. See [`docs/i18n/i18n.md`](/docs/i18n/i18n.md).
 - **Branches:** `{issue-number}/{type}/{slug}`
+
+### Code Comments
+
+Write comments for someone reading the code as it is now, with no access to the issue, the PR or your session.
+
+- Default to no comment. Add one only when it tells the reader something the code can't: why it's done this way, a constraint or invariant, a workaround, or a consequence that lives elsewhere. Before adding one, name the mistake it prevents.
+- Don't restate the code, or repeat what a well-named function already says. `# Set a one-minute timeout` above `timeout=60` adds nothing. If the code needs narrating to be followed, rename things or split the function instead.
+- Describe the code, not its history. No "now uses", "changed to", "previously", "fixed the bug where" or "as discussed". That belongs in the commit message and PR description.
+- Keep length proportional to the complexity. Most comments are one short line. Longer is fine for a hard algorithm, a regex or a subtle race. If a workaround needs a paragraph of justification, fix the code.
+- Don't address the reviewer, the user or the next agent. No section banners, no commented-out code.
+- Doc comments (JSDoc with types, `:param name:` docstrings) say what a value means, not how the function works inside.
+- Keep existing comments unless your change makes them wrong, and then fix them.
+- Before finishing, reread every comment you added as a new contributor would, and delete the ones that break these rules.
 
 ### Picking Up an Issue
 

@@ -298,6 +298,36 @@ class Batch(web.storage):
 
         return None
 
+    def retry_failed(self) -> int:
+        """Re-queue this batch's failed items, returning how many were re-queued.
+
+        Resubmitting a batch can't do this: ``dedupe_items`` skips every
+        ``ia_id`` already in ``import_item``, failed ones included. ``failed``
+        is terminal, so no worker is holding these rows, and ``set_status``
+        keeps ``data`` on failure, so they can be imported again as-is.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='failed'",
+            vars={"batch_id": self.id},
+            status="pending",
+            error=None,
+            import_time=None,
+            ol_key=None,
+        )
+
+    def pause(self) -> int:
+        """Move this batch's pending items to ``needs_review``, returning how many.
+
+        Approving the batch puts them back to ``pending``.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='pending'",
+            vars={"batch_id": self.id},
+            status="needs_review",
+        )
+
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
@@ -313,7 +343,7 @@ class Batch(web.storage):
         """Return ``(total, summaries)`` for one page of batches.
 
         With ``status``, only batches holding at least one item of that status
-        are listed, and their ``status_counts`` cover only those items.
+        are listed. ``status_counts`` always cover all of a batch's items.
 
         Batches are driven from ``import_batch`` rather than by grouping
         ``import_item``, which has far too many rows to aggregate in full on
@@ -344,12 +374,11 @@ class Batch(web.storage):
             batch.status_counts = {}
             batch.comments = None
             by_id[batch.batch_id] = batch
-        status_where = " AND status = $status" if status else ""
         counts = db.query(
             "SELECT batch_id, status, COUNT(*) AS count, MIN(comments) AS comments, MAX(submitter) AS submitter"
-            f" FROM import_item WHERE batch_id IN $batch_ids{status_where}"
+            " FROM import_item WHERE batch_id IN $batch_ids"
             " GROUP BY batch_id, status ORDER BY batch_id, status",
-            vars={"batch_ids": list(by_id), "status": status},
+            vars={"batch_ids": list(by_id)},
         )
         for row in counts:
             batch = by_id[row.batch_id]
@@ -368,6 +397,11 @@ class ImportItem(web.storage):
             return map(ImportItem, result)
 
         return None
+
+    def is_pending(self) -> bool:
+        """Whether this item is still ``pending`` in the database, e.g. its batch wasn't paused."""
+        rows = db.select("import_item", what="status", where="id=$id", vars={"id": self.id})
+        return bool(rows) and rows[0].status == "pending"
 
     @staticmethod
     def find_staged_or_pending(identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:

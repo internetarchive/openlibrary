@@ -1,7 +1,5 @@
 import datetime as dt
 
-import web
-
 
 class TestMockSite:
     def test_new_key(self, mock_site):
@@ -110,5 +108,5 @@ class TestMockSite:
         mock_site.quicksave("/authors/OL5A", "/type/author", name="b. BaGGinS")
         query = {"type": "/type/author", "name~": name}
 
-        reply = web.ctx.site.things(query)
+        reply = mock_site.things(query)
         assert reply == ["/authors/OL5A"]

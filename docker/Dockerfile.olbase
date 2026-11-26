@@ -41,7 +41,7 @@ RUN apt-get -qq update && apt-get install -y \
     fail2ban \
 # Editors (for our convenience)
     vim \
-    emacs \
+    mg \
 # util for running things in parallel
     parallel \
 # automatic import pipeline dependencies

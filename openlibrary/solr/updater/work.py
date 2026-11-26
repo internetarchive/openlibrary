@@ -12,11 +12,6 @@ from typing import TYPE_CHECKING, TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
-from openlibrary.core.lists.model import SeriesDict
-from openlibrary.core.models import (
-    ThingReferenceDict,
-    WorkSeriesEdge,
-)
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.solr.data_provider import SUPPORTED_WORK_TAG_FIELDS, normalize_tag
 from openlibrary.solr.solr_types import SolrDocument
@@ -29,6 +24,8 @@ from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
 from openlibrary.utils.open_syllabus_project import get_total_by_olid
 
 if TYPE_CHECKING:
+    from openlibrary.core.lists.model import SeriesDict
+    from openlibrary.core.models import ThingReferenceDict, WorkSeriesEdge
     from openlibrary.core.ratings import WorkRatingsSummary
     from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
     from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
@@ -122,7 +119,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 # Fetch series
                 series_edges = uniq(
                     [
-                        cast(WorkSeriesEdge[ThingReferenceDict], series)
+                        cast("WorkSeriesEdge[ThingReferenceDict]", series)
                         for rec in (work, *editions)
                         for series in rec.get("series", [])
                         if isinstance(series, dict)
@@ -131,7 +128,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 )
                 series = [
                     cast(
-                        WorkSeriesEdge[SeriesDict],
+                        "WorkSeriesEdge[SeriesDict]",
                         {
                             **edge,
                             "series": await self.data_provider.get_document(edge["series"]["key"]),
@@ -350,16 +347,15 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def seed(self) -> list[str]:
-        w = self._work
         return uniq(
             itertools.chain(
                 (e.key for e in self._solr_editions),
                 (self.key,),
                 (author["key"] for author in self._authors),
-                (subject_name_to_key("subject", s) for s in w.get("subjects", [])),
-                (subject_name_to_key("person", s) for s in w.get("subject_people", [])),
-                (subject_name_to_key("place", s) for s in w.get("subject_places", [])),
-                (subject_name_to_key("time", s) for s in w.get("subject_times", [])),
+                (subject_name_to_key("subject", s) for s in self._get_subjects("subjects")),
+                (subject_name_to_key("person", s) for s in self._get_subjects("subject_people")),
+                (subject_name_to_key("place", s) for s in self._get_subjects("subject_places")),
+                (subject_name_to_key("time", s) for s in self._get_subjects("subject_times")),
             )
         )
 
@@ -723,15 +719,19 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             "subject_people": "person",
         }
         for work_field, subject_type in field_map.items():
-            if not self._work.get(work_field):
+            if not (subjects := self._get_subjects(work_field)):
                 continue
 
             doc |= {
-                subject_type: self._work[work_field],
-                f"{subject_type}_facet": self._work[work_field],
-                f"{subject_type}_key": [normalize_subject_name(s) for s in self._work[work_field]],
+                subject_type: subjects,
+                f"{subject_type}_facet": subjects,
+                f"{subject_type}_key": [normalize_subject_name(s) for s in subjects],
             }
         return doc
+
+    def _get_subjects(self, work_field: str) -> list[str]:
+        # Some records store subjects as /type/text values instead of plain strings
+        return [s["value"] if isinstance(s, dict) else s for s in self._work.get(work_field, [])]
 
 
 def get_edition_ddcs(ed: dict):

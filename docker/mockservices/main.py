@@ -227,6 +227,7 @@ async def s3auth(authorization: Annotated[str | None, Header()] = None) -> JSONR
 
 _active_loans: dict[str, dict[str, dict]] = defaultdict(dict)
 _loan_history: dict[str, list[dict]] = defaultdict(list)
+_waiting_loans: dict[str, list[dict[str, Any]]] = defaultdict(list)
 _loans_lock = asyncio.Lock()
 
 
@@ -257,6 +258,53 @@ def _normalize_userid(uid: str | None) -> str:
     if not uid.startswith("@"):
         return "@" + uid
     return uid
+
+
+def _join_waitlist(identifier: str, userid: str) -> None:
+    """Add a patron to the end of a book's waitlist, unless already present."""
+    queue = _waiting_loans[identifier]
+    if any(entry["userid"] == userid for entry in queue):
+        return
+
+    queue.append(
+        {
+            "identifier": identifier,
+            "userid": userid,
+            "since": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
+            "status": "waiting",
+        }
+    )
+
+
+def _leave_waitlist(identifier: str, userid: str) -> None:
+    """Remove a patron from a book's waitlist without changing other entries' order."""
+    queue = _waiting_loans.get(identifier)
+    if queue is None:
+        return
+
+    remaining = [entry for entry in queue if entry["userid"] != userid]
+    if remaining:
+        _waiting_loans[identifier] = remaining
+    else:
+        _waiting_loans.pop(identifier, None)
+
+
+def _query_waitlist(identifier: str | None = None, userid: str | None = None) -> list[dict[str, Any]]:
+    """Return waitlist records with positions and sizes calculated from each full queue."""
+    identifiers = [identifier] if identifier is not None else list(_waiting_loans)
+    results = []
+
+    for book_id in identifiers:
+        queue = _waiting_loans.get(book_id, [])
+        wl_size = len(queue)
+
+        for position, entry in enumerate(queue, start=1):
+            # Keeping the supplied user ID exact. Normalizing it could make the
+            # account page's @username and ol:username queries return duplicates.
+            if userid is None or entry["userid"] == userid:
+                results.append({**entry, "position": position, "wl_size": wl_size})
+
+    return results
 
 
 AVAILABILITY_VARIANTS = [
@@ -364,7 +412,19 @@ async def loans(request: Request) -> JSONResponse:
             return JSONResponse({"result": list(user_loans.values())})
 
         if method == "waitinglist.query":
-            return JSONResponse({"result": []})
+            return JSONResponse({"result": _query_waitlist(identifier, params.get("userid"))})
+
+        if (action == "join_waitlist" or method == "waitinglist.join") and identifier:
+            # The normal S3 join request has no userid. Local mock authentication
+            # uses the seeded @openlibrary account so using it as the default.
+            waitlist_userid = params.get("userid") or _normalize_userid(None)
+            _join_waitlist(identifier, waitlist_userid)
+            return JSONResponse({"status": "ok"})
+
+        if (action == "leave_waitlist" or method == "waitinglist.leave") and identifier:
+            waitlist_userid = params.get("userid") or _normalize_userid(None)
+            _leave_waitlist(identifier, waitlist_userid)
+            return JSONResponse({"status": "ok"})
 
         # 2. Borrow a book
         if action in ("borrow_book", "browse_book") and identifier:

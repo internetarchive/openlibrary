@@ -1,3 +1,4 @@
+import json
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
@@ -268,7 +269,7 @@ def test_get_abbrev_from_full_lang_name(
     monkeypatch.setattr(web, "ctx", web.storage())
     web.ctx.site = mock_site
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "eng",
             "key": "/languages/eng",
@@ -284,7 +285,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "fre",
             "key": "/languages/fre",
@@ -298,7 +299,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "spa",
             "key": "/languages/spa",
@@ -307,7 +308,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "por",
             "key": "/languages/por",
@@ -462,3 +463,41 @@ def test_user_object_uses_current_site(mock_site, monkeypatch, legacy):
     else:
         monkeypatch.setitem(web.ctx, "site", Mock())
     assert utils.get_user_object("alice").displayname == "Alice"
+
+
+@pytest.fixture
+def fake_static_url(monkeypatch):
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", lambda p: f"/static/{p}?v=1")
+
+
+def test_vue_component_html_loads_the_component_and_renders_its_element(fake_static_url):
+    assert utils.vue_component_html("MergeUI") == (
+        '<script type="module" src="/static/build/components/production/ol-MergeUI.js?v=1"></script><ol-merge-ui></ol-merge-ui>'
+    )
+    assert '<script type="module" async defer src=' in utils.vue_component_html("MergeUI", async_defer=True)
+
+
+def test_vue_component_html_attributes_reach_the_component_intact(fake_static_url):
+    """Dicts and lists decode with ``JSON.parse(decodeURIComponent(...))``; strings as written."""
+    from urllib.parse import unquote
+
+    from lxml import html as lxml_html
+
+    attrs = {"i18n": {"retry": 'Try "again" & <go>'}, "ids": [1, "2"], "jenkins-url": 'https://x/?a=1&b="2"'}
+
+    element = lxml_html.fragment_fromstring(str(utils.vue_component_html("TestingEnvironment", attrs=attrs)), create_parent=True)[1]
+
+    assert element.tag == "ol-testing-environment"
+    assert json.loads(unquote(element.get("i18n"))) == attrs["i18n"]
+    assert json.loads(unquote(element.get("ids"))) == attrs["ids"]
+    assert element.get("jenkins-url") == attrs["jenkins-url"]
+
+
+def test_render_component_loads_each_component_script_once_per_request(fake_static_url, monkeypatch):
+    monkeypatch.setattr(web, "ctx", web.storage())
+
+    first = utils.render_component("HelloWorld", attrs={"a": "1"})
+    second = utils.render_component("HelloWorld")
+
+    assert first == utils.vue_component_html("HelloWorld", attrs={"a": "1"})
+    assert second == "<ol-hello-world></ol-hello-world>"

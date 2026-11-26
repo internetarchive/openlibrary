@@ -2,7 +2,7 @@
 import { shallowRef, computed, watch, onBeforeUnmount } from 'vue';
 import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
-import { DEFAULT_STRINGS, applyDeployBadge, decodeAndParseJSON, faviconEnv } from './TestingEnvironment/utils.js';
+import { STRINGS as strings, applyDeployBadge, faviconEnv } from './TestingEnvironment/utils.js';
 import { useToast } from './TestingEnvironment/composables/useToast.js';
 import { useTestingStatus } from './TestingEnvironment/composables/useTestingStatus.js';
 import { useActions } from './TestingEnvironment/composables/useActions.js';
@@ -17,27 +17,8 @@ const props = defineProps({
     jenkinsUrl: {
         type: String,
         default: ''
-    },
-    /** URI-encoded JSON of translated panel strings.
-     * @see render_component() in openlibrary/plugins/upstream/utils.py */
-    i18n: {
-        type: String,
-        default: ''
     }
 });
-
-// ── i18n (runs at setup time — same timing as the old `created` hook) ─
-// Plain object: translated strings are fixed at render time and never mutate,
-// so a ref would add unnecessary proxy overhead.
-let strings = { ...DEFAULT_STRINGS };
-try {
-    const parsed = decodeAndParseJSON(props.i18n);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        strings = { ...DEFAULT_STRINGS, ...parsed };
-    }
-} catch {
-    // A malformed translation payload falls back to English.
-}
 
 // ── Composables ─────────────────────────────────────────────────────
 const { setToast } = useToast();
@@ -49,8 +30,7 @@ const { view, payload, now, retry } = useTestingStatus(busy);
 const { refreshing, adding, deploying, updating, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
     payload,
-    setToast,
-    strings
+    setToast
 });
 
 // ── Derived state ───────────────────────────────────────────────────
@@ -140,7 +120,6 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                                 :key="pr.pr"
                                 :pr="pr"
                                 :maintainer="isMaintainer"
-                                :strings="strings"
                                 :recent="recentlyAdded.has(pr.pr)"
                                 :updating="updating.has(pr.pr)"
                                 @toggle="togglePr"
@@ -193,7 +172,6 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                 :payload="payload"
                 :now="now"
                 :maintainer="isMaintainer"
-                :strings="strings"
                 :jenkins-url="jenkinsUrl"
                 :refreshing="refreshing"
                 :deploying="deploying"

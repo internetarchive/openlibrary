@@ -168,8 +168,8 @@ def admin_range__list_edits(**kargs):
     return _count_transactions(db, start, end, " AND t.action IN $list_edit_actions", list_edit_actions=LIST_EDIT_ACTIONS)
 
 
-# A changeset that touches a book, work or author record, whatever its action name.
-CATALOG_CHANGE = '"/(books|works|authors)/OL'
+# A changeset that touches an edition or work record, whatever its action name: the records Tasks edits.
+BOOK_CHANGE = '"/(books|works)/OL'
 # `data.source` on Tasks saves; matches `openlibrary.contribute.save.SOURCE`. Infogami indexes it in `transaction_index`.
 TASKS_SOURCE = "contribute"
 
@@ -189,32 +189,43 @@ def _window_args(fn_name, kargs, days):
     return db, (end - timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def _count_editors(db, since, end, where="", **vars):
-    "Signed-in, non-bot accounts with a catalog change between `since` and `end`, narrowed by `where`."
-    # `NOT IN ()` is a syntax error, and a dev database may have no bots.
+def _not_bot(db) -> tuple[str, list]:
+    "A clause leaving out bot accounts, and their ids. `NOT IN ()` is a syntax error, and a dev database may have no bots."
     bot_ids = _get_cached_bot_accounts(thingdb=db)
-    not_bot = " AND t.author_id NOT IN $bot_ids" if bot_ids else ""
+    return (" AND t.author_id NOT IN $bot_ids" if bot_ids else ""), bot_ids
+
+
+def admin_range__book_edits(**kargs):
+    "Human edits to edition and work records between `start` and `end`: what the Editing Stats page counts as edits."
+    db, start, end = _range_args("admin_range__book_edits", kargs)
+    not_bot, bot_ids = _not_bot(db)
+    return _count_transactions(db, start, end, f" AND t.author_id IS NOT NULL{not_bot} AND t.changes ~ $book_change", bot_ids=bot_ids, book_change=BOOK_CHANGE)
+
+
+def _count_editors(db, since, end, where="", **vars):
+    "Signed-in, non-bot accounts with a change to an edition or work between `since` and `end`, narrowed by `where`."
+    not_bot, bot_ids = _not_bot(db)
     sql = f"""
         WITH editors AS (
             SELECT DISTINCT t.author_id FROM transaction t
-            WHERE t.created >= $since AND t.created < $end AND t.author_id IS NOT NULL{not_bot} AND t.changes ~ $catalog_change
+            WHERE t.created >= $since AND t.created < $end AND t.author_id IS NOT NULL{not_bot} AND t.changes ~ $book_change
         )
         SELECT count(*) AS count FROM editors e WHERE true{where}
     """
-    vars = {"since": since, "end": end, "bot_ids": bot_ids, "catalog_change": CATALOG_CHANGE, **vars}
+    vars = {"since": since, "end": end, "bot_ids": bot_ids, "book_change": BOOK_CHANGE, **vars}
     return db.query(sql, vars=vars)[0].count
 
 
-def catalog_editors(days, **kargs):
-    "Accounts that changed a catalog record in the `days` before `end`."
-    db, since, end = _window_args(f"admin_range__catalog_editors_{days}d", kargs, days)
+def book_editors(days, **kargs):
+    "Accounts that changed an edition or work in the `days` before `end`."
+    db, since, end = _window_args(f"admin_range__book_editors_{days}d", kargs, days)
     return _count_editors(db, since, end)
 
 
-def new_catalog_editors(days, **kargs):
-    "Of `catalog_editors`, those whose first catalog change ever falls in the window."
-    db, since, end = _window_args(f"admin_range__new_catalog_editors_{days}d", kargs, days)
-    earlier = " AND NOT EXISTS (SELECT 1 FROM transaction p WHERE p.author_id = e.author_id AND p.created < $since AND p.changes ~ $catalog_change)"
+def new_book_editors(days, **kargs):
+    "Of `book_editors`, those whose first change ever to an edition or work falls in the window."
+    db, since, end = _window_args(f"admin_range__new_book_editors_{days}d", kargs, days)
+    earlier = " AND NOT EXISTS (SELECT 1 FROM transaction p WHERE p.author_id = e.author_id AND p.created < $since AND p.changes ~ $book_change)"
     return _count_editors(db, since, end, earlier)
 
 
@@ -240,12 +251,12 @@ def tasks_saves(days, **kargs):
 
 # The `_1d` keys are what a bar-per-day chart plots; the 7d and 28d windows stay for the headline numbers, and a
 # week or month view samples them at the end of each period.
-admin_range__catalog_editors_1d = functools.partial(catalog_editors, 1)
-admin_range__catalog_editors_7d = functools.partial(catalog_editors, 7)
-admin_range__catalog_editors_28d = functools.partial(catalog_editors, 28)
-admin_range__new_catalog_editors_1d = functools.partial(new_catalog_editors, 1)
-admin_range__new_catalog_editors_7d = functools.partial(new_catalog_editors, 7)
-admin_range__new_catalog_editors_28d = functools.partial(new_catalog_editors, 28)
+admin_range__book_editors_1d = functools.partial(book_editors, 1)
+admin_range__book_editors_7d = functools.partial(book_editors, 7)
+admin_range__book_editors_28d = functools.partial(book_editors, 28)
+admin_range__new_book_editors_1d = functools.partial(new_book_editors, 1)
+admin_range__new_book_editors_7d = functools.partial(new_book_editors, 7)
+admin_range__new_book_editors_28d = functools.partial(new_book_editors, 28)
 admin_range__tasks_editors_1d = functools.partial(tasks_editors, 1)
 admin_range__tasks_editors_7d = functools.partial(tasks_editors, 7)
 admin_range__tasks_editors_28d = functools.partial(tasks_editors, 28)
@@ -279,7 +290,7 @@ def admin_range__tasks_saves_by_initiative_1d(**kargs):
 
 
 # Initiative counts. The frozen edition lists and the not-found marks live in the store, so these read through
-# `web.ctx.site`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
+# `site.get()`, which `stats.setup_ol_config` provides, rather than through `thingdb`.
 def _initiative():
     from openlibrary.contribute import initiatives
 

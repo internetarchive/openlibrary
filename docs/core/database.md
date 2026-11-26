@@ -124,6 +124,41 @@ Add integration tests when a method uses postgres-specific SQL (aggregates, `FIL
 
 Run them with `make test-py-integration` (needs `pg_ctl` on `PATH` — `brew install postgresql@14` on macOS).
 
+## Common mistakes
+
+These keep coming up in review. The code review bot reads this section when a PR touches database code, so keep it current.
+
+**Migrating a method to async**
+
+- Every sync caller of a method that became async must switch to its `_sync` bridge. Grep the whole repo: templates, `plugins/`, `views/`, `admin/`, `solr/data_provider.py`, `scripts/`. A sync caller that calls the async method gets a coroutine back, and the page fails with a 500 or shows wrong data. The reverse is a bug too: don't `await` a method that is still sync.
+- Add a `_sync` bridge only where a sync caller exists. A bridge, helper or method with no non-test caller is dead code, and so is a test that exercises only that code.
+- Delete what the migration leaves behind: the old sync method, its unused `_sync` bridge, summary fields nothing reads.
+- Async rows are plain dicts by default. Templetor templates that read `row.attr` need a `class_row` dataclass or `web.storage(row)`. Render the page to prove it works.
+
+**Writing queries**
+
+- `IN %(ids)s` is a syntax error under psycopg3. Pass a list and write `= ANY(%(ids)s)`.
+- One row expected: `fetch_one` with a `class_row` dataclass, returning `T | None`, not `fetch_all(...)[0]`.
+- A count or an exists check: `fetch_val`. Several counts: one query with `count(*) FILTER (WHERE ...)`. Prefer `count(*)` to `count(col)` when they mean the same thing, since it allows index-only scans.
+- No N+1 queries. Batch per-item lookups into one query with `= ANY(...)`.
+- Don't return values only a test reads, like `RETURNING id` that no caller uses.
+- Read-then-write is a race once requests run concurrently. Use `INSERT ... ON CONFLICT` (`likes.py`, `yearly_reading_goals.py`). If the conflict target isn't a unique index, an upsert can't express it, so use a transaction from `connection()`, with a lock if needed.
+- Rewording a query with no change in behaviour isn't a fix. Leave working SQL alone unless it diverges from the patterns here.
+
+**Timestamps**
+
+Tables store UTC in `timestamp without time zone` columns, defaulting to `current_timestamp at time zone 'utc'`.
+
+- Columns with a DB default: leave them out of the `INSERT`, and set `updated = DEFAULT` in the `ON CONFLICT` clause.
+- Values the app supplies: put them in the `INSERT`, and set `col = EXCLUDED.col` on conflict.
+- Never `datetime.now()` (local time) or a bare `CURRENT_TIMESTAMP` (the session's time zone).
+- Test it with the app and the DB session far from UTC: set `TZ` and `PGTZ` to `Pacific/Kiritimati` and assert the stored values are close to UTC now. See `test_add_stamps_utc_timestamps` in `openlibrary/tests/core/test_booknotes.py`.
+
+**Tests**
+
+- Postgres-specific SQL gets an integration test (see [Testing DB code](#testing-db-code)). For SQL, an integration test is worth more than a heavily mocked one.
+- Put tests in the model's existing test file.
+
 ## Rules of thumb
 
 - **New table or new query?** Async helpers from the start.

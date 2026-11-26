@@ -1,4 +1,4 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, count=None, shelf=None)
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, count=None, shelf=None)
 
 $def render_carousel_cover(book, lazy, index):
   $ fallback_cover = 'https://openlibrary.org/static/images/icons/avatar_book.png'
@@ -30,9 +30,9 @@ $def render_carousel_cover(book, lazy, index):
     $ author_names = []
 
   $if author_names:
-    $ byline = _(' by %(name)s', name=', '.join(author_names))
+    $ cover_label = _('%(title)s by %(name)s', title=title, name=', '.join(author_names))
   $else:
-    $ byline = ''
+    $ cover_label = title
 
   $ modifier = ''
 
@@ -47,8 +47,8 @@ $def render_carousel_cover(book, lazy, index):
       <a class="mybooks mobile nopadding" href="$(url)">
         $if cover_url:
           <img class="bookcover mobile $(last_book)" loading="lazy"
-            title="$title$byline"
-            alt="$title$byline"
+            title="$cover_label"
+            alt="$cover_label"
           $if lazy:
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>

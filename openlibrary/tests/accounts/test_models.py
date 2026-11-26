@@ -3,6 +3,7 @@ from unittest import mock
 from unittest.mock import AsyncMock
 
 import pytest
+import web
 from requests.models import Response
 
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, model
@@ -74,7 +75,7 @@ async def test_anonymize_test_mode_awaits_all_sql_models(monkeypatch):
         mocks[key] = async_mock
 
     with mock.patch.object(OpenLibraryAccount, "get_activation_link", return_value=model.Link(code="abc123")):
-        result = await account.anonymize(test=True)
+        result = await account.anonymize("203.0.113.7", test=True)
 
     assert result == {
         "new_username": "anonymous-abc123",
@@ -88,6 +89,26 @@ async def test_anonymize_test_mode_awaits_all_sql_models(monkeypatch):
     mocks["booknotes"].assert_awaited_once_with("testuser", _test=True)
     for key in ("ratings", "observations", "bookshelves", "edits", "bestbooks"):
         mocks[key].assert_awaited_once_with("testuser", "anonymous-abc123", _test=True)
+
+
+@pytest.mark.asyncio
+async def test_anonymize_sets_ip_only_around_infobase_delete(monkeypatch):
+    # Infobase stamps the profile-clearing transaction with the thread-local web.ctx.ip;
+    # it must not stay set across the awaits, where other requests share the event loop thread.
+    account = OpenLibraryAccount(_key="/people/testuser")
+    seen = {}
+    web.ctx.ip = None
+    monkeypatch.setattr(OpenLibraryAccount, "_delete_infobase_data", lambda self: seen.setdefault("delete", web.ctx.get("ip")))
+
+    async def fake_tables(self, test):
+        seen["tables"] = web.ctx.get("ip")
+        return {"new_username": "anonymous-abc123"}
+
+    monkeypatch.setattr(OpenLibraryAccount, "_anonymize_tables", fake_tables)
+
+    assert await account.anonymize("203.0.113.7") == {"new_username": "anonymous-abc123"}
+    assert seen == {"delete": "203.0.113.7", "tables": None}
+    assert web.ctx.get("ip") is None
 
 
 def test_anonymize_sync_deletes_infobase_data_on_calling_thread(monkeypatch):

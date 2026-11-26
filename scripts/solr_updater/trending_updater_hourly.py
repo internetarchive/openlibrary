@@ -11,8 +11,7 @@ from math import sqrt
 import requests
 
 from openlibrary.core import db
-from openlibrary.plugins.worksearch.code import execute_solr_query
-from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.search import execute_solr_query, get_solr
 
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
 # ignored, and the current count of bookshelves events in the last hour is the new trending_score_hourly[0]

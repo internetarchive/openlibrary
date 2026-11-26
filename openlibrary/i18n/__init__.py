@@ -1,5 +1,7 @@
 import functools
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -9,10 +11,12 @@ from io import BytesIO
 from pathlib import Path
 
 import web
+from babel import Locale
 from babel.messages import Catalog, Message
 from babel.messages.extract import (
     extract_from_dir,
     extract_from_file,
+    extract_javascript,
     extract_python,
 )
 from babel.messages.mofile import write_mo
@@ -21,7 +25,7 @@ from babel.support import Translations
 
 from openlibrary.utils.request_context import req_context
 
-from .validators import _parse_cfmt, validate
+from .validators import _parse_cfmt, check_source_string, validate
 
 root = os.path.dirname(__file__)
 
@@ -148,6 +152,24 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
+def extract_vue(fileobj, keywords, comment_tags, options):
+    """Extract i18n messages from a Vue single-file component's ``<script>`` blocks.
+
+    Babel's JavaScript extractor can't read the ``<template>``, so a ``.vue`` file calls
+    ``_()`` in its script and the template shows the result. A call anywhere outside the
+    scripts is an error, since it would never be translated.
+    """
+    source = fileobj.read().decode("utf-8")
+    scripts = list(re.finditer(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE))
+    outside_scripts = re.sub(r"<script[^>]*>.*?</script[^>]*>", "", source, flags=re.DOTALL | re.IGNORECASE)
+    if re.search(r"\b(?:_|n?gettext)\(", outside_scripts):
+        raise ValueError(f"{getattr(fileobj, 'name', 'a .vue file')}: call _() in <script>, not <template>, or it won't be extracted")
+    for script in scripts:
+        offset = source[: script.start(1)].count("\n")
+        for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):
+            yield lineno + offset, funcname, message, comments
+
+
 # Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location
 # comments that list which templates use each string. When a string gains or loses one
 # file, that wrapping re-flows the whole block and rewrites filenames that didn't change,
@@ -158,6 +180,13 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 # ``xgettext`` and always wraps comments at 76 regardless, while only unwrapping the
 # message text — the opposite of what we want.)
 POT_WIDTH = 1_000_000
+
+
+# Where JavaScript's ``_()`` / ``ngettext()`` calls live, relative to the repository root.
+JAVASCRIPT_SOURCES = ("openlibrary/components", "openlibrary/plugins/openlibrary/js")
+JAVASCRIPT_METHODS = [("**.js", "javascript"), ("**.vue", "openlibrary.i18n:extract_vue")]
+# Lit templates are tagged template literals; without this, calls inside them are missed.
+JAVASCRIPT_OPTIONS = {"**.js": {"parse_template_string": True}, "**.vue": {"parse_template_string": True}}
 
 
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
@@ -173,21 +202,25 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         ("**.py", "python"),
         ("**.html", "openlibrary.i18n:extract_templetor"),
         ("**.jinja", "jinja2.ext:babel_extract"),
+        *JAVASCRIPT_METHODS,
     ]
+    OPTIONS = JAVASCRIPT_OPTIONS
     COMMENT_TAGS = ["NOTE:"]
 
     skipped_files = set()
     if skip_untracked:
-        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja"))
+        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja", ".js", ".vue"))
 
     for source in map(Path, sources):
         counts: dict[Path, int] = {}
 
         if source.is_file():
+            glob, method = next((glb, method) for (glb, method) in METHODS if source.match(glb))
             extracted = extract_from_file(
-                next(method for (glb, method) in METHODS if source.match(glb)),
+                method,
                 source,
                 comment_tags=COMMENT_TAGS,
+                options=OPTIONS.get(glob),
                 strip_comment_tags=True,
             )
 
@@ -197,6 +230,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
             extracted = extract_from_dir(
                 source,
                 METHODS,
+                OPTIONS,
                 comment_tags=COMMENT_TAGS,
                 strip_comment_tags=True,
             )
@@ -219,10 +253,26 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         write_po(f, catalog, include_lineno=False, width=POT_WIDTH)
 
     print("Updated strings written to", path)
+    return check_source_strings(catalog)
+
+
+def check_source_strings(catalog: Catalog) -> list[str]:
+    """`path:line: problem` for every English msgid that translators can't translate well."""
+    problems = []
+    for message in catalog:
+        if not message.id:
+            continue
+        msgids = message.id if message.pluralizable else (message.id,)
+        found = [p for msgid in msgids for p in check_source_string(str(msgid))]
+        for problem in dict.fromkeys(found):
+            for path, lineno in message.locations:
+                problems.append(f"{path}:{lineno}: {problem}\n    {msgids[0]!r}")
+    return problems
 
 
 def compile_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
+    javascript_msgids = _javascript_msgids()
 
     for locale in locales_to_update:
         po_path = os.path.join(root, locale, "messages.po")
@@ -230,6 +280,15 @@ def compile_translations(locales: list[str]):
 
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
+            _write_javascript_catalog(locale, javascript_msgids)
+
+
+def _write_javascript_catalog(locale: str, msgids: list[str | tuple[str, str]]) -> None:
+    """Write ``static/build/i18n/<locale>.js``, which the page head loads for ``i18n.js``."""
+    path = Path(root).parents[1] / "static" / "build" / "i18n" / f"{locale}.js"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # ASCII-only JSON, so the file reads the same whatever charset it's served with.
+    path.write_text(f"window.OL_I18N = {json.dumps(javascript_catalog(locale, msgids), sort_keys=True)};\n")
 
 
 def _format_args(message: Message) -> dict | tuple:
@@ -429,6 +488,51 @@ def load_translations(lang: str):
 
     if os.path.exists(mo_path):
         return Translations(open(mo_path, "rb"))
+
+
+def _plural_samples(lang: str) -> dict[str, int]:
+    """The smallest count in each of the language's CLDR plural categories, plus ``other``, which ``i18n.js`` falls back to."""
+    rule = Locale.parse(lang).plural_form
+    samples: dict[str, int] = {}
+    for n in range(200):
+        samples.setdefault(rule(n), n)
+    samples.setdefault("other", 100)
+    return samples
+
+
+def _javascript_msgids() -> list[str | tuple[str, str]]:
+    """The strings JavaScript translates: the ``_()`` / ``ngettext()`` calls in ``JAVASCRIPT_SOURCES``.
+
+    Read from the sources rather than messages.pot, whose copy can lag them (testing's
+    integration branch keeps one PR's .pot when two PRs change it).
+    """
+    repo = Path(root).parents[1]
+    msgids: dict[str | tuple[str, str], None] = {}
+    for source in JAVASCRIPT_SOURCES:
+        for _filename, _lineno, message, _comments, _context in extract_from_dir(repo / source, JAVASCRIPT_METHODS, JAVASCRIPT_OPTIONS):
+            msgids[message] = None
+    return list(msgids)
+
+
+def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> dict:
+    """This language's translations of ``msgids`` (from ``_javascript_msgids()``), for ``i18n.js``.
+
+    A string maps to its translation; a plural maps its singular to a set of forms keyed
+    by CLDR plural category. Untranslated strings are left out, so the browser shows the
+    English it already has.
+    """
+    catalog: dict = {}
+    if not (translations := load_translations(lang)):
+        return catalog
+    for msgid in msgids:
+        if isinstance(msgid, tuple):
+            singular, plural = msgid
+            forms = {category: translations.ungettext(singular, plural, n) for category, n in _plural_samples(lang).items()}
+            if any(form not in (singular, plural) for form in forms.values()):
+                catalog[singular] = forms
+        elif (text := translations.ugettext(msgid)) != msgid:
+            catalog[msgid] = text
+    return catalog
 
 
 class GetText:

@@ -135,6 +135,7 @@ def test_layout_context_is_frozen():
             icon_sprite_url="",
             days_registered_json='"visitor"',
             sentry=None,
+            javascript_catalog_url=None,
         ),
         shelf_button_labels_json="{}",
         announcement_banner=None,
@@ -313,7 +314,7 @@ def test_layout_build_search_modal_preserves_client_fill_placeholders(request_co
     modal = _build().header.search_modal
     assert modal.availability["all"]["label"] == "All books"
     assert modal.strings["seeOne"] == "See %s book"
-    assert modal.strings["resultsAnnounce"] == "Showing %s of %s results"
+    assert modal.strings["resultsAnnounce"] == "Showing %(shown)s of %(total)s results"
     assert modal.strings["removeRecent"] == 'Remove "%s" from recent searches'
 
 

@@ -26,9 +26,9 @@ The decision and its reason (e.g. "#123 (closing keyword) has no Lead label") ar
 
 ### Good First Issue assignment
 
-Independently of lead assignment and the review-label swap, `gfi_pr_assignment.mjs` checks only the first closing reference. For an open `Good First Issue`, a contributor who has commented on the issue is assigned automatically. Otherwise the PR is closed with recovery instructions; if someone else owns the issue, it is closed as a duplicate. Commenting and reopening (or opening a new PR if reopening is unavailable) lets the contributor recover.
+Independently of lead assignment and the review-label swap, `gfi_pr_assignment.mjs` checks only the first closing reference. It acts on open issues labeled `Good First Issue` and `Priority: *` with `Needs: Triage` absent. A contributor who has commented on the issue is assigned automatically. Otherwise the PR is closed with recovery instructions; if someone else owns the issue, it is closed as a duplicate. Commenting and reopening (or opening a new PR if reopening is unavailable) lets the contributor recover.
 
-Closed issues, draft/closed PRs, staff (`MEMBER`, `OWNER`, `COLLABORATOR`), bot logins (including `openlibrary-bot`), and issues already assigned to the author are skipped. The GFI step honors `no-automation` on either the issue or PR; bots must honor this opt-out. This does not change the other scripts' opt-out behavior.
+Closed issues, draft/closed PRs, staff (`MEMBER`, `OWNER`, `COLLABORATOR`), bot logins (including `openlibrary-bot`), and issues already assigned to the author are skipped. The GFI step honors `Bot: No Automation` on either the issue or PR; bots must honor this opt-out. This does not change the other scripts' opt-out behavior.
 
 Comments are paginated and a failed read prevents closure. Bot comments carry `<!-- ol-bot -->` and are not repeated on retries; current assignment and PR state prevent repeated mutations. The workflow also runs on `reopened` and passes `PR_AUTHOR_ASSOCIATION`. Each step reports its own failure without blocking the other steps. This is the first repository automation that closes PRs.
 
@@ -130,3 +130,10 @@ The script prepares a digest containing the following sections:
 *Staff PRs* : List of all open staff PRs.  Only present if `publishFullDigest` is `true`.
 
 *Submitter Input for PRs* : List of PRs that are labeled https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Submitter%20Input, broken down by leads.
+
+## `search_discussions.sh`
+Read-only search of this repo's GitHub Discussions in every state, used by the issue enrichment workflow:
+
+<pre><b>scripts/gh_scripts/search_discussions.sh</b> keywords...</pre>
+
+Prints up to 10 results with state and accepted answer. Always exits 0; if the token can't read Discussions it prints `Discussions search unavailable`.
