@@ -255,7 +255,7 @@ These companion docs cover specific areas in depth:
 - [Design](frontend/design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
 - [Web Component Standards](frontend/web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
 - [Serving HTML pages from FastAPI](core/fastapi-pages.md) — Porting a web.py page: typed query models, request-derived dependencies, the site shell, sync routes, tests to copy
-- [Internationalization](i18n/i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+- [Internationalization](i18n/i18n.md) — `$_()` in templates, `_()` from `i18n.js` for strings Lit, Vue and plain JS render
 
 ## Domain Knowledge Bases
 
