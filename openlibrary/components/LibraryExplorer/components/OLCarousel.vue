@@ -12,24 +12,26 @@
             <template #book-end-start>
                 <slot name="book-end-start" />
                 <div v-if="offset > 0" class="book-end">
-                    <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
-                    <button class="load-more" :disabled="offset === 0" @click="loadPrevPage">Load previous</button>
-                    <a class="view-all" :href="olUrl" target="_blank">View all</a>
+                    <small>{{ rangeLabel }}</small>
+                    <button class="load-more" :disabled="offset === 0" @click="loadPrevPage">{{ strings.loadPrevious }}</button>
+                    <a class="view-all" :href="olUrl" target="_blank">{{ strings.viewAll }}</a>
                 </div>
             </template>
             <template #book-end>
                 <div class="book-end">
-                    <small>{{ offset }}-{{ offset + results.length }} of {{ numFound }}</small>
-                    <button class="load-more" :disabled="offset + results.length === numFound" @click="loadNextPage">Load next</button>
-                    <a class="view-all" :href="olUrl" target="_blank">View all</a>
+                    <small>{{ rangeLabel }}</small>
+                    <button class="load-more" :disabled="offset + results.length === numFound" @click="loadNextPage">{{ strings.loadNext }}</button>
+                    <a class="view-all" :href="olUrl" target="_blank">{{ strings.viewAll }}</a>
                 </div>
             </template>
         </BooksCarousel>
         <transition>
-            <div v-if="status === 'Errored'" class="status-text">Something went wrong... <button @click="reloadResults('reload')">Retry</button></div>
+            <div v-if="status === 'Errored'" class="status-text">
+                {{ strings.error }} <button @click="reloadResults('reload')">{{ strings.retry }}</button>
+            </div>
         </transition>
         <transition>
-            <div v-if="status === 'Loading'" class="status-text">Loading...</div>
+            <div v-if="status === 'Loading'" class="status-text">{{ strings.loading }}</div>
         </transition>
     </div>
 </template>
@@ -37,6 +39,7 @@
 <script>
 import BooksCarousel from './BooksCarousel.vue';
 import { debounce } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
+import { _, fmt } from '../../../plugins/openlibrary/js/i18n.js';
 
 import CONFIGS from '../../configs';
 // import * as Vibrant from "node-vibrant";
@@ -108,6 +111,14 @@ export default {
     },
     data() {
         return {
+            strings: {
+                loadPrevious: _('Load previous'),
+                loadNext: _('Load next'),
+                viewAll: _('View all'),
+                error: _('Something went wrong...'),
+                retry: _('Retry'),
+                loading: _('Loading...')
+            },
             /** @type {'Start' | 'Loading' | 'Loaded' | 'Errored'} */
             status: 'Start',
             results: [],
@@ -124,6 +135,11 @@ export default {
         };
     },
     computed: {
+        rangeLabel() {
+            // NOTE: Which results are shown, e.g. "0-20 of 45".
+            return fmt(_('%(start)s-%(end)s of %(total)s'), { start: this.offset, end: this.offset + this.results.length, total: this.numFound });
+        },
+
         olUrl() {
             return `${CONFIGS.OL_BASE_SEARCH}/search?${new URLSearchParams({
                 q: this.query,

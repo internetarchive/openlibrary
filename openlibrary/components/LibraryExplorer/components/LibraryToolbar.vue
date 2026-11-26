@@ -4,14 +4,14 @@
             <div class="tab-bar">
                 <button v-if="openTabs.length" class="chunky-icon tab-bar--tab" @click="openTabs.splice(0, openTabs.length)">
                     <div class="chunky-icon--icon" style="font-size: 32px; font-weight: 100; line-height: 28px">&times;</div>
-                    <div class="chunky-icon--label">Close</div>
+                    <div class="chunky-icon--label">{{ strings.close }}</div>
                 </button>
                 <button class="chunky-icon tab-bar--tab" :class="{ active: openTabs.includes('filter') }" @click="toggleTab('filter')">
                     <div class="chunky-icon--icon">
                         <FilterIcon />
                     </div>
                     <div class="chunky-icon--label">
-                        Filter
+                        {{ strings.filter }}
                         <span v-if="activeFiltersCount" style="opacity: 0.55">({{ activeFiltersCount }})</span>
                     </div>
                 </button>
@@ -19,56 +19,56 @@
                     <div class="chunky-icon--icon">
                         <SortIcon />
                     </div>
-                    <div class="chunky-icon--label">Sort</div>
+                    <div class="chunky-icon--label">{{ strings.sort }}</div>
                 </button>
                 <button class="chunky-icon tab-bar--tab" :class="{ active: openTabs.includes('settings') }" @click="toggleTab('settings')">
                     <div class="chunky-icon--icon">
                         <SettingsIcon />
                     </div>
-                    <div class="chunky-icon--label">Settings</div>
+                    <div class="chunky-icon--label">{{ strings.settings }}</div>
                 </button>
                 <button class="chunky-icon tab-bar--tab" :class="{ active: openTabs.includes('feedback') }" @click="toggleTab('feedback')">
                     <div class="chunky-icon--icon">
                         <FeedbackIcon />
                     </div>
-                    <div class="chunky-icon--label">Feedback</div>
+                    <div class="chunky-icon--label">{{ strings.feedback }}</div>
                 </button>
             </div>
             <div class="tabs-contents">
                 <main v-if="openTabs.includes('filter')">
                     <div class="filter-wrapper">
-                        <input v-model="filterState.filter" class="filter" placeholder="Custom filter..." />
+                        <input v-model="filterState.filter" class="filter" :placeholder="strings.customFilter" />
                         <small v-if="inDebugMode" class="computed-filter">{{ computedFilters }}</small>
                     </div>
                     <div class="click-controls">
                         <div class="horizontal-selector">
-                            <div class="label">First Published Year</div>
+                            <div class="label">{{ strings.firstPublishedYear }}</div>
                             <div class="options">
-                                <label> <input v-model="filterState.year" type="radio" value />Any </label>
-                                <label> <input v-model="filterState.year" type="radio" value="[2010 TO 9998]" />New (2010+) </label>
-                                <label> <input v-model="filterState.year" type="radio" value="[1985 TO 9998]" />Modern (1985+) </label>
-                                <label> <input v-model="filterState.year" type="radio" value="[* TO 1924]" />Public Domain (&lt;1924) </label>
+                                <label> <input v-model="filterState.year" type="radio" value />{{ strings.any }} </label>
+                                <label> <input v-model="filterState.year" type="radio" value="[2010 TO 9998]" />{{ strings.newYears }} </label>
+                                <label> <input v-model="filterState.year" type="radio" value="[1985 TO 9998]" />{{ strings.modernYears }} </label>
+                                <label> <input v-model="filterState.year" type="radio" value="[* TO 1924]" />{{ strings.publicDomainYears }} </label>
                             </div>
                         </div>
                         <div class="horizontal-selector">
-                            <div class="label">Has ebook/preview?</div>
+                            <div class="label">{{ strings.hasEbook }}</div>
                             <div class="options">
-                                <label> <input v-model="filterState.has_ebook" type="radio" value />Any </label>
-                                <label> <input v-model="filterState.has_ebook" type="radio" value="true" />Yes </label>
-                                <label> <input v-model="filterState.has_ebook" type="radio" value="false" />No </label>
+                                <label> <input v-model="filterState.has_ebook" type="radio" value />{{ strings.any }} </label>
+                                <label> <input v-model="filterState.has_ebook" type="radio" value="true" />{{ strings.yes }} </label>
+                                <label> <input v-model="filterState.has_ebook" type="radio" value="false" />{{ strings.no }} </label>
                             </div>
                         </div>
                         <div class="horizontal-selector">
-                            <div class="label">Age Range</div>
+                            <div class="label">{{ strings.ageRange }}</div>
                             <div class="options">
-                                <label> <input v-model="filterState.age" type="radio" value />Any </label>
-                                <label> <input v-model="filterState.age" type="radio" value="juvenile" />Juvenile </label>
+                                <label> <input v-model="filterState.age" type="radio" value />{{ strings.any }} </label>
+                                <label> <input v-model="filterState.age" type="radio" value="juvenile" />{{ strings.juvenile }} </label>
                             </div>
                         </div>
                         <div class="horizontal-selector">
-                            <div class="label">Language</div>
+                            <div class="label">{{ strings.language }}</div>
                             <div class="options">
-                                <label> <input v-model="quickLanguageSelect" type="radio" value />Any </label>
+                                <label> <input v-model="quickLanguageSelect" type="radio" value />{{ strings.any }} </label>
                                 <label v-for="lang of top3Languages" :key="lang.key">
                                     <input v-model="quickLanguageSelect" type="radio" :value="lang" />{{ lang.name.split(' / ')[0] }}
                                 </label>
@@ -76,7 +76,7 @@
                                     <input v-model="quickLanguageSelect" type="radio" value="custom" />
                                     <multiselect
                                         v-model="fullLanguageSelect"
-                                        placeholder="Other..."
+                                        :placeholder="strings.other"
                                         :options="langOpts"
                                         :multiple="true"
                                         :internal-search="false"
@@ -95,21 +95,23 @@
                 </main>
                 <main v-if="openTabs.includes('sort')" class="click-controls">
                     <div class="horizontal-selector">
-                        <div>Sort Order</div>
+                        <div>{{ strings.sortOrder }}</div>
                         <div class="options">
-                            <label> <input v-model="sortState.order" type="radio" value="editions" />Most Editions </label>
-                            <label> <input v-model="sortState.order" type="radio" value="new" />Newest </label>
-                            <label> <input v-model="sortState.order" type="radio" value="old" />Oldest </label>
-                            <label> <input v-model="sortState.order" type="radio" value="rating" />Top Rated </label>
-                            <label> <input v-model="sortState.order" type="radio" value="readinglog" />Reading Log </label>
-                            <label> <input v-model="sortState.order" type="radio" value="trending" />Trending Score </label>
-                            <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
-                                <input v-model="sortState.order" type="radio" :value="`${settingsState.selectedClassification.field}_sort asc`" />Shelf Order
+                            <label> <input v-model="sortState.order" type="radio" value="editions" />{{ strings.mostEditions }} </label>
+                            <label> <input v-model="sortState.order" type="radio" value="new" />{{ strings.newest }} </label>
+                            <label> <input v-model="sortState.order" type="radio" value="old" />{{ strings.oldest }} </label>
+                            <label> <input v-model="sortState.order" type="radio" value="rating" />{{ strings.topRated }} </label>
+                            <label> <input v-model="sortState.order" type="radio" value="readinglog" />{{ strings.readingLog }} </label>
+                            <label> <input v-model="sortState.order" type="radio" value="trending" />{{ strings.trendingScore }} </label>
+                            <label :title="strings.shelfOrderTitle">
+                                <input v-model="sortState.order" type="radio" :value="`${settingsState.selectedClassification.field}_sort asc`" />{{
+                                    strings.shelfOrder
+                                }}
                             </label>
                             <label>
-                                <input v-model="sortState.order" type="radio" :value="randomWithSeed" />Random
+                                <input v-model="sortState.order" type="radio" :value="randomWithSeed" />{{ strings.random }}
                                 <button v-if="sortState.order.startsWith('random')" @click="sortState.order = randomWithSeed = 'random_' + Date.now()">
-                                    Shuffle
+                                    {{ strings.shuffle }}
                                 </button>
                             </label>
                         </div>
@@ -117,7 +119,7 @@
                 </main>
                 <main v-if="openTabs.includes('settings')" class="click-controls">
                     <div class="horizontal-selector">
-                        <div class="label">Classification</div>
+                        <div class="label">{{ strings.classification }}</div>
                         <div class="options">
                             <label v-for="c of settingsState.classifications" :key="c.name" :title="c.longName">
                                 <input v-model="settingsState.selectedClassification" type="radio" :value="c" />
@@ -126,38 +128,45 @@
                         </div>
                     </div>
                     <div v-for="(opts, name) of styles" :key="name" class="horizontal-selector">
-                        <div class="label">{{ name }} style</div>
+                        <div class="label">{{ strings.styleNames[name] || `${name} style` }}</div>
                         <div class="options">
                             <label v-for="cls of opts.options" :key="cls">
                                 <input v-model="opts.selected" type="radio" :value="cls" />
-                                {{ cls }}
+                                {{ strings.styleOptions[cls] || cls }}
                             </label>
                         </div>
                     </div>
                     <div class="horizontal-selector">
-                        <div class="label">Label Fields</div>
+                        <div class="label">{{ strings.labelFields }}</div>
                         <div class="options">
                             <label>
                                 <input v-model="settingsState.labels" type="checkbox" value="classification" />
-                                Classifications
+                                {{ strings.classifications }}
                             </label>
                             <label>
                                 <input v-model="settingsState.labels" type="checkbox" value="first_publish_year" />
-                                First Publish Year
+                                {{ strings.firstPublishYear }}
                             </label>
                             <label>
                                 <input v-model="settingsState.labels" type="checkbox" value="edition_count" />
-                                Number of Editions
+                                {{ strings.numberOfEditions }}
                             </label>
                         </div>
                     </div>
                 </main>
                 <main v-if="openTabs.includes('feedback')" class="feedback-panel">
-                    <p>Welcome to Library Explorer! Library Explorer is currently in <b>beta</b>, so you might hit some bugs while you're browsing.</p>
+                    <p>
+                        <template v-for="(part, i) in welcomeParts" :key="i"
+                            ><b v-if="part.bold">{{ part.text }}</b
+                            ><template v-else>{{ part.text }}</template></template
+                        >
+                    </p>
 
                     <p>
-                        If you have any feedback you'd like to give, please fill out our <a :href="googleForms.url" target="_blank">Feedback Form</a>. If you
-                        like what you see, and want to share it with others, why not <a :href="twitterUrl" target="_blank">Share on Twitter</a>?
+                        <template v-for="(part, i) in feedbackParts" :key="i"
+                            ><a v-if="part.href" :href="part.href" target="_blank">{{ part.text }}</a
+                            ><template v-else>{{ part.text }}</template></template
+                        >
                     </p>
                 </main>
             </div>
@@ -173,6 +182,17 @@ import SortIcon from './icons/SortIcon.vue';
 import FeedbackIcon from './icons/FeedbackIcon.vue';
 import CONFIGS from '../../configs';
 import Multiselect from 'vue-multiselect';
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
+
+/**
+ * Splits a translated sentence at its %(name)s markers, so a marker can render
+ * as a link or bold text wherever the translation puts it.
+ * @param {string} template
+ * @param {Object<string, {text: string}>} markers
+ */
+function splitAtMarkers(template, markers) {
+    return template.split(/(%\(\w+\)s)/).map(piece => markers[piece.match(/^%\((\w+)\)s$/)?.[1]] ?? { text: piece });
+}
 
 export default {
     components: {
@@ -200,12 +220,78 @@ export default {
 
     data() {
         return {
+            strings: {
+                close: _('Close'),
+                // NOTE: A tab that opens the options for filtering the books shown.
+                filter: _('Filter'),
+                // NOTE: A tab that opens the options for ordering the books shown.
+                sort: _('Sort'),
+                settings: _('Settings'),
+                feedback: _('Feedback'),
+                customFilter: _('Custom filter...'),
+                firstPublishedYear: _('First Published Year'),
+                any: _('Any'),
+                newYears: _('New (2010+)'),
+                modernYears: _('Modern (1985+)'),
+                publicDomainYears: _('Public Domain (<1924)'),
+                hasEbook: _('Has ebook/preview?'),
+                yes: _('Yes'),
+                no: _('No'),
+                ageRange: _('Age Range'),
+                juvenile: _('Juvenile'),
+                language: _('Language'),
+                // NOTE: Placeholder of the box for choosing languages other than the common ones listed beside it.
+                other: _('Other...'),
+                sortOrder: _('Sort Order'),
+                mostEditions: _('Most Editions'),
+                newest: _('Newest'),
+                oldest: _('Oldest'),
+                topRated: _('Top Rated'),
+                readingLog: _('Reading Log'),
+                trendingScore: _('Trending Score'),
+                shelfOrderTitle: _("I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it."),
+                shelfOrder: _('Shelf Order'),
+                random: _('Random'),
+                shuffle: _('Shuffle'),
+                // NOTE: A library classification system, such as Dewey Decimal.
+                classification: _('Classification'),
+                styleNames: {
+                    book: _('book style'),
+                    cover: _('cover style'),
+                    scrollbar: _('scrollbar style')
+                },
+                styleOptions: {
+                    // NOTE: An option for the book style and for the scrollbar style: the standard look.
+                    default: _('default'),
+                    '3d': _('3d'),
+                    spines: _('spines'),
+                    '3d-spines': _('3d-spines'),
+                    '3d-flat': _('3d-flat'),
+                    // NOTE: An option for the cover style: show the book's cover image.
+                    image: _('image'),
+                    // NOTE: An option for the cover style: show the title and author as text.
+                    text: _('text'),
+                    thin: _('thin'),
+                    hidden: _('hidden')
+                },
+                labelFields: _('Label Fields'),
+                classifications: _('Classifications'),
+                firstPublishYear: _('First Publish Year'),
+                numberOfEditions: _('Number of Editions'),
+                welcome: _("Welcome to Library Explorer! Library Explorer is currently in %(beta)s, so you might hit some bugs while you're browsing."),
+                beta: _('beta'),
+                feedbackRequest: _(
+                    "If you have any feedback you'd like to give, please fill out our %(form)s. If you like what you see, and want to share it with others, why not %(share)s?"
+                ),
+                feedbackForm: _('Feedback Form'),
+                shareOnTwitter: _('Share on Twitter')
+            },
             googleForms: {
                 url: 'https://docs.google.com/forms/d/e/1FAIpQLSe3ZypSJXr9omueQrEDI4mGc2M_v6iDNpDtPp9jrHaGn6wgpA/viewform?usp=sf_link'
             },
             tweet: {
                 url: `${CONFIGS.OL_BASE_PUBLIC}/explore`,
-                text: 'Browse millions of books in the @openlibrary Explorer',
+                text: _('Browse millions of books in the @openlibrary Explorer'),
                 hashtags: 'EmpoweringLibraries,BookLovers'
             },
 
@@ -224,6 +310,17 @@ export default {
     },
 
     computed: {
+        welcomeParts() {
+            return splitAtMarkers(this.strings.welcome, { beta: { text: this.strings.beta, bold: true } });
+        },
+
+        feedbackParts() {
+            return splitAtMarkers(this.strings.feedbackRequest, {
+                form: { text: this.strings.feedbackForm, href: this.googleForms.url },
+                share: { text: this.strings.shareOnTwitter, href: this.twitterUrl }
+            });
+        },
+
         twitterUrl() {
             return `https://twitter.com/intent/tweet?${new URLSearchParams(this.tweet)}`;
         },

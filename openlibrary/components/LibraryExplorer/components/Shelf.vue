@@ -4,17 +4,13 @@
             <template #extra-actions>
                 <button
                     v-if="features.shelfLabel === 'slider' && node.children"
-                    :title="`See a list of the subsections of ${node.short}: ${node.name}`"
+                    :title="subsectionsTitle"
                     :class="{ selected: showShelfIndex }"
                     @click="showShelfIndex = !showShelfIndex"
                 >
                     <IndexIcon />
                 </button>
-                <button
-                    v-if="node.children && node.children.length"
-                    :title="`See more books in ${node.short}: ${node.name}`"
-                    @click="expandBookshelf(parent, node)"
-                >
+                <button v-if="node.children && node.children.length" :title="moreBooksTitle" @click="expandBookshelf(parent, node)">
                     <ExpandIcon />
                 </button>
             </template>
@@ -55,7 +51,7 @@
                 <div v-if="labels.includes('first_publish_year')">
                     {{ book.first_publish_year }}
                 </div>
-                <div v-if="labels.includes('edition_count')">{{ book.edition_count }} editions</div>
+                <div v-if="labels.includes('edition_count')">{{ editionCount(book.edition_count) }}</div>
             </template>
         </OLCarousel>
     </div>
@@ -71,6 +67,7 @@ import ShelfIndex from './ShelfIndex.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import IndexIcon from './icons/IndexIcon.vue';
 import { maxBy } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
+import { fmt, ngettext, _ } from '../../../plugins/openlibrary/js/i18n.js';
 
 class FetchCoordinator {
     constructor() {
@@ -194,6 +191,22 @@ export default {
             showShelfIndex: false,
             fetchCoordinator: fetchCoordinator
         };
+    },
+
+    computed: {
+        subsectionsTitle() {
+            return fmt(_('See a list of the subsections of %(short)s: %(name)s'), { short: this.node.short, name: this.node.name });
+        },
+
+        moreBooksTitle() {
+            return fmt(_('See more books in %(short)s: %(name)s'), { short: this.node.short, name: this.node.name });
+        }
+    },
+
+    methods: {
+        editionCount(count) {
+            return fmt(ngettext('%(count)s edition', '%(count)s editions', count), { count });
+        }
     }
 };
 </script>

@@ -22,6 +22,7 @@ import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
 import { maxBy } from '../plugins/openlibrary/js/nonjquery_utils.js';
+import { _ } from '../plugins/openlibrary/js/i18n.js';
 
 class FilterState {
     constructor() {
@@ -68,7 +69,7 @@ export default {
         const classifications = [
             {
                 name: 'DDC',
-                longName: 'Dewey Decimal Classification',
+                longName: _('Dewey Decimal Classification'),
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
                 toQueryFormat: ddc => ddc,
@@ -81,7 +82,7 @@ export default {
             },
             {
                 name: 'LCC',
-                longName: 'Library of Congress Classification',
+                longName: _('Library of Congress Classification'),
                 field: 'lcc',
                 fieldTransform: sortable_lcc_to_short_lcc,
                 toQueryFormat: lcc => {
