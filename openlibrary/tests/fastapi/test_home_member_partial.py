@@ -459,6 +459,22 @@ def test_continue_reading_is_primary_even_when_it_links_to_the_book(request_cont
     assert (card["action"]["label"], card["action"]["form"], card["action"]["access"]) == ("Continue reading", None, True)
 
 
+def test_only_borrowing_and_reading_take_the_primary_fill(request_context_fixture):
+    request_context_fixture(lang="en")
+    from openlibrary.core.jinja import get_jinja_env, render_jinja_template  # noqa: PLC0415
+
+    def variants(past):
+        cards = _home_member().build_loans(loans=[], holds=[], past=past)
+        with patch.dict(get_jinja_env().globals, {"icon": lambda *args, **kwargs: ""}):
+            html = render_jinja_template("home/member.html.jinja", member={"name": "", "complete": True, "part": "loans", "loans": cards})
+        return [chunk.split('"', 1)[0] for chunk in html.split('variant="')[1:]]
+
+    # One card gets the large layout; several get the list.
+    assert variants([_past("lent", "borrow_unavailable")]) == ["secondary"]
+    assert variants([_past("free", "borrow_available")]) == ["primary"]
+    assert variants([_past("free", "borrow_available"), _past("lent", "borrow_unavailable")]) == ["primary", "secondary"]
+
+
 def test_a_print_disabled_reader_can_borrow_a_past_loan_that_is_lent_out(request_context_fixture):
     request_context_fixture(lang="en", print_disabled=True)
     past = _past("lent", "borrow_unavailable") | {"availability": {"status": "borrow_unavailable", "is_printdisabled": True}}

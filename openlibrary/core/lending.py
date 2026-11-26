@@ -901,7 +901,7 @@ class AccountNotFoundError(LookupError):
     """No Open Library account exists for the requested username."""
 
 
-def get_loan_history_data(username: str, page: int, s3_cookie: str | None, limit: int = RESULTS_PER_PAGE) -> dict:
+def get_loan_history_data(username: str, page: int, s3_cookie: str | None) -> dict:
     """Fetch loan history data for a user.
 
     This will use a patron's S3 keys to query the IA loan history API,
@@ -922,6 +922,7 @@ def get_loan_history_data(username: str, page: int, s3_cookie: str | None, limit
         raise AccountNotFoundError(f"Account not found for {username}")
 
     s3_keys = parse_s3_cookie(s3_cookie)
+    limit = RESULTS_PER_PAGE
     offset = page * limit - limit
 
     # parse_s3_cookie() is `dict | None`: it returns None for a patron with no

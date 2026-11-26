@@ -93,7 +93,7 @@
                             </h4>
                             {% if item.author %}<p class="home-now__author">{{ item.author }}</p>{% endif %}
                             <div class="home-now__main-foot">
-                                {{ action(item, "primary") }}
+                                {{ action(item, "primary" if item.action.access else "secondary") }}
                                 {{ status(item) }}
                             </div>
                         </div>
