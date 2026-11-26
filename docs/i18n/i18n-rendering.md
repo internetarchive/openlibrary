@@ -197,8 +197,8 @@ authoritative source is `openlibrary-i18n`, not the `.po` files committed in `op
 # Jinja translation paths
 docker compose run --rm home python -m pytest openlibrary/tests/core/test_jinja.py -xvs
 
-# JS bridge logic
-npm test tests/unit/js/searchModalConstants.test.js
+# JS gettext helpers (_, ngettext, translate)
+npm test tests/unit/js/i18n.test.js
 
 # Regenerate POT and verify no mangled entries
 docker compose run --rm home python ./scripts/i18n-messages extract
