@@ -7,8 +7,8 @@
  * component's element (see docs/i18n/i18n.md). The code keeps an English
  * default for every string, so anything the server didn't send still shows.
  *
- * Each component owns a `DEFAULT_LABELS` map of English defaults and takes a
- * `labels` object that overrides it. A composing parent passes its whole
+ * Each component owns a map of English defaults (`DEFAULT_LABELS` in the Lit
+ * components) and takes a `labels` object that overrides it. A composing parent passes its whole
  * `labels` blob straight down — extra keys a child doesn't know are harmless,
  * so one server-rendered blob can feed a whole subtree.
  *

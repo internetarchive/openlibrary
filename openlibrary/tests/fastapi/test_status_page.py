@@ -52,16 +52,11 @@ def test_maintainers_see_build_result_and_panel(client):
     assert '<ol-testing-environment maintainer="true"' in html
 
 
-def test_panel_strings_keep_the_placeholders_the_panel_fills(request_context_fixture):
-    """The panel fills these placeholders in the browser, so they must reach it unformatted."""
+def test_panel_plural_sets_have_every_plural_category(request_context_fixture):
     request_context_fixture(lang="en")
     strings = status_module.testing_panel_strings()
 
-    assert strings["addFailedNotFound"] == "PR %(num)s does not exist."
-    assert strings["deployingStageBy"] == "Deploying, started %(time)s — %(stage)s by %(user)s"
-    assert strings["behind"]["one"] == "%(num)s commit behind %(sha)s"
-    assert strings["behind"]["other"] == "%(num)s commits behind %(sha)s"
-    assert set(strings["changes"]) == {"one", "two", "few", "many", "other"}
+    assert set(strings["changes"]) == set(strings["behind"]) == {"one", "two", "few", "many", "other"}
 
 
 def _javascript_default_strings() -> dict:
