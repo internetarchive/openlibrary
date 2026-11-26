@@ -322,16 +322,16 @@ def test_extract_vue_reads_html_strings_in_the_script():
     assert [m[2] for m in i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {})] == ["In the script"]
 
 
-def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monkeypatch):
-    catalog = Catalog()
-    catalog.add("Server only", locations=[("openlibrary/plugins/worksearch/code.py", None)])
-    catalog.add("Advanced", locations=[("BarcodeScanner.vue", None)])
-    catalog.add(("%(count)s list", "%(count)s lists"), locations=[("lit/OlShelfActions.js", None), ("lists.html", None)])
-    with open(tmp_path / "messages.pot", "wb") as f:
-        write_po(f, catalog)
-    monkeypatch.setattr(i18n, "root", str(tmp_path))
+def test_javascript_msgids_are_the_strings_in_the_javascript_sources(tmp_path, monkeypatch):
+    (tmp_path / "openlibrary" / "i18n").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "components" / "lit").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "components" / "BarcodeScanner.vue").write_text("<script>\nconst a = gettext('Advanced');\n</script>\n")
+    (tmp_path / "openlibrary" / "components" / "lit" / "OlShelf.js").write_text("const n = ngettext('%(count)s list', '%(count)s lists', count);\n")
+    (tmp_path / "openlibrary" / "plugins" / "openlibrary" / "js").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "plugins" / "openlibrary" / "js" / "edit.js").write_text("const a = gettext('Advanced');\n")
+    monkeypatch.setattr(i18n, "root", str(tmp_path / "openlibrary" / "i18n"))
 
-    assert i18n._javascript_msgids() == ["Advanced", ("%(count)s list", "%(count)s lists")]
+    assert sorted(i18n._javascript_msgids(), key=str) == [("%(count)s list", "%(count)s lists"), "Advanced"]
 
 
 @pytest.mark.parametrize(
@@ -359,11 +359,11 @@ def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, l
 def test_compile_translations_writes_the_javascript_catalog(tmp_path, monkeypatch):
     i18n_root = tmp_path / "openlibrary" / "i18n"
     (i18n_root / "es").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "components").mkdir()
+    (tmp_path / "openlibrary" / "components" / "BarcodeScanner.vue").write_text("<script>\nconst a = gettext('Advanced');\n</script>\n")
     catalog = Catalog(locale="es")
-    catalog.add("Advanced", "Avanzado", locations=[("BarcodeScanner.vue", None)])
-    catalog.add("Edit", "Editar", locations=[("edit.html", None)])
-    with open(i18n_root / "messages.pot", "wb") as f:
-        write_po(f, catalog)
+    catalog.add("Advanced", "Avanzado")
+    catalog.add("Edit", "Editar")
     with open(i18n_root / "es" / "messages.po", "wb") as f:
         write_po(f, catalog)
     monkeypatch.setattr(i18n, "root", str(i18n_root))

@@ -183,6 +183,13 @@ def extract_vue(fileobj, keywords, comment_tags, options):
 POT_WIDTH = 1_000_000
 
 
+# Where JavaScript's ``_()`` / ``ngettext()`` calls live, relative to the repository root.
+JAVASCRIPT_SOURCES = ("openlibrary/components", "openlibrary/plugins/openlibrary/js")
+JAVASCRIPT_METHODS = [("**.js", "javascript"), ("**.vue", "openlibrary.i18n:extract_vue")]
+# Lit templates are tagged template literals; without this, calls inside them are missed.
+JAVASCRIPT_OPTIONS = {"**.js": {"parse_template_string": True}, "**.vue": {"parse_template_string": True}}
+
+
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
     # Occasional manual bumps are fine to make it more up-to-date
@@ -196,11 +203,9 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         ("**.py", "python"),
         ("**.html", "openlibrary.i18n:extract_templetor"),
         ("**.jinja", "jinja2.ext:babel_extract"),
-        ("**.js", "javascript"),
-        ("**.vue", "openlibrary.i18n:extract_vue"),
+        *JAVASCRIPT_METHODS,
     ]
-    # Lit templates are tagged template literals; without this, calls inside them are missed.
-    OPTIONS = {"**.js": {"parse_template_string": True}, "**.vue": {"parse_template_string": True}}
+    OPTIONS = JAVASCRIPT_OPTIONS
     COMMENT_TAGS = ["NOTE:"]
 
     skipped_files = set()
@@ -497,10 +502,17 @@ def _plural_samples(lang: str) -> dict[str, int]:
 
 
 def _javascript_msgids() -> list[str | tuple[str, str]]:
-    """The strings JavaScript translates (``_()`` / ``ngettext()`` in ``.js`` and ``.vue`` files), from messages.pot."""
-    with open(os.path.join(root, "messages.pot"), "rb") as f:
-        catalog = read_po(f)
-    return [message.id for message in catalog if message.id and any(path.endswith((".js", ".vue")) for path, _line in message.locations)]
+    """The strings JavaScript translates: the ``_()`` / ``ngettext()`` calls in ``JAVASCRIPT_SOURCES``.
+
+    Read from the sources rather than messages.pot, whose copy can lag them (testing's
+    integration branch keeps one PR's .pot when two PRs change it).
+    """
+    repo = Path(root).parents[1]
+    msgids: dict[str | tuple[str, str], None] = {}
+    for source in JAVASCRIPT_SOURCES:
+        for _filename, _lineno, message, _comments, _context in extract_from_dir(repo / source, JAVASCRIPT_METHODS, JAVASCRIPT_OPTIONS):
+            msgids[message] = None
+    return list(msgids)
 
 
 def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> dict:
