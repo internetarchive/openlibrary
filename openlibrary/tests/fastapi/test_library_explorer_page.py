@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from infogami.utils.context import context
-from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.fastapi.library_explorer import pages
 from openlibrary.plugins.upstream import code as upstream_code
 
@@ -32,7 +32,13 @@ def test_library_explorer_page_renders_the_component(client):
     assert "body.library-explorer" in html
 
 
-def test_webpy_handler_renders_the_fastapi_body(monkeypatch):
+@pytest.fixture
+def stubbed_static_url(monkeypatch) -> None:
+    """``static_url`` hashes a file under ``static/``, which CI has no Vite build for."""
+    monkeypatch.setitem(get_jinja_env().globals, "static_url", lambda p: f"/static/{p}")
+
+
+def test_webpy_handler_renders_the_fastapi_body(monkeypatch, stubbed_static_url):
     """Until web.py's handler is retired, both servers render the same page body."""
     monkeypatch.setitem(context, "bodyclass", [])
 
