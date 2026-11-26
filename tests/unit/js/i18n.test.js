@@ -13,3 +13,30 @@ describe('sprintf', () => {
         expect(sprintf('%(percent)s%% done', { percent: 40 })).toBe('40% done');
     });
 });
+
+describe('_ and ngettext', () => {
+    async function withCatalog(catalog) {
+        window.OL_I18N = catalog ?? undefined;
+        vi.resetModules();
+        return import('../../../openlibrary/plugins/openlibrary/js/i18n.js');
+    }
+
+    it('translates from the page catalog, falling back to the English', async () => {
+        const { _ } = await withCatalog({ Advanced: 'Avanzado' });
+        expect(_('Advanced')).toBe('Avanzado');
+        expect(_('Not in the catalog')).toBe('Not in the catalog');
+    });
+
+    it('picks the plural form for the count, falling back to the English', async () => {
+        const { ngettext } = await withCatalog({ '%(count)s list': { one: '%(count)s lista', other: '%(count)s listas' } });
+        expect(ngettext('%(count)s list', '%(count)s lists', 1)).toBe('%(count)s lista');
+        expect(ngettext('%(count)s list', '%(count)s lists', 3)).toBe('%(count)s listas');
+        expect(ngettext('%(count)s book', '%(count)s books', 1)).toBe('%(count)s book');
+        expect(ngettext('%(count)s book', '%(count)s books', 2)).toBe('%(count)s books');
+    });
+
+    it('shows the English when the page has no catalog', async () => {
+        const { _ } = await withCatalog(null);
+        expect(_('Advanced')).toBe('Advanced');
+    });
+});

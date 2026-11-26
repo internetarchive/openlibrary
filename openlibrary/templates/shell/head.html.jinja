@@ -75,6 +75,9 @@
         }
         </style>
     </noscript>
+    {% if layout.head.javascript_catalog_url %}
+        <script src="{{ layout.head.javascript_catalog_url }}"></script>
+    {% endif %}
     <script>window.OL_EXPERIMENTS = {{ layout.head.experiments_json | safe }};</script>
     <script>
  {% if not layout.is_bot and not layout.head.disable_analytics %}

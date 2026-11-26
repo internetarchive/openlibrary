@@ -1,6 +1,4 @@
 import asyncio
-import re
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -381,13 +379,3 @@ class TestSearchAvailabilityPreparedInPython:
         works_arg = render_args[2]
         assert works_arg == [get_doc(solr_doc)]
         assert works_arg is not get_doc
-
-
-def test_barcode_scanner_strings_match_the_javascript_defaults(request_context_fixture):
-    """The server's strings and the scanner's English fallbacks list the same keys and the same English."""
-    request_context_fixture(lang="en")
-    source = (Path(__file__).resolve().parents[4] / "openlibrary/components/BarcodeScanner.vue").read_text()
-    block = source.split("const DEFAULT_STRINGS = {")[1].split("\n};")[0]
-    javascript = dict(re.findall(r"^    (\w+): '([^']*)',?$", block, re.MULTILINE))
-
-    assert code.barcode_scanner_strings() == javascript

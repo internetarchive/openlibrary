@@ -168,7 +168,7 @@ npm run watch:lit-manifest          # regenerate on change during dev
 - Use `aria-live` regions for dynamic announcements.
 - Use `aria-busy` during loading states.
 - Use `aria-expanded`, `aria-selected`, `aria-current`, etc. to reflect interactive state.
-- Support translatable labels via attribute overrides (see the `label-*` props on `OlPagination` for the pattern).
+- Translate every user-visible string, ARIA labels included, with `_()` from `i18n.js` (see [i18n](../i18n/i18n.md), including its rule for `_()` inside `${…}`): `this.labelClose = _('Close')`. Add a `label-*` attribute only when a caller needs different text. Older components (`OlPagination` and others) take their labels from the template instead; don't copy that.
 
 ```js
 // aria-live for dynamic content

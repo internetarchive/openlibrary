@@ -2,12 +2,13 @@
  * Translated strings for UI the browser renders: Lit and Vue components and
  * page scripts.
  *
- * JavaScript can't translate. The page's template translates each string on
- * the server and hands the set to the code, usually as a JSON attribute on the
- * component's element (see docs/i18n/i18n.md). The code keeps an English
- * default for every string, so anything the server didn't send still shows.
+ * Code calls `_()` (or `ngettext()`) with the English string. Extraction puts
+ * those calls in messages.pot like the server's, and the page head loads this
+ * language's translations of them (`window.OL_I18N`, from static/build/i18n/<lang>.js,
+ * which `make i18n` writes); see docs/i18n/i18n.md. Without a translation, the English shows.
  *
- * Each component owns a map of English defaults (`DEFAULT_LABELS` in the Lit
+ * Older components get their strings from the page template instead, as a JSON
+ * attribute: each owns a map of English defaults (`DEFAULT_LABELS` in the Lit
  * components) and takes a `labels` object that overrides it. A composing parent passes its whole
  * `labels` blob straight down — extra keys a child doesn't know are harmless,
  * so one server-rendered blob can feed a whole subtree.
@@ -18,13 +19,13 @@
  * language's rules, so a translation blob can carry every form its language
  * has rather than a singular/plural pair that only fits English.
  *
- * The `_()` and `ungettext()` that jsdef templates call in the browser are
- * not translations; they are stand-ins in jsdef.js.
+ * jsdef templates get their own `_()` and `ungettext()` in the browser, from
+ * jsdef.js; those are pass-throughs, not translations.
  */
 
-/** "%(name)s" style interpolation, matching the server-side i18n strings. */
+/** "%(name)s" (or "%(name)d") style interpolation, matching the server-side i18n strings. */
 export function fmt(template, vars) {
-    return template.replace(/%\((\w+)\)s/g, (_, k) => vars[k] ?? '');
+    return template.replace(/%\((\w+)\)[sd]/g, (_, k) => vars[k] ?? '');
 }
 
 let _rules = null;
@@ -47,6 +48,24 @@ function pluralCategory(count) {
 /** Pick the form of a plural set for `count`; `other` is the required fallback. */
 export function plural(forms, count) {
     return forms[pluralCategory(Number(count))] ?? forms.other;
+}
+
+function translations() {
+    return window.OL_I18N ?? {};
+}
+
+/** `msgid` in the page language, or `msgid` itself (the English) when it has no translation. */
+export function gettext(msgid) {
+    const text = translations()[msgid];
+    return typeof text === 'string' ? text : msgid;
+}
+export { gettext as _ };
+
+/** The form of a plural string for `count`, in the page language when it has a translation. */
+export function ngettext(singular, pluralForm, count) {
+    const forms = translations()[singular];
+    if (forms && typeof forms === 'object') return plural(forms, count);
+    return Number(count) === 1 ? singular : pluralForm;
 }
 
 /**

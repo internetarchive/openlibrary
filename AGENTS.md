@@ -62,6 +62,7 @@ npm run watch               # Dev mode with hot reload
 - **JS:** oxlint + oxfmt (ESLint for Vue files only), single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
 - **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
+- **Strings rendered in the browser (Lit, Vue, plain JS):** call `_()` / `ngettext()` from `openlibrary/plugins/openlibrary/js/i18n.js` with the English. Don't add new `data-i18n` attributes, `label-*` translation props or Python-built string dicts for a component; those are an older pattern. See [`docs/i18n/i18n.md`](/docs/i18n/i18n.md).
 - **Branches:** `{issue-number}/{type}/{slug}`
 
 ### Code Comments
