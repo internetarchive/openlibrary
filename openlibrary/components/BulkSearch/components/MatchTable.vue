@@ -9,7 +9,7 @@
                 </tr>
                 <tr>
                     <th v-for="(column, colIndex) in columns" :key="colIndex">
-                        {{ strings[column] }}
+                        {{ strings.columns[column] }}
                     </th>
                 </tr>
             </thead>
@@ -29,15 +29,24 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import MatchRow from './MatchRow.vue';
 import { BulkSearchState } from '../utils/classes.js';
 export default {
     components: {
         MatchRow
     },
-    inject: ['strings'],
     props: {
         bulkSearchState: BulkSearchState
+    },
+    data() {
+        return {
+            strings: {
+                extractedBooks: _('Extracted Books'),
+                matchedBooks: _('Matched Books'),
+                columns: { title: _('Title'), author: _('Author'), isbn: _('ISBN') }
+            }
+        };
     },
     computed: {
         columns() {

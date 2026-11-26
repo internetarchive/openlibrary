@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import { BulkSearchState, BookMatch } from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js';
 import BookCard from './BookCard.vue';
@@ -24,7 +25,6 @@ export default {
         BookCard,
         NoBookCard
     },
-    inject: ['strings'],
     props: {
         bulkSearchState: BulkSearchState,
         bookMatch: BookMatch,
@@ -36,6 +36,11 @@ export default {
             type: Number,
             default: 0
         }
+    },
+    data() {
+        return {
+            strings: { viewResults: _('View results in Open Library') }
+        };
     },
     computed: {
         searchUrl() {

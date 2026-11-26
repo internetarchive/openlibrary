@@ -15,10 +15,9 @@
 </template>
 
 <script>
-import { translate } from '../../../plugins/openlibrary/js/i18n.js';
+import { fmt, ngettext } from '../../../plugins/openlibrary/js/i18n.js';
 
 export default {
-    inject: ['strings'],
     props: {
         doc: {
             type: Object,
@@ -31,7 +30,8 @@ export default {
     },
     computed: {
         editions() {
-            return translate(this.strings, null, 'editions', { count: this.doc.edition_count });
+            const count = this.doc.edition_count;
+            return fmt(ngettext('%(count)s edition', '%(count)s editions', count), { count });
         },
         coverImage() {
             if (!this.doc.cover_i) {

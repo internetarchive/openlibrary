@@ -9,7 +9,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.search import pages
-from openlibrary.plugins.worksearch.bulk_search import bulk_search_strings
 
 
 @pytest.fixture
@@ -25,7 +24,7 @@ def test_bulk_search_page_renders_the_component(client):
     html = response.text
     assert "<title>Bulk Search (beta) | Open Library</title>" in html
     assert "<h1>Bulk Search (beta)</h1>" in html
-    assert html.count("<ol-bulk-search i18n=") == 1
+    assert html.count("<ol-bulk-search>") == 1
     assert 'src="/static/build/components/production/ol-BulkSearch.js"' in html
 
 
@@ -35,10 +34,3 @@ def test_bulk_search_page_does_not_read_webpy_ctx(client, webpy_leftovers):
 
     assert response.status_code == 200
     assert webpy_leftovers not in response.text
-
-
-def test_bulk_search_strings_match_the_javascript_defaults(request_context_fixture, javascript_strings_mismatches):
-    """The server's strings and the component's English fallbacks list the same keys and the same English."""
-    request_context_fixture(lang="en")
-
-    assert javascript_strings_mismatches(bulk_search_strings(), "openlibrary/components/BulkSearch.vue") == []

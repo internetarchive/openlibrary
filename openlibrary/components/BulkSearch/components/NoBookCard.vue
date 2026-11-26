@@ -5,8 +5,12 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
+
 export default {
-    inject: ['strings']
+    data() {
+        return { strings: { noBooksFound: _('No Books Found') } };
+    }
 };
 </script>
 

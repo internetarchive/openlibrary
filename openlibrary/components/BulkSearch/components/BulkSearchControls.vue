@@ -8,7 +8,7 @@
 
             <select v-model="selectedValue" class="sampleBar">
                 <option v-for="sample in sampleData" :key="sample.source" :value="sample.text">
-                    {{ strings[sample.key] }}
+                    {{ sample.name }}
                 </option>
             </select>
             <textarea v-model="bulkSearchState.inputText" :placeholder="strings.inputPlaceholder" />
@@ -24,7 +24,7 @@
                             </p>
                         </div>
                         <label
-                            ><strong> {{ strings.extractor }}</strong> <br />
+                            ><strong>{{ strings.extractor }}</strong> <br />
                             <select v-model="bulkSearchState._activeExtractorIndex">
                                 <option v-for="(extractor, index) in bulkSearchState.extractors" :key="index" :value="index">
                                     {{ extractor.label }}
@@ -98,16 +98,36 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import { sampleData } from '../utils/samples.js';
 import { BulkSearchState } from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js';
 export default {
-    inject: ['strings'],
     props: {
         bulkSearchState: BulkSearchState
     },
     data() {
         return {
+            strings: {
+                // NOTE: "Title", "Author" and "ISBN" are the column names the spreadsheet must use, so keep them in English.
+                columnHint: _('Please include a header row. Supported columns include: "Title", "Author", "ISBN".'),
+                enterBooks: _('Enter your books below.'),
+                enterBooksHint: _('One per line, or paste from a spreadsheet.'),
+                inputPlaceholder: _('Enter your books...'),
+                extractBooks: _('Extract Books'),
+                extractDescription: _('How to convert your books above into structured information, like title and author.'),
+                extractor: _('Extractor'),
+                apiKey: _('OpenAI API Key'),
+                apiKeyPlaceholder: _('OpenAI API key here....'),
+                loading: _('Loading...'),
+                matchBooks: _('Match Books'),
+                matchDescription: _("Once structured data has been found, it's time to match it to a book in OpenLibrary!"),
+                options: _('Options'),
+                useAuthor: _('Use author in search query'),
+                saveMatches: _('Save your Matches'),
+                saveDescription: _("Now that you've found your books, why not save them to your reading log? Or a list?"),
+                addToList: _('Add to list')
+            },
             selectedValue: '',
             showPassword: true,
             sampleData: sampleData,
