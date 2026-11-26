@@ -979,7 +979,7 @@ test('a rereviewed marker counts only after the review marker, where model text 
 });
 
 test('post: a clean requested review after a clean approval edits that approval instead of posting', async () => {
-    const d = setup(reviewWith([]));
+    const d = setup({ ...reviewWith([]), summary: '' });
     try {
         const approval = cleanApproval();
         const { github, calls } = mockGitHub({ priorReviews: [approval] });
@@ -1011,7 +1011,7 @@ test('post: a clean review from an @openlibrary-bot comment is still posted afte
 });
 
 test('post: a clean push review after changes were requested posts a new approval', async () => {
-    const d = setup(reviewWith([]));
+    const d = setup({ ...reviewWith([]), summary: '' });
     try {
         const changes = { ...cleanApproval(), state: 'CHANGES_REQUESTED', body: '**1 finding** on `ccccccc`\n\n<!-- ol-pr-review-bot f=1 -->' };
         const { github, calls } = mockGitHub({ priorReviews: [changes] });
@@ -1025,12 +1025,46 @@ test('post: a clean push review after changes were requested posts a new approva
 });
 
 test('post: a push review with a suggestion is posted, even after a clean approval', async () => {
-    const d = setup(reviewWith([{ dimension: 'styleguide', severity: 'low', confidence: 8, title: 'Nit', body: 'details', path: 'a.py', line: 1 }]));
+    const d = setup({
+        ...reviewWith([{ dimension: 'styleguide', severity: 'low', confidence: 8, title: 'Nit', body: 'details', path: 'a.py', line: 1 }]),
+        summary: ''
+    });
     try {
         const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
         await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
         assert.equal(calls.updateReview.length, 0);
         assert.equal(calls.createReview.length, 1);
+    } finally {
+        teardown();
+    }
+});
+
+test('post: a clean requested review WITH a model summary is posted, so the summary is not lost', async () => {
+    const d = setup(reviewWith([]));
+    try {
+        const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(calls.updateReview.length, 0);
+        assert.equal(calls.createReview.length, 1);
+        assert.match(calls.createReview[0].body, /A plain summary\./);
+    } finally {
+        teardown();
+    }
+});
+
+test('post: when editing the approval fails, the review is posted instead, once', async () => {
+    const d = setup({ ...reviewWith([]), summary: '' });
+    try {
+        const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
+        github.rest.pulls.updateReview = async () => {
+            throw new Error('boom');
+        };
+        const res = await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(res.failed, null);
+        assert.equal(calls.createReview.length, 1);
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+        assert.ok(res.warnings.some(w => /Could not add/.test(w)));
+        assert.deepEqual(calls.removedTeams, [], 'the posted APPROVE clears the request itself');
     } finally {
         teardown();
     }

@@ -568,8 +568,10 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     // Never approve while a blocking part is held back, from this review or an earlier one a
     // maintainer hasn't dismissed: count it as one more finding.
     let blocked = heldBackBlocks;
+    // The PR's reviews so far. Fetched whenever the verdict can be APPROVE, so the quiet path below always has them.
+    let earlier = null;
     if (!blocked && !superseded) {
-        const earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        earlier = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
         earlierHold = heldBackReview(earlier.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body)));
         blocked = earlierHold !== null;
     }
@@ -586,10 +588,10 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         !suggestionComments.length &&
         !notes.length &&
         !toResolveIds.length &&
-        !noteEdits.length;
-    if (quiet) {
-        const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
-        const target = quietTarget({ reviews, botLogin: 'openlibrary-bot' });
+        !noteEdits.length &&
+        !(review.summary && review.summary.trim());
+    if (quiet && earlier) {
+        const target = quietTarget({ reviews: earlier, botLogin: 'openlibrary-bot' });
         const body = target && rereviewedBody(target.body, headSha);
         if (body) {
             let added = false;
