@@ -155,14 +155,15 @@ def extract_vue(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from a Vue single-file component's first ``<script>`` block.
 
     Babel's JavaScript extractor can't read the ``<template>``, so a ``.vue`` file calls
-    ``_()`` in its script and the template shows the result. A call in the template
-    is an error, since it would never be translated.
+    ``_()`` in its script and the template shows the result. A call anywhere outside the
+    script is an error, since it would never be translated.
     """
     source = fileobj.read().decode("utf-8")
-    template = re.search(r"<template[^>]*>(.*)</template[^>]*>", source, re.DOTALL | re.IGNORECASE)
-    if template and re.search(r"\b(?:_|n?gettext)\(", template[1]):
+    script = re.search(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE)
+    outside_script = source[: script.start()] + source[script.end() :] if script else source
+    if re.search(r"\b(?:_|n?gettext)\(", outside_script):
         raise ValueError(f"{getattr(fileobj, 'name', 'a .vue file')}: call _() in <script>, not <template>, or it won't be extracted")
-    if not (script := re.search(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE)):
+    if not script:
         return
     offset = source[: script.start(1)].count("\n")
     for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):

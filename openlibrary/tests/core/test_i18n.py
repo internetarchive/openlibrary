@@ -308,10 +308,17 @@ def test_extract_messages_reads_lit_templates_and_vue_scripts(tmp_path, monkeypa
 
 
 def test_extract_vue_rejects_calls_in_the_template():
-    source = b"<template><p>{{ gettext('Never extracted') }}</p></template>\n<script>\nconst x = 1;\n</script>\n"
+    """Including after a nested <template>."""
+    source = b"<template><div><template v-if='x'><p>a</p></template><p>{{ gettext('Never extracted') }}</p></div></template>\n<script>\nconst x = 1;\n</script>\n"
 
     with pytest.raises(ValueError, match="not <template>"):
         list(i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {}))
+
+
+def test_extract_vue_reads_html_strings_in_the_script():
+    source = b"<template><p>{{ x }}</p></template>\n<script>\nconst html = '</template>';\nconst x = gettext('In the script');\n</script>\n"
+
+    assert [m[2] for m in i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {})] == ["In the script"]
 
 
 @pytest.fixture
