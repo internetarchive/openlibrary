@@ -5,7 +5,7 @@
  * at `fetch`.
  */
 import { DEFAULT_LABELS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
-import { fmt, plural, translate } from '../../../openlibrary/components/lit/utils/labels.js';
+import { fmt, plural, translate } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
 import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';
@@ -709,7 +709,7 @@ describe('ol-shelf-actions recent lists', () => {
 
         shortcut.click();
         await tick(next);
-        const post = calls.filter(c => c.url === '/people/tester/lists/OL1L/seeds.json').pop();
+        const post = calls.findLast(c => c.url === '/people/tester/lists/OL1L/seeds.json');
         expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/books/OL8M' }] });
         expect(q(next, '.row.shortcut').getAttribute('aria-pressed')).toBe('true');
     });
@@ -1999,5 +1999,25 @@ describe('ol-shelf-actions analytics labels', () => {
         qa(el, '.group.shelves .row[data-shelf]')[0].click();
         await tick(el);
         expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:no-response']]);
+    });
+});
+
+describe('ol-shelf-actions lists-only', () => {
+    test('an edition with no work says why the shelves and stars are missing', async () => {
+        stubFetch();
+        const el = await mount({ listsOnly: true, book: { key: '/books/OL7M', title: 'An orphan' } });
+        await tick(el);
+        expect(q(el, '.note').textContent).toContain('has no work record yet');
+        expect(q(el, '.header .heading').textContent).toBe('An orphan');
+        expect(q(el, '.lists-title')).toBeNull();
+        expect(q(el, '.group.shelves')).toBeNull();
+    });
+
+    test('an author needs no explanation', async () => {
+        stubFetch();
+        const el = await mount({ listsOnly: true, book: { key: '/authors/OL9A', title: 'An author' } });
+        await tick(el);
+        expect(q(el, '.lists-title').textContent).toBe('An author');
+        expect(q(el, '.note')).toBeNull();
     });
 });

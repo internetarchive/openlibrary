@@ -107,6 +107,8 @@ class SearchScheme:
         if q_param == "*:*":
             # This is a special solr syntax; don't process
             return q_param
+        if not q_param.strip():
+            return ""
 
         try:
             q_param = escape_unknown_fields(
@@ -124,9 +126,9 @@ class SearchScheme:
                 lower=False,
             )
             q_tree = luqum_parser(q_param)
-        except ParseError:
-            # This isn't a syntactically valid lucene query
-            logger.warning("Invalid lucene query", exc_info=True)
+        except ParseError as e:
+            # Malformed user input, not a server problem; fall back to escaping it
+            logger.debug("Invalid lucene query: %s", e)
             # Escape everything we can
             q_tree = luqum_parser(fully_escape_query(q_param))
 

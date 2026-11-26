@@ -1,8 +1,6 @@
 import datetime as dt
 from typing import TYPE_CHECKING
 
-import web
-
 from infogami.utils.view import public
 from openlibrary.utils.request_context import site
 
@@ -20,7 +18,7 @@ def get_group(name):
     """
     Returns the group named 'name'.
     """
-    return web.ctx.site.get(f"/usergroup/{name}")
+    return site.get().get(f"/usergroup/{name}")
 
 
 class RunAs:
@@ -138,19 +136,19 @@ def find(username: str | None = None, lusername: str | None = None, email: str |
 
 
 def register(username, email, password, displayname):
-    web.ctx.site.register(username=username, email=email, password=password, displayname=displayname)
+    site.get().register(username=username, email=email, password=password, displayname=displayname)
 
 
 def login(username, password):
-    web.ctx.site.login(username, password)
+    site.get().login(username, password)
 
 
 def update_account(username, **kargs):
-    web.ctx.site.update_account(username, **kargs)
+    site.get().update_account(username, **kargs)
 
 
 def get_link(code: str) -> Link | bool:
-    docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
+    docs = site.get().store.values(type="account-link", name="code", value=code)
     if docs:
         doc = docs[0]
         return Link(doc)

@@ -43,7 +43,7 @@
   text-decoration: none;
   color: var(--color-text);
   white-space: nowrap;
-  font-size: 0.9em;
+  font-size: var(--font-size-body-small);
   display: block;
 }
 

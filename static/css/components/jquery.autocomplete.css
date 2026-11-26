@@ -56,14 +56,14 @@
 }
 
 .ac_author .action {
-  font-size: 9px;
+  font-size: var(--font-size-label-small);
   color: var(--color-success-fg);
 }
 
 .ac_author .books {
   font-size: var(--font-size-label-medium);
   color: var(--color-success-fg);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 0;
 }
 
@@ -108,7 +108,7 @@
 .ac_work .edition_count {
   font-size: var(--font-size-label-medium);
   color: var(--color-success-fg);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 0;
 }
 

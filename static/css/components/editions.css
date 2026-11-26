@@ -19,6 +19,12 @@ table#editions .cta-button-group,
   margin: 0 auto;
 }
 
+table#editions .return-form,
+.editions-table .return-form {
+  width: 185px;
+  margin-inline: auto;
+}
+
 table#editions .book-preview-buttons,
 .editions-table .book-preview-buttons {
   margin-bottom: var(--spacing-stack-sm);
@@ -73,7 +79,7 @@ table#editions th,
 .editions-table th {
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   line-height: normal;
   text-align: left;
@@ -177,7 +183,7 @@ table#editions .highlight,
   font-family: var(--font-family-body) !important;
   background-color: transparent;
   text-align: left;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   font-size: 0.6875em;
   color: var(--color-text-heading);
   padding: 0 0 var(--spacing-inset-sm);
@@ -304,7 +310,8 @@ table#editions .highlight,
     padding: 0 var(--spacing-inset-sm);
   }
 
-  table#editions .cta-button-group {
+  table#editions .cta-button-group,
+  table#editions .return-form {
     width: unset;
   }
 

@@ -1,7 +1,7 @@
 """Tests for the human verification challenge page (/verify_human).
 
-The route and its POST live in ``openlibrary/fastapi/account.py`` on the
-``pages`` router. Which ``next`` values are safe is tested in
+The page is on the ``pages`` router in ``openlibrary/fastapi/account.py``,
+and its POST, which returns JSON, on ``router``. Which ``next`` values are safe is tested in
 ``test_is_safe_redirect``; here we only check that the page uses it.
 """
 
@@ -16,13 +16,13 @@ from infogami import config
 from infogami.utils.context import context
 from openlibrary.accounts.model import check_human_cookies
 from openlibrary.core.jinja import render_jinja_template
-from openlibrary.fastapi.account import pages
+from openlibrary.fastapi.account import pages, router
 from openlibrary.plugins.upstream import account as legacy_account
 
 
 @pytest.fixture
 def client(site_page_app) -> TestClient:
-    return TestClient(site_page_app(pages))
+    return TestClient(site_page_app(pages, router))
 
 
 def test_renders_with_same_origin_next(client, webpy_leftovers):

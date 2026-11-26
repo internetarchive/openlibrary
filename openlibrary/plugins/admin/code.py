@@ -1,22 +1,14 @@
 """Plugin to provide admin interface."""
 
-import functools
 import json
 import logging
-import os
 import re
-import socket
-import subprocess
 import sys
-import traceback
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 
-import requests
 import web
-from internetarchive.exceptions import ItemLocateError
 
-import openlibrary
 from infogami import config
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
@@ -24,10 +16,7 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message, public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import Account, OpenLibraryAccount, clear_cookies
-from openlibrary.catalog.add_book import (
-    create_ol_subjects_for_ocaid,
-    update_ia_metadata_for_ol_edition,
-)
+from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition
 from openlibrary.core import (
     admin as admin_stats,
 )
@@ -35,9 +24,15 @@ from openlibrary.core import (
     cache,
     imports,
 )
+from openlibrary.core.env import get_ol_env
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.models import Work
+from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
+from openlibrary.plugins.admin import new_accounts
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -57,6 +52,10 @@ def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     admin_tasks.append(t)
 
 
+# `lists` is the pre-#12226 action; older changesets still carry it.
+LIST_CREATE_ACTIONS = ("lists", "create-list", "create-series")
+
+
 def revert_all_user_edits(account: Account) -> tuple[int, int]:
     """
     :return: tuple of (number of edits reverted, number of documents deleted)
@@ -68,11 +67,11 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     while not stop:
         changes = account.get_recentchanges(limit=100, offset=100 * i)
         added_records: list[list[dict]] = [c.changes for c in changes if c.kind == "add-book"]
-        # Also delete lists `created` by this user
+        # Also delete lists and series `created` by this user
         added_records.extend(
             [r for r in c.changes if r.get("revision") == 1]  # created, not just edited
             for c in changes
-            if c.kind == "lists"
+            if c.kind in LIST_CREATE_ACTIONS
         )
         flattened_records: list[dict] = [record for lst in added_records for record in lst]
         keys_to_delete |= {r["key"] for r in flattened_records}
@@ -82,7 +81,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
             for item in change.changes:
                 keys_to_revert[item.key].append(change.id)
 
-        deleted_keys = web.ctx.site.things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
+        deleted_keys = site.get().things({"key": list(keys_to_revert), "type": {"key": "/type/delete"}})
 
         changesets_with_deleted_works = {change_id for key in deleted_keys for change_id in keys_to_revert[key]}
 
@@ -95,7 +94,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
             stop = True
 
     delete_payload = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
-    web.ctx.site.save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
+    site.get().save_many(delete_payload, "Delete spam", action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -111,13 +110,13 @@ def revert_changesets(changeset_ids: Iterable[int], comment: str):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
         else:
-            return web.ctx.site.get(key, revision).dict()
+            return site.get().get(key, revision).dict()
 
-    site = web.ctx.site
-    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in site.get_change(cid).changes]
+    _site = site.get()
+    docs = [get_doc(c["key"], c["revision"] - 1) for cid in changeset_ids for c in _site.get_change(cid).changes]
     docs = [doc for doc in docs if doc.get("type", {}).get("key") != "/type/delete"]
     data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-    manifest = web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+    manifest = site.get().save_many(docs, action="revert", data=data, comment=comment)
     return manifest, len(docs)
 
 
@@ -153,70 +152,12 @@ class admin(delegate.page):
 
     def is_admin(self):
         """Returns True if the current user is in admin usergroup."""
-        return context.user and context.user.key in [m.key for m in web.ctx.site.get("/usergroup/admin").members]
+        return context.user and context.user.key in [m.key for m in site.get().get("/usergroup/admin").members]
 
 
 class admin_index:
     def GET(self):
         return web.seeother("/stats")
-
-
-class gitpull:
-    def GET(self):
-        root = os.path.join(os.path.dirname(openlibrary.__file__), os.path.pardir)
-        root = os.path.normpath(root)
-
-        p = subprocess.Popen(
-            "cd %s && git pull" % root,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-        )
-        out = p.stdout.read()
-        p.wait()
-        return "<pre>" + web.websafe(out) + "</pre>"
-
-
-class reload:
-    def GET(self):
-        if servers := config.get("plugin_admin", {}).get("webservers", []):
-            body = "".join(self.reload(servers))
-        else:
-            body = "No webservers specified in the configuration file."
-
-        return render_template("message", "Reload", body)
-
-    def reload(self, servers):
-        for s in servers:
-            s = s.removesuffix("/") + "/_reload"
-            yield "<h3>" + s + "</h3>"
-            try:
-                response = requests.get(s).text
-                yield "<p><pre>" + response[:100] + "</pre></p>"
-            except:
-                yield "<p><pre>%s</pre></p>" % traceback.format_exc()
-
-
-@functools.cache
-def local_ip():
-
-    return socket.gethostbyname(socket.gethostname())
-
-
-class _reload(delegate.page):
-    def GET(self):
-        # make sure the request is coming from the LAN.
-        if web.ctx.ip not in ["127.0.0.1", "0.0.0.0"] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
-            return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
-
-        from infogami.plugins.wikitemplates import code as wikitemplates
-
-        wikitemplates.load_all()
-
-        from openlibrary.plugins.upstream import code as upstream
-
-        upstream.reload()
-        return delegate.RawText("done")
 
 
 class any:
@@ -236,29 +177,6 @@ class people:
         if account:
             raise web.seeother(f"/admin/people/{account.username}")
         return render_template("admin/people/index", email=i.email, ia_id=i.ia_id)
-
-
-class add_work_to_staff_picks:
-    def GET(self):
-        return render_template("admin/sync")
-
-    def POST(self):
-        i = web.input(action="add", work_id="", subjects="openlibrary_staff_picks")
-        results = {}
-        work_ids = i.work_id.split(",")
-        subjects = i.subjects.split(",")
-        for work_id in work_ids:
-            work = web.ctx.site.get("/works/%s" % work_id)
-            editions = work.editions
-            ocaids = [edition.ocaid for edition in editions if edition.ocaid]
-            results[work_id] = {}
-            for ocaid in ocaids:
-                try:
-                    results[work_id][ocaid] = create_ol_subjects_for_ocaid(ocaid, subjects=subjects)
-                except ItemLocateError as err:
-                    results[work_id][ocaid] = f"Failed to add to staff picks. Error message: {err}"
-
-        return delegate.RawText(json.dumps(results), content_type="application/json")
 
 
 class resolve_redirects:
@@ -402,10 +320,14 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_su(self, account):
+        raise web.forbidden("Temporarily disabled")
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
-        web.setcookie(config.login_cookie_name, code, expires="")
+        # SameSite=Lax must match the login path (_set_login_cookies): without
+        # it the impersonated session is set without the CSRF protection the
+        # rest of the auth flow relies on. See GHSA-wq89-ph2h-pp44.
+        web.setcookie(config.login_cookie_name, code, expires="", samesite="Lax")
 
         return web.seeother("/")
 
@@ -439,9 +361,50 @@ class people_edits:
         raise web.seeother(web.ctx.fullpath)
 
 
-class ipaddress:
+# The actions offered on the accounts ticked on /admin/new-accounts.
+NEW_ACCOUNT_ACTIONS = ("block_account", "block_account_and_revert", "mark_trusted")
+
+
+class new_accounts_view:
+    """Spam review: young accounts ranked by signs of spam, blocked or marked trusted in bulk."""
+
     def GET(self):
-        return render_template("admin/ip/index")
+        i = web.input(days=None, show=None)
+        report = new_accounts.build_report(
+            site.get(),
+            days=new_accounts.clamp_param(i.days, new_accounts.MAX_ACCOUNT_AGE_DAYS, new_accounts.MAX_ACCOUNT_AGE_DAYS_LIMIT),
+            # ?show=look or ?show=all widen the list; by default it holds only likely spam.
+            show=i.show if i.show in new_accounts.SHOW_CHOICES else new_accounts.LIKELY,
+            spam_words=spamcheck.get_spam_words(),
+        )
+        body = render_jinja_template("admin/new_accounts.html.jinja", report=report)
+        return web.template.TemplateResult(__body__=body, title=_("[Admin Center] Spam review"))
+
+    def POST(self):
+        i = web.input(username=[], action="")
+        if i.action not in NEW_ACCOUNT_ACTIONS:
+            raise web.badrequest()
+        found = [account for name in dict.fromkeys(i.username) if name and (account := accounts.find(username=name))]
+        if not found:
+            add_flash_message("error", _("Select at least one account."))
+        elif i.action == "mark_trusted":
+            for account in found:
+                account.add_tag(new_accounts.TRUSTED_TAG)
+            add_flash_message("info", ungettext("Marked %(count)d account trusted.", "Marked %(count)d accounts trusted.", len(found), count=len(found)))
+        else:
+            edits = deleted = 0
+            for account in found:
+                if not account.is_blocked():
+                    account.block()
+                if i.action == "block_account_and_revert":
+                    reverted, removed = revert_all_user_edits(account)
+                    edits, deleted = edits + reverted, deleted + removed
+            message = ungettext("Blocked %(count)d account.", "Blocked %(count)d accounts.", len(found), count=len(found))
+            if i.action == "block_account_and_revert":
+                message += " " + _("Reverted %(edits)d edits and deleted %(deleted)d records.", edits=edits, deleted=deleted)
+            add_flash_message("info", message)
+        # fullpath keeps ?days= and ?show=
+        raise web.seeother(web.ctx.fullpath)
 
 
 class ipaddress_view:
@@ -465,7 +428,7 @@ class ipaddress_view:
 
 class stats:
     def GET(self, today):
-        json = web.ctx.site._conn.request(web.ctx.site.name, "/get", "GET", {"key": "/admin/stats/" + today})
+        json = site.get()._conn.request(site.get().name, "/get", "GET", {"key": "/admin/stats/" + today})
         return delegate.RawText(json)
 
     def POST(self, today):
@@ -475,10 +438,10 @@ class stats:
         raise web.seeother(web.ctx.path)
 
     def get_stats(self, today):
-        stats = web.ctx.site._request("/stats/" + today)
+        stats = site.get()._request("/stats/" + today)
 
         key = "/admin/stats/" + today
-        doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/object"}})
+        doc = site.get().new(key, {"key": key, "type": {"key": "/type/object"}})
         doc.edits = {
             "human": stats.edits - stats.edits_by_bots,
             "bot": stats.edits_by_bots,
@@ -490,7 +453,7 @@ class stats:
 
 class block:
     def GET(self):
-        page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
+        page = site.get().get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
         return render_template("admin/block", page)
 
     def POST(self):
@@ -501,13 +464,13 @@ class block:
         raise web.seeother("/admin/block")
 
     def block_ips(self, ips):
-        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page = site.get().get("/admin/block") or site.get().new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
         page.ips = [{"ip": ip} for ip in ips]
         page._save("updated blocked IPs", action="edit-blocked-ips")
 
 
 def get_blocked_ips():
-    if doc := web.ctx.site.get("/admin/block"):
+    if doc := site.get().get("/admin/block"):
         return [d.ip for d in doc.ips]
     else:
         return []
@@ -556,13 +519,13 @@ class inspect:
         i = web.input(key=None, type=None, name=None, value=None)
 
         if i.key:
-            doc = web.ctx.site.store.get(i.key)
+            doc = site.get().store.get(i.key)
             if doc:
                 docs = [doc]
             else:
                 docs = []
         else:
-            docs = web.ctx.site.store.values(
+            docs = site.get().store.values(
                 type=i.type or None,
                 name=i.name or None,
                 value=i.value or None,
@@ -617,7 +580,7 @@ class permissions:
         return render_template("admin/permissions", perm_records, perm_pages)
 
     def get_permission(self, key):
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         perm = doc and doc.child_permission
         return (perm and perm.key) or "/permission/open"
 
@@ -625,7 +588,7 @@ class permissions:
         """Returns the doc with permission set.
         The caller must save the doc.
         """
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         doc = (doc and doc.dict()) or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
@@ -644,7 +607,7 @@ class permissions:
         works = self.set_permission("/works", i.perm_records)
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
-        web.ctx.site.save_many(
+        site.get().save_many(
             [root, works, books, authors],
             comment="Updated edit policy.",
             action="bulk-edit-permissions",
@@ -660,6 +623,9 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
+        if not get_ol_env().LOCAL_DEV:
+            raise web.forbidden()
+
         import debugpy  # noqa: T100
 
         # Allow other computers to attach to ptvsd at this IP address and port.
@@ -680,7 +646,7 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i["keys"].strip().split()
-        web.ctx.site.store["solr-force-update"] = {
+        site.get().store["solr-force-update"] = {
             "type": "solr-force-update",
             "keys": keys,
             "_rev": None,
@@ -723,16 +689,6 @@ class imports_by_date:
         return render_template("admin/imports_by_date", date=date, summary=summary, items=items)
 
 
-class show_log:
-    def GET(self):
-        i = web.input(name="")
-        logname = i.name
-        filepath = config.get("errorlog", "errors") + "/" + logname + ".html"
-        if os.path.exists(filepath):
-            with open(filepath) as f:
-                return f.read()
-
-
 class pd_dashboard:
     def GET(self):
         dashboard_data = get_pd_dashboard_data()
@@ -741,25 +697,20 @@ class pd_dashboard:
 
 
 def setup():
-    register_admin_page("/admin/git-pull", gitpull, label="git-pull")
-    register_admin_page("/admin/reload", reload, label="Reload Templates")
     register_admin_page("/admin/people", people, label="People")
+    register_admin_page("/admin/new-accounts", new_accounts_view, label="Spam review")
     register_admin_page("/admin/people/([^/]*)", people_view, label="View People")
     register_admin_page("/admin/people/([^/]*)/edits", people_edits, label="Edits")
-    register_admin_page("/admin/ip", ipaddress, label="IP")
     register_admin_page("/admin/ip/(.*)", ipaddress_view, label="View IP")
     register_admin_page(r"/admin/stats/(\d\d\d\d-\d\d-\d\d)", stats, label="Stats JSON")
     register_admin_page("/admin/block", block, label="")
     register_admin_page("/admin/attach_debugger", attach_debugger, label="Attach Debugger")
     register_admin_page("/admin/inspect(?:(/.+))?", inspect, label="")
     register_admin_page("/admin/graphs", _graphs, label="")
-    register_admin_page("/admin/logs", show_log, label="")
     register_admin_page("/admin/permissions", permissions, label="")
     register_admin_page("/admin/solr", solr, label="", librarians=True)
     register_admin_page("/admin/sync", sync_ol_ia, label="", librarians=True)
     register_admin_page("/admin/resolve_redirects", resolve_redirects, label="Resolve Redirects")
-
-    register_admin_page("/admin/staffpicks", add_work_to_staff_picks, label="", librarians=True)
 
     register_admin_page("/admin/imports", imports_home, label="")
     register_admin_page("/admin/imports/add", imports_add, label="")

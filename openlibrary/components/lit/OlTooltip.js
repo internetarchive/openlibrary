@@ -76,7 +76,7 @@ export class OlTooltip extends LitElement {
             padding: 6px 10px;
             background: var(--color-surface-inverse);
             color: var(--color-text-inverse);
-            font-size: 13px;
+            font-size: var(--font-size-body-small);
             line-height: var(--line-height-snug);
             border-radius: var(--border-radius-tooltip);
             pointer-events: none;

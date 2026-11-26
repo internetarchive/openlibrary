@@ -175,6 +175,22 @@ class TestImportAuthor:
         with pytest.raises(AuthorRemoteIdConflictError):
             author_import_record_to_author(searched_author)
 
+    def test_name_match_with_a_conflicting_id_is_a_different_author(self, mock_site):
+        mock_site.save({"name": "E. M. Forster", "key": "/authors/OL1A", "type": {"key": "/type/author"}, "remote_ids": {"project_gutenberg": "999"}})
+
+        new = author_import_record_to_author({"name": "E. M. Forster", "remote_ids": {"project_gutenberg": "975"}})
+
+        assert "key" not in new
+        assert new["remote_ids"] == {"project_gutenberg": "975"}
+
+    def test_name_match_without_a_conflicting_id_gains_the_id(self, mock_site):
+        mock_site.save({"name": "E. M. Forster", "key": "/authors/OL1A", "type": {"key": "/type/author"}, "remote_ids": {"viaf": "1"}})
+
+        found = author_import_record_to_author({"name": "E. M. Forster", "remote_ids": {"project_gutenberg": "975"}})
+
+        assert found.key == "/authors/OL1A"
+        assert found["remote_ids"] == {"viaf": "1", "project_gutenberg": "975"}
+
     def test_second_match_remote_identifier(self, mock_site):
         """
         Next highest priority match is any other remote identifier, such as VIAF, Goodreads ID, Amazon ID, etc.

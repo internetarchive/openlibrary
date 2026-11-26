@@ -30,12 +30,12 @@ class TestCommunityEditsQueueIntegration:
         assert request_id is not None
         assert await CommunityEditsQueue.exists(url)
         # Approve in a far-from-UTC zone so a local-time `updated` would stand out.
-        monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
-        time.tzset()
         try:
-            assert await CommunityEditsQueue.update_request_status(request_id, CommunityEditsQueue.STATUS["MERGED"], "bob", comment="approved") == 1
+            with monkeypatch.context() as mp:
+                mp.setenv("TZ", "Pacific/Kiritimati")  # UTC+14
+                time.tzset()
+                assert await CommunityEditsQueue.update_request_status(request_id, CommunityEditsQueue.STATUS["MERGED"], "bob", comment="approved") == 1
         finally:
-            monkeypatch.undo()
             time.tzset()
 
         row = await fetch_one(

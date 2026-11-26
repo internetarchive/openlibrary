@@ -32,6 +32,7 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
+from markupsafe import Markup
 from web.template import TemplateResult
 from web.utils import Storage
 
@@ -188,36 +189,48 @@ def kebab_case(upper_camel_case: str) -> str:
 
 
 @public
-def render_component(
-    name: str,
-    attrs: dict | None = None,
-    json_encode: bool = True,
-    asyncDefer=False,
-) -> str:
+def vue_component_html(name: str, attrs: dict | None = None, async_defer: bool = False) -> Markup:
+    """The script tag and custom element that render the Vue component built from ``openlibrary/components/<name>.vue``.
+
+    Reads no request state, so it is safe in Jinja templates served by FastAPI.
+
+    :param name: component name, e.g. ``"BulkSearch"`` for ``<ol-bulk-search>``
+    :param attrs: element attributes. Dicts and lists are JSON- then URL-encoded;
+        the component reads them back with ``JSON.parse(decodeURIComponent(...))``.
     """
-    :param str name: Name of the component (excluding extension)
-    :param dict attrs: attributes to add to the component element
-    """
+    return _vue_component_script(name, async_defer) + _vue_component_element(name, attrs)
+
+
+def _vue_component_script(name: str, async_defer: bool) -> Markup:
     from openlibrary.plugins.upstream.code import static_url
 
-    attrs = attrs or {}
-    attrs_str = ""
-    for key, val in attrs.items():
-        if (json_encode and isinstance(val, dict)) or isinstance(val, list):
-            val = json.dumps(val)
-            # On the Vue side use decodeURIComponent to decode
-            val = urllib.parse.quote(val)
-        attrs_str += f' {key}="{val}"'
-    html = ""
+    url = static_url(f"build/components/production/ol-{name}.js")
+    async_attrs = " async defer" if async_defer else ""
+    return Markup('<script type="module"{} src="{}"></script>').format(async_attrs, url)
 
+
+def _vue_component_element(name: str, attrs: dict | None) -> Markup:
+    tag = kebab_case(name)
+    attrs_html = Markup("")
+    for key, val in (attrs or {}).items():
+        if isinstance(val, dict | list):
+            val = urllib.parse.quote(json.dumps(val))
+        attrs_html += Markup(' {}="{}"').format(key, val)
+    return Markup("<ol-{0}{1}></ol-{0}>").format(tag, attrs_html)
+
+
+@public
+def render_component(name: str, attrs: dict | None = None, asyncDefer=False) -> str:
+    """:func:`vue_component_html` for Templetor pages on web.py.
+
+    Writes each component's script tag only once per request, tracked in ``web.ctx``,
+    so it must not run on FastAPI.
+    """
+    html = Markup("")
     if name not in (included := web.ctx.setdefault("included-components", [])):
-        url = static_url("build/components/production/ol-%s.js" % name)
-        script_attrs = "" if not asyncDefer else "async defer"
-        html += f'<script type="module" {script_attrs} src="{url}"></script>'
+        html += _vue_component_script(name, asyncDefer)
         included.append(name)
-
-    html += f"<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>"
-    return html
+    return html + _vue_component_element(name, attrs)
 
 
 @public
@@ -386,7 +399,7 @@ def _get_changes_v1_raw(query: dict[str, str | int], revision: int | None = None
         delegate.fakeload()
         request_context.set_context_from_legacy_web_py()
 
-    versions = web.ctx.site.versions(query)
+    versions = request_context.site.get().versions(query)
 
     for v in versions:
         v.created = v.created.isoformat()
@@ -405,7 +418,7 @@ def get_changes_v1(query: dict[str, str | int], revision: int | None = None) -> 
     def process(v):
         v = Storage(v)
         v.created = parse_datetime(v.created)
-        v.author = v.author and web.ctx.site.get(v.author, lazy=True)
+        v.author = v.author and request_context.site.get().get(v.author, lazy=True)
         return v
 
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
@@ -420,7 +433,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
         delegate.fakeload()
         request_context.set_context_from_legacy_web_py()
 
-    changes = web.ctx.site.recentchanges(query)
+    changes = request_context.site.get().recentchanges(query)
     return [c.dict() for c in changes]
 
 
@@ -429,7 +442,7 @@ def _get_changes_v2_raw(query: dict[str, str | int], revision: int | None = None
 
 
 def get_changes_v2(query: dict[str, str | int], revision: int | None = None) -> list[Changeset]:
-    page = web.ctx.site.get(query["key"])
+    page = request_context.site.get().get(query["key"])
 
     def first(seq, default=None):
         try:
@@ -438,7 +451,7 @@ def get_changes_v2(query: dict[str, str | int], revision: int | None = None) -> 
             return default
 
     def process_change(change):
-        change = Changeset.create(web.ctx.site, storify(change))
+        change = Changeset.create(request_context.site.get(), storify(change))
         change.thing = page
         change.key = page.key
         change.revision = first(c.revision for c in change.changes if c.key == page.key)
@@ -483,7 +496,7 @@ def get_history(page: Work | Author | Edition) -> Storage:
 @public
 def get_version(key, revision):
     try:
-        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+        return request_context.site.get().versions({"key": key, "revision": revision, "limit": 1})[0]
     except IndexError:
         return None
 
@@ -498,8 +511,8 @@ def get_recent_author(doc: Work) -> Thing | None:
 
 @public
 def get_recent_accounts(limit=5, offset=0):
-    versions = web.ctx.site.versions({"type": "/type/user", "revision": 1, "limit": limit, "offset": offset})
-    return web.ctx.site.get_many([v.key for v in versions])
+    versions = request_context.site.get().versions({"type": "/type/user", "revision": 1, "limit": limit, "offset": offset})
+    return request_context.site.get().get_many([v.key for v in versions])
 
 
 def get_locale():
@@ -525,7 +538,7 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
     ]
 
     if v.key.startswith("/books/") and not v.get("machine_comment"):
-        thing = v.get("thing") or web.ctx.site.get(v.key, v.revision)
+        thing = v.get("thing") or request_context.site.get().get(v.key, v.revision)
         if (thing.source_records and v.revision == 1) or (
             v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
         ):
@@ -1204,7 +1217,7 @@ def _get_identifier_config(identifier: Literal["work", "edition", "author"]) -> 
         identifiers = [Storage(id) for id in id_config.get("identifiers", []) if "name" in id]
 
     if identifier == "edition":
-        thing = web.ctx.site.get("/config/edition")
+        thing = request_context.site.get().get("/config/edition")
         classifications = [Storage(t.dict()) for t in thing.classifications if "name" in t]
         roles = thing.roles
         return Storage(classifications=classifications, identifiers=identifiers, roles=roles)
@@ -1294,7 +1307,7 @@ if config.get("upstream_memcache_servers"):
 
 
 def _get_recent_changes():
-    site = web.ctx.get("site") or delegate.create_site()
+    site = request_context.site.get()
     web.ctx.setdefault("ip", "127.0.0.1")
 
     # The recentchanges can have multiple revisions for a document if it has been
@@ -1347,7 +1360,7 @@ def _get_recent_changes2():
         request_context.set_context_from_legacy_web_py()
 
     q = {"bot": False, "limit": 100}
-    changes = web.ctx.site.recentchanges(q)
+    changes = request_context.site.get().recentchanges(q)
 
     def is_ignored(c):
         return (
@@ -1417,9 +1430,9 @@ def create_thing(data: dict) -> Thing:
     """
     Helper method to convert a data object recursively to the correct `Thing`
     classes. Will change the dict to be the same type as when fetched from
-    the database via `web.ctx.site.get`.
+    the database via `site.get().get`.
     """
-    return client.create_thing(web.ctx.site, data["key"], web.ctx.site._process_dict(parse_query(data)))
+    return client.create_thing(request_context.site.get(), data["key"], request_context.site.get()._process_dict(parse_query(data)))
 
 
 @public
@@ -1519,7 +1532,7 @@ class HTMLTagRemover(HTMLParser):
 
 @public
 def get_user_object(username):
-    user = web.ctx.site.get(f"/people/{username}")
+    user = request_context.site.get().get(f"/people/{username}")
     return user
 
 
@@ -1664,7 +1677,7 @@ def get_collection_book_count(page) -> int:
     keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
     # A deleted list still resolves to a Thing, and a non-list key to one with no
     # seed_count, so both would otherwise count as a list holding zero books.
-    lists = web.ctx.site.get_many(sorted(keys))
+    lists = request_context.site.get().get_many(sorted(keys))
     return sum(lst.seed_count for lst in lists if lst.type.key == "/type/list")
 
 

@@ -352,7 +352,7 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
     Should an OL edition's metadata be updated with Amazon book data?
 
     :param book: dict from openlibrary.core.vendors.clean_amazon_metadata_for_load()
-    :param edition: dict from web.ctx.site.get_many(edition_ids)
+    :param edition: dict from site.get().get_many(edition_ids)
     """
     needed_book_fields = []  # book fields that should be copied to the edition
     for book_field, edition_field in AZ_OL_MAP.items():
@@ -361,7 +361,7 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
 
     if needed_book_fields == ["authors"]:  # noqa: SIM102
         if work_key := edition.get("works") and edition["work"][0].get("key"):
-            work = web.ctx.site.get(work_key)
+            work = site_context.get().get(work_key)
             if work.get("authors"):
                 needed_book_fields = []
 
@@ -379,8 +379,8 @@ def get_editions_for_books(books: list[dict]) -> list[dict]:
     :return: list of OL editions dicts
     """
     isbns = get_isbns_from_books(books)
-    unique_edition_ids = set(web.ctx.site.things({"type": "/type/edition", "isbn_": isbns}))
-    return web.ctx.site.get_many(list(unique_edition_ids))
+    unique_edition_ids = set(site_context.get().things({"type": "/type/edition", "isbn_": isbns}))
+    return site_context.get().get_many(list(unique_edition_ids))
 
 
 def get_pending_books(books):
@@ -498,7 +498,7 @@ def make_amazon_lookup_thread() -> threading.Thread:
     """Called from start_server() and assigned to web.amazon_lookup_thread."""
     thread = threading.Thread(
         target=amazon_lookup,
-        args=(web.ctx.site, stats.client, logger),
+        args=(site_context.get(), stats.client, logger),
         daemon=True,
     )
     thread.start()

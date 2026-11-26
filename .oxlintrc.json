@@ -1,7 +1,15 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "unicorn",
+    "typescript",
+    "oxc",
+    "import",
+    "vitest"
+  ],
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
+    "perf": "error"
   },
   "env": {
     "browser": true,
@@ -20,6 +28,7 @@
     "tests/screenshots/"
   ],
   "rules": {
+    "no-await-in-loop": "off",
     "prefer-template": "error",
     "eqeqeq": [
       "error",
@@ -52,7 +61,38 @@
     "no-fallthrough": "error",
     "no-prototype-builtins": "error",
     "no-regex-spaces": "error",
-    "no-unexpected-multiline": "error"
+    "no-unexpected-multiline": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "no-else-return": "error",
+    "import/no-duplicates": "error",
+    "unicorn/escape-case": "error",
+    "unicorn/no-instanceof-array": "error",
+    "unicorn/no-useless-promise-resolve-reject": "error",
+    "no-var": "error",
+    "unicorn/no-typeof-undefined": "error",
+    "unicorn/prefer-regexp-test": "error",
+    "unicorn/prefer-set-has": "error",
+    "array-callback-return": "error",
+    "no-extend-native": "error",
+    "no-lonely-if": "error",
+    "no-sequences": "error",
+    "no-shadow": "error",
+    "no-unneeded-ternary": "error",
+    "no-useless-return": "error",
+    "radix": "error",
+    "unicorn/prefer-array-find": "error",
+    "unicorn/prefer-array-some": "error",
+    "unicorn/prefer-string-slice": "error",
+    "vitest/valid-title": "error",
+    "vitest/valid-expect": [
+      "error",
+      {
+        "maxArgs": 2
+      }
+    ],
+    "vitest/no-conditional-tests": "off",
+    "vitest/no-conditional-expect": "off",
+    "vitest/require-to-throw-message": "off"
   },
   "overrides": [
     {

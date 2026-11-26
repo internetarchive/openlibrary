@@ -8,33 +8,32 @@ export const DEFAULT_STRINGS = {
     perDay: 'Per day',
     perWeek: 'Per week',
     perMonth: 'Per 4 weeks',
-    previousPeriod: 'Previous period',
-    previousValue: 'Previous period: %(count)s',
-    change: '%(change)s vs previous period',
+    split: '%(returning)s returning · %(first_time)s first-time',
+    perEditor: '≈ %(count)s per editor',
+    ofEditorsDetail: '%(share)s of editors',
+    tasksShareDetail: 'of edits · %(share)s of editors',
+    shareOfEdits: '%(share)s of all edits',
+    shareOfEditors: '%(share)s of all editors',
+    perEditorOverall: 'vs ≈ %(count)s edits per editor overall',
     todaySoFar: 'Today so far, updated hourly',
     periodSoFar: 'Still in progress',
     openDetails: '%(count)s details still open',
     tasksUndone: 'Tasks: %(share)s undone, %(undone)s of %(total)s saves',
     otherUndone: 'Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills',
     noData: 'No counts for this range yet.',
+    returning: 'Returning',
+    firstTime: 'First edit ever',
+    otherEdits: 'Outside Tasks',
+    tasks: 'Tasks',
+    total: 'Total: %(count)s',
+    ofEdits: 'Of edits',
+    ofEditors: 'Of editors',
     loadFailed: "The charts couldn't load. Reload the page to try again."
 };
 
 // Enough for a 12-month range; matches MAX_DAYS in openlibrary/fastapi/stats.py.
 const FETCH_DAYS = 400;
 const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
-
-/**
- * What each card charts. Counts of people can't be added up across days, so week and month views of those take the stored
- * 7- or 28-day window ending on the period's last day instead.
- * @type {Record<string, {daily: string, windows?: {week: string, month: string}}>}
- */
-const METRICS = {
-    editors: { daily: 'catalog_editors_1d', windows: { week: 'catalog_editors_7d', month: 'catalog_editors_28d' } },
-    new_editors: { daily: 'new_catalog_editors_1d' },
-    saves: { daily: 'tasks_saves_1d' },
-    tasks_editors: { daily: 'tasks_editors_1d', windows: { week: 'tasks_editors_7d', month: 'tasks_editors_28d' } }
-};
 
 /**
  * @typedef {object} TasksSeries
@@ -69,7 +68,7 @@ function readStrings(root) {
 
 /**
  * Group days into periods of `size` days, counting back from the last day so the latest period ends today. Days left
- * over at the start are dropped, since a short period can't be compared with a full one.
+ * over at the start are dropped, since a short period would read as a drop.
  * @param {(number | null)[]} daily
  * @param {number} size
  * @param {(number | null)[]} [rolling] a rolling series to sample at each period's end, for counts that don't add up
@@ -92,15 +91,30 @@ export function bucketize(daily, size, rolling) {
 }
 
 /**
- * The last `count` buckets, and the `count` before them lined up beside them, padded with nulls where history runs out.
- * @param {Bucket[]} buckets
- * @param {number} count
+ * One series less another, day by day: null where either is missing, never below zero.
+ * @param {(number | null)[]} a
+ * @param {...(number | null)[]} others
  */
-export function splitPeriods(buckets, count) {
-    const current = buckets.slice(-count);
-    const before = buckets.slice(Math.max(0, buckets.length - 2 * count), Math.max(0, buckets.length - count));
-    const previous = [...Array(current.length - before.length).fill(null), ...before];
-    return { current, previous };
+export function subtract(a, ...others) {
+    return a.map((v, i) =>
+        v === null || others.some(o => o[i] === null)
+            ? null
+            : Math.max(
+                  0,
+                  others.reduce((rest, o) => rest - /** @type {number} */ (o[i]), v)
+              )
+    );
+}
+
+/**
+ * `num` over `den`, period by period, times `scale`: null without both.
+ * @param {Bucket[]} num
+ * @param {Bucket[]} den
+ * @param {number} scale
+ * @returns {Bucket[]}
+ */
+export function ratio(num, den, scale) {
+    return num.map((b, i) => ({ ...b, value: b.value !== null && den[i]?.value ? (b.value / /** @type {number} */ (den[i].value)) * scale : null }));
 }
 
 /**
@@ -113,6 +127,21 @@ export function pointRadii(values) {
 }
 
 /**
+ * @typedef {object} Part
+ * @property {string} label
+ * @property {string} color
+ * @property {Bucket[]} buckets
+ */
+
+/**
+ * @typedef {object} Metric
+ * @property {Part[]} parts stacked bottom up
+ * @property {Bucket[]} total the stack's height, which the cards and tooltips show
+ * @property {'count' | 'percent' | 'decimal'} format
+ * @property {(number | null)[][]} [complete] daily series a card needs every day of, or its sum would read as a drop
+ */
+
+/**
  * @param {HTMLElement} root the page's `.tasks-stats` element
  */
 export async function init(root) {
@@ -120,18 +149,18 @@ export async function init(root) {
     const style = getComputedStyle(root);
     const token = (/** @type {string} */ name) => style.getPropertyValue(name).trim();
     const bar = resolveColor(root, 'var(--color-stats-chart-bar)');
+    const accent = resolveColor(root, 'var(--color-stats-chart-accent)');
     const colors = {
         bar,
-        // The day or period still being counted
-        partial: withAlpha(bar, 0.45),
+        accent,
         area: withAlpha(bar, 0.25),
-        previous: token('--color-text-secondary'),
+        previous: resolveColor(root, 'var(--color-text-secondary)'),
         grid: token('--color-border-subtle'),
-        text: token('--color-text'),
+        text: resolveColor(root, 'var(--color-text)'),
         surface: token('--color-surface')
     };
     Chart.defaults.font.family = token('--font-family-body');
-    Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
+    Chart.defaults.font.size = parseInt(token('--font-size-body-small'), 10);
     Chart.defaults.color = colors.previous;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
 
@@ -145,22 +174,110 @@ export async function init(root) {
         const error = document.createElement('p');
         error.className = 'tasks-stats__error';
         error.textContent = strings.loadFailed;
-        root.querySelector('.tasks-stats__cards')?.after(error);
+        root.querySelector('.tasks-stats__main')?.before(error);
         return;
     }
 
     const lang = document.documentElement.lang || undefined;
     const dayFormat = new Intl.DateTimeFormat(lang, { month: 'short', day: 'numeric', timeZone: 'UTC' });
     const fullFormat = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-    const numberFormat = new Intl.NumberFormat(lang);
+    const numberFormat = new Intl.NumberFormat(lang, { maximumFractionDigits: 0 });
+    const decimalFormat = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const percentFormat = new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 1 });
+    const compactFormat = new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 });
+    const formats = {
+        count: (/** @type {number} */ v) => numberFormat.format(v),
+        decimal: (/** @type {number} */ v) => decimalFormat.format(v),
+        percent: (/** @type {number} */ v) => percentFormat.format(v / 100)
+    };
     const dates = data.dates.map(d => new Date(`${d}T00:00:00Z`));
     const lastDay = dates.length - 1;
-    const series = (/** @type {string} */ key) => data.series[key] || dates.map(() => null);
+    const fullSeries = (/** @type {string} */ key) => data.series[key] || dates.map(() => null);
+    const series = fullSeries;
 
-    const projects = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-initiative]'));
-    const pressed = [...projects].find(card => card.getAttribute('aria-pressed') === 'true');
-    const state = { days: 90, granularity: 'day', compare: true, metric: 'editors', initiative: pressed?.dataset.initiative || '' };
+    /**
+     * Every chart and card metric, over the days up to `n`. The cards end on the last day the stats script has gathered,
+     * like the server's, so a late run reads as the latest counts rather than a dash.
+     * @param {number} n
+     */
+    function buildMetrics(n) {
+        const trimmedSeries = (/** @type {string} */ key) => fullSeries(key).slice(0, n);
+        // Edits to editions and works, split by where they were saved. A day with edits but no Tasks count had none.
+        const edits = trimmedSeries('book_edits');
+        const orZero = (/** @type {(number | null)[]} */ values) => values.map((v, i) => (edits[i] === null ? null : (v ?? 0)));
+        const tasksSaves = orZero(trimmedSeries('tasks_saves_1d'));
+
+        /**
+         * People can't be added up across days, so week and month views of them take the stored 7- or 28-day window ending on
+         * the period's last day instead.
+         * @param {string} prefix e.g. `book_editors`, with `_1d`, `_7d` and `_28d` keys
+         * @param {number} size
+         */
+        const people = (prefix, size) =>
+            bucketize(trimmedSeries(`${prefix}_1d`), size, size === 1 ? undefined : trimmedSeries(`${prefix}_${size === 7 ? 7 : 28}d`));
+        const sum = (/** @type {(number | null)[]} */ daily, /** @type {number} */ size) => bucketize(daily, size);
+        /** @param {Part[]} parts */
+        const stackTotal = parts =>
+            parts[0].buckets.map((b, i) => {
+                const values = parts.map(p => p.buckets[i].value);
+                return { ...b, value: values.every(v => v === null) ? null : values.reduce((a, v) => /** @type {number} */ (a) + (v ?? 0), 0) };
+            });
+
+        /** @type {Record<string, (size: number) => Metric>} */
+        const METRICS = {
+            editors: size => {
+                const all = people('book_editors', size);
+                const firstTime = people('new_book_editors', size);
+                const returning = all.map((b, i) => ({
+                    ...b,
+                    value: b.value === null || firstTime[i].value === null ? null : Math.max(0, b.value - firstTime[i].value)
+                }));
+                return {
+                    parts: [
+                        { label: strings.returning, color: colors.bar, buckets: returning },
+                        { label: strings.firstTime, color: colors.accent, buckets: firstTime }
+                    ],
+                    total: all,
+                    format: 'count'
+                };
+            },
+            edits: size => {
+                const parts = [
+                    { label: strings.otherEdits, color: colors.bar, buckets: sum(subtract(edits, tasksSaves), size) },
+                    { label: strings.tasks, color: colors.accent, buckets: sum(tasksSaves, size) }
+                ];
+                return { parts, total: stackTotal(parts), format: 'count', complete: [edits] };
+            },
+            new_editors: size => single(people('new_book_editors', size), 'count', colors.accent),
+            tasks_share: size => ({ ...single(ratio(sum(tasksSaves, size), sum(edits, size), 100), 'percent'), complete: [edits] }),
+            saves: size => single(sum(trimmedSeries('tasks_saves_1d'), size), 'count'),
+            tasks_editors: size => single(people('tasks_editors', size), 'count'),
+            saves_per_editor: size => single(ratio(sum(trimmedSeries('tasks_saves_1d'), size), people('tasks_editors', size), 1), 'decimal')
+        };
+        return { METRICS, edits, tasksSaves };
+    }
+    const { METRICS, edits, tasksSaves } = buildMetrics(dates.length);
+    const gathered = Math.max(...['book_editors_1d', 'book_edits', 'tasks_saves_1d'].map(key => fullSeries(key).findLastIndex(v => v !== null)));
+    const CARD_METRICS = gathered >= 0 ? buildMetrics(gathered + 1).METRICS : METRICS;
+
+    /**
+     * @param {Bucket[]} buckets
+     * @param {Metric['format']} format
+     * @param {string} [color]
+     * @returns {Metric}
+     */
+    function single(buckets, format, color = colors.bar) {
+        return { parts: [{ label: '', color, buckets }], total: buckets, format };
+    }
+
+    const state = {
+        scope: root.dataset.scope || 'all',
+        days: 90,
+        granularity: 'day',
+        metric: '',
+        // The cards' window
+        window: 28
+    };
 
     /** @param {Bucket} bucket */
     const shortLabel = bucket =>
@@ -176,11 +293,11 @@ export async function init(root) {
     const bucketCount = () => Math.max(1, Math.floor(state.days / BUCKET_DAYS[state.granularity]));
 
     /**
-     * @param {string} name
+     * @param {string | HTMLCanvasElement} target a `data-chart` name, or the canvas itself
      * @param {import('chart.js').ChartConfiguration} config
      */
-    function draw(name, config) {
-        const canvas = /** @type {HTMLCanvasElement} */ (root.querySelector(`canvas[data-chart="${name}"]`));
+    function draw(target, config) {
+        const canvas = typeof target === 'string' ? /** @type {HTMLCanvasElement} */ (root.querySelector(`canvas[data-chart="${target}"]`)) : target;
         const existing = Chart.getChart(canvas);
         if (existing) {
             existing.data = config.data;
@@ -204,15 +321,18 @@ export async function init(root) {
      * @param {object} [overrides]
      * @param {Partial<import('chart.js').TooltipCallbacks<any>>} [overrides.tooltip]
      * @param {object} [overrides.y]
+     * @param {object} [overrides.xTickOptions]
+     * @param {boolean} [overrides.stacked]
+     * @param {number} [overrides.xTicks]
      */
-    function options({ tooltip = {}, y = {} } = {}) {
+    function options({ tooltip = {}, y = {}, xTickOptions = {}, stacked = false, xTicks = 8 } = {}) {
         return {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: /** @type {const} */ ('index'), intersect: false },
             scales: {
-                x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
-                y: { beginAtZero: true, border: { display: false }, grid: { color: colors.grid }, ticks: { precision: 0 }, ...y }
+                x: { stacked, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: xTicks, ...xTickOptions } },
+                y: { stacked, beginAtZero: true, border: { display: false }, grid: { color: colors.grid }, ticks: { precision: 0 }, ...y }
             },
             plugins: {
                 tooltip: {
@@ -230,86 +350,175 @@ export async function init(root) {
         };
     }
 
-    /** @param {Bucket[]} buckets */
-    function barDataset(buckets) {
-        return {
-            type: /** @type {const} */ ('bar'),
-            data: buckets.map(b => b.value),
-            backgroundColor: buckets.map(b => (b.end === lastDay ? colors.partial : colors.bar)),
-            borderRadius: 2,
-            barPercentage: buckets.length > 120 ? 1 : 0.8,
-            categoryPercentage: 0.9,
-            order: 2
-        };
-    }
+    /** @param {Metric['format']} format */
+    const axis = format => (format === 'count' ? {} : { ticks: { callback: (/** @type {number} */ v) => formats[format](v) } });
 
     function drawMain() {
-        const metric = METRICS[state.metric];
-        const size = BUCKET_DAYS[state.granularity];
-        const rolling = metric.windows && state.granularity !== 'day' ? series(metric.windows[state.granularity]) : undefined;
-        const { current, previous } = splitPeriods(bucketize(series(metric.daily), size, rolling), bucketCount());
-        const datasets = [barDataset(current)];
-        if (state.compare) {
-            datasets.push({
-                type: 'line',
-                data: previous.map(b => b?.value ?? null),
-                borderColor: colors.previous,
-                borderDash: [4, 4],
-                borderWidth: 1.5,
-                pointRadius: 0,
-                pointHitRadius: 0,
-                tension: 0.25,
-                order: 1
-            });
-        }
+        const metric = METRICS[state.metric](BUCKET_DAYS[state.granularity]);
+        const count = bucketCount();
+        const format = formats[metric.format];
+        const current = metric.total.slice(-count);
+        const stacked = metric.parts.length > 1;
+        const datasets = metric.parts.map(part => {
+            const buckets = part.buckets.slice(-count);
+            return {
+                type: /** @type {const} */ ('bar'),
+                label: part.label,
+                data: buckets.map(b => b.value),
+                // The day or period still being counted is paler
+                backgroundColor: buckets.map(b => (b.end === lastDay ? withAlpha(part.color, 0.45) : part.color)),
+                borderRadius: stacked ? 0 : 2,
+                barPercentage: buckets.length > 120 ? 1 : 0.8,
+                categoryPercentage: 0.9,
+                stack: 'parts'
+            };
+        });
         draw('main', {
             type: 'bar',
             data: { labels: current.map(shortLabel), datasets },
             options: options({
+                stacked,
+                y: axis(metric.format),
                 tooltip: {
                     title: items => fullLabel(current[items[0].dataIndex]),
-                    label: item => {
-                        if (item.dataset.type === 'line') return fill(strings.previousValue, { count: numberFormat.format(item.raw) });
-                        const before = previous[item.dataIndex]?.value;
-                        if (!state.compare || !before) return numberFormat.format(item.raw);
-                        const change = (item.raw - before) / before;
-                        return `${numberFormat.format(item.raw)}  (${fill(strings.change, { change: `${change >= 0 ? '+' : ''}${percentFormat.format(change)}` })})`;
-                    },
-                    footer: items => inProgressNote(current[items[0].dataIndex])
+                    label: item => (stacked ? `${item.dataset.label}: ${format(item.raw)}` : format(item.raw)),
+                    footer: items => {
+                        const index = items[0].dataIndex;
+                        const total = current[index].value;
+                        const lines = [];
+                        if (stacked && total !== null) lines.push(fill(strings.total, { count: format(total) }));
+                        lines.push(inProgressNote(current[index]));
+                        return lines.filter(Boolean);
+                    }
+                }
+            })
+        });
+        unit.textContent = units[state.granularity];
+        parts.replaceChildren(
+            ...(stacked ? metric.parts : []).map(part => {
+                const item = document.createElement('span');
+                item.className = 'tasks-stats__part';
+                item.style.setProperty('--swatch', part.color);
+                item.textContent = part.label;
+                return item;
+            })
+        );
+    }
+
+    /**
+     * A daily line over the chosen range.
+     * @param {string} name
+     * @param {{values: (number | null)[], color: string, dashed?: boolean, label?: string}[]} lines
+     * @param {Metric['format']} format
+     */
+    function drawLines(name, lines, format) {
+        const days = bucketize(lines[0].values, 1).slice(-state.days);
+        draw(name, {
+            type: 'line',
+            data: {
+                labels: days.map(shortLabel),
+                datasets: lines.map(line => {
+                    // Today is still being counted, so a line would end in a false drop.
+                    const values = days.map(d => (d.end === lastDay ? null : line.values[d.end]));
+                    return {
+                        label: line.label,
+                        data: values,
+                        borderColor: line.color,
+                        backgroundColor: withAlpha(line.color, 0.2),
+                        pointBackgroundColor: line.color,
+                        borderDash: line.dashed ? [4, 4] : [],
+                        borderWidth: line.dashed ? 1.5 : 2,
+                        pointRadius: pointRadii(values),
+                        tension: 0.25
+                    };
+                })
+            },
+            options: options({
+                xTicks: 8,
+                y: axis(format),
+                tooltip: {
+                    title: items => fullLabel(days[items[0].dataIndex]),
+                    label: item => (item.dataset.label ? `${item.dataset.label}: ` : '') + formats[format](item.raw)
                 }
             })
         });
     }
 
-    // The initiative and guardrail lines are daily snapshots, so they follow the range but not the grouping.
-    function drawDailyLines() {
-        const openGaps = data.initiatives?.[state.initiative] || dates.map(() => null);
-        const days = bucketize(openGaps, 1).slice(-state.days);
-        draw('initiative', {
+    // Daily lines follow the range but not the grouping.
+    function drawAllPanels() {
+        const perDay = (/** @type {(number | null)[]} */ num, /** @type {(number | null)[]} */ den, /** @type {number} */ scale) =>
+            num.map((v, i) => (v !== null && den[i] ? (v / /** @type {number} */ (den[i])) * scale : null));
+        drawLines(
+            'share',
+            [
+                { values: perDay(tasksSaves, edits, 100), color: colors.accent, label: strings.ofEdits },
+                {
+                    values: perDay(series('tasks_editors_1d'), series('book_editors_1d'), 100),
+                    color: colors.previous,
+                    dashed: true,
+                    label: strings.ofEditors
+                }
+            ],
+            'percent'
+        );
+    }
+
+    /**
+     * One project's open details from its first snapshot to today, on an axis from zero to the details open when it
+     * started, so the line's distance from the floor is how much is left.
+     * @param {HTMLCanvasElement} canvas
+     */
+    function drawProject(canvas) {
+        const openGaps = data.initiatives?.[canvas.dataset.initiative || ''] || [];
+        const first = openGaps.findIndex(v => v !== null);
+        const days = first < 0 ? [] : bucketize(openGaps, 1).slice(first);
+        const values = days.map(b => b.value);
+        const top = Math.max(Number(canvas.dataset.start) || 0, ...values.map(v => v ?? 0)) || 1;
+        const labels = days.map(shortLabel);
+        draw(canvas, {
             type: 'line',
             data: {
-                labels: days.map(shortLabel),
+                labels,
                 datasets: [
                     {
-                        data: days.map(b => b.value),
+                        data: values,
                         borderColor: colors.bar,
                         backgroundColor: colors.area,
                         pointBackgroundColor: colors.bar,
                         fill: true,
-                        borderWidth: 2.5,
-                        pointRadius: pointRadii(days.map(b => b.value)),
+                        borderWidth: 2,
+                        pointRadius: values.map((_, i) => (i === values.length - 1 ? 3 : 0)),
+                        // A missed nightly count shouldn't break the line
+                        spanGaps: true,
                         tension: 0.2
                     }
                 ]
             },
             options: options({
-                y: { beginAtZero: false },
+                // A sparkline has room to label only the first and last day.
+                xTickOptions: {
+                    autoSkip: false,
+                    align: 'inner',
+                    callback: (/** @type {number} */ _, /** @type {number} */ i) => (i === 0 || i === days.length - 1 ? labels[i] : '')
+                },
+                y: {
+                    min: 0,
+                    max: top,
+                    afterBuildTicks: (/** @type {import('chart.js').Scale} */ scale) => {
+                        scale.ticks = [{ value: 0 }, { value: top }];
+                    },
+                    ticks: { callback: (/** @type {number} */ v) => compactFormat.format(v) }
+                },
                 tooltip: {
                     title: items => fullLabel(days[items[0].dataIndex]),
                     label: item => fill(strings.openDetails, { count: numberFormat.format(item.raw) })
                 }
             })
         });
+    }
+
+    function drawTasksPanels() {
+        root.querySelectorAll('canvas[data-chart="initiative"]').forEach(canvas => drawProject(/** @type {HTMLCanvasElement} */ (canvas)));
 
         // Each line is a share of the 28 days to that day, left out where fewer than `minSample` saves stand behind it.
         const minSample = Number(root.dataset.minSample) || 0;
@@ -367,54 +576,118 @@ export async function init(root) {
         });
     }
 
+    const drawPanels = () => (state.scope === 'tasks' ? drawTasksPanels() : drawAllPanels());
+
     const title = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-title'));
     const unit = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-unit'));
-    const legend = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__legend'));
+    const parts = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const note = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-note'));
     const cards = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-metric]'));
     const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
 
-    function update() {
-        unit.textContent = units[state.granularity];
-        legend.hidden = !state.compare;
+    /** @param {HTMLButtonElement} card */
+    function choose(card) {
+        state.metric = card.dataset.metric || 'editors';
+        card.closest('[data-scope]')
+            ?.querySelectorAll('.tasks-stats__card[data-metric]')
+            .forEach(other => other.setAttribute('aria-pressed', String(other === card)));
+        title.textContent = card.querySelector('.tasks-stats__card-label')?.textContent || '';
+        note.textContent = card.dataset.note || '';
         drawMain();
     }
 
-    cards.forEach(card =>
-        card.addEventListener('click', () => {
-            state.metric = card.dataset.metric || 'editors';
-            cards.forEach(other => other.setAttribute('aria-pressed', String(other === card)));
-            title.textContent = card.querySelector('.tasks-stats__card-label')?.textContent || '';
-            note.textContent = card.dataset.note || '';
-            drawMain();
-        })
-    );
-    projects.forEach(card =>
-        card.addEventListener('click', () => {
-            state.initiative = card.dataset.initiative || '';
-            projects.forEach(other => other.setAttribute('aria-pressed', String(other === card)));
-            root.querySelectorAll('[data-initiative-figures]').forEach(figures => {
-                /** @type {HTMLElement} */ (figures).hidden = /** @type {HTMLElement} */ (figures).dataset.initiativeFigures !== state.initiative;
-            });
-            drawDailyLines();
-        })
-    );
+    /** @param {string} scope */
+    function showScope(scope) {
+        state.scope = scope;
+        root.dataset.scope = scope;
+        root.querySelectorAll('[data-scope]').forEach(el => {
+            /** @type {HTMLElement} */ (el).hidden = /** @type {HTMLElement} */ (el).dataset.scope !== scope;
+        });
+        const group = root.querySelector(`.tasks-stats__cards[data-scope="${scope}"]`);
+        const card = group?.querySelector('[aria-pressed="true"]') || group?.querySelector('.tasks-stats__card');
+        if (card) choose(/** @type {HTMLButtonElement} */ (card));
+        drawPanels();
+    }
+
+    cards.forEach(card => card.addEventListener('click', () => choose(card)));
+    root.querySelector('.tasks-stats__scope')?.addEventListener('ol-segmented-control-change', event => {
+        const scope = /** @type {CustomEvent} */ (event).detail.value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('scope', scope);
+        history.replaceState(null, '', url);
+        showScope(scope);
+    });
     root.querySelector('.tasks-stats__range')?.addEventListener('ol-segmented-control-change', event => {
         state.days = Number(/** @type {CustomEvent} */ (event).detail.value);
-        update();
-        drawDailyLines();
+        drawMain();
+        drawPanels();
     });
     root.querySelector('.tasks-stats__granularity')?.addEventListener('ol-segmented-control-change', event => {
         state.granularity = /** @type {CustomEvent} */ (event).detail.value;
-        update();
+        drawMain();
     });
-    root.querySelector('.tasks-stats__compare')?.addEventListener('ol-toggle-change', event => {
-        state.compare = /** @type {CustomEvent} */ (event).detail.checked;
-        update();
+    root.querySelector('.tasks-stats__window')?.addEventListener('ol-segmented-control-change', event => {
+        state.window = Number(/** @type {CustomEvent} */ (event).detail.value);
+        updateCards();
+        drawMain();
     });
 
-    update();
-    drawDailyLines();
+    /**
+     * A card's value over the window ending today.
+     * @param {string} name
+     */
+    function cardValues(name) {
+        const metric = CARD_METRICS[name](state.window);
+        const now = metric.total.at(-1);
+        const covered = now && (metric.complete || []).every(daily => daily.slice(now.start, now.end + 1).every(v => v !== null));
+        return { metric, value: covered ? (now?.value ?? null) : null };
+    }
+
+    // Card figures match the server's: whole numbers, and percentages to one decimal.
+    const cardPercent = new Intl.NumberFormat(lang, { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const cardFormats = { ...formats, percent: (/** @type {number} */ v) => cardPercent.format(v / 100) };
+
+    // Refill every card for the chosen window. The server renders the 28-day figures, so this runs only when the window changes.
+    function updateCards() {
+        /** @type {Record<string, number | null>} */
+        const value = {};
+        for (const name of Object.keys(METRICS)) value[name] = cardValues(name).value;
+        const share = (/** @type {number | null} */ part, /** @type {number | null} */ whole) =>
+            part !== null && whole ? cardPercent.format(part / whole) : null;
+        const perEditor = value.edits !== null && value.editors ? numberFormat.format(value.edits / value.editors) : null;
+        /** @type {Record<string, string | null | undefined>} */
+        const details = {
+            edits: perEditor && fill(strings.perEditor, { count: perEditor }),
+            new_editors: (s => s && fill(strings.ofEditorsDetail, { share: s }))(share(value.new_editors, value.editors)),
+            tasks_share: value.tasks_share !== null ? (s => s && fill(strings.tasksShareDetail, { share: s }))(share(value.tasks_editors, value.editors)) : '',
+            saves: (s => s && fill(strings.shareOfEdits, { share: s }))(share(value.saves, value.edits)),
+            tasks_editors: (s => s && fill(strings.shareOfEditors, { share: s }))(share(value.tasks_editors, value.editors)),
+            saves_per_editor: perEditor && fill(strings.perEditorOverall, { count: perEditor })
+        };
+        cards.forEach(card => {
+            const name = card.dataset.metric || '';
+            const { metric, value: now } = cardValues(name);
+            const field = (/** @type {string} */ part) => /** @type {HTMLElement | null} */ (card.querySelector(`.tasks-stats__card-${part}`));
+            const valueEl = field('value');
+            if (valueEl) valueEl.textContent = now === null ? '—' : cardFormats[metric.format](now);
+            const detailEl = field('detail');
+            if (name === 'editors') {
+                const [returning, firstTime] = metric.parts.map(part => part.buckets.at(-1)?.value ?? null);
+                const split = /** @type {HTMLElement | null} */ (card.querySelector('.tasks-stats__split-first'));
+                if (split && now) split.style.width = `${((firstTime ?? 0) / now) * 100}%`;
+                if (detailEl) {
+                    detailEl.textContent =
+                        returning !== null && firstTime !== null
+                            ? fill(strings.split, { returning: numberFormat.format(returning), first_time: numberFormat.format(firstTime) })
+                            : '';
+                }
+            } else if (detailEl && details[name] !== undefined) {
+                detailEl.textContent = details[name] || '';
+            }
+        });
+    }
+
+    showScope(state.scope);
 }
 
 /**

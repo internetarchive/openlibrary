@@ -21,7 +21,7 @@ export function getLinkedIssueMetadata(issue) {
             if (!leadName && label.name.startsWith('Lead: @')) {
                 leadName = label.name.split('@')[1];
             }
-            if (!priority && label.name.match(/Priority: [012]/)) {
+            if (!priority && /Priority: [012]/.test(label.name)) {
                 priority = label.name;
             }
         }
@@ -187,4 +187,24 @@ export function needsLeadChange(labelNames) {
  */
 export function needsReviewSwap({ state, labelNames }) {
     return state === 'OPEN' && labelNames.includes('Needs: Response');
+}
+
+/** Pure decision for the first closing reference only. Comments must be fully fetched before deciding to close. */
+export function decideGfiAction({ pr, issue, kind, hasCommented }) {
+    const skip = reason => ({ action: 'skip', reason });
+    const labels = item => item.labels.map(label => (typeof label === 'string' ? label : label.name));
+    const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+    if (kind !== 'closing') return skip('no closing reference');
+    const issueLabels = labels(issue);
+    if (issue.pull_request || issue.state !== 'open' || !issueLabels.includes('Good First Issue')) return skip('not an open Good First Issue');
+    if (pr.state !== 'open' || pr.draft) return skip('PR is closed or draft');
+    if (labels(pr).includes('Bot: No Automation') || issueLabels.includes('Bot: No Automation')) return skip('Bot: No Automation');
+    if (issueLabels.includes('Needs: Triage') || !issueLabels.some(label => /^Priority: \d+$/.test(label))) return skip('issue still needs triage');
+    if (['MEMBER', 'OWNER', 'COLLABORATOR'].includes(pr.author_association)) return skip('staff author');
+    const author = pr.user.login;
+    if (sameName(author, 'openlibrary-bot') || /\[bot\]$/i.test(author)) return skip('bot author');
+    if (issue.assignees.some(user => sameName(user.login, author))) return skip('already assigned to author');
+    if (issue.assignees.length) return { action: 'close', reason: 'duplicate' };
+    if (hasCommented === undefined) return skip('comments not fetched');
+    return hasCommented ? { action: 'assign', reason: 'author commented' } : { action: 'close', reason: 'missing comment' };
 }

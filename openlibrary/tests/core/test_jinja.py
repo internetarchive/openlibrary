@@ -102,13 +102,13 @@ def _create_validation_env() -> jinja2.Environment:
 
     env.globals["icon"] = lambda *a, **kw: ""
 
-    # The TestingEnvironment macro renders a Vue component via
-    # render_component(); this env has no component build output, so stub it
-    # the same way render_templetor_template is stubbed above.
-    def _stub_render_component(*a, **kw):
+    # Templates that render a Vue component are passed vue_component_html; this
+    # env has no component build output, so stub it the same way
+    # render_templetor_template is stubbed above.
+    def _stub_vue_component_html(*a, **kw):
         return ""
 
-    env.globals["render_component"] = _stub_render_component
+    env.globals["vue_component_html"] = _stub_vue_component_html
 
     # static_url is a true Jinja global (like icon) — used by many templates.
     # For validation, stub it so it does not require built files on disk.
@@ -613,4 +613,4 @@ def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatc
     strings = json.loads(trigger["data-i18n-ui"])
     assert availability["all"]["label"] == "All books"
     assert strings["seeOne"] == "See %s book"
-    assert strings["resultsAnnounce"] == "Showing %s of %s results"
+    assert strings["resultsAnnounce"] == "Showing %(shown)s of %(total)s results"

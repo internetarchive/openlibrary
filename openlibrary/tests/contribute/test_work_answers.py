@@ -7,6 +7,7 @@ import web
 
 from openlibrary.contribute import save, tasks
 from openlibrary.plugins.openlibrary import contribute
+from openlibrary.utils.request_context import site as site_context
 
 FICTION = "/tags/OL1T"
 
@@ -17,6 +18,7 @@ def saved(monkeypatch):
     calls = []
     monkeypatch.setattr(save, "find_tag", lambda fld, key: key.startswith("/tags/OL"))
     monkeypatch.setattr(web.ctx, "site", SimpleNamespace(save=lambda doc, **kw: calls.append({"doc": doc} | kw)), raising=False)
+    site_context.set(web.ctx.site)
     return calls
 
 
@@ -80,3 +82,10 @@ def test_the_genres_stay_home_when_the_work_already_has_some(monkeypatch, fictio
 def test_the_edit_comment_names_both_fields():
     assert contribute.answers_label(["literary_forms", "genres"]) == "Literary form and Genres"
     assert contribute.answers_label(["genres"]) == "Genres"
+
+
+@pytest.fixture(autouse=True)
+def restore_site_context():
+    token = site_context.set(site_context.get(None))
+    yield
+    site_context.reset(token)

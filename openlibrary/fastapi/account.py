@@ -6,10 +6,14 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Annotated
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Annotated, Any
 from urllib.parse import unquote, urlencode, urlparse
 
+import web
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -34,13 +38,15 @@ from openlibrary.fastapi.auth import (
     get_authenticated_user,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
 from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
 from openlibrary.plugins.upstream.utils import is_safe_redirect
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site, web_ctx_ip
 
 logger = logging.getLogger("openlibrary.fastapi.account")
 
@@ -333,7 +339,33 @@ def _json_login_error(error: str) -> JSONResponse:
     )
 
 
-async def _login_json(request: Request) -> Response:
+@contextmanager
+def _web_ctx_cookies(cookie_header: str) -> Iterator[None]:
+    # web.cookies() parses web.ctx.env once and caches the result in web.ctx, which belongs to the
+    # thread. Threadpool threads are reused, so clear the cache or the last request's cookies leak in.
+    web.ctx.env = {"HTTP_COOKIE": cookie_header}
+    web.ctx.pop("_parsed_cookies", None)
+    try:
+        yield
+    finally:
+        web.ctx.pop("env", None)
+        web.ctx.pop("_parsed_cookies", None)
+
+
+def _audit_accounts_sync(client_ip: str, cookie_header: str, **kwargs) -> Any:
+    # audit_accounts can create or activate the OL account, which writes an
+    # Infobase transaction stamped with web.ctx.ip; FastAPI never sets it.
+    # It reads the print-disability request ("pda" cookie) with web.cookies().
+    with web_ctx_ip(client_ip), _web_ctx_cookies(cookie_header):
+        return audit_accounts(**kwargs)
+
+
+async def _audit_accounts(request: Request, client_ip: str, **kwargs) -> Any:
+    # audit_accounts blocks on calls to IA and Infobase, so keep it off the event loop.
+    return await run_in_threadpool(_audit_accounts_sync, client_ip, request.headers.get("cookie", ""), **kwargs)
+
+
+async def _login_json(request: Request, client_ip: str) -> Response:
     """Mirror web.py's account_login_json for JSON request bodies.
 
     S3 keys (access/secret) log the user in directly; username/password falls
@@ -346,7 +378,9 @@ async def _login_json(request: Request) -> Response:
 
     # Try S3 authentication first, fallback to infogami user/pass
     if access and secret:
-        audit = audit_accounts(
+        audit = await _audit_accounts(
+            request,
+            client_ip,
             email=None,
             password=None,
             require_link=True,
@@ -373,7 +407,7 @@ async def _login_json(request: Request) -> Response:
     response = Response(status_code=status.HTTP_200_OK)
     response.set_cookie(
         config.login_cookie_name,
-        site.get()._conn.get_auth_token(),
+        site.get()._conn.get_auth_token() or "",
         httponly=True,
         secure=_cookie_secure(),
         samesite="lax",
@@ -420,6 +454,7 @@ def _login_error_response(redirect: str, action: str, username: str, message: st
 async def login(
     request: Request,
     form_data: Annotated[LoginForm, Form()],
+    client_ip: ClientIpDep,
 ) -> Response:
     """
     Login endpoint - works identically to web.py version.
@@ -436,7 +471,7 @@ async def login(
     # A JSON body follows web.py's account_login_json: S3 keys (access/secret)
     # are required for password-less login.
     if (request.headers.get("content-type") or "").lower().startswith("application/json"):
-        return await _login_json(request)
+        return await _login_json(request, client_ip)
 
     # web.py's web.input() merges query string params with the posted form
     # (the public openlibrary/api.py client logs in via query string).
@@ -451,7 +486,9 @@ async def login(
     test = form_data.test or q.get("test", "").lower() in ("yes", "true", "on", "1")
 
     # Call the EXACT same audit function that web.py uses
-    audit = audit_accounts(
+    audit = await _audit_accounts(
+        request,
+        client_ip,
         email="" if (access and secret) else username,
         password=password,
         require_link=True,
@@ -492,6 +529,18 @@ async def login(
 
     ol_account = _set_login_cookies_on_response(response, audit, ol_username, email=email, remember=remember)
 
+    if ol_account and request.cookies.get("pda"):
+        set_flash_cookie(
+            response,
+            "info",
+            _(
+                "Thank you for registering an Open Library account and "
+                "requesting special print disability access. You should receive "
+                "an email detailing next steps in the process."
+            ),
+        )
+        response.delete_cookie("pda")
+
     # Perform any post-login action (same as web.py's perform_post_login_action)
     await _perform_post_login_action(response, action, ol_account)
 
@@ -501,6 +550,7 @@ async def login(
     return response
 
 
+@nonblocking
 @router.post("/account/logout")
 async def logout(request: Request) -> Response:
     """
@@ -548,6 +598,7 @@ async def logout(request: Request) -> Response:
 )
 async def anonymize_account(
     request: Request,
+    client_ip: ClientIpDep,
     test: Annotated[str, Form()] = "false",
     digest: Annotated[str, Form()] = "",
     msg: Annotated[str, Form()] = "",
@@ -587,7 +638,7 @@ async def anonymize_account(
         # This endpoint authenticates via HMAC+S3, not a user session, so
         # there is no auth token on the connection without RunAs.
         with RunAs(ol_account.username):
-            result = await ol_account.anonymize(test=test_mode)
+            result = await ol_account.anonymize(client_ip, test=test_mode)
     except Exception as e:  # noqa: BLE001
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
@@ -595,6 +646,10 @@ async def anonymize_account(
     return AnonymizeResponse(**result)
 
 
+# Not @nonblocking, only because it renders Jinja templates (the body and the site shell) on the event loop: the
+# FileSystemLoader stats each template file on every render and reads and compiles it on a process's first use, and
+# the language's translations are read on first use too. Everything else here is CPU only. Mark it once rendering does
+# no file I/O.
 @pages.get("/verify_human")
 async def verify_human(
     next: Annotated[str, Query()] = "/",
@@ -607,7 +662,8 @@ async def verify_human(
     )
 
 
-@pages.post("/verify_human")
+@nonblocking
+@router.post("/verify_human", include_in_schema=False)
 async def verify_human_challenge() -> Response:
     """Answer the challenge: set a signed ``vf`` cookie and confirm as JSON."""
     response = JSONResponse({"success": True})

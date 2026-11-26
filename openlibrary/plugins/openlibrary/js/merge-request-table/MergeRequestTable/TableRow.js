@@ -222,10 +222,16 @@ export class TableRow {
         // Update preview:
         this.commentPreview.innerText = escapedComment.textContent;
 
-        // Update full display:
+        // Update full display. `username` is user-controlled, so build the
+        // commenter label with safe DOM construction rather than innerHTML
+        // (GHSA-6xcf): render it as text, not markup.
         const newComment = document.createElement('div');
         newComment.classList.add('comment-panel__comment');
-        newComment.innerHTML = `<span class="commenter">@${this.username}</span> `;
+        const commenter = document.createElement('span');
+        commenter.className = 'commenter';
+        commenter.textContent = `@${this.username}`;
+        newComment.appendChild(commenter);
+        newComment.appendChild(document.createTextNode(' '));
         newComment.appendChild(escapedComment);
 
         this.commentsDisplay.appendChild(newComment);

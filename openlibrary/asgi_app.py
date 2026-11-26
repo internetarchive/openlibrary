@@ -20,7 +20,7 @@ from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.fastapi.middleware.server_timing import add_server_timing
-from openlibrary.utils import prometheus, prometheus_multiprocess, server_timing
+from openlibrary.utils import prometheus, prometheus_multiprocess, saturation_metrics, server_timing
 from openlibrary.utils.legacy_db import install_connection_recovery
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
@@ -142,17 +142,23 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.library_explorer import pages as library_explorer_pages
     from openlibrary.fastapi.link import router as link_router
     from openlibrary.fastapi.lists import router as lists_router
     from openlibrary.fastapi.merge_authors import router as merge_authors_router
+    from openlibrary.fastapi.merge_stats import pages as merge_stats_pages
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
+    from openlibrary.fastapi.publishers import pages as publishers_pages
     from openlibrary.fastapi.publishers import router as publishers_router
     from openlibrary.fastapi.search import pages as search_pages
     from openlibrary.fastapi.search import router as search_router
     from openlibrary.fastapi.stats import router as stats_router
+    from openlibrary.fastapi.status import pages as status_pages
     from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.tasks import pages as tasks_pages
+    from openlibrary.fastapi.tasks import public_pages as tasks_public_pages
     from openlibrary.fastapi.tasks import router as tasks_router
     from openlibrary.fastapi.yearly_reading_goals import (
         router as yearly_reading_goals_router,
@@ -181,7 +187,13 @@ def _include_routers(app: FastAPI) -> None:
 
     # HTML pages, wrapped in the site shell (SitePageRoute).
     app.include_router(account_pages)
+    app.include_router(library_explorer_pages)
+    app.include_router(merge_stats_pages)
+    app.include_router(publishers_pages)
     app.include_router(search_pages)
+    app.include_router(status_pages)
+    app.include_router(tasks_pages)
+    app.include_router(tasks_public_pages)
 
 
 @asynccontextmanager
@@ -193,7 +205,8 @@ async def lifespan(app: FastAPI):
 
     await init_pool()
     try:
-        yield
+        async with saturation_metrics.sampling():
+            yield
     finally:
         await close_pool()
 
@@ -269,6 +282,7 @@ def create_app() -> FastAPI | None:
         excluded_handlers=list(prometheus.EXCLUDED_HANDLERS),
     ).add(prometheus.request_metrics("fastapi")).instrument(app)
     prometheus_multiprocess.expose(app)
+    app.add_middleware(saturation_metrics.InFlightMiddleware)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
@@ -290,8 +304,10 @@ def create_app() -> FastAPI | None:
     app.mount("/static", StaticFiles(directory=STATIC_ROOT), name="static")
 
     # --- Fast routes (mounted within this app) ---
+    # async: a sync handler runs in the threadpool, so the readiness probe
+    # would queue behind slow sync handlers when the pool is busy.
     @app.get("/health")
-    def health() -> dict[str, str]:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     _include_routers(app)

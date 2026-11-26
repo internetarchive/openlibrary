@@ -62,7 +62,9 @@ def sentry_events():
     global_scope = sentry_sdk.get_global_scope()
     previous_client = global_scope.client
     with sentry_sdk.isolation_scope() as scope, sentry_sdk.new_scope():
-        sentry_sdk.init(dsn="http://test@localhost/1", transport=transport, traces_sample_rate=1.0, default_integrations=False)
+        sentry_sdk.init(
+            dsn="http://test@localhost/1", transport=transport, traces_sample_rate=1.0, default_integrations=False, enable_backpressure_handling=False
+        )
         scope.set_client(global_scope.client)
         try:
             yield transport.events
@@ -105,3 +107,42 @@ def test_webpy_events_are_tagged(sentry_events, monkeypatch):
     assert sorted(event.get("type", "event") for event in request_events) == ["event", "transaction"]
     assert all(event["tags"]["framework"] == "webpy" for event in request_events)
     assert "framework" not in outside_event.get("tags", {})
+
+
+class FakeScope:
+    def __init__(self):
+        self.contexts = {}
+
+    def set_context(self, key, value):
+        self.contexts[key] = value
+
+
+@pytest.fixture
+def fake_sentry_init(monkeypatch):
+    calls = []
+    scope = FakeScope()
+    monkeypatch.setattr(sentry.sentry_sdk, "init", lambda **kwargs: calls.append(kwargs))
+    monkeypatch.setattr(sentry.sentry_sdk, "get_global_scope", lambda: scope)
+    monkeypatch.setattr(sentry.socket, "gethostname", lambda: "ol-webpy-7d55578b4b-sfv24")
+    return calls, scope
+
+
+def test_server_name_defaults_to_hostname(fake_sentry_init, monkeypatch):
+    monkeypatch.delenv("OL_SENTRY_SERVER_NAME", raising=False)
+    calls, scope = fake_sentry_init
+
+    Sentry({"dsn": "http://test@localhost/1", "environment": "test"}).init()
+
+    assert calls[0]["server_name"] is None  # sentry_sdk then uses the hostname
+    assert scope.contexts == {}
+
+
+def test_server_name_from_env_keeps_pod_as_context(fake_sentry_init, monkeypatch):
+    monkeypatch.setenv("OL_SENTRY_SERVER_NAME", "k8s-webpy")
+    monkeypatch.setenv("OL_SENTRY_NODE_NAME", "worker-3")
+    calls, scope = fake_sentry_init
+
+    Sentry({"dsn": "http://test@localhost/1", "environment": "test"}).init()
+
+    assert calls[0]["server_name"] == "k8s-webpy"
+    assert scope.contexts == {"host": {"hostname": "ol-webpy-7d55578b4b-sfv24", "node": "worker-3"}}

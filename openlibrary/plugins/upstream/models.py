@@ -28,17 +28,18 @@ from openlibrary.utils.isbn import (
     normalize_isbn,
 )
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.request_context import site
 
 
 def follow_redirect(doc):
     if isinstance(doc, str) and doc.startswith("/a/"):
         # Some edition records have authors as ["/a/OL1A""] instead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
-        doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
+        doc = site.get().get(doc.replace("/a/", "/authors/"))
 
     if doc and doc.type.key == "/type/redirect":
         key = doc.location
-        return web.ctx.site.get(key)
+        return site.get().get(key)
     else:
         return doc
 
@@ -565,7 +566,7 @@ class Work(models.Work):
             if "cover_id" in w:
                 return [Image(self._site, "w", int(w["cover_id"]))]
             elif "cover_edition_key" in w:
-                cover_edition = cast(Edition, web.ctx.site.get("/books/" + w["cover_edition_key"]))
+                cover_edition = cast(Edition, site.get().get("/books/" + w["cover_edition_key"]))
                 cover = cover_edition and cover_edition.get_cover()
                 if cover:
                     return [cover]
@@ -719,7 +720,7 @@ class Work(models.Work):
                 # trusted book provider identifier is present
                 for provider in get_book_providers(self._solr_data):
                     query = {**db_query, **provider.editions_query}
-                    edition_keys += web.ctx.site.things(query)
+                    edition_keys += site.get().things(query)
             else:
                 db_query["ocaid~"] = "*"
 
@@ -729,10 +730,10 @@ class Work(models.Work):
                 edition_keys += ["/books/" + olid for olid in self._solr_data.get("edition_key")]
             else:
                 # given librarians are probably doing this, show all editions
-                edition_keys += web.ctx.site.things(db_query)
+                edition_keys += site.get().things(db_query)
 
         edition_keys.extend(keys or [])
-        editions = web.ctx.site.get_many(list(set(edition_keys)))
+        editions = site.get().get_many(list(set(edition_keys)))
         editions.sort(key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True)
 
         # 2022-03 Once we know the availability-type of editions (e.g. open)
@@ -752,7 +753,7 @@ class Work(models.Work):
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
 
     def get_edition_covers(self):
-        editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
+        editions = site.get().get_many(site.get().things({"type": "/type/edition", "works": self.key, "limit": 1000}))
         existing = {int(c.id) for c in self.get_covers()}
         covers = [e.get_cover() for e in editions]
         return [c for c in covers if c and int(c.id) not in existing]
@@ -844,19 +845,19 @@ class User(models.User):
     name = property(get_name)
 
     def get_edit_history(self, limit: int = 10, offset: int = 0):
-        return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
+        return site.get().versions({"author": self.key, "limit": limit, "offset": offset})
 
     def get_users_settings(self):
         return self.preferences()
 
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):
-            d = web.ctx.site.versions({"key": self.key, "sort": "-created", "limit": 1})[0]
+            d = site.get().versions({"key": self.key, "sort": "-created", "limit": 1})[0]
             return web.storage({"ip": d.ip, "member_since": d.created})
 
     def get_edit_count(self) -> int:
         if web.ctx.path.startswith("/admin"):
-            return web.ctx.site._request("/count_edits_by_user", data={"key": self.key})
+            return site.get()._request("/count_edits_by_user", data={"key": self.key})
         else:
             return 0
 
@@ -905,7 +906,7 @@ class Changeset(client.Changeset):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
         else:
-            d = web.ctx.site.get(key, revision).dict()
+            d = site.get().get(key, revision).dict()
             return d
 
     def process_docs_before_undo(self, docs):
@@ -925,7 +926,7 @@ class Changeset(client.Changeset):
 
         data = {"parent_changeset": self.id}
         comment = "undo " + self.comment
-        return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+        return site.get().save_many(docs, action="undo", data=data, comment=comment)
 
     def get_undo_error(self):
         """Returns a user-facing message if this changeset cannot be undone, or None.
@@ -942,7 +943,7 @@ class Changeset(client.Changeset):
         in_batch = {doc["key"] for doc in docs}
 
         refs = {ref for doc in docs for ref in find_references(doc) if ref not in in_batch}
-        things = {t.key: t for t in web.ctx.site.get_many(sorted(refs))}
+        things = {t.key: t for t in site.get().get_many(sorted(refs))}
 
         for doc in docs:
             for ref in find_references(doc):
@@ -968,7 +969,7 @@ class Changeset(client.Changeset):
         except AttributeError:
             pass
 
-        changesets = web.ctx.site.recentchanges({"kind": "undo", "data": {"parent_changeset": self.id}})
+        changesets = site.get().recentchanges({"kind": "undo", "data": {"parent_changeset": self.id}})
         # return the first undo changeset
         self._undo_changeset = (changesets and changesets[-1]) or None
         return self._undo_changeset
@@ -978,7 +979,7 @@ class NewAccountChangeset(Changeset):
     def get_user(self):
         keys = [c.key for c in self.get_changes()]
         user_key = "/people/" + keys[0].split("/")[2]
-        return web.ctx.site.get(user_key)
+        return site.get().get(user_key)
 
 
 class MergeAuthors(Changeset):
@@ -987,13 +988,13 @@ class MergeAuthors(Changeset):
 
     def get_master(self):
         master = self.data.get("master")
-        return master and web.ctx.site.get(master, lazy=True)
+        return master and site.get().get(master, lazy=True)
 
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
         changes = {c["key"]: c["revision"] for c in self.changes}
 
-        return duplicates and [web.ctx.site.get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
+        return duplicates and [site.get().get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
 
 
 class MergeWorks(Changeset):
@@ -1002,13 +1003,13 @@ class MergeWorks(Changeset):
 
     def get_master(self):
         master = self.data.get("master")
-        return master and web.ctx.site.get(master, lazy=True)
+        return master and site.get().get(master, lazy=True)
 
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
         changes = {c["key"]: c["revision"] for c in self.changes}
 
-        return duplicates and [web.ctx.site.get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
+        return duplicates and [site.get().get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
 
 
 class Undo(Changeset):
@@ -1017,11 +1018,11 @@ class Undo(Changeset):
 
     def get_undo_of(self):
         undo_of = self.data["undo_of"]
-        return web.ctx.site.get_change(undo_of)
+        return site.get().get_change(undo_of)
 
     def get_parent_changeset(self):
         parent = self.data["parent_changeset"]
-        return web.ctx.site.get_change(parent)
+        return site.get().get_change(parent)
 
 
 class AddBookChangeset(Changeset):

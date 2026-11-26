@@ -963,6 +963,10 @@ class User(Thing):
         """
         return self.is_admin()
 
+    def can_manage_tasks(self) -> bool:
+        """Whether the user can set up and run the community projects on /tasks. Its pages check `ShellUser.is_super_librarian`, the same two groups."""
+        return self.is_super_librarian_or_higher()
+
     def is_maintainer(self) -> bool:
         """Whether the user can manage the testing environment (maintainers + admins)."""
         return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])
@@ -1310,7 +1314,8 @@ class LoggedBooksData:
     param ratings holds a list of ratings such that the index of each rating corresponds
         to the index of each doc/work in self.docs.
     param sort holds the sort the shelf was actually sorted by, which can differ from
-        the one asked for (e.g. if Solr fails). None when filtering.
+        the one asked for (e.g. if Solr fails). None when the shelf isn't sorted, as when
+        searching it.
     """
 
     username: str
@@ -1356,5 +1361,3 @@ def register_types():
 
     types.register_type("^/usergroup/[^/]*$", "/type/usergroup")
     types.register_type("^/permission/[^/]*$", "/type/permission")
-
-    types.register_type("^/(css|js)/[^/]*$", "/type/rawtext")

@@ -113,6 +113,26 @@ describe('hydrate', () => {
         expect(calls).toHaveLength(1);
     });
 
+    test('an edition with no work, or an author, is never asked about and never held pending', async () => {
+        stubFetch({ OL1W: { shelf: 1, rating: null, read_date: null, event_id: null } });
+        page({
+            buttons: [
+                button('/works/OL1W'),
+                button('/works/OL7M'), // cached HTML from before the server knew an orphan
+                button('/books/OL8M', 'lists-only'),
+                button('/authors/OL9A', 'lists-only')
+            ].join('')
+        });
+        await hydrate();
+        expect(calls).toHaveLength(1);
+        expect(calls[0].searchParams.get('work_ids')).toBe('OL1W');
+        const [work, stale, edition, author] = all();
+        expect(work.shelf).toBe(1);
+        expect(stale.getAttribute('work-key')).toBe('/books/OL7M');
+        expect(stale.listsOnly).toBe(true);
+        expect([stale.pending, edition.pending, author.pending]).toEqual([false, false, false]);
+    });
+
     test('holds a button pending until its state lands, so a click in that window cannot unshelve', async () => {
         let land;
         global.fetch = vi.fn(async () => {

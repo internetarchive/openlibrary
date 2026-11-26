@@ -1,4 +1,4 @@
-import { bucketize, pointRadii, splitPeriods } from '../../../openlibrary/plugins/openlibrary/js/tasks_stats.js';
+import { bucketize, pointRadii, ratio, subtract } from '../../../openlibrary/plugins/openlibrary/js/tasks_stats.js';
 
 describe('bucketize', () => {
     test('days stay as they are', () => {
@@ -20,18 +20,21 @@ describe('bucketize', () => {
     });
 });
 
-describe('splitPeriods', () => {
-    const buckets = [1, 2, 3, 4, 5].map(value => ({ start: 0, end: 0, value }));
-
-    test('the previous period lines up beside the current one', () => {
-        const { current, previous } = splitPeriods(buckets, 2);
-        expect(current.map(b => b.value)).toEqual([4, 5]);
-        expect(previous.map(b => b.value)).toEqual([2, 3]);
+describe('subtract', () => {
+    test('takes the others away day by day, never below zero', () => {
+        expect(subtract([10, 5, null, 3], [4, 1, 1, 2], [1, 0, 0, 5])).toEqual([5, 4, null, 0]);
     });
 
-    test('pads the previous period where history runs out', () => {
-        const { previous } = splitPeriods(buckets, 3);
-        expect(previous.map(b => b?.value ?? null)).toEqual([null, 1, 2]);
+    test('is null where any part is missing', () => {
+        expect(subtract([10], [null])).toEqual([null]);
+    });
+});
+
+describe('ratio', () => {
+    const buckets = (/** @type {(number | null)[]} */ values) => values.map((value, i) => ({ start: i, end: i, value }));
+
+    test('scales each period and skips ones without a denominator', () => {
+        expect(ratio(buckets([5, 3, null]), buckets([1000, 0, 10]), 1000).map(b => b.value)).toEqual([5, null, null]);
     });
 });
 

@@ -121,6 +121,13 @@ describe('ol-book-cover link and hover card', () => {
         expect(q(el, '.tip__byline')).toBeNull();
         expect(q(el, '.tip__title').textContent).toBe('The Two Towers');
     });
+
+    test('no-tip drops the hover card and keeps the link named', async () => {
+        const el = await mount({ noTip: true, href: '/works/OL1W' });
+        expect(q(el, '.tip')).toBeNull();
+        expect(q(el, 'ol-tooltip').disabled).toBe(true);
+        expect(q(el, '.link')).not.toBeNull();
+    });
 });
 
 describe('ol-book-cover overlay', () => {

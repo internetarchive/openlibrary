@@ -18,7 +18,7 @@ from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.request_context import set_context_from_legacy_web_py
+from openlibrary.utils.request_context import set_context_from_legacy_web_py, site
 
 if TYPE_CHECKING:
     from openlibrary.utils.solr import SolrRequestLabel
@@ -114,7 +114,7 @@ class subjects(delegate.page):
             slug = Tag.normalize(name)
 
         if tag_keys := Tag.find(slug):
-            tags = web.ctx.site.get_many(tag_keys)
+            tags = site.get().get_many(tag_keys)
             subject.disambiguations = tags
 
             if filtered_tags := [tag for tag in tags if tag.tag_type == tag_type]:

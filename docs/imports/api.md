@@ -81,7 +81,7 @@ The `batchName` parameter (PR #12657) lets repeated calls accumulate into the sa
 
 **Preferred path for new sources.** The direct single-record endpoint (`POST /api/import`) writes immediately to the catalog and is planned for deprecation in BookWorm Phase 3. New source adapters should submit through the batch queue instead.
 
-**Trust level.** Batches submitted by non-admin users land in `status="needs_review"` and wait for manual admin approval at `/import/batch/pending`. Admin accounts bypass this and go straight to `status="pending"` (processed by ImportBot). There is currently no trusted-partner tier.
+**Trust level.** Batches submitted by non-admin users land in `status="needs_review"` and wait for manual admin approval at `/import/batch?status=needs_review`. Admin accounts bypass this and go straight to `status="pending"` (processed by ImportBot). There is currently no trusted-partner tier.
 
 ## IA import (`POST /api/import/ia`)
 

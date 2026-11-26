@@ -5,8 +5,10 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import web
+from bs4 import BeautifulSoup
 from pydantic import ValidationError
 
+from infogami.utils import macro
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary import code, home_genres  # noqa: F401  # code.setup() imports partials; import it first
@@ -29,9 +31,112 @@ from openlibrary.plugins.openlibrary.partials import (
     build_nearby_books_placeholder_config,
     build_stores,
     gather_nearby_books_async,
+    get_carousel_card_data,
+    normalize_carousel_layout,
+    query_carousel,
 )
+from openlibrary.plugins.upstream import utils
 from openlibrary.plugins.upstream.yearly_reading_goals import YearlyGoal
 from openlibrary.utils.solr import Solr
+
+
+class TestQueryCarousel:
+    @pytest.fixture(autouse=True)
+    def language_catalog(self, monkeypatch, request_context_fixture):
+        request_context_fixture(lang="en")
+        monkeypatch.setattr(
+            utils,
+            "get_languages",
+            lambda: {marc: web.storage(code=marc, identifiers={"iso_639_1": [iso]}) for iso, marc in (("en", "eng"), ("fr", "fre"), ("hi", "hin"))},
+        )
+        utils.convert_iso_to_marc.cache_clear()
+        yield
+        utils.convert_iso_to_marc.cache_clear()
+
+    @pytest.mark.parametrize(
+        ("lang", "language_filter"),
+        [("fr", " language:fre"), ("en", " language:eng"), (None, " language:eng"), ("", " language:eng"), ("hi", ""), ("unknown", "")],
+    )
+    @pytest.mark.parametrize("fallback", [True, False])
+    def test_language_filter_and_fallback(self, lang, language_filter, fallback):
+        html = query_carousel("subject:mystery", user_lang_only=True, fallback=fallback, lang=lang, safe_mode=False)
+        soup = BeautifulSoup(html, "lxml")
+        config = json.loads(soup.select_one(".lazy-carousel")["data-config"])
+        assert config["query"] == "subject:mystery" + language_filter
+        expected_fallback = ("subject:mystery" if language_filter else None) if fallback else False
+        assert config["fallback"] == expected_fallback
+        assert bool(soup.select_one(".lazy-carousel-fallback")) == bool(fallback and language_filter)
+
+    def test_language_is_explicit_and_no_templetor_is_called(self, monkeypatch, request_context_fixture):
+        request_context_fixture(lang="fr")
+        monkeypatch.setattr(web, "ctx", web.storage(lang="LEFTOVER"))
+        monkeypatch.setattr(web.template.Template, "globals", {})
+
+        html = query_carousel("subject:mystery", user_lang_only=True, lang="en")
+        config = json.loads(BeautifulSoup(html, "lxml").select_one(".lazy-carousel")["data-config"])
+        assert "language:eng" in config["query"]
+        assert "language:fre" not in config["query"]
+        assert "LEFTOVER" not in html
+
+    def test_options_and_escaping(self):
+        title = '<img src=x onerror="alert(1)"> & Mysteries'
+        query = 'subject:"Mystery & Crime"'
+        url = '/collections/mystery?title="Mystery"&sort=old'
+        html = query_carousel(
+            query,
+            title=title,
+            sort="old",
+            key="mysteries",
+            limit=6,
+            search=True,
+            has_fulltext_only=False,
+            url=url,
+            layout="grid",
+            fallback=True,
+            safe_mode=False,
+            lang="fr",
+        )
+        soup = BeautifulSoup(html, "lxml")
+        assert json.loads(soup.select_one(".lazy-carousel")["data-config"]) == {
+            "query": query,
+            "title": title,
+            "sort": "old",
+            "key": "mysteries",
+            "limit": 6,
+            "search": True,
+            "has_fulltext_only": False,
+            "url": url,
+            "layout": "grid",
+            "fallback": None,
+        }
+        assert soup.select_one("h2").get_text(strip=True) == title
+        assert soup.find("img") is None
+
+    def test_defaults(self):
+        html = query_carousel("subject:mystery")
+        config = json.loads(BeautifulSoup(html, "lxml").select_one(".lazy-carousel")["data-config"])
+        assert config == {
+            "query": 'subject:mystery -subject:"content_warning:cover"',
+            "sort": "new",
+            "key": "",
+            "limit": 20,
+            "search": False,
+            "has_fulltext_only": True,
+            "layout": "ol-carousel",
+            "fallback": False,
+        }
+
+    @pytest.mark.parametrize("macro_name", ["QueryCarousel", "ListCarousel"])
+    @pytest.mark.parametrize("layout", ["ol-carousel", "carousel", "grid"])
+    def test_legacy_wrappers_match_direct_call(self, render_template, macro_name, layout):
+        macro.load_macros("openlibrary", lazy=True)
+        query = "/people/openlibrary/lists/OL1L"
+        options = {"title": "Mystery & Crime", "limit": 6, "layout": layout, "safe_mode": False}
+        if macro_name == "QueryCarousel":
+            options.update(user_lang_only=True, fallback=True)
+        rendered = web.template.Template.globals["macros"][macro_name](query, **options)
+        assert str(rendered).strip() == query_carousel(query, lang="en", **options).strip()
+
 
 HORROR = {
     "name": "Horror",
@@ -154,9 +259,6 @@ class TestCarouselLabel:
             title=title,
             url=None,
             key="",
-            grid="",
-            compact="",
-            loadjs="",
             config_json="{}",
             cards=[],
             count=None,
@@ -272,6 +374,52 @@ class TestCarouselCardFormat:
 
     def test_book_without_a_provider_has_no_format(self):
         assert _carousel_card_format({"key": "/books/OL1M"}) == ""
+
+
+class TestCarouselLayout:
+    @pytest.mark.parametrize(("layout", "expected"), [("grid", "grid"), ("ol-carousel", "ol-carousel"), ("carousel", "ol-carousel"), (None, "ol-carousel")])
+    def test_anything_but_grid_is_an_ol_carousel(self, layout, expected):
+        assert normalize_carousel_layout(layout) == expected
+
+    def test_params_take_the_legacy_slick_layout_as_ol_carousel(self):
+        assert LazyCarouselParams(layout="carousel").layout == "ol-carousel"
+        assert CarouselLoadMoreParams(queryType="SEARCH").layout == "ol-carousel"
+        assert CarouselLoadMoreParams(queryType="SEARCH", layout="grid").layout == "grid"
+
+    @pytest.mark.parametrize(("layout", "in_cover"), [("carousel", True), ("grid", False)])
+    def test_loan_badge_goes_in_the_covers_overlay_slot(self, request_context_fixture, layout, in_cover):
+        request_context_fixture(lang="en")
+        book = web.storage(key="/books/OL1M", title="T", loan={"resource_type": "epub", "expiry": None, "loan_link": "/x"})
+        with (
+            patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials.shelf_button_for", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials._carousel_card_format", return_value=""),
+        ):
+            data = get_carousel_card_data(book, False, layout, "loans", "/account/books")
+        html = render_jinja_template("books/custom_carousel_card.html.jinja", **data)
+
+        assert data["book_cover"] is in_cover
+        assert ('<div class="loan-overlay-badge" slot="overlay">' in html) is in_cover
+        assert "Not yet downloaded." in html
+
+    @pytest.mark.parametrize(
+        ("authors", "label"),
+        [(["Ann Leckie"], "Ancillary Justice by Ann Leckie"), (["A", "B"], "Ancillary Justice by A, B"), ([], "Ancillary Justice")],
+    )
+    def test_cover_label_is_one_translatable_string(self, request_context_fixture, authors, label):
+        request_context_fixture(lang="en")
+        book = web.storage(key="/books/OL1M", title="Ancillary Justice", author_name=authors)
+        with (
+            patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials.shelf_button_for", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials._carousel_card_format", return_value=""),
+            patch("openlibrary.plugins.openlibrary.partials._resolve_carousel_card_cover_url", return_value="https://covers.example/1-M.jpg"),
+        ):
+            data = get_carousel_card_data(book, False, "grid", "trending", "/")
+        html = render_jinja_template("books/custom_carousel_card.html.jinja", **data)
+
+        assert data["cover_label"] == label
+        assert f'alt="{label}"' in html
 
 
 class TestSolrQueryToSubjectKey:
@@ -472,8 +620,8 @@ def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial(
     config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
-    # The skeleton stands in for NearbyBooksPartial's ol-carousel row and its unlinked heading.
-    assert (config["layout"], config["title_link"]) == ("ol-carousel", False)
+    # The skeleton stands in for NearbyBooksPartial's row and its unlinked heading.
+    assert config["title_link"] is False
 
 
 def _community_card(title: str) -> dict:

@@ -3,10 +3,12 @@
 import contextlib
 import datetime as dt
 from collections.abc import Iterable
+from urllib.parse import urlencode
 
 import web
 
 from infogami.utils import delegate
+from openlibrary.utils.request_context import site
 
 from .. import app
 from ..contribute import initiatives
@@ -226,9 +228,9 @@ class readinglog_stats(app.view):
         solr_docs = get_solr_works(all_keys)
 
         # Batch-fetch any works Solr missed in a single call instead of
-        # one web.ctx.site.get() per work (N+1).
+        # one site.get().get() per work (N+1).
         miss_keys = [key for key in all_keys if key not in solr_docs]
-        db_works = {w.key: w for w in web.ctx.site.get_many(miss_keys)} if miss_keys else {}
+        db_works = {w.key: w for w in site.get().get_many(miss_keys)} if miss_keys else {}
 
         # Fetch works from solr and inject into leaderboard
         for leaderboard in stats["leaderboard"].values():
@@ -254,46 +256,105 @@ def format_count(value: int | None) -> str:
     return "—" if value is None else commify(value)
 
 
-def format_change(latest: int | None, earlier: int | None) -> dict | None:
-    "The change from `earlier` to `latest` as a percentage, for a card's delta line. None without an earlier value to compare."
-    if latest is None or not earlier:
-        return None
-    change = (latest - earlier) / earlier * 100
-    direction = "up" if change >= 0.5 else "down" if change <= -0.5 else "flat"
-    return {"direction": direction, "text": f"{abs(change):.1f}%"}
-
-
 def latest(counts: dict, key: str) -> int | None:
     "A rolling count's latest value, None if the stats script hasn't written it."
     return (counts.get(key) or {}).get("latest")
 
 
-def build_tasks_stats_cards(counts: dict) -> list[dict]:
-    """One card per metric the main chart can show, each on the trailing 28 days. `metric` is the chart's name for it, and
-    `note` says what one of its bars counts."""
-    cards = {
-        "editors": (
-            "catalog_editors_28d",
+def card(metric: str, label: str, note: str, value: str, detail: str = "", split: dict | None = None) -> dict:
+    "One metric card. `metric` is the main chart's name for it, and `note` says what one of its bars counts."
+    return {"metric": metric, "label": label, "note": note, "value": value, "detail": detail, "split": split}
+
+
+def share(part: float | None, whole: float | None) -> str | None:
+    return f"{part / whole:.1%}" if part is not None and whole else None
+
+
+def window_sum(docs: list[dict], key: str, days: list[str]) -> int | None:
+    "`key` added up over `days` (count doc keys), None unless every one of them has it: a partial sum would read as a drop."
+    by_key = {d["_key"]: d for d in docs}
+    values: list[int | None] = [by_key.get(day, {}).get(key) for day in days]
+    return None if any(v is None for v in values) else sum(v or 0 for v in values)
+
+
+def day_keys(end: dt.date, days: int = 28) -> list[str]:
+    return [(end - dt.timedelta(days=i)).strftime("counts-%Y-%m-%d") for i in range(days)]
+
+
+def build_editing_cards(counts: dict, docs: list[dict], today: dt.date) -> list[dict]:
+    "The All editing cards, each on the trailing 28 days."
+    editors, first_time = latest(counts, "book_editors_28d"), latest(counts, "new_book_editors_28d")
+    edits = window_sum(docs, "book_edits", day_keys(today))
+    tasks_saves, tasks_editors = latest(counts, "tasks_saves_28d"), latest(counts, "tasks_editors_28d")
+    split = None
+    if editors and first_time is not None:
+        split = {
+            "returning": commify(editors - first_time),
+            "first_time": commify(first_time),
+            "first_time_width": round(first_time / editors * 100, 1),
+        }
+    return [
+        card(
+            "edits",
+            _("Edits"),
+            _("Changes people, not bots, saved to editions and works, from the Tasks page or anywhere else."),
+            format_count(edits),
+            detail=_("≈ %(count)s per editor", count=commify(round(edits / editors))) if edits and editors else "",
+        ),
+        card(
+            "editors",
             _("Editors"),
-            _("People who changed a book, work or author record. In week and month views, someone who edited on several days counts once."),
+            _("People who changed an edition or work, and those whose first such change ever it was. Week and month views count each person once."),
+            format_count(editors),
+            split=split,
         ),
-        "new_editors": (
-            "new_catalog_editors_28d",
-            _("First-time editors"),
-            _("People who made their first edit ever on that day. Each person is counted once, on the day of their first edit."),
+        card(
+            "new_editors",
+            _("New editors"),
+            _("People whose first change ever to an edition or work falls in the period, wherever they made it."),
+            format_count(first_time),
+            detail=_("%(share)s of editors", share=share(first_time, editors)) if share(first_time, editors) else "",
         ),
-        "saves": ("tasks_saves_28d", _("Tasks saves"), _("Edits saved from the Tasks page.")),
-        "tasks_editors": (
-            "tasks_editors_28d",
+        card(
+            "tasks_share",
+            _("Through Tasks"),
+            _("The share of edits saved from the Tasks page."),
+            share(tasks_saves, edits) or "—",
+            # "of edits" belongs to the value, so it shows only with one.
+            detail=_("of edits · %(share)s of editors", share=share(tasks_editors, editors))
+            if share(tasks_saves, edits) and share(tasks_editors, editors)
+            else "",
+        ),
+    ]
+
+
+def build_tasks_stats_cards(counts: dict, edits: int | None) -> list[dict]:
+    "The Through Tasks cards, each on the trailing 28 days."
+    saves, editors = latest(counts, "tasks_saves_28d"), latest(counts, "tasks_editors_28d")
+    all_editors = latest(counts, "book_editors_28d")
+    return [
+        card(
+            "saves",
+            _("Tasks saves"),
+            _("Edits saved from the Tasks page."),
+            format_count(saves),
+            detail=_("%(share)s of all edits", share=share(saves, edits)) if share(saves, edits) else "",
+        ),
+        card(
+            "tasks_editors",
             _("Tasks editors"),
             _("People who saved an edit from the Tasks page. In week and month views, someone who saved on several days counts once."),
+            format_count(editors),
+            detail=_("%(share)s of all editors", share=share(editors, all_editors)) if share(editors, all_editors) else "",
         ),
-    }
-    result = []
-    for metric, (key, label, note) in cards.items():
-        value, earlier = latest(counts, key), (counts.get(key) or {}).get("earlier")
-        result.append({"metric": metric, "label": label, "note": note, "value": format_count(value), "change": format_change(value, earlier)})
-    return result
+        card(
+            "saves_per_editor",
+            _("Saves per Tasks editor"),
+            _("Tasks saves for each person who saved one."),
+            f"{saves / editors:.1f}" if saves is not None and editors else "—",
+            detail=_("vs ≈ %(count)s edits per editor overall", count=commify(round(edits / all_editors))) if edits and all_editors else "",
+        ),
+    ]
 
 
 # Below this many saves (or fills) in the window, a share is mostly noise, so the page leaves it out.
@@ -325,26 +386,36 @@ def format_people(people: int | None) -> str:
 
 
 def build_initiatives(docs: list[dict]) -> list[dict]:
-    """Every initiative in the registry with its latest snapshot, headline one first selected. A figure is a dash until the
+    """Every initiative in the registry with its latest snapshot. A figure is a dash until the
     stats script has counted that initiative, which it does from the first run after its list is frozen."""
     by_day = [initiative_counts(doc) for doc in reversed(docs)]
+    headline = initiatives.headline().slug
     result = []
-    for initiative in initiatives.INITIATIVES:
+    for initiative in initiatives.listed():
         snap = next((day[initiative.slug] for day in by_day if initiative.slug in day), {})
         open_gaps, editions = snap.get("open"), snap.get("editions")
         slots = (editions or 0) * len(initiative.fields)
+        # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
+        # Snapshots since work details were counted once per work carry the percent; older ones are worked out here.
+        percent = snap["percent"] if "percent" in snap else (slots - open_gaps) * 100 // slots if open_gaps is not None and slots else None
+        finished = initiative.status() == "ended"
         result.append(
             initiatives.describe(initiative)
             | {
                 "slug": initiative.slug,
-                "on": initiative is initiatives.ACTIVE,
+                # The headline project is what /tasks opens on, so its link carries no parameter, as on the Tasks page.
+                "url": "/tasks" if initiative.slug == headline else f"/tasks?{urlencode({'initiative': initiative.slug})}",
+                # The details open when it started, which the percent counts against: the top of its chart.
+                "start": (initiative.start or {}).get("open") or (slots if "percent" not in snap else None) or None,
+                "finished": finished,
+                "complete": finished or (percent is not None and percent >= initiative.goal),
+                "goal": _("Goal: %(percent)s%%", percent=initiative.goal),
                 "open": format_count(open_gaps),
                 "done": format_count(snap.get("done")),
                 "not_found": format_count(snap.get("not_found")),
                 "editions": format_count(editions),
                 "people": format_people(snap.get("people")),
-                # Rounded down, like initiatives.progress, so it only reads 100% when nothing is left.
-                "percent": f"{(slots - open_gaps) * 100 // slots}%" if open_gaps is not None and slots else "—",
+                "percent": "—" if percent is None else f"{percent}%",
             }
         )
     return result
@@ -375,35 +446,54 @@ def build_tasks_stats_i18n() -> dict[str, str]:
         "perDay": _("Per day"),
         "perWeek": _("Per week"),
         "perMonth": _("Per 4 weeks"),
-        "previousPeriod": _("Previous period"),
-        "previousValue": _("Previous period: %(count)s"),
-        "change": _("%(change)s vs previous period"),
+        "split": _("%(returning)s returning · %(first_time)s first-time"),
+        "perEditor": _("≈ %(count)s per editor"),
+        "ofEditorsDetail": _("%(share)s of editors"),
+        "tasksShareDetail": _("of edits · %(share)s of editors"),
+        "shareOfEdits": _("%(share)s of all edits"),
+        "shareOfEditors": _("%(share)s of all editors"),
+        "perEditorOverall": _("vs ≈ %(count)s edits per editor overall"),
         "todaySoFar": _("Today so far, updated hourly"),
         "periodSoFar": _("Still in progress"),
         "openDetails": _("%(count)s details still open"),
         "tasksUndone": _("Tasks: %(share)s undone, %(undone)s of %(total)s saves"),
         "otherUndone": _("Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"),
         "noData": _("No counts for this range yet."),
+        "returning": _("Returning"),
+        "firstTime": _("First edit ever"),
+        "otherEdits": _("Outside Tasks"),
+        "tasks": _("Tasks"),
+        "total": _("Total: %(count)s"),
+        "ofEdits": _("Of edits"),
+        "ofEditors": _("Of editors"),
         "loadFailed": _("The charts couldn't load. Reload the page to try again."),
     }
 
 
-def build_tasks_stats_page() -> dict:
+SCOPES = ("all", "tasks")
+
+
+def build_tasks_stats_page(scope: str = "all") -> dict:
     keys = [
-        "catalog_editors_28d",
-        "new_catalog_editors_28d",
+        "book_editors_28d",
+        "new_book_editors_28d",
         "tasks_saves_28d",
         "tasks_editors_28d",
         "tasks_saves_undone_28d",
         "other_fills_28d",
         "other_fills_undone_28d",
     ]
-    # 29 days: today, and the day 28 before it to compare with. The field breakdown takes the last 28.
-    docs = get_count_docs(29)
+    docs = get_count_docs(28)
     counts = rolling_counts(docs, keys)
-    since = (dt.date.today() - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
+    today = dt.date.today()
+    edits = window_sum(docs, "book_edits", day_keys(today))
+    since = (today - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
     return {
-        "cards": build_tasks_stats_cards(counts),
+        "scope": scope if scope in SCOPES else "all",
+        "cards": {
+            "all": build_editing_cards(counts, docs, today),
+            "tasks": build_tasks_stats_cards(counts, edits),
+        },
         "guardrail": build_guardrail(counts),
         "initiatives": build_initiatives(docs),
         "saves_by_field": build_saves_by_field([d for d in docs if d["_key"] >= since]),
@@ -415,4 +505,4 @@ class tasks_stats(app.view):
     path = "/stats/tasks"
 
     def GET(self):
-        return app.render_template("stats/tasks", page=build_tasks_stats_page())
+        return app.render_template("stats/tasks", page=build_tasks_stats_page(web.input(scope="all", _method="GET").scope))

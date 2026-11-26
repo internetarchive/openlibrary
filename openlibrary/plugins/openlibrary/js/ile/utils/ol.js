@@ -47,7 +47,7 @@ export async function move_to_author(work_ids, old_author, new_author) {
     for (const olid of work_ids) {
         const url = `/works/${olid}.json`;
         const record = await fetch(url).then(r => r.json());
-        if (record.authors.find(a => a.author.key.includes(old_author))) {
+        if (record.authors.some(a => a.author.key.includes(old_author))) {
             record.authors = uniqBy(
                 record.authors.map(a => {
                     if (!a.author.key.includes(old_author)) return a;

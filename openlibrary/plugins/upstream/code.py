@@ -1,6 +1,5 @@
 """Upstream customizations."""
 
-import datetime as dt
 import functools
 import hashlib
 import json
@@ -43,12 +42,14 @@ from openlibrary.plugins.upstream import (
     utils,
     yearly_reading_goals,
 )  # TODO: unused imports?
-from openlibrary.plugins.upstream.utils import render_component
+from openlibrary.plugins.upstream.utils import render_component, vue_component_html
 
 if not config.get("coverstore_url"):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
 
 import logging
+
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.plugins.upstream.code")
 
@@ -74,7 +75,7 @@ class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         editable_keys_re = re.compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
         if editable_keys_re.match(key):
             if page is None:
@@ -85,7 +86,9 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
     def POST(self, key):
-        if re.compile("/(people/[^/]+)").match(key) and spamcheck.is_spam(web.input()):
+        # A direct POST to ?m=edit saves any page, skipping the checks on the /edit forms.
+        is_profile = re.match("/people/[^/]+", key)
+        if spamcheck.is_spam(web.input(), allow_privileged_edits=not is_profile):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         return core.edit.POST(self, key)
 
@@ -102,7 +105,7 @@ class view(core.view):
             page_num = safeint(i.page, 1)
             # The template honors ?rows= (default 20), so the last page must too
             rows = max(1, safeint(i.rows, 20))
-            if page_num > 1 and (author := web.ctx.site.get(path)) and author.type.key == "/type/author":
+            if page_num > 1 and (author := site.get().get(path)) and author.type.key == "/type/author":
                 from openlibrary.plugins.worksearch.code import works_by_author
 
                 num_found = works_by_author(
@@ -146,7 +149,7 @@ class change_cover(delegate.mode):
     path = r"(/books/OL\d+M)/cover"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if page is None or page.type.key not in ["/type/edition", "/type/author"]:
             raise web.seeother(key)
         return render.change_cover(page)
@@ -170,7 +173,16 @@ class library_explorer(delegate.page):
     path = "/explore"
 
     def GET(self):
-        return render_template("library_explorer")
+        # Local imports: this handler is temporary.
+        from markupsafe import escape
+
+        from openlibrary.core.jinja import render_jinja_template
+        from openlibrary.i18n import gettext as _
+
+        context.setdefault("bodyclass", []).extend(("full-width", "library-explorer"))
+        body = render_jinja_template("library_explorer.html.jinja", vue_component_html=vue_component_html)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Library Explorer")))
 
 
 class merge_work(delegate.page):
@@ -178,7 +190,7 @@ class merge_work(delegate.page):
 
     def GET(self):
         i = web.input(records="", mrid=None, primary=None)
-        user = web.ctx.site.get_user()
+        user = site.get().get_user()
 
         if user is None:
             raise web.unauthorized()
@@ -204,105 +216,11 @@ def static_url(path):
     return f"/static/{path}?v={digest}"
 
 
-class DynamicDocument:
-    """Dynamic document is created by concatenating various rawtext documents in the DB.
-    Used to generate combined js/css using multiple js/css files in the system.
-    """
-
-    def __init__(self, root):
-        self.root = root.removesuffix("/")
-        self.docs = None
-        self._text = None
-        self.last_modified = None
-
-    def update(self):
-        keys = web.ctx.site.things({"type": "/type/rawtext", "key~": self.root + "/*"})
-        docs = sorted(web.ctx.site.get_many(keys), key=lambda doc: doc.key)
-        if docs:
-            self.last_modified = min(doc.last_modified for doc in docs)
-            self._text = "\n\n".join(doc.get("body", "") for doc in docs)
-        else:
-            self.last_modified = dt.datetime.now(dt.UTC).replace(tzinfo=None)
-            self._text = ""
-
-    def get_text(self):
-        """Returns text of the combined documents"""
-        if self._text is None:
-            self.update()
-        return self._text
-
-    def md5(self):
-        """Returns md5 checksum of the combined documents"""
-        return hashlib.md5(self.get_text().encode("utf-8")).hexdigest()
-
-
-def create_dynamic_document(url, prefix):
-    """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
-    doc = DynamicDocument(prefix)
-
-    if url.endswith(".js"):
-        content_type = "text/javascript"
-    elif url.endswith(".css"):
-        content_type = "text/css"
-    else:
-        content_type = "text/plain"
-
-    class page(delegate.page):
-        """Handler for serving the combined content."""
-
-        path = "__registered_later_without_using_this__"
-
-        def GET(self):
-            i = web.input(v=None)
-            v = doc.md5()
-            if v != i.v:
-                raise web.seeother(web.changequery(v=v))
-
-            if web.modified(etag=v):
-                oneyear = 365 * 24 * 3600
-                web.header("Content-Type", content_type)
-                web.header("Cache-Control", "Public, max-age=%d" % oneyear)
-                web.lastmodified(doc.last_modified)
-                web.expires(oneyear)
-                return delegate.RawText(doc.get_text())
-
-        def url(self):
-            return url + "?v=" + doc.md5()
-
-        def reload(self):
-            doc.update()
-
-    class hook(client.hook):
-        """Hook to update the DynamicDocument when any of the source pages is updated."""
-
-        def on_new_version(self, page):
-            if page.key.startswith(doc.root):
-                doc.update()
-
-    # register the special page
-    delegate.pages[url] = {}
-    delegate.pages[url][None] = page
-    return page
-
-
-all_js = create_dynamic_document("/js/all.js", config.get("js_root", "/js"))
-web.template.Template.globals["all_js"] = all_js()
-
-all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
-web.template.Template.globals["all_css"] = all_css()
-
-
-def reload():
-    """Reload all.css and all.js"""
-    all_css().reload()
-    all_js().reload()
-
-
 @public
 def get_document(key, limit_redirs=5):
     doc = None
     for i in range(limit_redirs):
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         if doc is None:
             return None
         if doc.type.key == "/type/redirect":
@@ -485,25 +403,25 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        user = web.ctx.site.get_user()
-        if not web.ctx.site.can_write(key) or not (user and user.is_super_librarian_or_higher()):
+        user = site.get().get_user()
+        if not site.get().can_write(key) or not (user and user.is_super_librarian_or_higher()):
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
-        thing = web.ctx.site.get(key, i.v)
+        thing = site.get().get(key, i.v)
 
         if not thing:
             raise web.notfound()
 
         def revert(thing):
             if thing.type.key == "/type/delete" and thing.revision > 1:
-                prev = web.ctx.site.get(thing.key, thing.revision - 1)
+                prev = site.get().get(thing.key, thing.revision - 1)
                 if prev.type.key in ["/type/delete", "/type/redirect"]:
                     return revert(prev)
                 else:
                     prev._save("revert to revision %d" % prev.revision, action="revert-version")
                     return prev
             elif thing.type.key == "/type/redirect":
-                redirect = web.ctx.site.get(thing.location)
+                redirect = site.get().get(thing.location)
                 if redirect and redirect.type.key not in [
                     "/type/delete",
                     "/type/redirect",
@@ -511,7 +429,7 @@ class revert(delegate.mode):
                     return redirect
                 else:
                     # bad redirect. Try the previous revision
-                    prev = web.ctx.site.get(thing.key, thing.revision - 1)
+                    prev = site.get().get(thing.key, thing.revision - 1)
                     return revert(prev)
             else:
                 return thing

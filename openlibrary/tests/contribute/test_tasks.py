@@ -2,6 +2,7 @@ import pytest
 
 from openlibrary.contribute import initiatives, supply, tasks
 from openlibrary.contribute.tasks import Task
+from openlibrary.plugins.openlibrary import contribute
 
 NONFICTION = "/tags/OL9T"
 
@@ -21,7 +22,7 @@ def nonfiction_by_key(monkeypatch):
 
 
 def test_tasks_are_the_empty_fields_most_valuable_first():
-    ed = FakeEdition(covers=[1], publishers=[], languages=None, lccn=["75425165"], number_of_pages=320)
+    ed = FakeEdition(covers=[1], publishers=[], languages=None, lccn=["75425165"], number_of_pages=320, isbn_13=["9780140449266"], publish_date="2003")
     assert [t.field for t in tasks.tasks_for_edition(ed)] == ["oclc_numbers", "languages", "publishers"]
     ed["covers"] = []
     assert tasks.tasks_for_edition(ed)[0].field == "covers"
@@ -60,6 +61,38 @@ def test_a_cover_is_missing_with_only_deleted_covers_but_not_on_a_scanned_book()
     assert not tasks.is_missing(FakeEdition(ocaid="goody"), "covers")
 
 
+@pytest.mark.parametrize("fmt", ["Audio CD", "audiobook", "MP3 CD", "Audio Cassette", "CD", "Compact Disc"])
+def test_a_recording_has_no_page_count_task(fmt):
+    assert not tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+    # Only the page count: a recording still has a publisher to fill in.
+    assert tasks.is_missing(FakeEdition(physical_format=fmt), "publishers")
+
+
+@pytest.mark.parametrize("fmt", ["", "Paperback", "Hardcover", "ebook", "CD-ROM"])
+def test_print_and_ebook_editions_keep_the_page_count_task(fmt):
+    assert tasks.is_missing(FakeEdition(physical_format=fmt), "number_of_pages")
+
+
+def test_an_isbn_is_missing_until_either_form_is_there_but_not_before_isbns_existed():
+    assert tasks.is_missing(FakeEdition(publish_date="1998"), "isbn")
+    # No date: it could be from any year, so it stays a task.
+    assert tasks.is_missing(FakeEdition(), "isbn")
+    assert not tasks.is_missing(FakeEdition(isbn_10=["0140449264"]), "isbn")
+    assert not tasks.is_missing(FakeEdition(isbn_13=["9780140449266"]), "isbn")
+    assert not tasks.is_missing(FakeEdition(publish_date="March 1962"), "isbn")
+    assert tasks.is_missing(FakeEdition(publish_date="Reprint of 1920 ed., 1998"), "isbn")
+
+
+def test_an_isbn_s_values_are_both_forms():
+    assert tasks.field_values(FakeEdition(isbn_13=["9780140449266"], isbn_10=["0140449264"]), "isbn") == ["9780140449266", "0140449264"]
+    assert tasks.field_values(FakeEdition(), "isbn") == []
+
+
+def test_a_publish_date_is_missing_when_blank():
+    assert tasks.is_missing(FakeEdition(publish_date=""), "publish_date")
+    assert not tasks.is_missing(FakeEdition(publish_date="2005"), "publish_date")
+
+
 def test_impact_is_readers_times_points():
     assert tasks.impact(100, Task("OL1M", "publishers")) == 200
     assert tasks.impact(None, Task("OL1M", "languages")) == 15
@@ -68,7 +101,7 @@ def test_impact_is_readers_times_points():
 
 def test_candidates_are_none_while_the_gaps_build(monkeypatch):
     monkeypatch.setattr(supply.initiatives, "get_gaps", lambda initiative: None)
-    assert supply.candidates(initiatives.ACTIVE, ("languages",)) is None
+    assert supply.candidates(initiatives.MOST_READ, ("languages",)) is None
 
 
 def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields(monkeypatch):
@@ -84,3 +117,11 @@ def test_candidates_are_the_initiative_s_editions_with_an_open_gap_in_the_fields
     list(supply.candidates(initiatives.TAGS, ("languages", "publishers")))
     assert asked == [initiatives.TAGS]
     assert sorted(loaded) == [["/books/OL1M", 10, []], ["/books/OL2M", 20, ["lccn"]]]
+
+
+def test_a_task_says_whether_the_answer_is_for_one_edition_or_every_edition(request_context_fixture):
+    request_context_fixture(lang="en")
+    assert "Penguin · 2008" in contribute.build_scope("number_of_pages", "Penguin · 2008")
+    assert "this edition only" in contribute.build_scope("covers", "")
+    assert "every edition" in contribute.build_scope("genres", "Penguin · 2008")
+    assert "Penguin" not in contribute.build_scope("genres", "Penguin · 2008")

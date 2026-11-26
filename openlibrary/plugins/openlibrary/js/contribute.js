@@ -6,8 +6,19 @@
  */
 
 import { setBannerCookie } from './banner';
+import { confirmFromTemplate } from './confirm-template';
 import { initFeed } from './contribute-feed';
-import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
+import {
+    parseIsbn,
+    isFormatValidIsbn10,
+    isChecksumValidIsbn10,
+    isFormatValidIsbn13,
+    isChecksumValidIsbn13,
+    parseLccn,
+    isValidLccn,
+    parseOclc,
+    isValidOclc
+} from './idValidation';
 import { trackEvent } from './ol.analytics.js';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
@@ -21,7 +32,11 @@ const ROWS_MAX_TRIES = 36;
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
     lccn: { parse: parseLccn, isValid: isValidLccn },
-    oclc_numbers: { parse: parseOclc, isValid: isValidOclc }
+    oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
+    isbn: {
+        parse: raw => parseIsbn(raw).toUpperCase(),
+        isValid: isbn => (isFormatValidIsbn10(isbn) && isChecksumValidIsbn10(isbn)) || (isFormatValidIsbn13(isbn) && isChecksumValidIsbn13(isbn))
+    }
 };
 
 /**
@@ -312,7 +327,7 @@ function initManyChoice(group) {
     const sync = () => {
         group.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
         // By property: the chip reflects ``selected`` to its attribute only on its next render.
-        for (const chip of [...group.querySelectorAll('ol-chip')].filter(chip => chip.selected)) {
+        for (const chip of [...group.querySelectorAll('ol-chip')].filter(candidate => candidate.selected)) {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = name;
@@ -535,7 +550,132 @@ function initNavLoading(rail) {
     });
 }
 
+/**
+ * Ask before a form on the project admin page posts, with the dialog text from the ``<template>`` it names.
+ * Without the script the form posts straight away, which the server allows.
+ * @param {HTMLFormElement} form - a ``form[data-confirm]``
+ * @returns {void}
+ */
+function initConfirmForm(form) {
+    const template = document.getElementById(form.dataset.confirm);
+    if (!template) return;
+    let confirmed = false;
+    form.addEventListener('submit', async e => {
+        if (confirmed) return;
+        e.preventDefault();
+        if (await confirmFromTemplate(template, { destructive: template.dataset.destructive !== 'false' })) {
+            confirmed = true;
+            form.submit();
+        }
+    });
+}
+
+/**
+ * A date input's Clear button: empties the date, and shows only while there is one to clear.
+ * @param {HTMLElement} button - an element marked ``data-clear-date`` with the input's id
+ * @returns {void}
+ */
+function initDateClear(button) {
+    const input = document.getElementById(button.dataset.clearDate);
+    if (!input) return;
+    const sync = () => {
+        button.hidden = !input.value;
+    };
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+    button.addEventListener('click', () => {
+        input.value = '';
+        sync();
+        input.focus();
+    });
+    sync();
+}
+
+/**
+ * The create form's goal: follows the details ticked (lower for ones many books lack) until the
+ * person types their own, then offers the suggestion as a one-click button.
+ * @param {HTMLInputElement} input - the goal input, carrying ``data-goal-rule``
+ * @returns {void}
+ */
+function initGoalSuggestion(input) {
+    const form = input.form;
+    const line = form.querySelector('[data-goal-suggestion]');
+    const use = form.querySelector('[data-goal-use]');
+    const rule = JSON.parse(input.dataset.goalRule);
+    const suggest = () => {
+        const chosen = [...form.querySelectorAll('input[name="fields"]:checked')].map(box => box.value);
+        const hard = chosen.filter(field => rule.hard.includes(field));
+        if (!hard.length) return rule.default;
+        return hard.length === chosen.length ? rule.all : rule.some;
+    };
+    // A value that isn't the suggestion was typed, here or before an error sent the form back.
+    let typed = input.value !== String(suggest());
+    const sync = () => {
+        const goal = String(suggest());
+        if (!typed) input.value = goal;
+        use.textContent = `${goal}%`;
+        line.hidden = !typed || input.value === goal;
+    };
+    input.addEventListener('input', () => {
+        typed = true;
+        sync();
+    });
+    form.addEventListener('change', event => {
+        if (event.target.name === 'fields') sync();
+    });
+    use.addEventListener('click', () => {
+        typed = false;
+        sync();
+    });
+    sync();
+}
+
+/**
+ * The create form's summary: restates the books and details as they're chosen, and keeps Create
+ * off until there is at least one of each. The server checks the form again either way.
+ * @param {HTMLElement} root - the ``[data-create-summary]`` block at the foot of the form
+ * @returns {void}
+ */
+function initCreateSummary(root) {
+    const form = root.closest('form');
+    const i18n = JSON.parse(root.dataset.i18n);
+    const books = root.querySelector('[data-summary-books]');
+    const fields = root.querySelector('[data-summary-fields]');
+    const submit = root.querySelector('[data-create-submit]');
+    // The server sends a string per plural category of the page's language.
+    const rules = new Intl.PluralRules(document.documentElement.lang || undefined);
+    const plural = (key, count) => (i18n[key][rules.select(count)] ?? i18n[key].other).replace('{count}', count.toLocaleString());
+    const describeBooks = () => {
+        const source = form.querySelector('input[name="source"]:checked')?.value;
+        if (source === 'pasted') {
+            // Split as the server splits it (booklist.split_entries).
+            const count = form.elements.books.value.split(/[\s,;]+/).filter(Boolean).length;
+            return count ? plural('books', count) : '';
+        }
+        if (source === 'list') return form.elements.list_url.value.trim() ? i18n.list : '';
+        const size = Number(form.elements.size.value.trim());
+        return Number.isInteger(size) && size > 0 ? plural('shelved', size) : '';
+    };
+    const sync = () => {
+        const bookText = describeBooks();
+        const chosen = [...form.querySelectorAll('input[name="fields"]:checked')].map(box => box.closest('label').textContent.trim());
+        books.textContent = bookText || i18n.none;
+        books.classList.toggle('is-missing', !bookText);
+        fields.textContent = chosen.join(', ') || i18n.none;
+        fields.classList.toggle('is-missing', !chosen.length);
+        submit.disabled = !bookText || !chosen.length;
+    };
+    form.addEventListener('input', sync);
+    form.addEventListener('change', sync);
+    root.querySelector('.contrib-admin__summary').hidden = false;
+    sync();
+}
+
 export function init() {
+    document.querySelectorAll('[data-contribute-admin] form[data-confirm]').forEach(initConfirmForm);
+    document.querySelectorAll('[data-contribute-admin] [data-clear-date]').forEach(initDateClear);
+    document.querySelectorAll('[data-contribute-admin] input[data-goal-rule]').forEach(initGoalSuggestion);
+    document.querySelectorAll('[data-contribute-admin] [data-create-summary]').forEach(initCreateSummary);
     document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });

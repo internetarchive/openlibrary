@@ -1,7 +1,7 @@
-$def with ()
+$def with (strings)
 
 $var title: $_('Barcode Scanner (Beta)')
 
 $ ctx.setdefault("show_ol_shell", False)
 
-$:render_component('BarcodeScanner')
+$:render_component('BarcodeScanner', attrs={'i18n': strings})
