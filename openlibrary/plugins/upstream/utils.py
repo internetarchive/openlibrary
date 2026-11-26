@@ -12,7 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Literal, Protocol
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import (
     parse_qs,
     quote,
@@ -520,13 +520,6 @@ def get_locale():
         return babel.Locale(web.ctx.get("lang") or "en")
     except babel.core.UnknownLocaleError:
         return babel.Locale("en")
-
-
-class HasGetKeyRevision(Protocol):
-    key: str
-    revision: int
-
-    def get(self, item) -> Any: ...
 
 
 @public
