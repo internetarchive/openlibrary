@@ -1,17 +1,17 @@
 import functools
 import logging
+import sys
 import time
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Literal, TypedDict, TypeVar, cast, override
+from typing import Literal, TypedDict, TypeIs, TypeVar, cast, override
 from urllib import parse
 
 from web import uniq
 
 from openlibrary.app import render_template
 from openlibrary.core.provider_loans import get_provider_loan
-from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
 from openlibrary.utils.request_context import get_provider_pref, site
@@ -19,7 +19,16 @@ from openlibrary.utils.request_context import get_provider_pref, site
 if typing.TYPE_CHECKING:
     from web.template import TemplateResult
 
+    from openlibrary.plugins.upstream.models import Edition
+
 logger = logging.getLogger("openlibrary.book_providers")
+
+
+def _is_edition(obj: object) -> TypeIs[Edition]:
+    # Looked up rather than imported: the upstream models pull in most of the web app,
+    # which the solr updater otherwise never loads. If they aren't loaded, obj can't be one.
+    models = sys.modules.get("openlibrary.plugins.upstream.models")
+    return models is not None and isinstance(obj, models.Edition)
 
 
 def is_safe_provider_url(url: str | None) -> bool:
@@ -955,7 +964,7 @@ def get_cover_url(ed_or_solr: Edition | dict) -> str | None:
     size = "M"
 
     # Editions
-    if isinstance(ed_or_solr, Edition):
+    if _is_edition(ed_or_solr):
         cover = ed_or_solr.get_cover()
         return cover.url(size) if cover else None
 
@@ -1040,7 +1049,7 @@ def get_book_providers(ed_or_solr: Edition | dict) -> Iterator[AbstractBookProvi
     # copies of all editions aggregated, it's more difficult.
     # So we do some ugly ocaid sniffing to try to guess :/ Idea being that we ignore
     # OCAIDs that look like they're from other providers.
-    has_edition = isinstance(ed_or_solr, Edition) or ed_or_solr["key"].startswith("/books/")
+    has_edition = _is_edition(ed_or_solr) or ed_or_solr["key"].startswith("/books/")
     prefer_ia = not has_edition
     if prefer_ia:
         ia_ocaids = [
