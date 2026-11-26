@@ -776,6 +776,22 @@ def get_doc(doc: SolrDocument):
     return result
 
 
+def barcode_scanner_strings() -> dict[str, str]:
+    """Translated strings for ``<ol-barcode-scanner>``.
+
+    Keys and English strings must match ``DEFAULT_STRINGS`` in
+    ``openlibrary/components/BarcodeScanner.vue``; ``test_worksearch.py`` checks
+    that they do. Built in Python like the other component string sets (see
+    ``core/shell/shelf_labels.py``).
+    """
+    return {
+        "advanced": _("Advanced"),
+        "readTextIsbn": _("Read Text ISBN"),
+        "readTextIsbnHint": _("For books that print the ISBN without a barcode"),
+        "noBooksYet": _("Point your camera at a barcode! 📷"),
+    }
+
+
 class scan(delegate.page):
     """
     Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
@@ -784,7 +800,7 @@ class scan(delegate.page):
     path = "/barcodescanner"
 
     def GET(self):
-        return render.barcodescanner()
+        return render.barcodescanner(barcode_scanner_strings())
 
 
 class search(delegate.page):

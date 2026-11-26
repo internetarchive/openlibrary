@@ -11311,6 +11311,22 @@ msgstr ""
 msgid "Classic eBooks"
 msgstr ""
 
+#: openlibrary/plugins/worksearch/code.py
+msgid "Advanced"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Read Text ISBN"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "For books that print the ISBN without a barcode"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Point your camera at a barcode! 📷"
+msgstr ""
+
 #: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "Filter results for %(facet)s"
