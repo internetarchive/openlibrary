@@ -1361,7 +1361,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html admin/loans_table.html openlibrary/plugins/openlibrary/status.py
+#: TestingEnvironment/utils.js account/loans.html admin/loans_table.html
 msgid "Actions"
 msgstr ""
 
@@ -1956,7 +1956,7 @@ msgstr ""
 msgid "Imports"
 msgstr ""
 
-#: admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html openlibrary/plugins/openlibrary/status.py type/tag/form.html
+#: TestingEnvironment/utils.js admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -2628,7 +2628,7 @@ msgstr ""
 msgid "Write one entry per line"
 msgstr ""
 
-#: admin/solr.html openlibrary/plugins/openlibrary/status.py
+#: TestingEnvironment/utils.js admin/solr.html
 msgid "Update"
 msgstr ""
 
@@ -3264,7 +3264,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: BulkSearch/components/MatchTable.vue SearchAuthorSuggestion.html books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/status.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
+#: BulkSearch/components/MatchTable.vue SearchAuthorSuggestion.html TestingEnvironment/utils.js books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
 msgid "Author"
 msgstr ""
 
@@ -4006,7 +4006,7 @@ msgstr ""
 msgid "ID ids cannot contain whitespace."
 msgstr ""
 
-#: books/edit/edition.html
+#: IdentifiersInput/utils/utils.js books/edit/edition.html
 msgid "ID must be exactly 10 characters [0-9] or X."
 msgstr ""
 
@@ -4014,11 +4014,11 @@ msgstr ""
 msgid "That ID already exists for this edition."
 msgstr ""
 
-#: books/edit/edition.html
+#: IdentifiersInput/utils/utils.js books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
 msgstr ""
 
-#: books/edit/edition.html
+#: IdentifiersInput/utils/utils.js books/edit/edition.html
 msgid "Invalid ID format"
 msgstr ""
 
@@ -5629,7 +5629,7 @@ msgstr ""
 msgid "Remove from this list?"
 msgstr ""
 
-#: lists/lists.html openlibrary/plugins/openlibrary/status.py type/list/edit.html type/list/view_body.html type/series/edit.html
+#: IdentifiersInput.vue TestingEnvironment/utils.js lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
@@ -5719,7 +5719,7 @@ msgstr ""
 msgid "No primary record"
 msgstr ""
 
-#: merge/authors.html openlibrary/plugins/openlibrary/status.py
+#: TestingEnvironment/utils.js merge/authors.html
 msgid "OK"
 msgstr ""
 
@@ -8632,6 +8632,28 @@ msgstr ""
 msgid "Point your camera at a barcode! 📷"
 msgstr ""
 
+#: IdentifiersInput.vue
+msgid "Select one"
+msgstr ""
+
+#: IdentifiersInput.vue
+msgid "You do not have permission to edit this identifier"
+msgstr ""
+
+#. The button that adds the identifier typed in the box.
+#: IdentifiersInput.vue
+msgid "Set"
+msgstr ""
+
+#: IdentifiersInput.vue
+msgid "Only one Internet Archive ID is allowed per edition."
+msgstr ""
+
+#: IdentifiersInput.vue
+#, python-format
+msgid "An identifier for %(name)s already exists."
+msgstr ""
+
 #. "Title", "Author" and "ISBN" are the column names the spreadsheet must use, so keep them in English.
 #: BulkSearch/components/BulkSearchControls.vue
 msgid "Please include a header row. Supported columns include: \"Title\", \"Author\", \"ISBN\"."
@@ -8757,6 +8779,242 @@ msgstr ""
 #: BulkSearch/utils/samples.js
 msgid "Holocaust Wikipedia citations"
 msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+#, python-format
+msgid "ISBN %(isbn)s may be invalid. Please confirm if you'd like to add it before saving all changes"
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+msgid "Invalid identifier"
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+msgid "That ID already exists for an identifier."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Loading testing environment…"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Could not load the testing environment."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Try again"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Could not complete that action."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "PR %(num)s does not exist."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Could not check PR %(num)s — GitHub is unavailable."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Could not add PR %(num)s."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Testing Environment"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Add PRs"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "PR numbers or URLs, space or comma separated"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "PR"
+msgstr ""
+
+#: TestingEnvironment/utils.js openlibrary/contribute/manage.py
+msgid "Draft"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Assignee"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Drift"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Next deploy"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Live now"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Not yet deployed"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Deploy failed (merge conflict)"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "This PR is already closed."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "PR %(num)s on testing"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "changes on deploy"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Update pin"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Enable"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Disable"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Restore"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Refresh from GitHub"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Deploy"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Nothing to deploy — testing matches the current set."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "merged to master"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "closed without merging"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Drift unknown, pinned at %(sha)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Up-to-date, pinned at %(sha)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Never deployed"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploying, started %(time)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploying, started %(time)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploying, started %(time)s — %(stage)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploying, started %(time)s — %(stage)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploy succeeded %(time)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploy succeeded %(time)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploy failed %(time)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Deploy failed %(time)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Could not start the deploy — Jenkins did not accept the build."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "Deploy is not configured on this instance — nothing was deployed."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Last deploy %(time)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "Last deploy %(time)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "View Jenkins"
+msgstr ""
+
+#: TestingEnvironment/utils.js
+msgid "No PRs in testing set."
+msgstr ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "%(num)s change will be applied"
+msgid_plural "%(num)s changes will be applied"
+msgstr[0] ""
+msgstr[1] ""
+
+#: TestingEnvironment/utils.js
+#, python-format
+msgid "%(num)s commit behind %(sha)s"
+msgid_plural "%(num)s commits behind %(sha)s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/contribute/feed.py
 msgid "Edited this book"
@@ -9177,10 +9435,6 @@ msgstr ""
 
 #: openlibrary/contribute/manage.py
 msgid "Scheduled"
-msgstr ""
-
-#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/status.py
-msgid "Draft"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -10996,225 +11250,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Loading testing environment…"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Could not load the testing environment."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Try again"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Could not complete that action."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "PR %(num)s does not exist."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Could not check PR %(num)s — GitHub is unavailable."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Could not add PR %(num)s."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Testing Environment"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Add PRs"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "PR numbers or URLs, space or comma separated"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "PR"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Assignee"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Drift"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Next deploy"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Live now"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Not yet deployed"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Deploy failed (merge conflict)"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "This PR is already closed."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "PR %(num)s on testing"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "changes on deploy"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Update pin"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Enable"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Disable"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Restore"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Refresh from GitHub"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Deploy"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "%(num)s change will be applied"
-msgid_plural "%(num)s changes will be applied"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Nothing to deploy — testing matches the current set."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "merged to master"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "closed without merging"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Drift unknown, pinned at %(sha)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Up-to-date, pinned at %(sha)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "%(num)s commit behind %(sha)s"
-msgid_plural "%(num)s commits behind %(sha)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Never deployed"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploying, started %(time)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploying, started %(time)s by %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploying, started %(time)s — %(stage)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploying, started %(time)s — %(stage)s by %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploy succeeded %(time)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploy succeeded %(time)s by %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploy failed %(time)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Deploy failed %(time)s by %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Could not start the deploy — Jenkins did not accept the build."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "Deploy is not configured on this instance — nothing was deployed."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Last deploy %(time)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-#, python-format
-msgid "Last deploy %(time)s by %(user)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "View Jenkins"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/status.py
-msgid "No PRs in testing set."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
