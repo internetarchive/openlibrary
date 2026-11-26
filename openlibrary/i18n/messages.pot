@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -1498,7 +1498,7 @@ msgstr ""
 msgid "Notifications from Open Library"
 msgstr ""
 
-#: account/notifications.html
+#: account/notifications.html lit/OlToastRegion.js
 msgid "Notifications"
 msgstr ""
 

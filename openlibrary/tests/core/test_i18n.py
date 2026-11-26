@@ -307,6 +307,13 @@ def test_extract_messages_reads_lit_templates_and_vue_scripts(tmp_path, monkeypa
         assert {message.id for message in read_po(f) if message.id} == {"Outside", "In a template", "In a script"}
 
 
+def test_extract_vue_rejects_calls_in_the_template():
+    source = b"<template><p>{{ gettext('Never extracted') }}</p></template>\n<script>\nconst x = 1;\n</script>\n"
+
+    with pytest.raises(ValueError, match="not <template>"):
+        list(i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {}))
+
+
 @pytest.fixture
 def clear_javascript_catalog():
     i18n.javascript_catalog.cache_clear()
@@ -326,10 +333,18 @@ def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monke
     assert i18n._javascript_msgids() == ["Advanced", ("%(count)s list", "%(count)s lists")]
 
 
-def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, clear_javascript_catalog):
-    catalog = Catalog(locale="es")
-    catalog.add("Advanced", "Avanzado")
-    catalog.add(("%(count)s list", "%(count)s lists"), ("%(count)s lista", "%(count)s listas"))
+@pytest.mark.parametrize(
+    ("lang", "advanced", "list_forms", "expected_list"),
+    [
+        ("es", "Avanzado", ("%(count)s lista", "%(count)s listas"), {"one": "%(count)s lista", "other": "%(count)s listas"}),
+        # Japanese has only the "other" plural category.
+        ("ja", "詳細", ("%(count)s 件のリスト",), {"other": "%(count)s 件のリスト"}),
+    ],
+)
+def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, clear_javascript_catalog, lang, advanced, list_forms, expected_list):
+    catalog = Catalog(locale=lang)
+    catalog.add("Advanced", advanced)
+    catalog.add(("%(count)s list", "%(count)s lists"), list_forms)
     catalog.add("Untranslated", "")
     mo = BytesIO()
     write_mo(mo, catalog)
@@ -337,7 +352,4 @@ def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, c
     monkeypatch.setattr(i18n, "load_translations", lambda lang: Translations(mo))
     monkeypatch.setattr(i18n, "_javascript_msgids", lambda: ["Advanced", ("%(count)s list", "%(count)s lists"), "Untranslated"])
 
-    assert i18n.javascript_catalog("es") == {
-        "Advanced": "Avanzado",
-        "%(count)s list": {"one": "%(count)s lista", "other": "%(count)s listas"},
-    }
+    assert i18n.javascript_catalog(lang) == {"Advanced": advanced, "%(count)s list": expected_list}

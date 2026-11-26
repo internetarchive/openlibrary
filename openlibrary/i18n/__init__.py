@@ -155,9 +155,13 @@ def extract_vue(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from a Vue single-file component's first ``<script>`` block.
 
     Babel's JavaScript extractor can't read the ``<template>``, so a ``.vue`` file calls
-    ``_()`` in its script and the template shows the result.
+    ``_()`` in its script and the template shows the result. A call in the template
+    is an error, since it would never be translated.
     """
     source = fileobj.read().decode("utf-8")
+    template = re.search(r"<template[^>]*>(.*)</template[^>]*>", source, re.DOTALL | re.IGNORECASE)
+    if template and re.search(r"\b(?:_|n?gettext)\(", template[1]):
+        raise ValueError(f"{getattr(fileobj, 'name', 'a .vue file')}: call _() in <script>, not <template>, or it won't be extracted")
     if not (script := re.search(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE)):
         return
     offset = source[: script.start(1)].count("\n")
@@ -502,7 +506,7 @@ def javascript_catalog(lang: str) -> dict:
         if isinstance(msgid, tuple):
             singular, plural = msgid
             forms = {category: translations.ungettext(singular, plural, n) for category, n in _plural_samples(lang).items()}
-            if forms["one"] != singular or forms["other"] != plural:
+            if any(form not in (singular, plural) for form in forms.values()):
                 catalog[singular] = forms
         elif (text := translations.ugettext(msgid)) != msgid:
             catalog[msgid] = text
