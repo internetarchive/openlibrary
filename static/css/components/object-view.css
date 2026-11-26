@@ -1,0 +1,11 @@
+/* pages of /type/object; openlibrary/templates/type/object/view.html */
+.object-view-page #contentBody ul {
+  margin-bottom: 20px;
+}
+.object-view-page #contentBody li {
+  line-height: 1em;
+  margin-left: 20px;
+}
+.object-view-page .dict {
+  margin-bottom: 2px;
+}

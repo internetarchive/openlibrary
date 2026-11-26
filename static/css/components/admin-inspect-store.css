@@ -1,0 +1,25 @@
+/* /admin/inspect/store; openlibrary/templates/admin/inspect/store.html */
+.admin-inspect-store-page tr {
+  border-bottom: 1px solid #eee;
+}
+.admin-inspect-store-page th {
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #333333;
+}
+.admin-inspect-store-page td {
+  min-width: 150px;
+  margin: 0 5px;
+}
+.admin-inspect-store-page input[type="text"] {
+  width: 200px;
+}
+.admin-inspect-store-page form.olform tr {
+  border: none;
+}
+.admin-inspect-store-page form.olform td {
+  padding: 1px;
+}
+.admin-inspect-store-page form.olform input[type="text"] {
+  width: 200px;
+}

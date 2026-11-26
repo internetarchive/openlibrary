@@ -17,9 +17,7 @@ $else:
 $ deleteType = ''
 
 $if "type" in doc and doc.type.key == "/type/user":
-    <style type="text/css">
-        span.list-owner { display: none; }
-    </style>
+    $ _x = ctx.setdefault('bodyclass', []).append('user-lists-page')
     $if ctx.user and ctx.user.key == doc.key:
         $ deleteType = 'deleteList'
         $# The link below is a placeholder that gets inserted into the correct place in the DOM on page load via ListViewBody.js

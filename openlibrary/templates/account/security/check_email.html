@@ -2,21 +2,7 @@ $def with (affected)
 
 $var title: $_("Account Security Check — 2026-04-28T18Z")
 
-<style>
-.security-check-result {
-    padding: 1em 1.5em;
-    border-radius: 4px;
-    margin-bottom: 1em;
-}
-.security-check-result--affected {
-    background-color: rgba(220, 53, 69, 0.15);
-    border: 1px solid rgba(220, 53, 69, 0.4);
-}
-.security-check-result--safe {
-    background-color: rgba(40, 167, 69, 0.15);
-    border: 1px solid rgba(40, 167, 69, 0.4);
-}
-</style>
+$ _x = ctx.setdefault('bodyclass', []).append('security-check-page')
 
 <div id="contentHead">
     <h1>$_("Account Security Check")</h1>

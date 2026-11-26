@@ -1,0 +1,9 @@
+/* /admin/people; openlibrary/templates/admin/people/index.html */
+.admin-people-page .user-search td {
+  font-size: 1em !important;
+}
+.admin-people-page input#email,
+.admin-people-page input#ia-id {
+  padding: 3px;
+  width: 400px;
+}

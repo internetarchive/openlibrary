@@ -2,18 +2,7 @@ $def with (page)
 
 $var title: $page.key
 
-<style type="text/css">
-#contentBody ul {
-    margin-bottom: 20px;
-}
-#contentBody li {
-    line-height: 1em;
-    margin-left: 20px;
-}
-.dict {
-    margin-bottom: 2px;
-}
-</style>
+$ _x = ctx.setdefault('bodyclass', []).append('object-view-page')
 
 $def display(d):
     $if is_thing(d):

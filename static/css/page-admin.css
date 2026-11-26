@@ -23,6 +23,7 @@
 /* Import styles specific to the BorrowTable for user pages */
 @import "legacy-borrowTable-adminUser.css";
 @import "components/pd-dashboard.css";
+@import "components/admin-person.css";
 
 /* graphite graphs may be bigger than viewport... */
 img {

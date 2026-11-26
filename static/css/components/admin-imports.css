@@ -1,0 +1,18 @@
+/* /admin/imports; openlibrary/templates/admin/imports.html */
+.admin-imports-page div.graph,
+.admin-imports-page div.chart {
+  position: relative;
+  width: 838px;
+  height: 180px;
+  float: none;
+  background-image: none;
+}
+.admin-imports-page div.pie {
+  width: 420px;
+  height: 250px;
+}
+.admin-imports-page .chartYaxis {
+  width: 180px;
+  top: 85px;
+  left: -85px;
+}

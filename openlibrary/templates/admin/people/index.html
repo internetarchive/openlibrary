@@ -12,16 +12,7 @@ $var title: $_("[Admin Center] People")
     <h2>$_("Find Account")</h2>
 </div>
 
-<style type="text/css">
-.user-search td {
-    font-size: 1.0em !important;
-}
-input#email,
-input#ia-id {
-    padding: 3px;
-    width: 400px;
-}
-</style>
+$ _x = ctx.setdefault('bodyclass', []).append('admin-people-page')
 
 <table class="user-search" id="adminHistory" style="clear: both;">
 <tbody>
