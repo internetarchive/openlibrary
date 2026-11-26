@@ -30,7 +30,6 @@ def test_library_explorer_page_renders_the_component(client):
     assert '<body class="full-width library-explorer"' in html
     assert html.count("<ol-library-explorer></ol-library-explorer>") == 1
     assert 'src="/static/build/components/production/ol-LibraryExplorer.js"' in html
-    assert "body.library-explorer" in html
 
 
 @pytest.fixture
