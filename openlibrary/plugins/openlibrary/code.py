@@ -263,7 +263,16 @@ class team(delegate.page):
     path = "/about/team"
 
     def GET(self):
-        return render_template("about/index.html")
+        # Local imports: this handler is temporary.
+        from markupsafe import escape
+
+        from infogami.utils.context import context
+
+        context.setdefault("cssfile", "team")
+        page = render_template("about/index.html")
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        page.title = escape(_("The Open Library Team"))
+        return page
 
 
 class addbook(delegate.page):
