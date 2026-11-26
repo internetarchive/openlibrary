@@ -252,7 +252,7 @@ test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this hea
 
 test('status: an approval that lists this head as re-reviewed counts as its review -> success', async () => {
     const head = SHA('a');
-    const body = `ok\n<!-- ol-pr-review-bot f=0 -->\n<!-- ol-pr-review-bot rereviewed=${head} -->`;
+    const body = `ok\n<!-- ol-pr-review-bot f=0 -->\n<!-- ol-pr-review-bot rereviewed=${head} at=2026-11-26T03:24:08Z -->`;
     const { github, calls } = mockGitHub({
         prGet: async () => ({ data: { head: { sha: head } } }),
         listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), body }] })
@@ -272,7 +272,7 @@ test('status: an approval that lists this head as re-reviewed counts as its revi
 });
 test('range: an approval that lists this head as re-reviewed counts as its review -> skip', async () => {
     const head = SHA('a');
-    const body = `ok\n<!-- ol-pr-review-bot f=0 -->\n<!-- ol-pr-review-bot rereviewed=${head} -->`;
+    const body = `ok\n<!-- ol-pr-review-bot f=0 -->\n<!-- ol-pr-review-bot rereviewed=${head} at=2026-11-26T03:24:08Z -->`;
     const { github } = mockGitHub({
         prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
         listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), submitted_at: '2026-01-01', body }] }),

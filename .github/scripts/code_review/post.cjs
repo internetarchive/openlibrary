@@ -48,15 +48,15 @@ const quietTarget = ({ reviews, botLogin }) => {
     if (!last || last.state !== 'APPROVED' || !CLEAN_FIRST_LINE.test(String(last.body).split('\n')[0])) return null;
     return /<!-- ol-pr-review-bot f=0 -->/.test(last.body) ? last : null;
 };
-// The approval's body with `sha` added: the visible list under its first line, and the marker at the end.
-const rereviewedBody = (body, sha) => {
+// The approval's body with `sha` added at time `at`: the visible list under its first line, and the marker at the end.
+const rereviewedBody = (body, sha, at = new Date().toISOString()) => {
     const text = String(body || '');
     if (rereviewedShas(text).includes(sha)) return null;
     const shas = [...rereviewedShas(text), sha];
     const [first, ...rest] = text.split('\n');
     if (rest[0] === '' && String(rest[1] || '').startsWith(LATER_PREFIX)) rest.splice(0, 2);
     const line = `${LATER_PREFIX} ${shas.map(s => `\`${s.slice(0, 7)}\``).join(', ')}.*`;
-    return `${[first, '', line, ...rest].join('\n')}\n${rereviewedMarker(sha)}`;
+    return `${[first, '', line, ...rest].join('\n')}\n${rereviewedMarker(sha, at)}`;
 };
 
 // On a re-review, the threads the model listed as fixed (review.resolved) that are still open and

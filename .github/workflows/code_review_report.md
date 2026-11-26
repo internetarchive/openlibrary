@@ -16,7 +16,9 @@ You have no shell. Read `stats.json`; the only file you can write is `report.jso
     `message`, when it happened (`at`), `candidate_fixes`: the review bot PRs merged after it, and
     `removed_by`: those of them whose diff removed a line containing the start of that message.
   - `reviews`: the bot's reviews and their states, `blocking_findings` and `suggestions`, and the
-    findings posted as review threads with their type, severity and `outcomes`:
+    findings posted as review threads with their type, severity and `outcomes`. The state
+    `ADDED_TO_APPROVAL` is a clean re-review the bot added to its earlier approval instead of
+    posting a new review; it counts as a review. The outcomes:
     - `fixed` / `dismissed`: the bot re-checked and the workflow resolved the thread.
     - `resolved_by_bot`: resolved by the bot before it noted why (older runs).
     - `resolved_by_person`: someone resolved it by hand.

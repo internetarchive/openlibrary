@@ -955,21 +955,25 @@ test('quietTarget: the latest bot review, only when it is a clean approval that 
 
 test('rereviewedBody lists each later commit under the first line and marks it as covered', () => {
     const approval = cleanApproval();
-    const once = rereviewedBody(approval.body, SHA('d'));
+    const once = rereviewedBody(approval.body, SHA('d'), '2026-11-26T03:24:08Z');
     assert.match(once, /^\*\*No issues found\*\* on `ccccccc`\.\n\n\*No new issues in later pushes: `ddddddd`\.\*\n\nA summary\./);
-    const twice = rereviewedBody(once, SHA('e'));
+    const twice = rereviewedBody(once, SHA('e'), '2026-11-26T08:41:46Z');
     assert.match(twice, /\n\n\*No new issues in later pushes: `ddddddd`, `eeeeeee`\.\*\n\nA summary\./);
     assert.equal(twice.match(/No new issues in later pushes/g).length, 1);
     assert.equal(rereviewedBody(twice, SHA('e')), null);
     const reviewed = { ...approval, body: twice };
     assert.deepEqual(shared.reviewedShas(reviewed), [SHA('c'), SHA('d'), SHA('e')]);
     assert.equal(shared.lastReviewedSha(reviewed), SHA('e'));
+    assert.deepEqual(shared.rereviews(twice), [
+        { sha: SHA('d'), at: '2026-11-26T03:24:08Z' },
+        { sha: SHA('e'), at: '2026-11-26T08:41:46Z' }
+    ]);
     assert.ok(shared.coversSha(reviewed, SHA('d')));
     assert.ok(!shared.coversSha(reviewed, SHA('f')));
 });
 
 test('a rereviewed marker counts only after the review marker, where model text cannot reach', () => {
-    const body = `**No issues found** on \`ccccccc\`.\n\n${shared.rereviewedMarker(SHA('d'))}\n\n<!-- ol-pr-review-bot f=0 -->\n${shared.rereviewedMarker(SHA('e'))}`;
+    const body = `**No issues found** on \`ccccccc\`.\n\n${shared.rereviewedMarker(SHA('d'), '2026-11-26T03:24:08Z')}\n\n<!-- ol-pr-review-bot f=0 -->\n${shared.rereviewedMarker(SHA('e'), '2026-11-26T08:41:46Z')}`;
     assert.deepEqual(shared.rereviewedShas(body), [SHA('e')]);
     assert.deepEqual(shared.rereviewedShas('no marker at all'), []);
 });
