@@ -6,6 +6,7 @@ so it is grouped separately from the rest of ``LayoutContext``.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -56,13 +57,12 @@ class HeadContext:
     icon_sprite_url: str
     days_registered_json: str
     sentry: SentryContext | None
-    # The page language's translations for ``i18n.js``'s ``_()`` / ``ngettext()``.
-    javascript_catalog_json: str
+    # The script with the page language's translations for ``i18n.js``; None in English.
+    javascript_catalog_url: str | None
 
     @classmethod
     def build(cls, *, req: ShellRequest, page: PageMeta, user: ShellUser | None) -> HeadContext:
         from openlibrary.accounts import get_days_registered
-        from openlibrary.i18n import javascript_catalog
         from openlibrary.plugins.upstream.utils import canonical_url, icon_sprite_url, json_encode
         from openlibrary.utils.request_context import get_request_lang
 
@@ -81,5 +81,18 @@ class HeadContext:
             icon_sprite_url=_safe(icon_sprite_url, "/static/icons/sprite.svg"),
             days_registered_json=_safe(lambda: json_encode(get_days_registered(user)), '"visitor"'),
             sentry=SentryContext.build(),
-            javascript_catalog_json=_safe(lambda: json_encode(javascript_catalog(get_request_lang())), "{}"),
+            javascript_catalog_url=_safe(lambda: _javascript_catalog_url(get_request_lang()), None),
         )
+
+
+def _javascript_catalog_url(lang: str) -> str | None:
+    """The URL of ``static/build/i18n/<lang>.js`` (written by ``make i18n``), or None when there's none."""
+    from openlibrary.plugins.upstream.code import static_url
+
+    # The language comes from the client (``?lang=``), so it mustn't reach the filesystem as a path.
+    if lang == "en" or not re.fullmatch(r"[a-z]{2,3}", lang):
+        return None
+    try:
+        return static_url(f"build/i18n/{lang}.js")
+    except OSError:
+        return None

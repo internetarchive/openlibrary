@@ -16,7 +16,7 @@ describe('sprintf', () => {
 
 describe('_ and ngettext', () => {
     async function withCatalog(catalog) {
-        document.head.innerHTML = catalog ? `<script type="application/json" id="ol-js-i18n">${JSON.stringify(catalog)}</script>` : '';
+        window.OL_I18N = catalog ?? undefined;
         vi.resetModules();
         return import('../../../openlibrary/plugins/openlibrary/js/i18n.js');
     }

@@ -1,4 +1,5 @@
 import functools
+import json
 import os
 import re
 import shutil
@@ -267,6 +268,7 @@ def check_source_strings(catalog: Catalog) -> list[str]:
 
 def compile_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
+    javascript_msgids = _javascript_msgids()
 
     for locale in locales_to_update:
         po_path = os.path.join(root, locale, "messages.po")
@@ -274,6 +276,15 @@ def compile_translations(locales: list[str]):
 
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
+            _write_javascript_catalog(locale, javascript_msgids)
+
+
+def _write_javascript_catalog(locale: str, msgids: list[str | tuple[str, str]]) -> None:
+    """Write ``static/build/i18n/<locale>.js``, which the page head loads for ``i18n.js``."""
+    path = Path(root).parents[1] / "static" / "build" / "i18n" / f"{locale}.js"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # ASCII-only JSON, so the file reads the same whatever charset it's served with.
+    path.write_text(f"window.OL_I18N = {json.dumps(javascript_catalog(locale, msgids), sort_keys=True)};\n")
 
 
 def _format_args(message: Message) -> dict | tuple:
@@ -492,9 +503,8 @@ def _javascript_msgids() -> list[str | tuple[str, str]]:
     return [message.id for message in catalog if message.id and any(path.endswith((".js", ".vue")) for path, _line in message.locations)]
 
 
-@functools.lru_cache(maxsize=256)
-def javascript_catalog(lang: str) -> dict:
-    """This language's translations of the strings JavaScript uses, for ``i18n.js``.
+def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> dict:
+    """This language's translations of ``msgids`` (from ``_javascript_msgids()``), for ``i18n.js``.
 
     A string maps to its translation; a plural maps its singular to a set of forms keyed
     by CLDR plural category. Untranslated strings are left out, so the browser shows the
@@ -503,7 +513,7 @@ def javascript_catalog(lang: str) -> dict:
     catalog: dict = {}
     if not (translations := load_translations(lang)):
         return catalog
-    for msgid in _javascript_msgids():
+    for msgid in msgids:
         if isinstance(msgid, tuple):
             singular, plural = msgid
             forms = {category: translations.ungettext(singular, plural, n) for category, n in _plural_samples(lang).items()}

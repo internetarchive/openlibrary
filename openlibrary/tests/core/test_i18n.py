@@ -1,3 +1,4 @@
+import functools
 from io import BytesIO
 
 import pytest
@@ -321,13 +322,6 @@ def test_extract_vue_reads_html_strings_in_the_script():
     assert [m[2] for m in i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {})] == ["In the script"]
 
 
-@pytest.fixture
-def clear_javascript_catalog():
-    i18n.javascript_catalog.cache_clear()
-    yield
-    i18n.javascript_catalog.cache_clear()
-
-
 def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monkeypatch):
     catalog = Catalog()
     catalog.add("Server only", locations=[("openlibrary/plugins/worksearch/code.py", None)])
@@ -348,7 +342,7 @@ def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monke
         ("ja", "詳細", ("%(count)s 件のリスト",), {"other": "%(count)s 件のリスト"}),
     ],
 )
-def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, clear_javascript_catalog, lang, advanced, list_forms, expected_list):
+def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, lang, advanced, list_forms, expected_list):
     catalog = Catalog(locale=lang)
     catalog.add("Advanced", advanced)
     catalog.add(("%(count)s list", "%(count)s lists"), list_forms)
@@ -357,6 +351,25 @@ def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, c
     write_mo(mo, catalog)
     mo.seek(0)
     monkeypatch.setattr(i18n, "load_translations", lambda lang: Translations(mo))
-    monkeypatch.setattr(i18n, "_javascript_msgids", lambda: ["Advanced", ("%(count)s list", "%(count)s lists"), "Untranslated"])
+    msgids = ["Advanced", ("%(count)s list", "%(count)s lists"), "Untranslated"]
 
-    assert i18n.javascript_catalog(lang) == {"Advanced": advanced, "%(count)s list": expected_list}
+    assert i18n.javascript_catalog(lang, msgids) == {"Advanced": advanced, "%(count)s list": expected_list}
+
+
+def test_compile_translations_writes_the_javascript_catalog(tmp_path, monkeypatch):
+    i18n_root = tmp_path / "openlibrary" / "i18n"
+    (i18n_root / "es").mkdir(parents=True)
+    catalog = Catalog(locale="es")
+    catalog.add("Advanced", "Avanzado", locations=[("BarcodeScanner.vue", None)])
+    catalog.add("Edit", "Editar", locations=[("edit.html", None)])
+    with open(i18n_root / "messages.pot", "wb") as f:
+        write_po(f, catalog)
+    with open(i18n_root / "es" / "messages.po", "wb") as f:
+        write_po(f, catalog)
+    monkeypatch.setattr(i18n, "root", str(i18n_root))
+    # A fresh cache, so this reads the .mo it just compiled.
+    monkeypatch.setattr(i18n, "load_translations", functools.lru_cache(i18n.load_translations.__wrapped__))
+
+    i18n.compile_translations(["es"])
+
+    assert (tmp_path / "static" / "build" / "i18n" / "es.js").read_text() == 'window.OL_I18N = {"Advanced": "Avanzado"};\n'

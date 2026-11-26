@@ -501,12 +501,23 @@ def test_head_renders_shell(monkeypatch, request_context_fixture):
     assert "/static/build/css/page-user.css" in html
 
 
-def test_head_carries_the_javascript_catalog(monkeypatch, request_context_fixture):
-    """The page language's translations for i18n.js, escaped so a translation can't end the script."""
-    request_context_fixture(lang="es")
-    monkeypatch.setattr("openlibrary.i18n.javascript_catalog", lambda lang: {"Advanced": f"Avanzado ({lang}) </script>"})
+@pytest.mark.parametrize(
+    ("lang", "expected"),
+    [
+        ("es", '<script src="/static/build/i18n/es.js?v=hash"></script>'),
+        ("en", None),
+        # Not a language code, so it never becomes a path.
+        ("../../x", None),
+    ],
+)
+def test_head_loads_the_javascript_catalog(monkeypatch, request_context_fixture, lang, expected):
+    request_context_fixture(lang=lang)
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", lambda path: f"/static/{path}?v=hash")
     html = _render_head(monkeypatch)
-    assert '<script type="application/json" id="ol-js-i18n">{"Advanced": "Avanzado (es) \\u003c/script\\u003e"}</script>' in html
+    if expected:
+        assert expected in html
+    else:
+        assert "build/i18n/" not in html
 
 
 def test_head_omits_analytics_for_bots(monkeypatch, request_context_fixture):

@@ -3,9 +3,9 @@
  * page scripts.
  *
  * Code calls `_()` (or `ngettext()`) with the English string. Extraction puts
- * those calls in messages.pot like the server's, and the page head carries this
- * language's translations of them (`ol-js-i18n`, from `javascript_catalog()` in
- * openlibrary/i18n); see docs/i18n/i18n.md. Without a translation, the English shows.
+ * those calls in messages.pot like the server's, and the page head loads this
+ * language's translations of them (`window.OL_I18N`, from static/build/i18n/<lang>.js,
+ * which `make i18n` writes); see docs/i18n/i18n.md. Without a translation, the English shows.
  *
  * Older components get their strings from the page template instead, as a JSON
  * attribute: each owns a map of English defaults (`DEFAULT_LABELS` in the Lit
@@ -50,16 +50,8 @@ export function plural(forms, count) {
     return forms[pluralCategory(Number(count))] ?? forms.other;
 }
 
-let catalog;
 function translations() {
-    if (catalog === undefined) {
-        try {
-            catalog = JSON.parse(document.getElementById('ol-js-i18n')?.textContent || '{}');
-        } catch {
-            catalog = {};
-        }
-    }
-    return catalog;
+    return window.OL_I18N ?? {};
 }
 
 /** `msgid` in the page language, or `msgid` itself (the English) when it has no translation. */
