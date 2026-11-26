@@ -366,17 +366,23 @@ class Edition(models.Edition):
         return w and UnitParser(["value"]).parse(w)
 
     def set_weight(self, w):
-        self.weight = w and UnitParser(["value"]).format(w)
+        if w:
+            self.weight = UnitParser(["value"]).format(w)
+        elif (self.get_weight() or {}).get("value"):
+            # Only clear a weight the edit form displayed; one it can't parse renders as empty.
+            self.weight = None
 
     def get_physical_dimensions(self):
         d = self.physical_dimensions
         return d and UnitParser(["height", "width", "depth"]).parse(d)
 
     def set_physical_dimensions(self, d):
-        if d is None:
+        fields = ["height", "width", "depth"]
+        if d:
+            self.physical_dimensions = UnitParser(fields).format(d)
+        elif any((self.get_physical_dimensions() or {}).get(f) for f in fields):
+            # Only clear dimensions the edit form displayed; ones like "24 cm" render as empty.
             self.physical_dimensions = None
-        elif d:
-            self.physical_dimensions = UnitParser(["height", "width", "depth"]).format(d)
 
     def get_toc_text(self) -> str:
         if toc := self.get_table_of_contents():

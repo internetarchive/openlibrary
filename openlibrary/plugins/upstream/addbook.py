@@ -670,17 +670,8 @@ class SaveBookHelper:
             classifications = edition_data.pop("classifications", [])
             self.edition.set_classifications(classifications)
 
-            # An empty submission only clears a stored value the form was able to show.
-            # Values the form can't parse (e.g. "24 cm") render as empty inputs, so an
-            # empty submission for those means "untouched", not "cleared".
-            if "physical_dimensions" in edition_data:
-                dimensions = edition_data.pop("physical_dimensions")
-                if dimensions or self._form_showed(self.edition.get_physical_dimensions(), ["height", "width", "depth"]):
-                    self.edition.set_physical_dimensions(dimensions)
-            if "weight" in edition_data:
-                weight = edition_data.pop("weight")
-                if weight or self._form_showed(self.edition.get_weight(), ["value"]):
-                    self.edition.set_weight(weight)
+            self.edition.set_physical_dimensions(edition_data.pop("physical_dimensions", None))
+            self.edition.set_weight(edition_data.pop("weight", None))
             try:
                 self.edition.set_toc_text(edition_data.pop("table_of_contents", None))
             except TocParseError as e:
@@ -728,13 +719,6 @@ class SaveBookHelper:
 
         return work, edition
 
-    @staticmethod
-    def _form_showed(parsed: web.Storage | None, fields: list[str]) -> bool:
-        """Whether the edit form displayed any of a stored weight/dimensions value."""
-        if not parsed:
-            return False
-        return any(parsed.get(f) for f in fields)
-
     def process_edition(self, edition):
         """Process input data for edition."""
         edition.publishers = edition.get("publishers", "").split(";")
@@ -742,11 +726,10 @@ class SaveBookHelper:
 
         edition = trim_doc(edition)
 
-        if (physical_dimensions := edition.get("physical_dimensions", [])) is None or list(physical_dimensions) == ["units"]:
-            edition.physical_dimensions = None
-
-        if (weight := edition.get("weight", [])) is None or list(weight) == ["units"]:
-            edition.weight = None
+        # A field left empty submits only its unit radio, or nothing at all.
+        for field in ("physical_dimensions", "weight"):
+            if list(edition.get(field) or []) == ["units"]:
+                edition[field] = None
 
         for k in ["roles", "identifiers", "classifications"]:
             edition[k] = edition.get(k) or []
