@@ -181,7 +181,6 @@ def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
     assert 'language:("eng" OR "spa")' in editions_fq
 
 
-
 def test_process_facet_language_missing_bucket_becomes_no_language():
     """Solr's facet.missing bucket arrives with a None value."""
     facets = [("eng", 100), (None, 8), ("fre", 5)]
