@@ -2,7 +2,7 @@
     <div class="identifiers wrapper" role="table">
         <div id="identifiers-form" class="identifiers-table" role="row">
             <select v-model="selectedIdentifier" class="form-control cell1" name="name">
-                <option disabled value="">Select one</option>
+                <option disabled value="">{{ strings.selectOne }}</option>
                 <template v-if="hasPopularIds">
                     <option v-for="entry in popularIdConfigs.filter(e => isAdmin || e.name !== 'ocaid')" :key="entry.name" :value="entry.name">
                         {{ entry.label }}
@@ -14,7 +14,7 @@
                     :key="idConfig.name"
                     :value="idConfig.name"
                     :disabled="!isAdmin && idConfig.name === 'ocaid'"
-                    :title="!isAdmin && idConfig.name === 'ocaid' ? 'You do not have permission to edit this identifier' : ''"
+                    :title="!isAdmin && idConfig.name === 'ocaid' ? strings.noPermission : ''"
                 >
                     {{ idConfig.label }}
                 </option>
@@ -23,7 +23,7 @@
                 <input id="id-value" v-model.trim="inputValue" class="form-control" type="text" name="value" @keyup.enter="setIdentifier" />
             </div>
             <div class="cell3" role="cell">
-                <button class="form-control" name="set" :disabled="!setButtonEnabled" @click="setIdentifier">Set</button>
+                <button class="form-control" name="set" :disabled="!setButtonEnabled" @click="setIdentifier">{{ strings.set }}</button>
             </div>
         </div>
 
@@ -39,10 +39,10 @@
                     <button
                         class="form-control"
                         :disabled="!isAdmin && name === 'ocaid'"
-                        :title="!isAdmin && name === 'ocaid' ? 'You do not have permission to edit this identifier' : ''"
+                        :title="!isAdmin && name === 'ocaid' ? strings.noPermission : ''"
                         @click="removeIdentifier(name, idx)"
                     >
-                        Remove
+                        {{ strings.remove }}
                     </button>
                 </div>
             </div>
@@ -51,6 +51,7 @@
 </template>
 
 <script>
+import { _, fmt } from '../plugins/openlibrary/js/i18n.js';
 import { errorDisplay, validateIdentifiers } from './IdentifiersInput/utils/utils.js';
 const identifierPatterns = {
     wikidata: /^Q[1-9]\d*$/i,
@@ -117,6 +118,13 @@ export default {
     // a fresh object every time this is initialized.
     data: () => {
         return {
+            strings: {
+                selectOne: _('Select one'),
+                noPermission: _('You do not have permission to edit this identifier'),
+                // NOTE: The button that adds the identifier typed in the box.
+                set: _('Set'),
+                remove: _('Remove')
+            },
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
             assignedIdentifiers: {} // IDs assigned to the entity Ex: {'viaf': '12632978'} or {'abaa': ['123456','789012']}
@@ -195,7 +203,7 @@ export default {
                 const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
                 // Only one Internet Archive ID (ocaid) is allowed per edition
                 if (this.selectedIdentifier === 'ocaid' && existingIds.length > 0) {
-                    errorDisplay('Only one Internet Archive ID is allowed per edition.', this.outputSelector);
+                    errorDisplay(_('Only one Internet Archive ID is allowed per edition.'), this.outputSelector);
                     return;
                 }
                 const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.outputSelector);
@@ -211,7 +219,10 @@ export default {
                     return;
                 }
             } else if (this.assignedIdentifiers[this.selectedIdentifier]) {
-                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.outputSelector);
+                errorDisplay(
+                    fmt(_('An identifier for %(name)s already exists.'), { name: this.identifierConfigsByKey[this.selectedIdentifier].label }),
+                    this.outputSelector
+                );
                 return;
             } else {
                 errorDisplay('', this.outputSelector);
