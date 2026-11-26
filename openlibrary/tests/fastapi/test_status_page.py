@@ -1,5 +1,7 @@
 """`/status` HTML page."""
 
+import re
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -60,6 +62,33 @@ def test_panel_strings_keep_the_placeholders_the_panel_fills(request_context_fix
     assert strings["behind"]["one"] == "%(num)s commit behind %(sha)s"
     assert strings["behind"]["other"] == "%(num)s commits behind %(sha)s"
     assert set(strings["changes"]) == {"one", "two", "few", "many", "other"}
+
+
+def _javascript_default_strings() -> dict:
+    """``DEFAULT_STRINGS`` from the panel's utils.js, which has one entry per line."""
+    source = (Path(__file__).resolve().parents[3] / "openlibrary/components/TestingEnvironment/utils.js").read_text()
+    block = source.split("export const DEFAULT_STRINGS = {")[1].split("\n};")[0]
+    strings = {}
+    for key, value in re.findall(r"^    (\w+): (.+?),?$", block, re.MULTILINE):
+        strings[key] = dict(re.findall(r"(\w+): '([^']*)'", value)) or value.strip("'")
+    return strings
+
+
+def test_panel_strings_match_the_javascript_defaults(request_context_fixture):
+    """The server's strings and the panel's English fallbacks list the same keys and the same English."""
+    request_context_fixture(lang="en")
+    server = status_module.testing_panel_strings()
+    javascript = _javascript_default_strings()
+
+    assert server.keys() == javascript.keys()
+    mismatches = []
+    for key, english in javascript.items():
+        if isinstance(english, dict):
+            pairs = [(english[form], server[key][form]) for form in ("one", "other")]
+        else:
+            pairs = [(english, server[key])]
+        mismatches += [(key, js, py) for js, py in pairs if js != py]
+    assert mismatches == []
 
 
 @pytest.mark.parametrize("headers", [{}, {"x-user": "visitor"}])

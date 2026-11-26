@@ -65,10 +65,11 @@ def testing_panel_strings() -> dict[str, Any]:
     """Translated strings for ``<ol-testing-environment>``, built for client-side fill.
 
     Keys and English strings must match ``DEFAULT_STRINGS`` in
-    ``openlibrary/components/TestingEnvironment/utils.js``. A plural set carries
-    one form per CLDR category; the component picks by count. Built in Python
-    for the same reason as ``core/shell/shelf_labels.py``: the ``%(name)s``
-    placeholders must reach the browser intact.
+    ``openlibrary/components/TestingEnvironment/utils.js``; ``test_status_page.py``
+    checks that they do. A plural set carries one form per CLDR category; the
+    component picks by count. Built in Python for the same reason as
+    ``core/shell/shelf_labels.py``: the ``%(name)s`` placeholders must reach the
+    browser intact.
     """
     return {
         "loading": _("Loading testing environment…"),

@@ -11,7 +11,8 @@ import { translate } from '../../plugins/openlibrary/js/i18n.js';
 export const REPO_URL = 'https://github.com/internetarchive/openlibrary';
 
 /**
- * English fallbacks for the translated strings passed in from the server.
+ * English fallbacks for the translated strings passed in from the server,
+ * testing_panel_strings() in status.py; test_status_page.py checks they match.
  * Placeholders are `%(name)s`, as in the server's strings. `changes` and
  * `behind` are plural sets, keyed by CLDR plural category: i18n.js picks the
  * form by `count`, and their text says `%(num)s` to keep the existing msgids.
@@ -42,7 +43,7 @@ export const DEFAULT_STRINGS = {
     closed: 'This PR is already closed.',
     actions: 'Actions',
     ok: 'OK',
-    prOnTesting: 'PR #%(num)s on testing',
+    prOnTesting: 'PR %(num)s on testing',
     changeOnDeploy: 'changes on deploy',
     update: 'Update',
     updatePin: 'Update pin',
