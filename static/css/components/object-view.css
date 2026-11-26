@@ -6,6 +6,7 @@
   line-height: 1em;
   margin-left: var(--spacing-xl);
 }
-.object-view .dict {
+/* Lists of fields keep the bigger gap set on ul above. */
+.object-view .dict:not(ul) {
   margin-bottom: var(--spacing-3xs);
 }
