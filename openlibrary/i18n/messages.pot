@@ -4006,7 +4006,7 @@ msgstr ""
 msgid "ID ids cannot contain whitespace."
 msgstr ""
 
-#: books/edit/edition.html
+#: IdentifiersInput/utils/utils.js books/edit/edition.html
 msgid "ID must be exactly 10 characters [0-9] or X."
 msgstr ""
 
@@ -4014,11 +4014,11 @@ msgstr ""
 msgid "That ID already exists for this edition."
 msgstr ""
 
-#: books/edit/edition.html
+#: IdentifiersInput/utils/utils.js books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
 msgstr ""
 
-#: books/edit/edition.html
+#: IdentifiersInput/utils/utils.js books/edit/edition.html
 msgid "Invalid ID format"
 msgstr ""
 
@@ -5629,7 +5629,7 @@ msgstr ""
 msgid "Remove from this list?"
 msgstr ""
 
-#: TestingEnvironment/utils.js lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
+#: IdentifiersInput.vue TestingEnvironment/utils.js lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
@@ -8630,6 +8630,41 @@ msgstr ""
 
 #: BarcodeScanner.vue
 msgid "Point your camera at a barcode! 📷"
+msgstr ""
+
+#: IdentifiersInput.vue
+msgid "Select one"
+msgstr ""
+
+#: IdentifiersInput.vue
+msgid "You do not have permission to edit this identifier"
+msgstr ""
+
+#. The button that adds the identifier typed in the box.
+#: IdentifiersInput.vue
+msgid "Set"
+msgstr ""
+
+#: IdentifiersInput.vue
+msgid "Only one Internet Archive ID is allowed per edition."
+msgstr ""
+
+#: IdentifiersInput.vue
+#, python-format
+msgid "An identifier for %(name)s already exists."
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+#, python-format
+msgid "ISBN %(isbn)s may be invalid. Please confirm if you'd like to add it before saving all changes"
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+msgid "Invalid identifier"
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+msgid "That ID already exists for an identifier."
 msgstr ""
 
 #: TestingEnvironment/utils.js
