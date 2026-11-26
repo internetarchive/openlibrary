@@ -8,13 +8,15 @@
             <div class="byline">
                 {{ doc.author_name[0] }}
             </div>
-            <div class="identifier">{{ doc.first_publish_year }} - {{ doc.edition_count }} editions</div>
+            <div class="identifier">{{ doc.first_publish_year }} - {{ editions }}</div>
             <a class="action actionName" target="_blank" />
         </div>
     </div>
 </template>
 
 <script>
+import { fmt, ngettext } from '../../../plugins/openlibrary/js/i18n.js';
+
 export default {
     props: {
         doc: {
@@ -27,6 +29,10 @@ export default {
         }
     },
     computed: {
+        editions() {
+            const count = this.doc.edition_count;
+            return fmt(ngettext('%(count)s edition', '%(count)s editions', count), { count });
+        },
         coverImage() {
             if (!this.doc.cover_i) {
                 return '';

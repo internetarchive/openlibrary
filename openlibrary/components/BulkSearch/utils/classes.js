@@ -1,4 +1,5 @@
 //@ts-check
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 
 export class ExtractedBook {
     constructor(title = '', author = '', isbn = '') {
@@ -198,21 +199,22 @@ export class BulkSearchState {
         /** @type {AbstractExtractor[]} */
         this.extractors = [
             new RegexExtractor(
-                'Pattern: Title by Author',
+                // NOTE: These name the formats the extractors read. Keep the English "by" in "Title by Author": the pattern matches it.
+                _('Pattern: Title by Author'),
                 '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'
             ),
             new RegexExtractor(
-                'Pattern: Author - Title',
+                _('Pattern: Author - Title'),
                 '(^|>)(?<author>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<title>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'
             ),
             new RegexExtractor(
-                'Pattern: Title - Author',
+                _('Pattern: Title - Author'),
                 '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'
             ),
-            new RegexExtractor('Pattern: Title (Author)', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
-            new RegexExtractor('Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
-            new AiExtractor('✨ AI Extraction (Beta)', 'gpt-4o-mini'),
-            new TableExtractor('Extract from a Table/Spreadsheet')
+            new RegexExtractor(_('Pattern: Title (Author)'), '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
+            new RegexExtractor(_('Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)'), '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
+            new AiExtractor(_('✨ AI Extraction (Beta)'), 'gpt-4o-mini'),
+            new TableExtractor(_('Extract from a Table/Spreadsheet'))
         ];
         /** @type {Number} */
         this._activeExtractorIndex = 0;

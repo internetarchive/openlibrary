@@ -4,12 +4,12 @@
             <thead>
                 <tr>
                     <th rowspan="2" style="width: 4ch">#</th>
-                    <th :colspan="columns.length" style="width: 400px">Extracted Books</th>
-                    <th rowspan="2">Matched Books</th>
+                    <th :colspan="columns.length" style="width: 400px">{{ strings.extractedBooks }}</th>
+                    <th rowspan="2">{{ strings.matchedBooks }}</th>
                 </tr>
                 <tr>
                     <th v-for="(column, colIndex) in columns" :key="colIndex">
-                        {{ column }}
+                        {{ strings.columns[column] }}
                     </th>
                 </tr>
             </thead>
@@ -29,6 +29,7 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import MatchRow from './MatchRow.vue';
 import { BulkSearchState } from '../utils/classes.js';
 export default {
@@ -37,6 +38,15 @@ export default {
     },
     props: {
         bulkSearchState: BulkSearchState
+    },
+    data() {
+        return {
+            strings: {
+                extractedBooks: _('Extracted Books'),
+                matchedBooks: _('Matched Books'),
+                columns: { title: _('Title'), author: _('Author'), isbn: _('ISBN') }
+            }
+        };
     },
     computed: {
         columns() {

@@ -6,7 +6,7 @@
         </td>
         <td>
             <div class="bookCards">
-                <a :href="searchUrl" title="View results in Open Library">🔎</a>
+                <a :href="searchUrl" :title="strings.viewResults">🔎</a>
                 <BookCard v-for="(doc, docIndex) in bookMatch.solrDocs.docs" :key="docIndex" :doc="doc" :is-primary="docIndex === 0" />
                 <NoBookCard v-if="bookMatch.solrDocs.numFound === 0" />
             </div>
@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import { BulkSearchState, BookMatch } from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js';
 import BookCard from './BookCard.vue';
@@ -35,6 +36,11 @@ export default {
             type: Number,
             default: 0
         }
+    },
+    data() {
+        return {
+            strings: { viewResults: _('View results in Open Library') }
+        };
     },
     computed: {
         searchUrl() {
