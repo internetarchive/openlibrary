@@ -157,7 +157,7 @@ def extract_vue(fileobj, keywords, comment_tags, options):
     ``_()`` in its script and the template shows the result.
     """
     source = fileobj.read().decode("utf-8")
-    if not (script := re.search(r"<script[^>]*>(.*?)</script>", source, re.DOTALL)):
+    if not (script := re.search(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE)):
         return
     offset = source[: script.start(1)].count("\n")
     for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):

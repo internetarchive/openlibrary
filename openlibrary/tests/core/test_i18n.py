@@ -4,7 +4,7 @@ import pytest
 import web
 from babel.messages.catalog import Catalog
 from babel.messages.mofile import write_mo
-from babel.messages.pofile import write_po
+from babel.messages.pofile import read_po, write_po
 from babel.support import Translations
 
 # The i18n module should be moved to core.
@@ -291,6 +291,20 @@ const heading = gettext('Scan a barcode');
     found = list(i18n.extract_vue(BytesIO(source), {"gettext": None}, ["NOTE:"], {}))
 
     assert found == [(8, "gettext", "Scan a barcode", ["NOTE: The page heading."])]
+
+
+def test_extract_messages_reads_lit_templates_and_vue_scripts(tmp_path, monkeypatch):
+    """Calls inside a Lit tagged template are found, and so are a .vue file's (in any-case <script> tags)."""
+    source = tmp_path / "components"
+    source.mkdir()
+    (source / "OlThing.js").write_text("const label = gettext('Outside');\nconst t = html`<b>${gettext('In a template')}</b>`;\n")
+    (source / "Thing.vue").write_text("<template><p>{{ x }}</p></template>\n<SCRIPT>\nconst x = gettext('In a script');\n</SCRIPT >\n")
+    monkeypatch.setattr(i18n, "root", str(tmp_path))
+
+    i18n.extract_messages([str(source)], verbose=False, skip_untracked=False)
+
+    with open(tmp_path / "messages.pot", "rb") as f:
+        assert {message.id for message in read_po(f) if message.id} == {"Outside", "In a template", "In a script"}
 
 
 @pytest.fixture
