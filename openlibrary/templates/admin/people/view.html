@@ -17,7 +17,8 @@ $ has_profile = person.get_user() is not None
 
 <div id="contentBody">
 
-    <div class="status status-$person.status">
+    $ status_variant = {'active': 'success', 'verified': 'success', 'pending': 'warning', 'blocked': 'error'}.get(person.status, 'info')
+    <div class="ol-message ol-message--$status_variant admin-person__status">
         <form method="POST">
             Status: <span class="status">$person.status</span>
 

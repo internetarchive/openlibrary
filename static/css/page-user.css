@@ -62,7 +62,6 @@
 @import "components/pagination.css";
 /* Page-specific styles moved out of their templates */
 @import "components/account-loans.css";
-@import "components/security-check.css";
 @import "components/object-view.css";
 @import "components/library-explorer.css";
 @import "components/user-lists.css";

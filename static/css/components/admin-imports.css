@@ -7,10 +7,6 @@
   float: none;
   background-image: none;
 }
-.admin-imports-page div.pie {
-  width: 420px;
-  height: 250px;
-}
 .admin-imports-page .chartYaxis {
   width: 180px;
   top: 85px;

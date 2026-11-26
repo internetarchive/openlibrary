@@ -1,9 +1,8 @@
 /* /admin/people; openlibrary/templates/admin/people/index.html */
 .admin-people-page .user-search td {
-  font-size: 1em !important;
+  font-size: inherit;
 }
-.admin-people-page input#email,
-.admin-people-page input#ia-id {
-  padding: 3px;
+.admin-people-page .admin-people__search-input {
+  padding: var(--spacing-inset-xs);
   width: 400px;
 }

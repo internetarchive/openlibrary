@@ -1,12 +1,6 @@
 /* /explore; openlibrary/templates/library_explorer.html */
+/* Fades into the background of LibraryExplorer.vue, which uses these colours too. */
 body.library-explorer {
-  background: linear-gradient(
-    to bottom,
-    #f6f1e6 50px,
-    #ebdfc5 218px
-  ) !important;
-}
-/** Hide banner on this page */
-body.library-explorer .page-banner-body {
-  display: none;
+  /* stylelint-disable-next-line color-no-hex */
+  background: linear-gradient(to bottom, #f6f1e6 50px, #ebdfc5 218px);
 }

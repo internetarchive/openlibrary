@@ -20,7 +20,7 @@ $ _x = ctx.setdefault('bodyclass', []).append('admin-people-page')
         <td>$_("Email Address:")</td>
         <td>
             <form method="GET" name="form-email" id="form-email">
-                <input type="email" name="email" id="email" value="$email"/>
+                <input type="email" name="email" id="email" class="admin-people__search-input" value="$email"/>
                 <button type="submit" name="" value="find">$_("Find")</button>
                 <span class="invalid" htmlfor="email" generated="true">
                     $if email:
@@ -33,7 +33,7 @@ $ _x = ctx.setdefault('bodyclass', []).append('admin-people-page')
         <td>$_("IA ID:")</td>
         <td>
             <form method="GET" name="form-ia-id">
-                <input type="text" name="ia_id" id="ia-id" pattern="^@.*\$" placeholder="$_('e.g. @foobar')">
+                <input type="text" name="ia_id" id="ia-id" class="admin-people__search-input" pattern="^@.*\$" placeholder="$_('e.g. @foobar')">
                 <button type="submit">$_("Find")</button>
                 <span class="invalid">
                     $if ia_id:

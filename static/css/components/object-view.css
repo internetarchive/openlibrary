@@ -1,11 +1,11 @@
 /* pages of /type/object; openlibrary/templates/type/object/view.html */
-.object-view-page #contentBody ul {
-  margin-bottom: 20px;
+.object-view ul {
+  margin-bottom: var(--spacing-stack-md);
 }
-.object-view-page #contentBody li {
+.object-view li {
   line-height: 1em;
-  margin-left: 20px;
+  margin-left: var(--spacing-xl);
 }
-.object-view-page .dict {
-  margin-bottom: 2px;
+.object-view .dict {
+  margin-bottom: var(--spacing-3xs);
 }
