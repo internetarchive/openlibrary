@@ -250,6 +250,41 @@ test('D1 status FALSE-GREEN guard: POST_RESULT=success but NO review on this hea
     assert.notEqual(calls.createCommitStatus[0].state, 'success', 'a head with no posted review must never read success');
 });
 
+test('status: an approval that lists this head as re-reviewed counts as its review -> success', async () => {
+    const head = SHA('a');
+    const body = `ok\n<!-- ol-pr-review-bot f=0 -->\n<!-- ol-pr-review-bot rereviewed=${head} -->`;
+    const { github, calls } = mockGitHub({
+        prGet: async () => ({ data: { head: { sha: head } } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), body }] })
+    });
+    const env = {
+        PR: '1',
+        HEAD_SHA: head,
+        POST_RESULT: 'success',
+        PUBLIC_FINDINGS_COUNT: '0',
+        WITHHELD: 'false',
+        WITHHELD_BLOCKING: 'false',
+        REPOST: 'false',
+        RUN_URL: 'u'
+    };
+    await runScript(status.postStatus, { github, context, env });
+    assert.equal(calls.createCommitStatus[0].state, 'success');
+});
+test('range: an approval that lists this head as re-reviewed counts as its review -> skip', async () => {
+    const head = SHA('a');
+    const body = `ok\n<!-- ol-pr-review-bot f=0 -->\n<!-- ol-pr-review-bot rereviewed=${head} -->`;
+    const { github } = mockGitHub({
+        prGet: async () => ({ data: { number: 1, head: { sha: head }, base: { sha: SHA('b') }, draft: false, state: 'open' } }),
+        listReviews: async () => ({ data: [{ user: { login: 'openlibrary-bot' }, commit_id: SHA('c'), submitted_at: '2026-01-01', body }] }),
+        listStatuses: async () => ({ data: [{ context: 'code-review', state: 'success' }] }),
+        reviewThreads: []
+    });
+    const env = { PR: '1', GITHUB_WORKSPACE: dir };
+    const ctx = { ...context, payload: { pull_request: { number: 1 } } };
+    const res = await runScript(range.resolveRange, { github, context: ctx, env });
+    assert.equal(res.outputs.skip, 'true');
+});
+
 // ===================== Already reviewed: skip or repost the status =====================
 test('D2 range: already-reviewed head WITH a MATCHING code-review status -> skip', async () => {
     // Skip when the present status matches the verdict: a clean review and a present `success`.

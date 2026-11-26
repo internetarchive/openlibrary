@@ -3,7 +3,7 @@
 // status of an existing review, or skips, and writes the range, diff and settings the model reads.
 'use strict';
 
-const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
+const { filterDiff, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit, lastReviewedSha, coversSha } = require('./shared.cjs');
 
 // The paths to review once files identical to the base branch's tip are left out, or null to
 // change nothing: when no file matches, or GitHub's lists are cut short (300 files in a compare, a
@@ -77,7 +77,7 @@ async function resolveRange({ github, context, core, require, process }) {
     // never became threads, and a commit whose only review was superseded still gets reviewed.
     const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id && !supersededCommit(r.body));
     const prior = ours.length ? ours[ours.length - 1] : null;
-    const priorSha = prior ? prior.commit_id : null;
+    const priorSha = prior ? lastReviewedSha(prior) : null;
 
     let base = pr.base.sha,
         incremental = false,
@@ -135,7 +135,7 @@ async function resolveRange({ github, context, core, require, process }) {
                     core.info('Only base branch merges since the last review -- reposting its verdict.');
                     core.setOutput('pr', String(prNumber));
                     core.setOutput('head_sha', head);
-                    core.setOutput('verdict_sha', prior.commit_id);
+                    core.setOutput('verdict_sha', priorSha);
                     core.setOutput('skip', 'false');
                     core.setOutput('repost', 'true');
                     return;
@@ -156,7 +156,7 @@ async function resolveRange({ github, context, core, require, process }) {
         // existing review implies; otherwise re-post the status without running the model.
         // This must pick the same review as status.cjs's repost path (the last bot review on this
         // head with a body); a test checks the two agree. `prior` has no body filter, so it can differ.
-        const onHead = ours.filter(r => r.commit_id === head && r.body);
+        const onHead = ours.filter(r => coversSha(r, head) && r.body);
         const reviewForVerdict = onHead.length ? onHead[onHead.length - 1] : null;
 
         // GraphQL, because REST has no resolved/outdated state. On an error, re-post: the status
@@ -236,7 +236,7 @@ async function resolveRange({ github, context, core, require, process }) {
         core.info('Every file the PR changes already matches the base branch -- reposting the last verdict.');
         core.setOutput('pr', String(prNumber));
         core.setOutput('head_sha', head);
-        core.setOutput('verdict_sha', prior.commit_id);
+        core.setOutput('verdict_sha', priorSha);
         core.setOutput('skip', 'false');
         core.setOutput('repost', 'true');
         return;

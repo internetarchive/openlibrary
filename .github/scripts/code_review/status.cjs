@@ -3,7 +3,7 @@
 // rule is in decideStatus and in the comment above the job in code_review_action.yml.
 'use strict';
 
-const { headIsCurrent, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit } = require('./shared.cjs');
+const { headIsCurrent, verdictFindings, heldBackOpen, unresolvedThreadCount, supersededCommit, coversSha } = require('./shared.cjs');
 
 // The public findings count from `analyze`. null (blocks) unless it is a non-negative integer:
 // findings with no anchor in the diff have no thread, so the thread count alone can't catch them.
@@ -117,7 +117,7 @@ async function postStatus({ github, context, core, process }) {
     const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.body && !supersededCommit(r.body));
     if (repost) {
         const verdictSha = process.env.VERDICT_SHA || headSha;
-        const onSha = ours.filter(r => r.commit_id === verdictSha);
+        const onSha = ours.filter(r => coversSha(r, verdictSha));
         const last = onSha.length ? onSha[onSha.length - 1] : null;
         // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
         postSucceeded = last != null;
@@ -133,7 +133,7 @@ async function postStatus({ github, context, core, process }) {
         // When the head moved, `post` posts only a superseded review, which is no verdict. If the head
         // then moved back to this SHA, the head check above would pass, so confirm a real bot review
         // exists on it.
-        const posted = ours.some(r => r.commit_id === headSha);
+        const posted = ours.some(r => coversSha(r, headSha));
         postSucceeded = process.env.POST_RESULT === 'success' && posted;
         findings = parseFindings(process.env.PUBLIC_FINDINGS_COUNT);
         // Part of the review was held back: its one blocking bit counts as one more finding.

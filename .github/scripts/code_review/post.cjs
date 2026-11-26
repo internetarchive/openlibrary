@@ -9,6 +9,8 @@ const {
     headIsCurrent,
     supersededMarker,
     supersededCommit,
+    rereviewedMarker,
+    rereviewedShas,
     reviewMarker,
     heldBackReview,
     heldBackBlocking,
@@ -32,6 +34,29 @@ const selectReviewEvent = ({ selfAuthored, findingCount, unresolvedOwnThreads })
 // A COMMENT on the bot's own PR doesn't clear the team's review request, so `post` removes it.
 const shouldDismissTeamRequest = ({ selfAuthored, event }) => {
     return selfAuthored && event === 'COMMENT';
+};
+
+// A re-review with nothing to say isn't posted when the bot's last review already approved: the
+// approval stays the one review, and lists each later commit it also covers. Merging needs only the
+// `code-review` status, not an approval, so another approval would only notify everyone again.
+const CLEAN_FIRST_LINE = /^\*\*No issues found\*\* on `[0-9a-f]{7}`\.$/;
+const LATER_PREFIX = '*No new issues in later pushes:';
+// The review to add this commit to: the bot's latest review, if it is a clean approval that still stands.
+const quietTarget = ({ reviews, botLogin }) => {
+    const ours = (reviews || []).filter(r => r && r.user && r.user.login === botLogin && r.state !== 'PENDING' && r.body && !supersededCommit(r.body));
+    const last = ours.length ? ours[ours.length - 1] : null;
+    if (!last || last.state !== 'APPROVED' || !CLEAN_FIRST_LINE.test(String(last.body).split('\n')[0])) return null;
+    return /<!-- ol-pr-review-bot f=0 -->/.test(last.body) ? last : null;
+};
+// The approval's body with `sha` added: the visible list under its first line, and the marker at the end.
+const rereviewedBody = (body, sha) => {
+    const text = String(body || '');
+    if (rereviewedShas(text).includes(sha)) return null;
+    const shas = [...rereviewedShas(text), sha];
+    const [first, ...rest] = text.split('\n');
+    if (rest[0] === '' && String(rest[1] || '').startsWith(LATER_PREFIX)) rest.splice(0, 2);
+    const line = `${LATER_PREFIX} ${shas.map(s => `\`${s.slice(0, 7)}\``).join(', ')}.*`;
+    return `${[first, '', line, ...rest].join('\n')}\n${rereviewedMarker(sha)}`;
 };
 
 // On a re-review, the threads the model listed as fixed (review.resolved) that are still open and
@@ -551,6 +576,46 @@ async function validateAndPost({ github, context, core, require, process, sleep 
     let event = superseded ? 'COMMENT' : selectReviewEvent({ selfAuthored, findingCount: findingCount + (blocked ? 1 : 0), unresolvedOwnThreads });
     let summary = renderSummary();
 
+    // See quietTarget. Only for a review request, which is how pushes get reviewed: an
+    // `@openlibrary-bot review` comment or a manual run always gets a review it can see.
+    const quiet =
+        process.env.REVIEW_REQUEST === 'true' &&
+        event === 'APPROVE' &&
+        !heldBack &&
+        !suggestions.length &&
+        !suggestionComments.length &&
+        !notes.length &&
+        !toResolveIds.length &&
+        !noteEdits.length;
+    if (quiet) {
+        const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: prNumber, per_page: 100 });
+        const target = quietTarget({ reviews, botLogin: 'openlibrary-bot' });
+        const body = target && rereviewedBody(target.body, headSha);
+        if (body) {
+            let added = false;
+            try {
+                await github.rest.pulls.updateReview({ owner, repo, pull_number: prNumber, review_id: target.id, body });
+                added = true;
+            } catch (e) {
+                core.warning(`Could not add ${headSha.slice(0, 8)} to review ${target.id} (${e.message}); posting a review instead.`);
+            }
+            if (added) {
+                // An APPROVE would have cleared the request; nothing posted here does. GitHub's
+                // re-request button requests the bot user, other requests the team.
+                for (const who of [{ team_reviewers: ['openlibrary-agentic-code-reviewer'] }, { reviewers: ['openlibrary-bot'] }]) {
+                    try {
+                        await github.rest.pulls.removeRequestedReviewers({ owner, repo, pull_number: prNumber, reviewers: [], ...who });
+                    } catch (e) {
+                        core.warning(`Could not dismiss the review request: ${e.message}`);
+                    }
+                }
+                core.setOutput('resolve_thread_ids', '[]');
+                core.info(`No issues found; added ${headSha.slice(0, 8)} to approval ${target.id} instead of posting another review.`);
+                return;
+            }
+        }
+    }
+
     // One batched review. POST /pulls/{n}/comments returns 422 `pull_request_review_thread.base`
     // in practice (cli/cli#13358), while the same anchors in a batched review work. On a 422,
     // first move the inline comments into the summary (GitHub rejects a line it can't find in the
@@ -774,6 +839,8 @@ module.exports = {
     validateAndPost,
     selectReviewEvent,
     shouldDismissTeamRequest,
+    quietTarget,
+    rereviewedBody,
     threadsToResolve,
     fixedInSha,
     renderTicketCompliance,
