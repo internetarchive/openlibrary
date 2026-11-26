@@ -160,11 +160,11 @@ export class OlBookCover extends LitElement {
             :host([href]) .corner {
                 outline: 0 solid var(--color-border-pointed);
                 outline-offset: calc(-1 * var(--border-width-media));
-                transition: outline-width var(--duration-fast) var(--ease-exit);
+                transition: outline-width var(--duration-hover) var(--ease-exit);
             }
 
             :host([href]) .link {
-                transition: filter var(--duration-fast) var(--ease-exit);
+                transition: filter var(--duration-hover) var(--ease-exit);
             }
         }
 

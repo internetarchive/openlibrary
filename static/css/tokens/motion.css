@@ -21,6 +21,7 @@
   --ease-spring: var(--ease-out-back); /* a small object springing into a pose, overshooting a little — never a surface */
 
   /* Durations */
+  --duration-hover: 60ms; /* feedback on the item under the pointer */
   --duration-press: 80ms; /* transform on :active */
   --duration-fast: 150ms; /* small state changes */
   --duration-base: 200ms; /* enter/exit of small and medium surfaces */
