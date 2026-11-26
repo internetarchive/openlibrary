@@ -1,5 +1,6 @@
 """What the home page shows a signed-in reader above everything else: the books they have out on loan or a hold
-ready to borrow, and the books on their Currently Reading and Want to Read shelves they could open today.
+ready to borrow, then the ones they borrowed lately, and the books on their Currently Reading and Want to Read
+shelves they could open today.
 
 The home page itself is cached and the same for everyone, so this is fetched after load by
 HomeMemberPartial (partials.py) and rendered with home/member.html.jinja, in two halves.
@@ -11,7 +12,7 @@ import time
 from datetime import UTC, datetime
 from urllib.parse import urlencode
 
-from openlibrary.core import cache, lending
+from openlibrary.core import cache, helpers, lending
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
@@ -25,8 +26,10 @@ logger = logging.getLogger("openlibrary.home")
 READING_CHECKED = 6
 WANT_CHECKED = 30
 ROW_SHOWN = 14
-# How many loans and ready holds the card lists.
+# How many loans and ready holds the card lists. Slots they leave empty go to the books borrowed lately.
 LOANS_SHOWN = 2
+# Past loans read to fill those slots: more than there are slots, as some are books the reader has out now.
+PAST_LOANS_CHECKED = 6
 # Editions of a work checked for a free copy, after the one the reader shelved.
 COPIES_CHECKED = 5
 # How many of a work's ebook editions search hands over to choose those from, the reader's language first.
@@ -44,9 +47,17 @@ URGENT_DAYS = 2
 GREETING_NAME_MAX = 30
 
 
-def _brief(title: str, author: str, url: str, cover_url: str) -> dict:
-    """What a card shows. `thumb_url` is the small rendition, for the 24px covers on the one-line rows."""
-    return {"title": title or _("Untitled"), "author": author, "url": url, "cover_url": cover_url, "thumb_url": cover_url.replace("-M.jpg", "-S.jpg")}
+def _brief(title: str, author: str, url: str, cover_url: str, work_key: str = "") -> dict:
+    """What a card shows. `thumb_url` is the small rendition, for the 24px covers on the one-line rows.
+    `work_key` is the same for every edition of a book, so one book is shown once."""
+    return {
+        "title": title or _("Untitled"),
+        "author": author,
+        "url": url,
+        "cover_url": cover_url,
+        "thumb_url": cover_url.replace("-M.jpg", "-S.jpg"),
+        "work_key": work_key or url,
+    }
 
 
 def brief_from_doc(doc: dict) -> dict:
@@ -68,7 +79,8 @@ def brief_from_book(book) -> dict:
         cover = book.get_cover_url("M") or ""
     except Exception:  # noqa: BLE001
         cover = ""
-    return _brief(book.title, authors, book.url(), cover)
+    works = getattr(book, "works", None)
+    return _brief(book.title, authors, book.url(), cover, works[0].key if works else book.key)
 
 
 def due_label(days_left: int) -> str:
@@ -77,6 +89,16 @@ def due_label(days_left: int) -> str:
     if days_left == 1:
         return _("Due back tomorrow")
     return ungettext("Due back in %(count)d day", "Due back in %(count)d days", days_left, count=days_left)
+
+
+def borrowed_label(updatedate: str) -> str:
+    """When a past loan was last borrowed, from the loan history's `updatedate` (UTC, "2026-11-20 14:03:11")."""
+    try:
+        then = datetime.fromisoformat(updatedate)
+    except TypeError, ValueError:
+        return _("Borrowed before")
+    now = datetime.now(UTC).replace(tzinfo=None)
+    return _("Borrowed %(when)s", when=helpers.datestr(then.replace(tzinfo=None), now=now))
 
 
 def ready_label(hours_left: float) -> str:
@@ -151,9 +173,37 @@ def get_holds(user) -> list[dict]:
     return sorted(holds, key=lambda hold: not hold["ready"])
 
 
-def build_loans(loans: list[dict], holds: list[dict]) -> list[dict]:
-    """Loans, soonest due first, then holds ready to borrow, each with a status line and one button.
-    A hold still in line has nothing to do yet and is left to the loans page."""
+def get_past_loans(username: str, s3_cookie: str | None) -> list[dict]:
+    """The books this reader borrowed lately, most recent first, with what they can do about each now.
+    A one-hour loan is over before the reader is back, so this is how they find the book again."""
+    history = lending.get_loan_history_data(username, page=1, s3_cookie=s3_cookie, limit=PAST_LOANS_CHECKED)
+    past = []
+    # Books only on archive.org have no page here to send the reader to.
+    for book in (doc for doc in history["docs"] if not doc.get("ia_only")):
+        past.append(
+            brief_from_book(book)
+            | {"borrowed": borrowed_label(book.get("last_loan_date")), "availability": book.get("availability") or {}, "borrow_url": book.url("/borrow")}
+        )
+    return past
+
+
+def past_loan_action(book: dict) -> tuple[str, dict | None]:
+    """The button on a past loan, as a label and the borrow form it posts, or None to link to the book."""
+    status = book["availability"].get("status")
+    if status == "open":
+        return _("Read"), None
+    if is_free(book["availability"]):
+        return _("Borrow again"), {"action": book["borrow_url"], "value": "borrow"}
+    if status == "borrow_unavailable":
+        return _("Join waitlist"), {"action": book["borrow_url"], "value": "join-waitinglist"}
+    # A book that can't be lent at all says why on its page.
+    return _("View book"), None
+
+
+def build_loans(loans: list[dict], holds: list[dict], past: list[dict] | None = None) -> list[dict]:
+    """Loans, soonest due first, then holds ready to borrow, then books borrowed lately that aren't either,
+    each with a status line and one button. A hold still in line has nothing to do yet and is left to the
+    loans page."""
 
     def card(book: dict, kind: str, status: str, tone: str, label: str, form: dict | None = None) -> dict:
         return {
@@ -181,7 +231,14 @@ def build_loans(loans: list[dict], holds: list[dict]) -> list[dict]:
     ]
     # A ready hold's status is how long it is kept: the heading already says it is ready.
     ready = [card(hold, "ready", hold["note"], "ready", _("Borrow now"), {"action": hold["borrow_url"], "value": "borrow"}) for hold in holds if hold["ready"]]
-    return loan_cards + ready
+    taken = {book.get("work_key") for book in loans + holds}
+    past_cards = []
+    for book in past or []:
+        if book["work_key"] in taken:
+            continue
+        taken.add(book["work_key"])
+        past_cards.append(card(book, "past", book["borrowed"], "plain", *past_loan_action(book)))
+    return loan_cards + ready + past_cards
 
 
 def availability_known(docs: list) -> bool:
@@ -326,11 +383,11 @@ def greeting_name(user) -> str:
 PARTS = ("loans", "shelves")
 
 
-def build_part(user, part: str) -> dict:
-    """One half of what the home page shows of the reader's own: `loans` is their loans and ready holds,
-    `shelves` their Currently Reading and Want to Read books with a copy free. Each piece fails on its own,
-    so a lending outage costs the loans and not the holds. Without availability the row is the shelves as
-    they stand."""
+def build_part(user, part: str, s3_cookie: str | None = None) -> dict:
+    """One half of what the home page shows of the reader's own: `loans` is their loans and ready holds, topped
+    up with the books they borrowed lately (the loan history is read with their `s3_cookie`), `shelves` their
+    Currently Reading and Want to Read books with a copy free. Each piece fails on its own, so a lending outage
+    costs the loans and not the holds. Without availability the row is the shelves as they stand."""
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
     failed = []
@@ -352,7 +409,10 @@ def build_part(user, part: str) -> dict:
     else:
         loans = attempt("loans", lambda: get_loans(user.key), [])
         holds = attempt("holds", lambda: get_holds(user), [])
-        member |= {"loans": build_loans(loans, holds)[:LOANS_SHOWN]}
+        past = []
+        if len(loans) + sum(hold["ready"] for hold in holds) < LOANS_SHOWN:
+            past = attempt("loan history", lambda: get_past_loans(user.key.split("/")[-1], s3_cookie), [])
+        member |= {"loans": build_loans(loans, holds, past)[:LOANS_SHOWN]}
     # A half built without availability is shown, and built again on the next view.
     return member | {"complete": not failed and known}
 

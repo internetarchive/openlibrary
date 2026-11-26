@@ -1,12 +1,13 @@
 {#
   One half of the top of the home page for a signed-in reader, a section about now: `loans` is a card of the
-  books they have out and the holds ready to borrow, `shelves` one row of covers of their Currently Reading and
-  Want to Read books that have a copy free. Each is fetched on its own by home-member.js (HomeMemberPartial)
-  and put in its place in home/member_skeleton.html.jinja. Each carries the section's heading, which the
-  first to arrive supplies. A half with nothing to show renders nothing.
+  books they have out, the holds ready to borrow and then the books they borrowed lately; `shelves` one row of
+  covers of their Currently Reading and Want to Read books that have a copy free. Each is fetched on its own by
+  home-member.js (HomeMemberPartial) and put in its place in home/member_skeleton.html.jinja. Each carries the
+  section's heading, which the first to arrive supplies. A half with nothing to show renders nothing.
   The card is made to fit the height of the row of covers beside it, so its arrival moves nothing below.
-  `member` is home_member.build_part(): `member.loans` is the cards, loans first; `member.shelves` the free
-  books, or when availability can't be read (`member.shelves_checked` is false) the shelves' borrowable books.
+  `member` is home_member.build_part(): `member.loans` is the cards, loans first and past loans (`kind` "past")
+  last; `member.shelves` the free books, or when availability can't be read (`member.shelves_checked` is false)
+  the shelves' borrowable books.
 #}
 {% set member = member | default(none) %}
 {% set loans = (member.loans | default([])) if member else [] %}
@@ -69,8 +70,12 @@
                     {{ icon("book-open", size="sm", extra_class="home-now__label-icon") }}
                     {% if kinds == ["ready"] %}
                         {{ _("Ready to Borrow") }}
+                    {% elif kinds == ["past"] %}
+                        {{ _("Recently Borrowed") }}
                     {% elif "ready" in kinds %}
                         {{ _("Loans and Holds") }}
+                    {% elif "past" in kinds %}
+                        {{ _("Your Loans") }}
                     {% else %}
                         {{ _("Checked Out") }}
                     {% endif %}

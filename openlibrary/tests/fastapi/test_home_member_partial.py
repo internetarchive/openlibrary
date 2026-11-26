@@ -37,6 +37,12 @@ def _hold(title: str, *, ready: bool) -> dict:
     return _book(title, ready=ready, borrow_url=f"/books/{title}/borrow", note=f"note for {title}")
 
 
+def _past(title: str, status: str | None) -> dict:
+    return _book(
+        title, work_key=f"/works/{title}", borrowed=f"borrowed {title}", availability={"status": status} if status else {}, borrow_url=f"/books/{title}/borrow"
+    )
+
+
 def test_logged_out_renders_nothing(fastapi_client):
     response = fastapi_client.get("/partials/HomeMember.json")
     assert response.status_code == 200
@@ -393,7 +399,7 @@ def test_due_dates_count_calendar_days(request_context_fixture):
             return datetime(2026, 11, 18, 23, 0, tzinfo=tz)
 
     loans = [{"book": "/books/OL1M", "ocaid": "a", "expiry": "2026-11-19T00:30:00"}, {"book": "/books/OL2M", "ocaid": "b", "expiry": "2026-11-20T22:00:00"}]
-    book = SimpleNamespace(title="Book", works=[], url=lambda: "/books/OL1M", get_authors=list, get_cover_url=lambda size: "")
+    book = SimpleNamespace(title="Book", key="/books/OL1M", works=[], url=lambda: "/books/OL1M", get_authors=list, get_cover_url=lambda size: "")
     with (
         patch.object(home_member, "datetime", Now),
         patch.object(home_member.lending, "get_cached_loans_of_user", return_value=loans),
@@ -415,6 +421,63 @@ def test_the_card_is_labelled_by_what_it_holds(request_context_fixture):
     assert label(loans=[_loan("borrowed", 5)]) == "Checked Out"
     assert label(holds=[_hold("ready", ready=True)]) == "Ready to Borrow"
     assert label(loans=[_loan("borrowed", 5)], holds=[_hold("ready", ready=True)]) == "Loans and Holds"
+    assert label(past=[_past("returned", "borrow_available")]) == "Recently Borrowed"
+    assert label(loans=[_loan("borrowed", 5)], past=[_past("returned", "borrow_available")]) == "Your Loans"
+
+
+def test_past_loans_follow_current_ones_once_each_with_what_can_be_done_now(request_context_fixture):
+    request_context_fixture(lang="en")
+    cards = _home_member().build_loans(
+        loans=[_loan("out", 3)],
+        holds=[_hold("waiting", ready=False) | {"work_key": "/works/waiting"}],
+        past=[
+            _past("out", "borrow_available"),
+            _past("waiting", "borrow_unavailable"),
+            _past("free", "borrow_available"),
+            _past("lent", "borrow_unavailable"),
+            _past("open", "open"),
+            _past("private", "private"),
+            _past("free", "borrow_available"),
+        ],
+    )
+    # A book the reader has out or is waiting for is shown once, as that.
+    assert [(card["title"], card["kind"]) for card in cards] == [("out", "loan"), ("free", "past"), ("lent", "past"), ("open", "past"), ("private", "past")]
+    past = {card["title"]: card for card in cards[1:]}
+    assert past["free"]["status"] == "borrowed free"
+    assert (past["free"]["action"]["label"], past["free"]["action"]["form"]) == ("Borrow again", {"action": "/books/free/borrow", "value": "borrow"})
+    assert past["lent"]["action"]["form"] == {"action": "/books/lent/borrow", "value": "join-waitinglist"}
+    assert (past["open"]["action"]["label"], past["open"]["action"]["form"]) == ("Read", None)
+    assert (past["private"]["action"]["label"], past["private"]["action"]["form"]) == ("View book", None)
+
+
+def test_a_print_disabled_reader_can_borrow_a_past_loan_that_is_lent_out(request_context_fixture):
+    request_context_fixture(lang="en", print_disabled=True)
+    past = _past("lent", "borrow_unavailable") | {"availability": {"status": "borrow_unavailable", "is_printdisabled": True}}
+    [card] = _home_member().build_loans(loans=[], holds=[], past=[past])
+    assert card["action"]["form"] == {"action": "/books/lent/borrow", "value": "borrow"}
+
+
+def test_past_loans_come_from_the_readers_loan_history(request_context_fixture):
+    request_context_fixture(lang="en")
+    home_member = _home_member()
+    edition = web.storage(
+        title="Returned",
+        key="/books/OL1M",
+        works=[web.storage(key="/works/OL1W")],
+        availability={"status": "borrow_available"},
+        last_loan_date="2026-11-20 14:03:11",
+        get_authors=list,
+        get_cover_url=lambda size: "",
+        url=lambda suffix="": f"/books/OL1M/Returned{suffix}",
+    )
+    history = {"docs": [edition, {"ocaid": "ia_only_item", "ia_only": True, "last_loan_date": ""}], "show_next": False}
+    with patch.object(home_member.lending, "get_loan_history_data", return_value=history) as get_history:
+        [past] = home_member.get_past_loans("mek", "cookie")
+    get_history.assert_called_once_with("mek", page=1, s3_cookie="cookie", limit=home_member.PAST_LOANS_CHECKED)
+    assert past["work_key"] == "/works/OL1W"
+    assert past["borrow_url"] == "/books/OL1M/Returned/borrow"
+    assert past["borrowed"].startswith("Borrowed ")
+    assert home_member.borrowed_label("") == "Borrowed before"
 
 
 def test_each_half_builds_only_its_own_books(request_context_fixture):
@@ -426,13 +489,25 @@ def test_each_half_builds_only_its_own_books(request_context_fixture):
         patch.object(home_member, "get_loans", return_value=[_loan(str(n), n) for n in range(4)]) as loans,
         patch.object(home_member, "get_holds", return_value=[_hold("ready", ready=True)]),
         patch.object(home_member, "shelves_available", return_value=([{"key": "/works/OL1W", "title": "wanted", "shelf": "want"}], False)) as shelves,
+        patch.object(home_member, "get_past_loans", return_value=[_past("returned", "borrow_available")]) as past,
     ):
-        member = home_member.build_part(user, "loans")
-        # As many as the card holds, soonest due first.
+        member = home_member.build_part(user, "loans", "cookie")
+        # As many as the card holds, soonest due first. A full card doesn't ask for the loan history.
         assert [card["title"] for card in member["loans"]] == ["0", "1"]
         assert member["complete"]
         assert "shelves" not in member
         shelves.assert_not_called()
+        past.assert_not_called()
+
+        loans.return_value = [_loan("0", 0)]
+        member = home_member.build_part(user, "loans", "cookie")
+        assert [card["title"] for card in member["loans"]] == ["0", "ready"]
+        past.assert_not_called()
+
+        loans.return_value = []
+        member = home_member.build_part(user, "loans", "cookie")
+        assert [card["title"] for card in member["loans"]] == ["ready", "returned"]
+        past.assert_called_once_with("mek", "cookie")
 
         member = home_member.build_part(user, "shelves")
         assert [book["title"] for book in member["shelves"]] == ["wanted"]
@@ -440,7 +515,7 @@ def test_each_half_builds_only_its_own_books(request_context_fixture):
         # Built without availability: shown, and not kept.
         assert not member["shelves_checked"]
         assert not member["complete"]
-        assert loans.call_count == shelves.call_count == 1
+        assert shelves.call_count == 1
 
 
 def test_a_half_renders_the_heading_and_itself_or_nothing(request_context_fixture):
