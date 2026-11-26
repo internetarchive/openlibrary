@@ -1,7 +1,5 @@
 $def with (v)
 
-$ v = process_version(v)
-
 $if ctx.user and ctx.user.is_librarian_or_higher():
     $ kind = 'merge' if v.kind.startswith('merge-') else v.kind
     $ page = v.thing
