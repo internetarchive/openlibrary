@@ -1,11 +1,26 @@
 import $ from 'jquery';
 import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.css';
+import { _, fmt } from '../i18n.js';
 
 const DEFAULT_LENGTH = 3;
 const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 // DataTables' default layout ('lfrtip') minus 'p' — <ol-pagination> is the pager.
 const DATATABLES_DOM = 'lfrti';
+
+/** DataTables' own text; its `_MENU_`-style tokens fill the named placeholders. */
+function datatablesLanguage() {
+    return {
+        // NOTE: %(menu)s is a dropdown of how many editions to show per page.
+        lengthMenu: fmt(_('Show %(menu)s entries'), { menu: '_MENU_' }),
+        search: _('Search:'),
+        info: fmt(_('Showing %(start)s to %(end)s of %(total)s entries'), { start: '_START_', end: '_END_', total: '_TOTAL_' }),
+        infoEmpty: _('Showing 0 to 0 of 0 entries'),
+        infoFiltered: fmt(_('(filtered from %(max)s total entries)'), { max: '_MAX_' }),
+        zeroRecords: _('No matching records found'),
+        emptyTable: _('No data available in table')
+    };
+}
 
 /**
  * Point the template-rendered <ol-pagination> at the DataTable's paging state.
@@ -45,20 +60,20 @@ export function initEditionsTable() {
     }
     $('#editions th.title').on('mouseover', function () {
         if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title', 'Sort latest to earliest');
+            $(this).attr('title', _('Sort latest to earliest'));
         } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title', 'Sort earliest to latest');
+            $(this).attr('title', _('Sort earliest to latest'));
         } else {
-            $(this).attr('title', 'Sort by publish date');
+            $(this).attr('title', _('Sort by publish date'));
         }
     });
     $('#editions th.read').on('mouseover', function () {
         if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title', 'Push readable versions to the bottom');
+            $(this).attr('title', _('Push readable versions to the bottom'));
         } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title', 'Sort by editions to read');
+            $(this).attr('title', _('Sort by editions to read'));
         } else {
-            $(this).attr('title', 'Available to read');
+            $(this).attr('title', _('Available to read'));
         }
     });
 
@@ -75,7 +90,8 @@ export function initEditionsTable() {
             bInfo: false,
             bFilter: false,
             bStateSave: false,
-            bAutoWidth: false
+            bAutoWidth: false,
+            language: datatablesLanguage()
         });
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
@@ -84,7 +100,7 @@ export function initEditionsTable() {
             order: [[1, 'asc']],
             lengthMenu: [
                 [3, 10, 25, 50, 100, -1],
-                [3, 10, 25, 50, 100, 'All']
+                [3, 10, 25, 50, 100, _('All')]
             ],
             dom: DATATABLES_DOM,
             bPaginate: true,
@@ -92,6 +108,7 @@ export function initEditionsTable() {
             bFilter: true,
             bStateSave: false,
             bAutoWidth: false,
+            language: datatablesLanguage(),
             pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
             drawCallback: function () {
                 // A jQuery object is always truthy, so check its length for the toolbar's presence.

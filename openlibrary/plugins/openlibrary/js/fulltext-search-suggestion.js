@@ -1,3 +1,4 @@
+import { _ } from './i18n.js';
 import { buildPartialsUrl } from './utils';
 
 export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
@@ -63,5 +64,5 @@ async function getPartials(fulltextSearchSuggestion, query, exclude = '') {
  * @returns {string} HTML for a retry link.
  */
 function renderRetryLink() {
-    return '<span class="fulltext-suggestions__retry">Failed to fetch fulltext search suggestions. <a href="javascript:;">Retry?</a></span>';
+    return `<span class="fulltext-suggestions__retry">${_('Failed to fetch fulltext search suggestions.')} <a href="javascript:;">${_('Retry?')}</a></span>`;
 }

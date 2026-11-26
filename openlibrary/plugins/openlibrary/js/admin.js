@@ -1,6 +1,7 @@
 /**
  * Functionality for templates/admin
  */
+import { _, fmt } from './i18n.js';
 
 export function initAdmin() {
     // admin/people/view
@@ -26,7 +27,12 @@ export function initAdmin() {
 
 export function initAnonymizationButton(button) {
     const displayName = button.dataset.displayName;
-    const confirmMessage = `Really anonymize ${displayName}'s account? This will delete ${displayName}'s profile page and booknotes, and anonymize ${displayName}'s reading log, reviews, star ratings, and merge request submissions.`;
+    const confirmMessage = fmt(
+        _(
+            "Really anonymize %(name)s's account? This will delete %(name)s's profile page and booknotes, and anonymize %(name)s's reading log, reviews, star ratings, and merge request submissions."
+        ),
+        { name: displayName }
+    );
     button.addEventListener('click', function (event) {
         if (!confirm(confirmMessage)) {
             event.preventDefault();
@@ -41,7 +47,7 @@ export function initAnonymizationButton(button) {
  * @param {NodeList<HTMLButtonElement>} buttons
  */
 export function initConfirmationButtons(buttons) {
-    const confirmMessage = 'Are you sure?';
+    const confirmMessage = _('Are you sure?');
     for (const button of buttons) {
         button.addEventListener('click', function (event) {
             if (!confirm(confirmMessage)) {

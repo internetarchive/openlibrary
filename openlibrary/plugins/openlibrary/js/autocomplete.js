@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { _, fmt } from './i18n.js';
 // jquery plugins to provide author, language, and subject autocompletes.
 import './jquery-ui-autocomplete'; // widget + autocomplete + mouse
 import './jquery-ui-sortable'; // drag-to-reorder of the dropdown
@@ -82,7 +83,7 @@ export function init() {
                     $list
                         .find('li')
                         .removeClass('ac_over')
-                        .filter((_, el) => $(el).data('ui-autocomplete-item').key === ui.item.key)
+                        .filter((index, el) => $(el).data('ui-autocomplete-item').key === ui.item.key)
                         .addClass('ac_over');
                 }
                 return ac_opts.autoFill;
@@ -238,7 +239,7 @@ export function init() {
             const totalItems = $allItems.length;
 
             // Create a clear message showing current position
-            const message = `Enter the new position (1-${totalItems}):`;
+            const message = fmt(_('Enter the new position (1-%(total)s):'), { total: totalItems });
 
             const userInput = prompt(message);
 
@@ -251,13 +252,13 @@ export function init() {
 
             // Validate the input
             if (isNaN(newPosition) || newPosition < 1 || newPosition > totalItems) {
-                alert(`Please enter a valid number between 1 and ${totalItems}.`);
+                alert(fmt(_('Please enter a valid number between 1 and %(total)s.'), { total: totalItems }));
                 return;
             }
 
             // Check if it's the same position
             if (newPosition === currentPosition) {
-                alert('Item is already at that position.');
+                alert(_('Item is already at that position.'));
                 return;
             }
 

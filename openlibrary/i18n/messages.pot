@@ -181,7 +181,7 @@ msgstr[1] ""
 msgid "Status:"
 msgstr ""
 
-#: about/index.html.jinja admin/new_accounts.html.jinja batch_import_list.html batch_import_view.html type/tag/index.html
+#: about/index.html.jinja admin/new_accounts.html.jinja batch_import_list.html batch_import_view.html editions-table/index.js type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -242,7 +242,7 @@ msgstr ""
 msgid "Import Time"
 msgstr ""
 
-#: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html librarian_dashboard/data_quality_table.html
+#: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html goodreads_import.js librarian_dashboard/data_quality_table.html
 msgid "Error"
 msgstr ""
 
@@ -266,7 +266,7 @@ msgstr ""
 msgid "Not yet imported"
 msgstr ""
 
-#: BookPreview.html PreviewSearchInside.html batch_import_view.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
+#: BookPreview.html PreviewSearchInside.html add_provider.js batch_import_view.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -833,7 +833,7 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html account/loan_actions.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
+#: LoanReadForm.html ReadButton.html account/loan_actions.html add_provider.js admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -892,7 +892,7 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: ReadButton.html book_providers/read_button.html books/edit/edition.html borrow/provider_popup_result.html.jinja type/list/embed.html widget.html
+#: ReadButton.html add_provider.js book_providers/read_button.html books/edit/edition.html borrow/provider_popup_result.html.jinja type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -1030,19 +1030,19 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html.jinja
+#: about/index.html.jinja team.js
 msgid "Staff"
 msgstr ""
 
-#: about/index.html.jinja
+#: about/index.html.jinja team.js
 msgid "Leads"
 msgstr ""
 
-#: about/index.html.jinja
+#: about/index.html.jinja team.js
 msgid "Fellows"
 msgstr ""
 
-#: about/index.html.jinja
+#: about/index.html.jinja team.js
 msgid "Volunteers"
 msgstr ""
 
@@ -1268,6 +1268,13 @@ msgstr ""
 msgid "Importing..."
 msgstr ""
 
+#: account/import.html goodreads_import.js
+#, python-format
+msgid "Import %(count)s Book"
+msgid_plural "Import %(count)s Books"
+msgstr[0] ""
+msgstr[1] ""
+
 #: account/import.html
 msgid "Reason"
 msgstr ""
@@ -1490,7 +1497,7 @@ msgstr ""
 msgid "Save Note"
 msgstr ""
 
-#: account/notes.html
+#: account/notes.html modals/index.js
 msgid "No notes found."
 msgstr ""
 
@@ -1554,11 +1561,11 @@ msgstr ""
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
 msgstr ""
 
-#: account/privacy.html admin/people/view.html
+#: account/privacy.html admin/people/view.html edit.js
 msgid "Yes"
 msgstr ""
 
-#: account/privacy.html admin/people/view.html books/edit/edition.html
+#: account/privacy.html admin/people/view.html books/edit/edition.html edit.js
 msgid "No"
 msgstr ""
 
@@ -1968,7 +1975,7 @@ msgstr ""
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html reading_goals/reading_goal_form.html.jinja
+#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html bulk-tagger/BulkTagger.js reading_goals/reading_goal_form.html.jinja
 msgid "Submit"
 msgstr ""
 
@@ -2225,11 +2232,11 @@ msgstr ""
 msgid "BookReader"
 msgstr ""
 
-#: admin/loans_table.html book_providers/cita_press_download_options.html book_providers/ia_download_options.html book_providers/openstax_download_options.html book_providers/wikisource_download_options.html books/edit/edition.html
+#: add_provider.js admin/loans_table.html book_providers/cita_press_download_options.html book_providers/ia_download_options.html book_providers/openstax_download_options.html book_providers/wikisource_download_options.html books/edit/edition.html
 msgid "PDF"
 msgstr ""
 
-#: admin/loans_table.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/standard_ebooks_download_options.html books/edit/edition.html
+#: add_provider.js admin/loans_table.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/standard_ebooks_download_options.html books/edit/edition.html
 msgid "ePub"
 msgstr ""
 
@@ -3084,7 +3091,7 @@ msgstr ""
 msgid "Listen to a reading from %s"
 msgstr ""
 
-#: ReadingOptionsMenu.html book_providers/read_button.html
+#: ReadingOptionsMenu.html add_provider.js book_providers/read_button.html
 msgid "Listen"
 msgstr ""
 
@@ -3390,7 +3397,7 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
-#: BulkSearch/components/BookCard.vue MergeUI/MergeRowEditionField.vue SearchResultsWork.html books/check.html merge/authors.html openlibrary/contribute/manage.py
+#: BulkSearch/components/BookCard.vue MergeUI/MergeRowEditionField.vue SearchResultsWork.html books/check.html ile/utils/SelectionManager/SelectionManager.js merge/authors.html openlibrary/contribute/manage.py
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -4138,11 +4145,11 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html databarWork.html
+#: add_provider.js books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
-#: books/edit/edition.html
+#: add_provider.js books/edit/edition.html
 msgid "Web"
 msgstr ""
 
@@ -7368,7 +7375,7 @@ msgstr ""
 msgid "Code"
 msgstr ""
 
-#: type/language/view.html
+#: team.js type/language/view.html
 msgid "Current"
 msgstr ""
 
@@ -8117,7 +8124,7 @@ msgstr ""
 msgid "Failed to fetch carousel."
 msgstr ""
 
-#: RawQueryCarouselPlaceholder.html.jinja
+#: RawQueryCarouselPlaceholder.html.jinja fulltext-search-suggestion.js
 msgid "Retry?"
 msgstr ""
 
@@ -9148,6 +9155,265 @@ msgid_plural "%(num)s commits behind %(sha)s"
 msgstr[0] ""
 msgstr[1] ""
 
+#: admin.js
+#, python-format
+msgid "Really anonymize %(name)s's account? This will delete %(name)s's profile page and booknotes, and anonymize %(name)s's reading log, reviews, star ratings, and merge request submissions."
+msgstr ""
+
+#: admin.js
+msgid "Are you sure?"
+msgstr ""
+
+#: autocomplete.js
+#, python-format
+msgid "Enter the new position (1-%(total)s):"
+msgstr ""
+
+#: autocomplete.js
+#, python-format
+msgid "Please enter a valid number between 1 and %(total)s."
+msgstr ""
+
+#: autocomplete.js
+msgid "Item is already at that position."
+msgstr ""
+
+#: covers.js
+msgid "Searching for covers"
+msgstr ""
+
+#: covers.js
+msgid "No image found in clipboard"
+msgstr ""
+
+#: covers.js
+msgid "Change Image"
+msgstr ""
+
+#: edit.js
+#, python-format
+msgid "ISBN %(isbn)s may be invalid. Add it anyway?"
+msgstr ""
+
+#: fulltext-search-suggestion.js
+msgid "Failed to fetch fulltext search suggestions."
+msgstr ""
+
+#: goodreads_import.js
+#, python-format
+msgid "%(count)s Book"
+msgid_plural "%(count)s Books"
+msgstr[0] ""
+msgstr[1] ""
+
+#: goodreads_import.js
+msgid "Go to your Reading Log"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Custom shelves are not supported"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Failed to add book to reading log"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Failed to add rating"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Failed to set the read date"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Imported"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Book not in collection"
+msgstr ""
+
+#: publishing_history.js
+#, python-format
+msgid "Published in %(year)s"
+msgstr ""
+
+#: publishing_history.js
+#, python-format
+msgid "Published between %(first)s & %(last)s."
+msgstr ""
+
+#: team.js
+msgid "It looks like we don't have anyone with those specifications."
+msgstr ""
+
+#: team.js
+#, python-format
+msgid "Since %(year)s"
+msgstr ""
+
+#: team.js
+msgid "Emeritus"
+msgstr ""
+
+#: team.js
+msgid "Past"
+msgstr ""
+
+#: bulk-tagger/BulkTagger.js
+msgid "Submitting..."
+msgstr ""
+
+#: bulk-tagger/BulkTagger.js
+msgid "Batch subject update failed. Please try again in a few minutes."
+msgstr ""
+
+#: bulk-tagger/BulkTagger.js
+msgid "Subjects successfully updated."
+msgstr ""
+
+#. %(menu)s is a dropdown of how many editions to show per page.
+#: editions-table/index.js
+#, python-format
+msgid "Show %(menu)s entries"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Search:"
+msgstr ""
+
+#: editions-table/index.js
+#, python-format
+msgid "Showing %(start)s to %(end)s of %(total)s entries"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Showing 0 to 0 of 0 entries"
+msgstr ""
+
+#: editions-table/index.js
+#, python-format
+msgid "(filtered from %(max)s total entries)"
+msgstr ""
+
+#: editions-table/index.js
+msgid "No matching records found"
+msgstr ""
+
+#: editions-table/index.js
+msgid "No data available in table"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Sort latest to earliest"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Sort earliest to latest"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Sort by publish date"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Push readable versions to the bottom"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Sort by editions to read"
+msgstr ""
+
+#: editions-table/index.js
+msgid "Available to read"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+#, python-format
+msgid "%(items)s selected"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Clear Selections"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Move to this author"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Working..."
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+#, python-format
+msgid "Something went wrong: %(failed)s/%(total)s failed to save."
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+#, python-format
+msgid "Completed! %(total)s/%(total)s saved."
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Errored!"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Move to this work"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js openlibrary/contribute/manage.py
+#, python-format
+msgid "%(count)s work"
+msgid_plural "%(count)s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+#, python-format
+msgid "%(count)s author"
+msgid_plural "%(count)s authors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Tag Works"
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Create list..."
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Merge Works..."
+msgstr ""
+
+#: ile/utils/SelectionManager/SelectionManager.js
+msgid "Merge Authors..."
+msgstr ""
+
+#: modals/index.js
+msgid "Update successful!"
+msgstr ""
+
+#: modals/index.js
+msgid "Really delete this book note?"
+msgstr ""
+
+#: modals/index.js
+msgid "Note deleted."
+msgstr ""
+
+#: modals/index.js
+msgid "Updating observations"
+msgstr ""
+
+#: modals/index.js
+msgid "No observations for this work."
+msgstr ""
+
 #: openlibrary/contribute/feed.py
 msgid "Edited this book"
 msgstr ""
@@ -9591,13 +9857,6 @@ msgstr ""
 #, python-format
 msgid "Goal: %(percent)s%%"
 msgstr ""
-
-#: openlibrary/contribute/manage.py
-#, python-format
-msgid "%(count)s work"
-msgid_plural "%(count)s works"
-msgstr[0] ""
-msgstr[1] ""
 
 #: openlibrary/contribute/manage.py
 msgid "title"

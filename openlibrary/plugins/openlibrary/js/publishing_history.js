@@ -1,5 +1,6 @@
 import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { _, fmt } from './i18n.js';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, zoomPlugin);
 
@@ -21,7 +22,7 @@ export function init() {
     // Every year in the range, so years with no editions still get a slot on the axis
     const first = Math.min(...counts.keys());
     const last = Math.max(...counts.keys());
-    const years = Array.from({ length: last - first + 1 }, (_, i) => first + i);
+    const years = Array.from({ length: last - first + 1 }, (value, i) => first + i);
 
     /**
      * Filter the carousels (see carousel/native.js) and show the reset link while zoomed in
@@ -75,5 +76,7 @@ export function init() {
     document.querySelectorAll('.resetSelection').forEach(link => link.addEventListener('click', () => chart.resetZoom()));
 
     const summary = document.querySelector('.clickdata');
-    if (summary) summary.textContent = first === last ? `Published in ${first}` : `Published between ${first} & ${last}.`;
+    if (summary)
+        summary.textContent =
+            first === last ? fmt(_('Published in %(year)s'), { year: first }) : fmt(_('Published between %(first)s & %(last)s.'), { first, last });
 }

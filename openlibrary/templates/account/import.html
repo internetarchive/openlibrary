@@ -116,7 +116,7 @@ $def with (books=None, books_wo_isbns=None)
       </div>
     </div>
 
-    <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
+    <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="$ungettext('Import %(count)s Book', 'Import %(count)s Books', len(books), count=len(books))">
     $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf', 'Date Read']
     <div class="div-class">
       <table class="import-table">

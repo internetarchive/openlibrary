@@ -1,4 +1,5 @@
 import team from '../../../templates/about/team.json';
+import { _, fmt } from './i18n.js';
 import { updateURLParameters } from './utils';
 
 // ********************************* Pure helpers (role-history schema) *********************************
@@ -113,6 +114,14 @@ export const tenureSince = (person, currentYear) => {
     return current ? role.start : null;
 };
 
+// The Role filter's options in about/index.html, keyed by their values.
+const ROLE_HEADINGS = {
+    staff: _('Staff'),
+    lead: _('Leads'),
+    fellow: _('Fellows'),
+    volunteer: _('Volunteers')
+};
+
 export function initTeamFilter() {
     const currentYear = new Date().getFullYear();
     // Photos
@@ -181,7 +190,7 @@ export function initTeamFilter() {
     const showError = () => {
         const noResults = document.createElement('h3');
         noResults.classList = 'noResults';
-        noResults.textContent = "It looks like we don't have anyone with those specifications.";
+        noResults.textContent = _("It looks like we don't have anyone with those specifications.");
         cardsContainer.append(noResults);
     };
 
@@ -293,7 +302,7 @@ export function initTeamFilter() {
             if (since) {
                 memberTenure = document.createElement('p');
                 memberTenure.classList = 'description__tenure';
-                memberTenure.textContent = `Since ${since}`;
+                memberTenure.textContent = fmt(_('Since %(year)s'), { year: since });
             }
 
             descriptionLinks.classList = 'description__links';
@@ -373,48 +382,40 @@ export function initTeamFilter() {
 
         if (role === 'All') {
             if (groups.staffCurrent.length || groups.staffEmeritus.length) {
-                createSectionHeading('Staff');
-                groups.staffCurrent.length && createsubSection(groups.staffCurrent, 'Current');
-                groups.staffEmeritus.length && createsubSection(groups.staffEmeritus, 'Emeritus');
+                createSectionHeading(ROLE_HEADINGS.staff);
+                groups.staffCurrent.length && createsubSection(groups.staffCurrent, _('Current'));
+                groups.staffEmeritus.length && createsubSection(groups.staffEmeritus, _('Emeritus'));
             }
             if (groups.leads.length) {
-                createSectionHeading('Leads');
+                createSectionHeading(ROLE_HEADINGS.lead);
                 createCards(groups.leads);
             }
             if (groups.currentFellows.length || groups.pastFellows.length) {
-                createSectionHeading('Fellows');
-                groups.currentFellows.length && createsubSection(groups.currentFellows, 'Current');
-                groups.pastFellows.length && createsubSection(groups.pastFellows, 'Past');
+                createSectionHeading(ROLE_HEADINGS.fellow);
+                groups.currentFellows.length && createsubSection(groups.currentFellows, _('Current'));
+                groups.pastFellows.length && createsubSection(groups.pastFellows, _('Past'));
             }
             if (groups.volunteers.length) {
-                createSectionHeading('Volunteers');
+                createSectionHeading(ROLE_HEADINGS.volunteer);
                 createCards(groups.volunteers);
             }
             !anyShown && showError();
         } else {
-            createSectionHeading(capitalize(role));
+            createSectionHeading(ROLE_HEADINGS[role] ?? role);
             if (role === 'lead') {
                 groups.leads.length ? createCards(groups.leads) : showError();
             } else if (role === 'volunteer') {
                 groups.volunteers.length ? createCards(groups.volunteers) : showError();
             } else if (role === 'staff') {
-                groups.staffCurrent.length && createsubSection(groups.staffCurrent, 'Current');
-                groups.staffEmeritus.length && createsubSection(groups.staffEmeritus, 'Emeritus');
+                groups.staffCurrent.length && createsubSection(groups.staffCurrent, _('Current'));
+                groups.staffEmeritus.length && createsubSection(groups.staffEmeritus, _('Emeritus'));
                 !groups.staffCurrent.length && !groups.staffEmeritus.length && showError();
             } else {
-                groups.currentFellows.length && createsubSection(groups.currentFellows, 'Current');
-                groups.pastFellows.length && createsubSection(groups.pastFellows, 'Past');
+                groups.currentFellows.length && createsubSection(groups.currentFellows, _('Current'));
+                groups.pastFellows.length && createsubSection(groups.pastFellows, _('Past'));
                 !groups.currentFellows.length && !groups.pastFellows.length && showError();
             }
         }
-    };
-
-    const capitalize = text => {
-        const firstLetter = text[0].toUpperCase();
-        if (text === 'fellow' || text === 'volunteer' || text === 'lead') {
-            return `${firstLetter + text.slice(1)}s`;
-        }
-        return firstLetter + text.slice(1);
     };
 
     // Deep-link on load from ?contributor=<slug> or #<slug>.

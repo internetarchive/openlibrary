@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import { olConfirm } from '../../../../components/lit/alert-dialog.js';
 import { showToast } from '../../../../components/lit/toast.js';
+import { _ } from '../i18n.js';
 import '../../../../../static/css/components/metadata-form.css';
 
 /**
@@ -252,13 +253,13 @@ export function addNotesPageButtonListeners() {
             contentType: false,
             processData: false,
             success: function () {
-                showToast('Update successful!', { type: 'success' });
+                showToast(_('Update successful!'), { type: 'success' });
             }
         });
     });
 
     $('.delete-note-button').on('click', function () {
-        if (confirm('Really delete this book note?')) {
+        if (confirm(_('Really delete this book note?'))) {
             const $parent = $(this).parent();
 
             const workId = $(this).parent().siblings('input')[0].value;
@@ -274,7 +275,7 @@ export function addNotesPageButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function () {
-                    showToast('Note deleted.', { type: 'success' });
+                    showToast(_('Note deleted.'), { type: 'success' });
 
                     // Remove list element from UI:
                     if ($parent.closest('.notes-list').children().length === 1) {
@@ -283,7 +284,7 @@ export function addNotesPageButtonListeners() {
                         $parent.closest('.main-list-item').remove();
 
                         if (!$('.main-list-item').length) {
-                            $('.list-container')[0].innerText = 'No notes found.';
+                            $('.list-container')[0].innerText = _('No notes found.');
                         }
                     } else {
                         // Notes for other editions of the work exist
@@ -348,7 +349,7 @@ function addObservationReloadListeners($observationLists) {
             $list.empty();
             $list.append(`
                 <li class="throbber-li">
-                    <div class="throbber"><h3>Updating observations</h3></div>
+                    <div class="throbber"><h3>${_('Updating observations')}</h3></div>
                 </li>
             `);
 
@@ -374,7 +375,7 @@ function addObservationReloadListeners($observationLists) {
                 if (listItems.length === 0) {
                     listItems = `
                     <li>
-                        No observations for this work.
+                        ${_('No observations for this work.')}
                     </li>
                 `;
                     $list.addClass('no-content');
@@ -423,7 +424,7 @@ function addDeleteObservationsListeners($deleteButtons) {
                     $list.empty();
                     $list.append(`
                         <li>
-                            No observations for this work.
+                            ${_('No observations for this work.')}
                         </li>
                     `);
                     $list.addClass('no-content');

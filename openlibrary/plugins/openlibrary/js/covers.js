@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { _ } from './i18n.js';
 /**
  * Functionality for templates/covers
  */
@@ -21,7 +22,7 @@ export function initCoversChange() {
         $('.imagesAdd').html('');
         $('.imagesManage').html('');
         if (doc_type_key === '/type/work') {
-            $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
+            $('.imagesAdd').prepend(`<div class="throbber"><h3>${_('Searching for covers')}</h3></div>`);
         }
         setTimeout(function () {
             // add iframe to add images
@@ -154,7 +155,7 @@ async function pasteImage() {
 
             return formData;
         }
-        alert('No image found in clipboard');
+        alert(_('No image found in clipboard'));
     } catch (error) {
         // Silence errors - user alert already shown
     }
@@ -166,7 +167,7 @@ export function initPasteForm(coverForm) {
 
     pasteButton.addEventListener('click', async () => {
         formData = await pasteImage(coverForm);
-        pasteButton.textContent = 'Change Image';
+        pasteButton.textContent = _('Change Image');
     });
 
     coverForm.addEventListener('submit', event => {

@@ -1,5 +1,6 @@
 // @ts-check
 import $ from 'jquery';
+import { _, fmt, ngettext } from '../../../i18n.js';
 import { move_to_work, move_to_author } from '../ol.js';
 import './SelectionManager.css';
 
@@ -190,12 +191,12 @@ export default class SelectionManager {
         this.ile.bulkTagger.hideTaggingMenu();
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
-            if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
+            if (count) statusParts.push(type.label(count));
         });
 
         if (statusParts.length) {
-            this.ile.setStatusText(`${statusParts.join(', ')} selected`);
-            this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', this.clearSelectedItems));
+            this.ile.setStatusText(fmt(_('%(items)s selected'), { items: statusParts.join(', ') }));
+            this.ile.$selectionActions.append($('<a></a>').text(_('Clear Selections')).on('click', this.clearSelectedItems));
         } else {
             this.ile.setStatusText('');
         }
@@ -206,10 +207,10 @@ export default class SelectionManager {
                 action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
                 if (action.multiple_only ? items.length > 1 : items.length > 0)
                     if (action.href) {
-                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
+                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.label}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
                         this.ile.$actions.append(
-                            $(`<a href="javascript:;">${action.name}</a>`).on('click', () =>
+                            $(`<a href="javascript:;">${action.label}</a>`).on('click', () =>
                                 this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))
                             )
                         );
@@ -341,20 +342,20 @@ SelectionManager.DROP_HANDLERS = [
     /** Dropping books from one author to another */
     {
         path: /\/authors\/OL\d+A.*/,
-        message: 'Move to this author',
+        message: _('Move to this author'),
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
-            window.ILE.setStatusText('Working...');
+            window.ILE.setStatusText(_('Working...'));
             try {
                 const { total, failed } = await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
                 if (failed) {
-                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                    window.ILE.setStatusText(fmt(_('Something went wrong: %(failed)s/%(total)s failed to save.'), { failed, total }));
                 } else {
-                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                    window.ILE.setStatusText(fmt(_('Completed! %(total)s/%(total)s saved.'), { total }));
                 }
             } catch (e) {
-                window.ILE.setStatusText('Errored!');
+                window.ILE.setStatusText(_('Errored!'));
                 throw e;
             }
         }
@@ -362,11 +363,11 @@ SelectionManager.DROP_HANDLERS = [
     /** Dropping editions from one work to another */
     {
         path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
-        message: 'Move to this work',
+        message: _('Move to this work'),
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
-            window.ILE.setStatusText('Working...');
+            window.ILE.setStatusText(_('Working...'));
             try {
                 let workOlid = location.pathname.match(/OL\d+W/)?.[0];
                 if (!workOlid) {
@@ -375,12 +376,12 @@ SelectionManager.DROP_HANDLERS = [
                 }
                 const { total, failed } = await move_to_work(data.items, data.from, workOlid);
                 if (failed) {
-                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                    window.ILE.setStatusText(fmt(_('Something went wrong: %(failed)s/%(total)s failed to save.'), { failed, total }));
                 } else {
-                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                    window.ILE.setStatusText(fmt(_('Completed! %(total)s/%(total)s saved.'), { total }));
                 }
             } catch (e) {
-                window.ILE.setStatusText('Errored!');
+                window.ILE.setStatusText(_('Errored!'));
                 throw e;
             }
         }
@@ -390,7 +391,7 @@ SelectionManager.DROP_HANDLERS = [
 SelectionManager.TYPES = [
     {
         singular: 'work',
-        plural: 'works',
+        label: count => fmt(ngettext('%(count)s work', '%(count)s works', count), { count }),
         regex: /OL\d+W/,
         image: olid => {
             const imgOlid = olid.split(':').pop();
@@ -401,13 +402,13 @@ SelectionManager.TYPES = [
     },
     {
         singular: 'edition',
-        plural: 'editions',
+        label: count => fmt(ngettext('%(count)s edition', '%(count)s editions', count), { count }),
         regex: /OL\d+M/,
         image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`
     },
     {
         singular: 'author',
-        plural: 'authors',
+        label: count => fmt(ngettext('%(count)s author', '%(count)s authors', count), { count }),
         regex: /OL\d+A/,
         image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`
     }
@@ -503,6 +504,7 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: false,
         name: 'Tag Works',
+        label: _('Tag Works'),
         onclick: true
     },
     {
@@ -510,6 +512,7 @@ SelectionManager.ACTIONS = [
         requires_type: [],
         multiple_only: false,
         name: 'Create list...',
+        label: _('Create list...'),
         href: olids => `/account/lists/add?seeds=${olids.join(',')}`
     },
     {
@@ -517,6 +520,7 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',
+        label: _('Merge Works...'),
         href: olids => `/works/merge?records=${olids.join(',')}`
     },
     /* Uncomment this when edition merging is available.
@@ -533,6 +537,7 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
+        label: _('Merge Authors...'),
         href: olids => `/authors/merge?records=${olids.join(',')}`
     }
 ];
