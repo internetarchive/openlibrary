@@ -47,6 +47,27 @@ const supersededCommit = body => {
 };
 // Starts the bot's suggestion comments, whose threads never block. It counts only at the start of a
 // bot-authored first comment, which model-written text can't reach.
+// A push review that finds nothing new, when the bot's last review is already a clean approval, is
+// added to that approval instead of being posted as another review (see post.cjs). It leaves one
+// marker per commit, after the review's own f= marker, so only text `post` wrote can carry one:
+// model text sits above that marker. With them the approval counts as each commit's review for
+// range and status, and as one more review in the weekly report, at the marker's time.
+const rereviewedMarker = (sha, at) => `<!-- ol-pr-review-bot rereviewed=${sha} at=${at} -->`;
+const rereviews = body => {
+    const text = String(body || '');
+    const end = text.lastIndexOf('<!-- ol-pr-review-bot f=');
+    if (end < 0) return [];
+    return [...text.slice(end).matchAll(/<!-- ol-pr-review-bot rereviewed=([0-9a-f]{40}) at=([0-9TZ:.-]+) -->/g)].map(m => ({ sha: m[1], at: m[2] }));
+};
+const rereviewedShas = body => rereviews(body).map(r => r.sha);
+// The commits a review is the verdict for, oldest first: the one GitHub recorded it on, then each
+// commit added to it.
+const reviewedShas = review => [review.commit_id, ...rereviewedShas(review.body)].filter(Boolean);
+const lastReviewedSha = review => {
+    const shas = reviewedShas(review);
+    return shas.length ? shas[shas.length - 1] : null;
+};
+const coversSha = (review, sha) => reviewedShas(review).includes(sha);
 const SUGGESTION_MARKER = '<!-- ol-pr-review-bot suggestion -->';
 const isSuggestionThread = (t, botLogin = 'openlibrary-bot') => {
     const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
@@ -150,5 +171,11 @@ module.exports = {
     isSuggestionThread,
     filterDiff,
     supersededMarker,
-    supersededCommit
+    supersededCommit,
+    rereviewedMarker,
+    rereviews,
+    rereviewedShas,
+    reviewedShas,
+    lastReviewedSha,
+    coversSha
 };

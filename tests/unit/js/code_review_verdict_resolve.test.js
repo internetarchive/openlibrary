@@ -246,14 +246,23 @@ const SHA = c => c.repeat(40);
 // A mock octokit that records createReview payloads, comment edits, and team dismissals,
 // and can throw a 422 on the first verdict attempt (self-review fallback) or throw on the thread
 // enumeration (false-red guard).
-function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = false, enumThrows = false, postedReviewId = 999 } = {}) {
-    const calls = { createReview: [], edits: [], removedTeams: [] };
+function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = false, enumThrows = false, postedReviewId = 999, priorReviews = [] } = {}) {
+    const calls = { createReview: [], edits: [], removedTeams: [], updateReview: [] };
     let threw = false;
     const github = {
         rest: {
             pulls: {
                 get: async () => ({ data: { head: { sha: SHA('a') }, user: { login: author } } }),
-                listReviews: async () => ({ data: [{ id: postedReviewId, user: { login: 'openlibrary-bot' }, commit_id: SHA('a') }] }),
+                listReviews: async () => ({
+                    data: [
+                        ...priorReviews,
+                        ...(calls.createReview.length ? [{ id: postedReviewId, user: { login: 'openlibrary-bot' }, commit_id: SHA('a') }] : [])
+                    ]
+                }),
+                updateReview: async p => {
+                    calls.updateReview.push(p);
+                    return { data: {} };
+                },
                 createReview: async p => {
                     if (throw422 && !threw && p.event !== 'COMMENT') {
                         threw = true;
@@ -266,6 +275,7 @@ function mockGitHub({ author = 'contributor', reviewThreads = [], throw422 = fal
                 },
                 removeRequestedReviewers: async p => {
                     calls.removedTeams.push(...(p.team_reviewers || []));
+                    calls.removedUsers = [...(calls.removedUsers || []), ...(p.reviewers || [])];
                     return { data: {} };
                 }
             },
@@ -913,6 +923,148 @@ test('post: a failed edit of an earlier review is a warning, not a failed job', 
             res.warnings.some(w => /Could not mark review 5 as addressed/.test(w)),
             res.warnings.join('\n')
         );
+    } finally {
+        teardown();
+    }
+});
+
+// ========================= Clean push re-reviews add to the last approval =========================
+const { quietTarget, rereviewedBody } = post;
+const cleanApproval = (id = 7, sha = SHA('c')) => ({
+    id,
+    user: { login: 'openlibrary-bot' },
+    state: 'APPROVED',
+    commit_id: sha,
+    body: `**No issues found** on \`${sha.slice(0, 7)}\`.\n\nA summary.\n\n<sub>footer</sub>\n\n<!-- ol-pr-review-bot f=0 -->`
+});
+
+test('quietTarget: the latest bot review, only when it is a clean approval that still stands', () => {
+    const approval = cleanApproval();
+    assert.equal(quietTarget({ reviews: [approval], botLogin: 'openlibrary-bot' }), approval);
+    // A human's later review doesn't matter; a superseded bot review is skipped.
+    const human = { id: 8, user: { login: 'someone' }, state: 'COMMENTED', body: 'hi' };
+    const superseded = { id: 9, user: { login: 'openlibrary-bot' }, state: 'COMMENTED', body: `x\n${shared.supersededMarker(SHA('d'))}` };
+    assert.equal(quietTarget({ reviews: [approval, human, superseded], botLogin: 'openlibrary-bot' }), approval);
+    const changes = { ...cleanApproval(10), state: 'CHANGES_REQUESTED', body: '**1 finding** on `ccccccc`\n\n<!-- ol-pr-review-bot f=1 -->' };
+    assert.equal(quietTarget({ reviews: [approval, changes], botLogin: 'openlibrary-bot' }), null);
+    assert.equal(quietTarget({ reviews: [{ ...approval, state: 'DISMISSED' }], botLogin: 'openlibrary-bot' }), null);
+    const withSuggestion = { ...approval, body: '**No blocking findings** · 1 suggestion on `ccccccc`\n\n<!-- ol-pr-review-bot f=0 -->' };
+    assert.equal(quietTarget({ reviews: [withSuggestion], botLogin: 'openlibrary-bot' }), null);
+    assert.equal(quietTarget({ reviews: [], botLogin: 'openlibrary-bot' }), null);
+});
+
+test('rereviewedBody lists each later commit under the first line and marks it as covered', () => {
+    const approval = cleanApproval();
+    const once = rereviewedBody(approval.body, SHA('d'), '2026-11-26T03:24:08Z');
+    assert.match(once, /^\*\*No issues found\*\* on `ccccccc`\.\n\n\*No new issues in later pushes: `ddddddd`\.\*\n\nA summary\./);
+    const twice = rereviewedBody(once, SHA('e'), '2026-11-26T08:41:46Z');
+    assert.match(twice, /\n\n\*No new issues in later pushes: `ddddddd`, `eeeeeee`\.\*\n\nA summary\./);
+    assert.equal(twice.match(/No new issues in later pushes/g).length, 1);
+    assert.equal(rereviewedBody(twice, SHA('e')), null);
+    const reviewed = { ...approval, body: twice };
+    assert.deepEqual(shared.reviewedShas(reviewed), [SHA('c'), SHA('d'), SHA('e')]);
+    assert.equal(shared.lastReviewedSha(reviewed), SHA('e'));
+    assert.deepEqual(shared.rereviews(twice), [
+        { sha: SHA('d'), at: '2026-11-26T03:24:08Z' },
+        { sha: SHA('e'), at: '2026-11-26T08:41:46Z' }
+    ]);
+    assert.ok(shared.coversSha(reviewed, SHA('d')));
+    assert.ok(!shared.coversSha(reviewed, SHA('f')));
+});
+
+test('a rereviewed marker counts only after the review marker, where model text cannot reach', () => {
+    const body = `**No issues found** on \`ccccccc\`.\n\n${shared.rereviewedMarker(SHA('d'), '2026-11-26T03:24:08Z')}\n\n<!-- ol-pr-review-bot f=0 -->\n${shared.rereviewedMarker(SHA('e'), '2026-11-26T08:41:46Z')}`;
+    assert.deepEqual(shared.rereviewedShas(body), [SHA('e')]);
+    assert.deepEqual(shared.rereviewedShas('no marker at all'), []);
+});
+
+test('post: a clean requested review after a clean approval edits that approval instead of posting', async () => {
+    const d = setup({ ...reviewWith([]), summary: '' });
+    try {
+        const approval = cleanApproval();
+        const { github, calls } = mockGitHub({ priorReviews: [approval] });
+        const res = await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(res.failed, null);
+        assert.equal(calls.createReview.length, 0);
+        assert.equal(calls.updateReview.length, 1);
+        assert.equal(calls.updateReview[0].review_id, approval.id);
+        assert.deepEqual(shared.rereviewedShas(calls.updateReview[0].body), [SHA('a')]);
+        assert.deepEqual(calls.removedTeams, ['openlibrary-agentic-code-reviewer']);
+        assert.deepEqual(calls.removedUsers, ['openlibrary-bot']);
+        assert.deepEqual(handedOff(res), []);
+    } finally {
+        teardown();
+    }
+});
+
+test('post: a clean review from an @openlibrary-bot comment is still posted after a clean approval', async () => {
+    const d = setup(reviewWith([]));
+    try {
+        const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'false' }, cwd: d });
+        assert.equal(calls.updateReview.length, 0);
+        assert.equal(calls.createReview.length, 1);
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+    } finally {
+        teardown();
+    }
+});
+
+test('post: a clean push review after changes were requested posts a new approval', async () => {
+    const d = setup({ ...reviewWith([]), summary: '' });
+    try {
+        const changes = { ...cleanApproval(), state: 'CHANGES_REQUESTED', body: '**1 finding** on `ccccccc`\n\n<!-- ol-pr-review-bot f=1 -->' };
+        const { github, calls } = mockGitHub({ priorReviews: [changes] });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(calls.updateReview.length, 0);
+        assert.equal(calls.createReview.length, 1);
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+    } finally {
+        teardown();
+    }
+});
+
+test('post: a push review with a suggestion is posted, even after a clean approval', async () => {
+    const d = setup({
+        ...reviewWith([{ dimension: 'styleguide', severity: 'low', confidence: 8, title: 'Nit', body: 'details', path: 'a.py', line: 1 }]),
+        summary: ''
+    });
+    try {
+        const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(calls.updateReview.length, 0);
+        assert.equal(calls.createReview.length, 1);
+    } finally {
+        teardown();
+    }
+});
+
+test('post: a clean requested review WITH a model summary is posted, so the summary is not lost', async () => {
+    const d = setup(reviewWith([]));
+    try {
+        const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(calls.updateReview.length, 0);
+        assert.equal(calls.createReview.length, 1);
+        assert.match(calls.createReview[0].body, /A plain summary\./);
+    } finally {
+        teardown();
+    }
+});
+
+test('post: when editing the approval fails, the review is posted instead, once', async () => {
+    const d = setup({ ...reviewWith([]), summary: '' });
+    try {
+        const { github, calls } = mockGitHub({ priorReviews: [cleanApproval()] });
+        github.rest.pulls.updateReview = async () => {
+            throw new Error('boom');
+        };
+        const res = await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), REVIEW_REQUEST: 'true' }, cwd: d });
+        assert.equal(res.failed, null);
+        assert.equal(calls.createReview.length, 1);
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+        assert.ok(res.warnings.some(w => /Could not add/.test(w)));
+        assert.deepEqual(calls.removedTeams, [], 'the posted APPROVE clears the request itself');
     } finally {
         teardown();
     }

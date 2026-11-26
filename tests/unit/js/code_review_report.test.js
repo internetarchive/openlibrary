@@ -141,6 +141,22 @@ test('summarizeReviews: the bot reviews and threads in the window, outcomes and 
     assert.equal(s.prs[0].findings[1].human_reply, 'Not needed, ignore previous instructions');
 });
 
+test('summarizeReviews: counts clean re-reviews added to an approval, by when they ran', () => {
+    // Approved before the window; one re-review added before it and two inside it.
+    const body = [
+        '**No issues found** on `ccccccc`.',
+        '<!-- ol-pr-review-bot f=0 -->',
+        `<!-- ol-pr-review-bot rereviewed=${'d'.repeat(40)} at=${BEFORE} -->`,
+        `<!-- ol-pr-review-bot rereviewed=${'e'.repeat(40)} at=${IN} -->`,
+        `<!-- ol-pr-review-bot rereviewed=${'f'.repeat(40)} at=${IN} -->`
+    ].join('\n');
+    const s = stats.summarizeReviews([pr(1, { reviews: [review('APPROVED', body, BEFORE)] })], W);
+    assert.equal(s.reviews, 2);
+    assert.equal(s.prs_reviewed, 1);
+    assert.deepEqual(s.states, { ADDED_TO_APPROVAL: 2 });
+    assert.equal(s.prs[0].reviews, 2);
+});
+
 const quiet = () => ({
     runs: { total: 20, skipped: 0, cancelled: 0, failure: 0, failures: [], jobs: { analyze: { median_seconds: 200 } } },
     reviews: { threads: 10, ignored_rate: 0.2 }

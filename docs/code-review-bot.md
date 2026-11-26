@@ -236,6 +236,13 @@ The full instructions the bot follows are in
 - **Comment** otherwise, and always on PRs the bot wrote itself and on a superseded review (one
   of a commit the PR moved past during the review).
 
+**Clean re-reviews.** When a re-review finds nothing (no findings, suggestions, notes or summary) and the
+bot's latest review is already a clean approval, the bot doesn't post another review. It edits that
+approval to list the new commit under "No new issues in later pushes", and the `code-review` check
+passes as usual. Merging needs the check, not an approval, so a new approval would only send
+everyone another notification. This covers the re-reviews that pushes start and re-requesting the
+review to skip the wait. Comment `@openlibrary-bot review` to get a new review posted anyway.
+
 **The `code-review` check.** This check is required to merge. It shows:
 
 | Check | Message | Meaning |
