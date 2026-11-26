@@ -205,17 +205,17 @@ def get_past_loans(s3_cookie: str | None) -> list[dict]:
     return past
 
 
-def past_loan_action(book: dict) -> tuple[str, dict | None]:
-    """The button on a past loan, as a label and the borrow form it posts, or None to link to the book."""
+def past_loan_action(book: dict) -> tuple[str, dict | None, bool]:
+    """The button on a past loan: its label, the borrow form it posts (None to link to the book), and whether it opens the book."""
     status = book["availability"].get("status")
     if status == "open":
-        return _("Read"), None
+        return _("Read"), None, True
     if is_free(book["availability"]):
-        return _("Borrow again"), {"action": book["borrow_url"], "value": "borrow"}
+        return _("Borrow again"), {"action": book["borrow_url"], "value": "borrow"}, True
     if status == "borrow_unavailable":
-        return _("Join waitlist"), {"action": book["borrow_url"], "value": "join-waitinglist"}
+        return _("Join waitlist"), {"action": book["borrow_url"], "value": "join-waitinglist"}, False
     # A book that can't be lent at all says why on its page.
-    return _("View book"), None
+    return _("View book"), None, False
 
 
 def build_loans(loans: list[dict], holds: list[dict], past: list[dict] | None = None) -> list[dict]:
@@ -223,7 +223,7 @@ def build_loans(loans: list[dict], holds: list[dict], past: list[dict] | None = 
     each with a status line and one button. A hold still in line has nothing to do yet and is left to the
     loans page."""
 
-    def card(book: dict, kind: str, status: str, tone: str, label: str, form: dict | None = None) -> dict:
+    def card(book: dict, kind: str, status: str, tone: str, label: str, form: dict | None, access: bool) -> dict:
         return {
             "kind": kind,
             "title": book["title"],
@@ -234,7 +234,7 @@ def build_loans(loans: list[dict], holds: list[dict], past: list[dict] | None = 
             "status": status,
             "tone": tone,
             # Borrowing and reading take the primary fill, as they do across the site.
-            "action": {"label": label, "href": book["url"], "form": form, "access": bool(form) and form["value"] in ("borrow", "read")},
+            "action": {"label": label, "href": book["url"], "form": form, "access": access},
         }
 
     loan_cards = [
@@ -245,11 +245,14 @@ def build_loans(loans: list[dict], holds: list[dict], past: list[dict] | None = 
             "urgent" if loan["urgent"] else "plain",
             _("Continue reading"),
             {"action": f"/borrow/ia/{loan['ocaid']}", "value": "read"} if loan["can_read_here"] else None,
+            True,
         )
         for loan in loans
     ]
     # A ready hold's status is how long it is kept: the heading already says it is ready.
-    ready = [card(hold, "ready", hold["note"], "ready", _("Borrow now"), {"action": hold["borrow_url"], "value": "borrow"}) for hold in holds if hold["ready"]]
+    ready = [
+        card(hold, "ready", hold["note"], "ready", _("Borrow now"), {"action": hold["borrow_url"], "value": "borrow"}, True) for hold in holds if hold["ready"]
+    ]
     taken = {book.get("work_key") for book in loans + holds}
     past_cards = []
     for book in past or []:

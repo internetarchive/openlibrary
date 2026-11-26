@@ -450,6 +450,13 @@ def test_past_loans_follow_current_ones_once_each_with_what_can_be_done_now(requ
     assert past["lent"]["action"]["form"] == {"action": "/books/lent/borrow", "value": "join-waitinglist"}
     assert (past["open"]["action"]["label"], past["open"]["action"]["form"]) == ("Read", None)
     assert (past["private"]["action"]["label"], past["private"]["action"]["form"]) == ("View book", None)
+    assert {title for title, card in past.items() if card["action"]["access"]} == {"free", "open"}
+
+
+def test_continue_reading_is_primary_even_when_it_links_to_the_book(request_context_fixture):
+    request_context_fixture(lang="en")
+    [card] = _home_member().build_loans(loans=[_loan("elsewhere", 5) | {"can_read_here": False}], holds=[])
+    assert (card["action"]["label"], card["action"]["form"], card["action"]["access"]) == ("Continue reading", None, True)
 
 
 def test_a_print_disabled_reader_can_borrow_a_past_loan_that_is_lent_out(request_context_fixture):
