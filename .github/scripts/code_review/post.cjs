@@ -13,7 +13,9 @@ const {
     heldBackReview,
     heldBackBlocking,
     diffAnchors,
-    threadKind
+    threadKind,
+    SUGGESTION_MARKER,
+    isSuggestionThread
 } = require('./shared.cjs');
 
 // The review's verdict. Only APPROVE or REQUEST_CHANGES clears a pending review request; COMMENT
@@ -240,18 +242,50 @@ async function validateAndPost({ github, context, core, require, process, sleep 
 
     // Every finding that blocks gets a thread, so the author can reply to it and a later review can
     // resolve it (see threadKind): a line comment, or a comment on the whole file when there's no line
-    // to use. Low severity findings are suggestions in the summary. A finding about no file the PR
-    // changes is a note in the summary that doesn't block (analyze counts it the same way).
+    // to use. Low severity findings are suggestions: a line comment that never blocks when there's a
+    // change to apply, otherwise an item in the summary. A finding about no file the PR changes is a
+    // note in the summary that doesn't block (analyze counts it the same way).
     const inline = [],
         inlineFindings = [],
         fileLevel = [],
         orphaned = [],
         notes = [],
-        suggestions = [];
-    const heading = f => `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+        suggestions = [],
+        suggestionComments = [],
+        suggestionFindings = [];
+    const heading = (f, label = (f.severity || 'note').toUpperCase()) => `**${label} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+    // A one-click suggestion; an empty one deletes the range. Dropped if it changes nothing.
+    const suggestionBlock = f => {
+        // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
+        if (f.suggestion == null) return '';
+        const start = Number(f.start_line || f.line);
+        const range = Array.from({ length: Number(f.line) - start + 1 }, (_, i) => anchorable.get(f.path).get(start + i));
+        // A trailing newline would add a blank line when applied.
+        const text = f.suggestion.replace(/\n$/, '');
+        if (text === range.join('\n')) {
+            core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (no change).`);
+            return '';
+        }
+        // Longer than any backtick run inside, so the suggestion can't close the fence.
+        const fence = '`'.repeat(Math.max(2, ...(text.match(/`+/g) || []).map(r => r.length)) + 1);
+        return text === '' ? `\n\n${fence}suggestion\n${fence}` : `\n\n${fence}suggestion\n${text}\n${fence}`;
+    };
+    const lineComment = (f, body) => {
+        const start = f.start_line || f.line;
+        const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
+        if (Number(start) !== Number(f.line)) {
+            c.start_line = Number(start);
+            c.start_side = 'RIGHT';
+        }
+        return c;
+    };
     for (const f of review.findings || []) {
         if (f.severity === 'low') {
-            suggestions.push(f);
+            const block = inlineKeyIssues && threadKind(f, anchors) === 'line' ? suggestionBlock(f) : '';
+            if (block) {
+                suggestionComments.push(lineComment(f, `${SUGGESTION_MARKER}\n${heading(f, "Suggestion (won't block)")}\n\nApply it or ignore it.${block}`));
+                suggestionFindings.push(f);
+            } else suggestions.push(f);
             continue;
         }
         // .pr_agent.toml inline_key_issues = false keeps every finding in the review summary.
@@ -276,28 +310,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             });
             continue;
         }
-        const start = f.start_line || f.line;
-
-        let body = heading(f);
-        // oxlint-disable-next-line eqeqeq -- loose on purpose: null or undefined
-        if (f.suggestion != null) {
-            // A suggestion must replace exactly start..line, and change something, or it is no use.
-            const want = Number(f.line) - Number(start) + 1;
-            const got = String(f.suggestion).split('\n').length;
-            const current = Array.from({ length: want }, (_, i) => anchorable.get(f.path).get(Number(start) + i)).join('\n');
-            // Longer than any backtick run inside, so the suggestion can't close the fence.
-            const fence = '`'.repeat(Math.max(2, ...(f.suggestion.match(/`+/g) || []).map(r => r.length)) + 1);
-            if (want !== got) core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
-            else if (f.suggestion === current) core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (no change).`);
-            else body += `\n\n${fence}suggestion\n${f.suggestion}\n${fence}`;
-        }
-        body += agentPrompt(f, true);
-        const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
-        if (Number(start) !== Number(f.line)) {
-            c.start_line = Number(start);
-            c.start_side = 'RIGHT';
-        }
-        inline.push(c);
+        inline.push(lineComment(f, heading(f) + suggestionBlock(f) + agentPrompt(f, true)));
         inlineFindings.push(f);
     }
 
@@ -321,13 +334,13 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         const short = headSha.slice(0, 7);
         const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
         const blocking = blockingCount();
+        const suggested = suggestions.length + suggestionFindings.length;
         let status;
-        if (!blocking && !suggestions.length && !notes.length)
-            status = heldBack ? `**No published findings** on \`${short}\`.` : `**No issues found** on \`${short}\`.`;
+        if (!blocking && !suggested && !notes.length) status = heldBack ? `**No published findings** on \`${short}\`.` : `**No issues found** on \`${short}\`.`;
         else {
             const counts = [
                 blocking ? `**${plural(blocking, 'finding')}**` : '**No blocking findings**',
-                suggestions.length && plural(suggestions.length, 'suggestion'),
+                suggested && plural(suggested, 'suggestion'),
                 notes.length && plural(notes.length, 'note')
             ];
             status = `${counts.filter(Boolean).join(' · ')} on \`${short}\``;
@@ -370,7 +383,14 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 .join('\n\n')}`;
         }
         // After a rejected post the threads have moved into `orphaned`, so count them once.
-        summary += combinedAgentPrompt([...(inline.length ? inlineFindings : []), ...fileLevel.map(x => x.finding), ...orphaned, ...suggestions, ...notes]);
+        summary += combinedAgentPrompt([
+            ...(inline.length ? inlineFindings : []),
+            ...fileLevel.map(x => x.finding),
+            ...orphaned,
+            ...suggestions,
+            ...suggestionFindings,
+            ...notes
+        ]);
 
         summary += renderTicketCompliance(review.ticket_compliance, owner, repo);
 
@@ -379,7 +399,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         // The first part is the next step, which also says this isn't an approval. Suggestions count
         // as feedback: we want it taken seriously, and the author can judge what applies.
         const minutes = process.env.PUSH_REVIEW_MINUTES;
-        const feedback = blocking || suggestions.length || notes.length;
+        const feedback = blocking || suggested || notes.length;
         const next = feedback
             ? 'Please address the feedback above before a maintainer reviews this PR'
             : earlierHold
@@ -416,7 +436,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         const reviewed = headSha.slice(0, 7),
             live = String(livePr.head.sha).slice(0, 7);
         core.info(`Head moved ${headSha.slice(0, 8)}->${String(livePr.head.sha).slice(0, 8)} during the review; posting it on ${reviewed} as a comment.`);
-        supersededLine = `*This review is of \`${reviewed}\`. \`${live}\` was pushed while it ran, so it neither approves nor blocks, and \`${live}\` gets its own review.*`;
+        supersededLine = `*This review is of \`${reviewed}\`. \`${live}\` was pushed while it ran, so this review neither approves nor blocks. \`${live}\` needs its own review: its \`code-review\` check says whether one will start or has to be requested.*`;
     }
 
     const selfAuthored = (livePr.user && livePr.user.login) === 'openlibrary-bot';
@@ -452,10 +472,11 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 if (!rt.pageInfo.hasNextPage) break;
                 tCursor = rt.pageInfo.endCursor;
             }
+            // Suggestion threads never block, so they don't decide whether a review was addressed.
             ownThreads = allThreads
                 .filter(t => {
                     const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
-                    return c && c.author && c.author.login === 'openlibrary-bot';
+                    return c && c.author && c.author.login === 'openlibrary-bot' && !isSuggestionThread(t);
                 })
                 .map(t => {
                     const r = t.comments.nodes[0].pullRequestReview;
@@ -507,7 +528,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             // Counted the way the status job counts, limited to the bot's threads, as if the resolve
             // job succeeds. If it fails, the status job still sees the thread open and stays red.
             unresolvedOwnThreads = allThreads.filter(t => {
-                if (!t || t.isResolved || t.isOutdated || toResolveIds.includes(t.id)) return false;
+                if (!t || t.isResolved || t.isOutdated || toResolveIds.includes(t.id) || isSuggestionThread(t)) return false;
                 const c = t.comments && t.comments.nodes && t.comments.nodes[0];
                 return !!(c && c.author && c.author.login === 'openlibrary-bot');
             }).length;
@@ -542,7 +563,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             commit_id: headSha,
             event,
             body: summary,
-            comments: inline
+            comments: [...inline, ...suggestionComments]
         });
     // createReview takes no file-level comments (422, "subjectType ... not defined"). With any, the
     // review is created pending, each file-level thread is added with GraphQL, and the review is
@@ -576,7 +597,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
             pull_number: prNumber,
             commit_id: headSha,
             body: summary,
-            comments: inline
+            comments: [...inline, ...suggestionComments]
         });
         try {
             const failed = [];
@@ -659,7 +680,14 @@ async function validateAndPost({ github, context, core, require, process, sleep 
                 continue;
             }
             if (!e || e.status !== 422) throw e;
-            if (inline.length || fileLevel.length) {
+            if (suggestionComments.length) {
+                // They never block, so move them to the summary before the blocking findings.
+                core.warning(`The review was rejected (422: ${e.message}); posting it again with the suggestion comments in the summary.`);
+                suggestions.push(...suggestionFindings);
+                suggestionComments.length = 0;
+                suggestionFindings.length = 0;
+                summary = renderSummary();
+            } else if (inline.length || fileLevel.length) {
                 core.warning(`The review was rejected (422: ${e.message}); posting it again with the inline comments in the summary.`);
                 orphaned.push(...(inline.length ? inlineFindings : []), ...fileLevel.map(x => x.finding));
                 inline.length = 0;
@@ -686,7 +714,7 @@ async function validateAndPost({ github, context, core, require, process, sleep 
         return;
     }
     core.info(
-        `Posted ${event} review ${posted.id}: ${inline.length} inline, ${fileLevel.length} file-level, ${orphaned.length} in summary, ${notes.length} notes.`
+        `Posted ${event} review ${posted.id}: ${inline.length} inline, ${suggestionComments.length} inline suggestions, ${fileLevel.length} file-level, ${orphaned.length} in summary, ${notes.length} notes.`
     );
     // Only once the review is up, so a failed post leaves the threads and their comments as they were.
     // A failed edit still hands the thread on.

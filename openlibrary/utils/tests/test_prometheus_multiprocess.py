@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
-from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, values
+from prometheus_client import GC_COLLECTOR, PLATFORM_COLLECTOR, REGISTRY, CollectorRegistry, Counter, Gauge, Histogram, enable_created_metrics, values
 from prometheus_client.mmap_dict import MmapedDict
 
 from openlibrary.utils import prometheus_multiprocess
@@ -226,3 +226,20 @@ def test_gunicorn_pre_fork_warns_of_long_queue(metrics_dir, monkeypatch):
     server.log.reset_mock()
     conf.pre_fork(server, None)
     server.log.warning.assert_not_called()
+
+
+def test_single_process_registry_drops_unused_defaults(monkeypatch):
+    monkeypatch.delenv("PROMETHEUS_MULTIPROC_DIR", raising=False)
+    counter = Counter("ol_test_single_process_total", "Test counter.")
+    counter.inc()
+    try:
+        registry = prometheus_multiprocess.metrics_registry()
+        prometheus_multiprocess.metrics_registry()  # a second call (web.py and FastAPI both ask) doesn't fail
+        names = {sample.name for metric in registry.collect() for sample in metric.samples}
+        assert "ol_test_single_process_total" in names
+        assert not [name for name in names if name.endswith("_created") or name.startswith("python_gc_") or name == "python_info"]
+    finally:
+        REGISTRY.unregister(counter)
+        REGISTRY.register(GC_COLLECTOR)
+        REGISTRY.register(PLATFORM_COLLECTOR)
+        enable_created_metrics()

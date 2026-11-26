@@ -13,10 +13,12 @@ from urllib.parse import urlencode
 from pydantic import BaseModel, Field, field_serializer
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
+from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.openlibrary.github import (
     GitHubAPIError,
     GitHubPRInfo,
@@ -31,6 +33,7 @@ from openlibrary.plugins.openlibrary.github import (
     unknown_pr_drift,
 )
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, jenkins_deploy_status, trigger_rebuild
+from openlibrary.plugins.upstream.utils import vue_component_html
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
@@ -43,20 +46,102 @@ _DEPLOY_WINDOW = 10 * 60  # 10 minutes
 _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 
-class status(delegate.page):
-    def GET(self):
-        is_maintainer_user = _is_maintainer()
-        has_testing_state = _load_testing_state() is not None
-        show_testing = has_testing_state and is_maintainer_user
-        return render_template(
-            "status",
-            status_info,
-            dev_merged_status=get_dev_merged_status(),
-            is_maintainer=is_maintainer_user,
-            has_testing_state=has_testing_state,
-            show_testing=show_testing,
-            jenkins_job_url=JENKINS_JOB_URL,
-        )
+def status_page_values(is_maintainer: bool) -> dict[str, Any]:
+    """What ``status.html.jinja`` shows."""
+    has_testing_state = _load_testing_state() is not None
+    return {
+        "status": status_info,
+        "dev_merged_status": get_dev_merged_status(),
+        "is_maintainer": is_maintainer,
+        "has_testing_state": has_testing_state,
+        "show_testing": has_testing_state and is_maintainer,
+        "testing_panel_strings": testing_panel_strings(),
+        "jenkins_job_url": JENKINS_JOB_URL,
+        "vue_component_html": vue_component_html,
+    }
+
+
+def testing_panel_strings() -> dict[str, Any]:
+    """Translated strings for ``<ol-testing-environment>``, built for client-side fill.
+
+    Keys and English strings must match ``DEFAULT_STRINGS`` in
+    ``openlibrary/components/TestingEnvironment/utils.js``; ``test_status_page.py``
+    checks that they do. A plural set carries one form per CLDR category; the
+    component picks by count. Built in Python for the same reason as
+    ``core/shell/shelf_labels.py``: the ``%(name)s`` placeholders must reach the
+    browser intact.
+    """
+    return {
+        "loading": _("Loading testing environment…"),
+        "loadError": _("Could not load the testing environment."),
+        "retry": _("Try again"),
+        "actionFailed": _("Could not complete that action."),
+        "addFailedNotFound": _("PR %(num)s does not exist."),
+        "addFailedUnavailable": _("Could not check PR %(num)s — GitHub is unavailable."),
+        "addFailedTokenInvalid": _("Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."),
+        "addFailedOther": _("Could not add PR %(num)s."),
+        "title": _("Testing Environment"),
+        "addPrs": _("Add PRs"),
+        "addPlaceholder": _("PR numbers or URLs, space or comma separated"),
+        "add": _("Add PRs"),
+        "addChange": _("Add"),
+        "pr": _("PR"),
+        "draft": _("Draft"),
+        "author": _("Author"),
+        "assignee": _("Assignee"),
+        "drift": _("Drift"),
+        "next": _("Next deploy"),
+        "liveNow": _("Live now"),
+        "notLive": _("Not yet deployed"),
+        "mergeConflict": _("Deploy failed (merge conflict)"),
+        "closed": _("This PR is already closed."),
+        "actions": _("Actions"),
+        "ok": _("OK"),
+        "prOnTesting": _("PR %(num)s on testing"),
+        "changeOnDeploy": _("changes on deploy"),
+        "update": _("Update"),
+        "updatePin": _("Update pin"),
+        "enable": _("Enable"),
+        "disable": _("Disable"),
+        "remove": _("Remove"),
+        "restore": _("Restore"),
+        "refresh": _("Refresh from GitHub"),
+        "deploy": _("Deploy"),
+        "changes": {
+            "one": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 1),
+            "two": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 2),
+            "few": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 3),
+            "many": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 11),
+            "other": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 100),
+        },
+        "nothingToDeploy": _("Nothing to deploy — testing matches the current set."),
+        "mergedToMaster": _("merged to master"),
+        "closedWithoutMerging": _("closed without merging"),
+        "unknown": _("Drift unknown, pinned at %(sha)s"),
+        "currentCommit": _("Up-to-date, pinned at %(sha)s"),
+        "behind": {
+            "one": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 1),
+            "two": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 2),
+            "few": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 3),
+            "many": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 11),
+            "other": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 100),
+        },
+        "neverDeployed": _("Never deployed"),
+        "deployingStarted": _("Deploying, started %(time)s"),
+        "deployingStartedBy": _("Deploying, started %(time)s by %(user)s"),
+        "deployingStage": _("Deploying, started %(time)s — %(stage)s"),
+        "deployingStageBy": _("Deploying, started %(time)s — %(stage)s by %(user)s"),
+        "deploySucceeded": _("Deploy succeeded %(time)s"),
+        "deploySucceededBy": _("Deploy succeeded %(time)s by %(user)s"),
+        "deployFailed": _("Deploy failed %(time)s"),
+        "deployFailedBy": _("Deploy failed %(time)s by %(user)s"),
+        "deployFailedTrigger": _("Could not start the deploy — Jenkins did not accept the build."),
+        "deployUnconfigured": _("Deploy is not configured on this instance — nothing was deployed."),
+        "lastDeploy": _("Last deploy %(time)s"),
+        "lastDeployBy": _("Last deploy %(time)s by %(user)s"),
+        "viewJenkins": _("View Jenkins"),
+        "noPrs": _("No PRs in testing set."),
+    }
 
 
 def _json_ok() -> delegate.RawText:
@@ -333,6 +418,11 @@ class PRStatus:
             return int(m.group(1))
         else:
             return None
+
+    @property
+    def merge_failed(self) -> bool:
+        """Whether the deploy skipped this PR because it didn't merge."""
+        return self.status.startswith(_MERGE_CONFLICT_PREFIXES)
 
     @property
     def link(self) -> str | None:
@@ -693,7 +783,7 @@ def _merge_conflicted_prs() -> frozenset[int]:
         return frozenset()
     conflicted: set[int] = set()
     for pr in dms.pr_statuses:
-        if not pr.status.startswith(_MERGE_CONFLICT_PREFIXES):
+        if not pr.merge_failed:
             continue
         if pr.pull_id:
             conflicted.add(pr.pull_id)
@@ -725,11 +815,6 @@ def _ensure_testing_state_file() -> None:
     relevant_environment = False
     if relevant_environment and not TESTING_STATE_FILE.exists():
         TESTING_STATE_FILE.write_text(json.dumps({"last_deploy_at": "", "prs": []}, indent=2))
-
-
-def _is_maintainer() -> bool:
-    user = get_current_user()
-    return bool(user and user.is_maintainer())
 
 
 async def _fetch_drift_infos(prs: list[TestingPR]) -> dict[int, dict]:

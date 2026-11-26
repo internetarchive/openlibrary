@@ -226,6 +226,41 @@ class TestEdition:
         ed.set_providers([{"url": "", "format": "web"}])
         assert ed.providers[0]["url"] == ""
 
+    @pytest.mark.parametrize(
+        ("stored", "submitted", "expected"),
+        [
+            (None, {"value": "300", "units": "grams"}, "300 grams"),
+            ("300 grams", {"value": "450", "units": "grams"}, "450 grams"),
+            ("about 2 lbs", {"value": "1", "units": "pounds"}, "1 pounds"),
+            ("300 grams", None, None),
+            ("0.000", None, None),
+            ("about 2 lbs", None, "about 2 lbs"),
+            (None, None, None),
+        ],
+    )
+    def test_set_weight(self, stored, submitted, expected):
+        ed = self._make_edition()
+        ed.weight = stored
+        ed.set_weight(submitted and web.storage(submitted))
+        assert ed.weight == expected
+
+    @pytest.mark.parametrize(
+        ("stored", "submitted", "expected"),
+        [
+            (None, {"height": "9", "width": "6", "depth": "1", "units": "inches"}, "9 x 6 x 1 inches"),
+            ("9 x 6 x 1 inches", {"height": "8", "width": "5", "depth": "1", "units": "inches"}, "8 x 5 x 1 inches"),
+            ("24 cm", {"height": "24", "width": "16", "depth": "2", "units": "centimeters"}, "24 x 16 x 2 centimeters"),
+            ("9 x 6 x 1 inches", None, None),
+            ("24 cm", None, "24 cm"),
+            (None, None, None),
+        ],
+    )
+    def test_set_physical_dimensions(self, stored, submitted, expected):
+        ed = self._make_edition()
+        ed.physical_dimensions = stored
+        ed.set_physical_dimensions(submitted and web.storage(submitted))
+        assert ed.physical_dimensions == expected
+
     def test_get_ia_meta_fields_no_external_identifier(self):
         ed = self._make_edition(ocaid="testitem00archive")
         with patch("openlibrary.core.ia.get_metadata", return_value={"collection": ["inlibrary"]}):

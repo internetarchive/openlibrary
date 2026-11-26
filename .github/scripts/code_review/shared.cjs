@@ -45,10 +45,18 @@ const supersededCommit = body => {
     const m = /<!-- ol-pr-review-bot superseded reviewed=([0-9a-f]{40}) -->/.exec(String(body || ''));
     return m ? m[1] : null;
 };
-// Threads that block the status: unresolved and not outdated. This includes the bot's own
-// just-posted findings, so a review with findings stays red until they are addressed.
+// Starts the bot's suggestion comments, whose threads never block. It counts only at the start of a
+// bot-authored first comment, which model-written text can't reach.
+const SUGGESTION_MARKER = '<!-- ol-pr-review-bot suggestion -->';
+const isSuggestionThread = (t, botLogin = 'openlibrary-bot') => {
+    const c = t && t.comments && t.comments.nodes && t.comments.nodes[0];
+    return !!(c && c.author && c.author.login === botLogin && String(c.body || '').startsWith(SUGGESTION_MARKER));
+};
+// Threads that block the status: unresolved, not outdated, and not one of the bot's suggestions.
+// This includes the bot's own just-posted findings, so a review with findings stays red until they
+// are addressed. Threads need their first comment's author and body to tell suggestions apart.
 const unresolvedThreadCount = threads => {
-    return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated ? 1 : 0), 0);
+    return threads.reduce((n, t) => n + (!t.isResolved && !t.isOutdated && !isSuggestionThread(t) ? 1 : 0), 0);
 };
 
 // The parts of a unified diff for the given paths (old or new name). A re-review sees only these.
@@ -120,8 +128,11 @@ const threadKind = (f, anchors) => {
     const ln = anchors.lines.get(f.path);
     const end = Number(f.line),
         start = Number(f.start_line || f.line);
-    if (f.line && ln.has(end) && ln.has(start) && start <= end) return 'line';
-    return 'file';
+    // Every line of the range must be in the diff: GitHub rejects a comment across two hunks, and that
+    // one rejection would move every blocking finding out of its thread.
+    if (!f.line || !(start <= end)) return 'file';
+    for (let n = start; n <= end; n++) if (!ln.has(n)) return 'file';
+    return 'line';
 };
 
 module.exports = {
@@ -135,6 +146,8 @@ module.exports = {
     heldBackReview,
     verdictFindings,
     unresolvedThreadCount,
+    SUGGESTION_MARKER,
+    isSuggestionThread,
     filterDiff,
     supersededMarker,
     supersededCommit

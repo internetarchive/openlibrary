@@ -10,8 +10,8 @@ import {
     formatTime,
     getTestingStatus,
     postAction,
+    panelString,
     parsePrNumbers,
-    sprintf,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
 
@@ -121,16 +121,21 @@ describe('Testing Environment utils', () => {
         await expect(postAction('/status/remove', {})).rejects.toThrow('failed');
     });
 
-    test('fills %s placeholders in order', () => {
-        expect(sprintf('%s change will be applied', 3)).toBe('3 change will be applied');
-        expect(sprintf('%s commits behind %s', 4, 'abc1234')).toBe('4 commits behind abc1234');
-        expect(sprintf('%s selected', 2)).toBe('2 selected');
+    test('picks the plural form for the count', () => {
+        expect(panelString(DEFAULT_STRINGS, 'changes', { count: 1, num: 1 })).toBe('1 change will be applied');
+        expect(panelString(DEFAULT_STRINGS, 'changes', { count: 3, num: 3 })).toBe('3 changes will be applied');
+    });
+
+    test('fills named placeholders in whatever order a translation puts them', () => {
+        const strings = { ...DEFAULT_STRINGS, behind: { one: '%(sha)s : %(num)s commit', other: '%(sha)s : %(num)s commits' } };
+        expect(panelString(strings, 'behind', { count: 4, num: 4, sha: 'abc1234' })).toBe('abc1234 : 4 commits');
     });
 
     test('deploy-status strings carry the deployer username variant', () => {
-        expect(sprintf(DEFAULT_STRINGS.deployingStartedBy, '2 minutes ago', 'openlibrary')).toBe('Deploying, started 2 minutes ago by openlibrary');
-        expect(sprintf(DEFAULT_STRINGS.deploySucceededBy, '5 minutes ago', 'openlibrary')).toBe('Deploy succeeded 5 minutes ago by openlibrary');
-        expect(sprintf(DEFAULT_STRINGS.lastDeployBy, '5 minutes ago', 'openlibrary')).toBe('Last deploy 5 minutes ago by openlibrary');
+        const vars = { time: '2 minutes ago', stage: 'Checkout', user: 'openlibrary' };
+        expect(panelString(DEFAULT_STRINGS, 'deployingStageBy', vars)).toBe('Deploying, started 2 minutes ago — Checkout by openlibrary');
+        expect(panelString(DEFAULT_STRINGS, 'deploySucceededBy', vars)).toBe('Deploy succeeded 2 minutes ago by openlibrary');
+        expect(panelString(DEFAULT_STRINGS, 'lastDeployBy', vars)).toBe('Last deploy 2 minutes ago by openlibrary');
     });
 
     test('names the PR an add could not find', () => {

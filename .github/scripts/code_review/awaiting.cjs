@@ -4,20 +4,34 @@
 // review once no more commits arrive for push_review_delay_minutes.
 'use strict';
 
+const { findIssueNumbers, branchIssueNumbers } = require('./linked_issues.cjs');
+
 const BOT = 'openlibrary-bot';
+// A PR with this label, or one linked to an issue with it, skips the quiet period: a push review starts right away.
+const FAST_REVIEW_LABEL = 'Bot: Fast Review';
+const MAX_ISSUE_LOOKUPS = 5;
 const TEAM = 'openlibrary-agentic-code-reviewer';
+// pre-commit.ci's autofix commit is the author's own change reformatted, so it is reviewed like the
+// author's push. It often lands while the review of the commit it fixes is running, which leaves that
+// review superseded; skipping it as a bot push would leave the PR with no review until someone asks.
+const AUTOFIX_BOTS = new Set(['pre-commit-ci[bot]']);
 // The status while a push review waits for pushes to stop. requestAfterQuiet checks the status still
-// starts with it, so a hand-started review (which replaces it with "Review in progress.") isn't
-// followed by a second one. The older wording is still recognised for runs started before the change.
-const WAITING = 'Waiting for pushes to stop.';
-const OLD_WAITING = 'New commits. A review starts after';
-const isWaiting = description => [WAITING, OLD_WAITING].some(p => String(description || '').startsWith(p));
-// "Review starts ~21:36 UTC": when the wait ends if no more commits arrive. A status shows the
-// same yellow dot while waiting and while reviewing, so the text has to say which, and how to skip
-// the wait. Kept under GitHub's 140-character limit for a status description.
+// says so, so a hand-started review (which replaces it with "Review in progress.") isn't followed by
+// a second one. The older wordings are still recognised for runs started before a change.
+const WAITING = /^\d\d:\d\d UTC: review starts /;
+const OLD_WAITING = ['Waiting for pushes to stop.', 'New commits. A review starts after'];
+const isWaiting = description => {
+    const text = String(description || '');
+    return WAITING.test(text) || OLD_WAITING.some(p => text.startsWith(p));
+};
+// "21:36 UTC: review starts ...": when the wait ends if no more commits arrive. The time comes first
+// because the checks list cuts long descriptions off. A status shows the same yellow dot while
+// waiting and while reviewing, so the text has to say which, and how to skip the wait. Kept under
+// GitHub's 140-character limit for a status description.
 const waitingText = (minutes, now) => {
+    if (minutes === 0) return `${new Date(now).toISOString().slice(11, 16)} UTC: review starts now (${FAST_REVIEW_LABEL} label).`;
     const at = new Date(now + minutes * 60 * 1000).toISOString().slice(11, 16);
-    return `${WAITING} Review starts ~${at} UTC, or comment @openlibrary-bot review to start now.`;
+    return `${at} UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot.`;
 };
 
 // True when the push only merged the base branch into the previous head, as "Update branch" does.
@@ -45,10 +59,27 @@ async function pushReview({ github, owner, repo, payload, settings, reviewedBefo
     if (stacked(payload)) return 'the PR is stacked on another branch';
     // The first review is a maintainer's call (or auto_assign_reviewer.yml's): it is the spend gate.
     if (!reviewedBefore) return 'the PR has not been reviewed yet';
-    if ((payload.pull_request.labels || []).some(l => l.name === 'no-automation')) return 'the PR has the no-automation label';
-    if (cfg.push_trigger_ignore_bot_commits && (payload.sender.type === 'Bot' || payload.sender.login === BOT)) return 'a bot pushed';
+    if ((payload.pull_request.labels || []).some(l => l.name === 'Bot: No Automation')) return 'the PR has the Bot: No Automation label';
+    const botPush = (payload.sender.type === 'Bot' && !AUTOFIX_BOTS.has(payload.sender.login)) || payload.sender.login === BOT;
+    if (cfg.push_trigger_ignore_bot_commits && botPush) return 'a bot pushed';
     if (cfg.push_trigger_ignore_merge_commits && (await mergesOnlyBase({ github, owner, repo, payload }))) return 'the push only merged the base branch';
     return null;
+}
+
+// Whether the PR or an issue it links to (body, branch name, then title, as the reviewer finds them) has the label.
+async function wantsReviewNow({ github, core, owner, repo, pr }) {
+    const has = labels => (labels || []).some(l => (typeof l === 'string' ? l : l.name) === FAST_REVIEW_LABEL);
+    if (has(pr.labels)) return true;
+    const numbers = [...findIssueNumbers(pr.body, owner, repo), ...branchIssueNumbers(pr.head.ref), ...findIssueNumbers(pr.title, owner, repo)];
+    for (const n of [...new Set(numbers)].slice(0, MAX_ISSUE_LOOKUPS)) {
+        try {
+            const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number: n });
+            if (!issue.pull_request && has(issue.labels)) return true;
+        } catch (e) {
+            core.info(`Could not read issue #${n} for the ${FAST_REVIEW_LABEL} label: ${e.message}`);
+        }
+    }
+    return false;
 }
 
 async function markAwaiting({ github, context, core, settings, runUrl, now = Date.now() }) {
@@ -67,7 +98,7 @@ async function markAwaiting({ github, context, core, settings, runUrl, now = Dat
     const reviewedBefore =
         reviews.some(r => r.user && r.user.login === BOT) || requested.teams.some(t => t.slug === TEAM) || requested.users.some(u => u.login === BOT);
     const skip = await pushReview({ github, owner, repo, payload, settings, reviewedBefore });
-    const minutes = settings.openlibrary_reviewer.push_review_delay_minutes;
+    const minutes = !skip && (await wantsReviewNow({ github, core, owner, repo, pr })) ? 0 : settings.openlibrary_reviewer.push_review_delay_minutes;
     if (skip) core.info(`No review on this push: ${skip}.`);
     else core.setOutput('review_after_minutes', String(minutes));
 

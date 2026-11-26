@@ -18,6 +18,7 @@ from openlibrary.catalog.utils import (
     remove_trailing_number_dot,
     tidy_isbn,
 )
+from openlibrary.utils import uniq
 
 # National Bibliographic Agencies mapped to OL identfiers:
 AGENCY_MAPPING = {
@@ -755,6 +756,7 @@ def update_edition(rec: MarcBase, edition: dict[str, Any], func: Callable, field
         elif field in edition and isinstance(edition[field], dict):
             for key, values in v.items():
                 edition[field].setdefault(key, []).extend(values)
+                edition[field][key] = uniq(edition[field][key])
         else:
             edition[field] = v
 

@@ -247,7 +247,7 @@ class MetadataProviderFactory:
         providers = [
             AmazonMetadataProvider(),
             IaMetadataProvider(),
-            RawMarcMetadataProvider(),
+            # RawMarcMetadataProvider(),  # Temporarily disabled
             GutenbergMetadataProvider(),
             RawJsonMetadataProvider(),
         ]

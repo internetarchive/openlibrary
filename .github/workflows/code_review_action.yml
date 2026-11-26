@@ -168,9 +168,10 @@ jobs:
             const { resolveRange } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/code_review/range.cjs`);
             await resolveRange({ github, context, core, require, process });
 
-      # Ticket context, after PR-Agent's `require_ticket_analysis_review`: the issues the PR links
-      # to, for the model to check the PR against. Issue text is untrusted, so anything the model
-      # writes about it still goes through the gate. A failure here leaves the list empty.
+      # The PR's title and description (pr-description.json), for the model to check against the
+      # diff, and ticket context after PR-Agent's `require_ticket_analysis_review`: the issues the PR
+      # links to (linked-issues.json). Both are untrusted text, so anything the model writes about
+      # them still goes through the gate. A failure here leaves the files empty.
       - name: Fetch linked issues (ticket context)
         if: steps.range.outputs.skip == 'false' && steps.range.outputs.repost != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -559,7 +560,8 @@ jobs:
   #   - nothing held back from it blocks;
   #   - its count of blocking findings is known to be 0. A missing or unparseable count fails.
   #     The count catches findings with no line in the diff to anchor to, which have no thread;
-  #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated).
+  #   - no review thread is unresolved and not outdated (GitHub's own isResolved/isOutdated), apart
+  #     from the bot's own "Suggestion (won't block)" comments, which never block.
   # If the head moved since the review, it only marks the reviewed SHA superseded (pending): the new
   # head needs its own review.
   # On a repost it rebuilds the verdict from the existing review's marker and the live threads.

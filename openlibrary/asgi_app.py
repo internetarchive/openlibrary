@@ -142,9 +142,11 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.library_explorer import pages as library_explorer_pages
     from openlibrary.fastapi.link import router as link_router
     from openlibrary.fastapi.lists import router as lists_router
     from openlibrary.fastapi.merge_authors import router as merge_authors_router
+    from openlibrary.fastapi.merge_stats import pages as merge_stats_pages
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
     from openlibrary.fastapi.publishers import pages as publishers_pages
@@ -152,6 +154,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.search import pages as search_pages
     from openlibrary.fastapi.search import router as search_router
     from openlibrary.fastapi.stats import router as stats_router
+    from openlibrary.fastapi.status import pages as status_pages
     from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
     from openlibrary.fastapi.tasks import pages as tasks_pages
@@ -184,8 +187,11 @@ def _include_routers(app: FastAPI) -> None:
 
     # HTML pages, wrapped in the site shell (SitePageRoute).
     app.include_router(account_pages)
+    app.include_router(library_explorer_pages)
+    app.include_router(merge_stats_pages)
     app.include_router(publishers_pages)
     app.include_router(search_pages)
+    app.include_router(status_pages)
     app.include_router(tasks_pages)
     app.include_router(tasks_public_pages)
 

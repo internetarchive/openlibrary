@@ -5,7 +5,7 @@
  * at `fetch`.
  */
 import { DEFAULT_LABELS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
-import { fmt, plural, translate } from '../../../openlibrary/components/lit/utils/labels.js';
+import { fmt, plural, translate } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
 import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';

@@ -56,6 +56,17 @@ test('every file the doc links to exists', () => {
     for (const t of targets) assert.ok(existsSync(join(ROOT, t)), t);
 });
 
+test("every repo doc the bot's instructions tell it to read exists", () => {
+    const docs = [...read('.github/workflows/code_review.md').matchAll(/`(docs\/[^`]+\.md)`/g)].map(m => m[1]);
+    assert.ok(docs.includes('docs/core/database.md') && docs.includes('docs/core/fastapi-pages.md'));
+    for (const d of docs) assert.ok(existsSync(join(ROOT, d)), d);
+});
+
+test('the database doc keeps the section the bot is told to read', () => {
+    assert.match(read('.github/workflows/code_review.md'), /`docs\/core\/database\.md`, especially "Common mistakes"/);
+    assert.match(read('docs/core/database.md'), /^## Common mistakes$/m);
+});
+
 // The files whose behaviour the doc describes. Each starts with a note to keep the doc in step.
 const DESCRIBED = [
     '.github/workflows/code_review_action.yml',

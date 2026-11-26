@@ -4,10 +4,23 @@
  * For more details, see:
  * http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
  */
-import { ungettext, ugettext, sprintf } from './i18n';
+import { sprintf } from './i18n';
 // TODO: Can likely move some of these methods into this file
 import { commify, urlencode, slice } from './python';
 import { truncate, cond } from './utils';
+
+/**
+ * jsdef templates call `_()` and `ungettext()` as their Templetor versions do
+ * on the server. These stand-ins don't translate: they return the English
+ * string. Translated strings for browser-rendered UI come from i18n.js.
+ */
+function ugettext(s) {
+    return s;
+}
+
+function ungettext(s1, s2, n) {
+    return n === 1 ? s1 : s2;
+}
 
 /**
  * Python range function.

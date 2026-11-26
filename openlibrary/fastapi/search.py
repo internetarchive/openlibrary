@@ -30,11 +30,12 @@ from openlibrary.fastapi.models import (
     SolrInternalsParams,
     parse_comma_separated_list,
 )
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, hit_editions, render_inside_body
 from openlibrary.plugins.upstream.mybooks import get_reading_states_async
-from openlibrary.plugins.upstream.utils import get_coverstore_public_url
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url, vue_component_html
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -335,17 +336,21 @@ async def search_inside_json(
     )
 
 
+class SubjectSearchRequestParams(Pagination):
+    q: str = Field("", description="The search query")
+
+
+@nonblocking
 @router.get("/search/subjects.json")
 async def search_subjects_json(
-    pagination: Annotated[Pagination, Depends()],
-    q: Annotated[str, Query(description="The search query")] = "",
+    params: Annotated[SubjectSearchRequestParams, Query()],
 ):
     response = await run_solr_query_async(
         SubjectSearchScheme(),
-        {"q": q},
-        offset=pagination.offset,
-        page=pagination.page,
-        rows=pagination.limit,
+        {"q": params.q},
+        offset=params.offset,
+        page=params.page,
+        rows=params.limit,
         sort="work_count desc",
         request_label="SUBJECT_SEARCH_API",
     )
@@ -423,9 +428,10 @@ class AuthorSearchRequestParams(Pagination):
     sort: AuthorSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
 
 
+@nonblocking
 @router.get("/search/authors.json")
 async def search_authors_json(
-    params: Annotated[AuthorSearchRequestParams, Depends()],
+    params: Annotated[AuthorSearchRequestParams, Query()],
 ):
     response = await run_solr_query_async(
         AuthorSearchScheme(),
@@ -460,6 +466,7 @@ class EditionSearchRequestParams(Pagination):
     sort: EditionSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
 
 
+@nonblocking
 @router.get("/search/editions.json", tags=["search"])
 async def search_editions_json(
     params: Annotated[EditionSearchRequestParams, Query()],
@@ -501,6 +508,9 @@ async def search_editions_json(
     }
 
 
+# Not @nonblocking: WorkSearchScheme reads the language list (convert_iso_to_marc -> get_languages), which is cached
+# per process but loaded from infobase on first use, so a process's first request blocks the event loop on infobase
+# and memcache (~60ms, seen in Server-Timing). Mark it once that list is loaded at startup or without infobase.
 @router.get(
     "/search/facets.json",
     tags=["internal"],
@@ -659,6 +669,14 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
         total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
+
+
+@pages.get("/search/bulk")
+async def bulk_search() -> SitePage:
+    # TODO: Retire the web.py `bulk_search` handler (it still serves /search/bulk
+    # in production) once production routes /search/bulk here.
+    body = render_jinja_template("bulk_search/bulk_search.html.jinja", vue_component_html=vue_component_html)
+    return SitePage(body, page=PageMeta(title=_("Bulk Search (beta)")))
 
 
 class InsideSearchParams(BaseModel):
