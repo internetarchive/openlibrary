@@ -1,0 +1,9 @@
+/* /admin/people; openlibrary/templates/admin/people/index.html */
+.admin-people-page .user-search td {
+  /* Outranks #adminHistory td, which shrinks the cells of every admin history table. */
+  font-size: inherit !important;
+}
+.admin-people-page .admin-people__search-input {
+  padding: var(--spacing-inset-xs);
+  width: 400px;
+}

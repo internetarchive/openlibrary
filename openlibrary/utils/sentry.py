@@ -1,5 +1,6 @@
 import logging
 import re
+import socket
 from dataclasses import dataclass
 from os import getenv
 
@@ -74,7 +75,18 @@ class Sentry:
             profiles_sample_rate=self.config.get("profiles_sample_rate", 0.0),
             release=get_software_version(),
             enable_logs=self.config.get("enable_logs", True),
+            # Without this, server_name is the hostname. On Kubernetes that's the pod
+            # name, so every new pod adds a new value; the deployment sets one fixed
+            # name per app instead.
+            server_name=getenv("OL_SENTRY_SERVER_NAME") or None,
         )
+        if getenv("OL_SENTRY_SERVER_NAME"):
+            # Keep the pod and node on each event as a context: shown on the event,
+            # but not indexed as a tag.
+            sentry_sdk.get_global_scope().set_context(
+                "host",
+                {"hostname": socket.gethostname(), "node": getenv("OL_SENTRY_NODE_NAME")},
+            )
 
     def bind_to_webpy_app(self, app: web.application) -> None:
         _internalerror = app.internalerror

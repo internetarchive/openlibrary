@@ -129,7 +129,7 @@ def test_loads_the_user_once_in_a_worker_thread(site_page_app, loads):
     outer = APIRouter()
     outer.include_router(pages)
     loop_threads.clear()
-    response = TestClient(site_page_app(outer)).get("/plain")
+    response = TestClient(site_page_app(outer)).get("/plain", headers={"x-user": "bob"})
     assert 'data-user-key="/people/bob"' in response.text
     assert len(loads) == 1
     assert loads[0] is not loop_threads[0]  # not on the event loop
@@ -255,8 +255,15 @@ def test_loads_the_user_only_when_rendering_the_shell(client, loads):
     assert client.get("/redirect", follow_redirects=False).status_code == 307
     assert client.get("/missing").status_code == 404
     assert loads == []
-    client.get("/plain")
+    client.get("/plain", headers={"x-user": "bob"})
     assert len(loads) == 1
+
+
+def test_visitors_skip_the_user_lookup(client, loads):
+    """Without a session there is no user to find, so the shell needs no worker thread."""
+    response = client.get("/plain")
+    assert 'data-user-key="/people/bob"' not in response.text
+    assert loads == []
 
 
 def test_current_user_dep_is_shared_with_the_shell(client, loads):

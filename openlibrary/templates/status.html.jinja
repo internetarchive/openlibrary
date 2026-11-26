@@ -1,0 +1,54 @@
+{# Takes `status` (dict), `dev_merged_status` (DevMergedStatus or None), `is_maintainer`, `has_testing_state`, `show_testing`, `jenkins_job_url`, `testing_panel_strings` and `vue_component_html` #}
+<div id="contentHead">
+    <h1>{{ _("Server status") }}</h1>
+</div>
+<div id="contentBody">
+    {% if show_testing %}
+        {% include "TestingEnvironment.html.jinja" %}
+    {% elif has_testing_state %}
+        <div class="ol-message">{{ _("The testing environment panel is only visible to maintainers.") }}</div>
+    {% endif %}
+    {% if dev_merged_status %}
+        <h2>{{ _("Last Build Result") }}</h2>
+        <pre>{{ dev_merged_status.git_status }}</pre>
+        <br>
+        <a href="{{ dev_merged_status.get_github_search_link() }}">{{ _("View PRs on GitHub") }}</a>
+        <table class="status-table">
+            <thead>
+                <tr>
+                    <th>{{ _("Name") }}</th>
+                    <th>{{ _("Status") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pr_status in dev_merged_status.pr_statuses %}
+                    <tr class="{{ 'red' if pr_status.merge_failed else '' }}">
+                        <td>
+                            {% if pr_status.link %}
+                                <a href="{{ pr_status.link }}">#{{ pr_status.pull_id }}: {{ pr_status.name }}</a>
+                            {% else %}
+                                <code>{{ pr_status.pull_line }}</code>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <details>
+                                <summary><code>{{ pr_status.status }}</code></summary>
+                                <pre>{{ pr_status.body }}</pre>
+                            </details>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <pre>{{ dev_merged_status.footer }}</pre>
+    {% endif %}
+    <h2>{{ _("System information") }}</h2>
+    <table class="status-table">
+        {% for name, value in status.items() %}
+            <tr>
+                <th>{{ name }}</th>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>

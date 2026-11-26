@@ -1361,5 +1361,3 @@ def register_types():
 
     types.register_type("^/usergroup/[^/]*$", "/type/usergroup")
     types.register_type("^/permission/[^/]*$", "/type/permission")
-
-    types.register_type("^/(css|js)/[^/]*$", "/type/rawtext")

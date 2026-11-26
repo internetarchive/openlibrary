@@ -13,8 +13,16 @@ $ }
       $:render_template("admin/menu")
       <div class="clearfix"></div>
 
-    <h1>$_("Stats")</h1>
-    <p><a href="/stats/tasks">$_("Tasks stats: who is editing, and how Tasks edits hold up")</a></p>
+    <div class="stats-head">
+      <h1>$_("Stats")</h1>
+      <nav class="stats-head__links" aria-label="$_('Related stats pages')">
+        <ol-button variant="ghost" href="/stats/tasks">$:macros.icon("pencil", slot="icon-start")$_("Tasks")</ol-button>
+        $if ctx.user and ctx.user.is_librarian_or_higher():
+          <ol-button variant="ghost" href="/stats/merges">$:macros.icon("copy", slot="icon-start")$_("Merge requests")</ol-button>
+        $if ctx.user and ctx.user.is_admin():
+          <ol-button variant="ghost" href="/admin/new-accounts">$:macros.icon("ban", slot="icon-start")$_("Spam review")</ol-button>
+      </nav>
+    </div>
 </div>
 
 <div id="contentBody">

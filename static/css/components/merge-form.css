@@ -117,6 +117,19 @@ div.merge .count {
   background-color: var(--red-two);
 }
 
+.merge-status {
+  clear: both;
+  margin-block-start: var(--spacing-stack-md);
+}
+
+.merge-status p {
+  margin: 0;
+}
+
+.merge-status p + p {
+  margin-block-start: var(--spacing-stack-sm);
+}
+
 /* Confirmation dialog body, built by merge.js. Names the record being kept and
    the records redirected into it, so the decision does not depend on the page
    behind the dialog. */

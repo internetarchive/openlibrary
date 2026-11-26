@@ -1,0 +1,19 @@
+/* /account/loans; openlibrary/templates/account/loans.html */
+.account-loans-page .date,
+.account-loans-page .waitrank {
+  margin: var(--spacing-stack-xs) 0;
+}
+.account-loans-page td.status,
+.account-loans-page th.status {
+  padding: var(--spacing-inset-md);
+  text-align: center;
+}
+.account-loans-page th.status {
+  width: 150px;
+}
+.account-loans-page td.actions form + form {
+  margin-top: var(--spacing-stack-xs);
+}
+.account-loans-page .details-content header {
+  padding-left: 0;
+}

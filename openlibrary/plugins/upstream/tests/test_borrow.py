@@ -55,7 +55,8 @@ class TestBorrowPostCore:
         assert "action%3Dborrow" in result.url
 
     def test_lending_limit_hit_returns_flash_and_redirect_to_key(self):
-        user = MagicMock()
+        # A real key: the borrow clears this reader's cached home page section, keyed by username.
+        user = MagicMock(key="/people/reader")
         user.has_borrowed.return_value = False
         account = MagicMock(itemname="ia_item")
         edition = _mock_edition(ocaid="ocaid123", key="/books/OL1M")

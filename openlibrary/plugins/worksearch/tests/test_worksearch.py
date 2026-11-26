@@ -1,5 +1,7 @@
 import asyncio
-from unittest.mock import patch
+import re
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 import web
@@ -13,6 +15,7 @@ from openlibrary.plugins.worksearch.code import (
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.utils.request_context import RequestContextVars, req_context
+from openlibrary.utils.request_context import site as site_context
 
 
 def test_process_facet():
@@ -180,6 +183,24 @@ def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
     assert 'language:("eng" OR "spa")' in editions_fq
 
 
+@pytest.mark.parametrize(
+    "param",
+    [
+        # /search passes only the params in the URL, and web.input gives a lone value as a string.
+        {"q": "tolkien", "author_facet": "OL26320A"},
+        # /search.json passes every field, so author_key is present too, as an empty list.
+        {"q": "tolkien", "author_key": [], "author_facet": ["OL26320A"]},
+    ],
+    ids=["search-page", "search-json"],
+)
+def test_prepare_solr_query_params_author_facet_filters_by_author_key(param):
+    """author_facet is an alias for author_key. Reading the value after renaming the
+    field raised a KeyError on /search and silently dropped the filter on /search.json."""
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), param)
+    fqs = [v for k, v in params if k == "fq"]
+    assert 'author_key:"OL26320A"' in fqs
+
+
 def _with_req_context(fn):
     """Run `fn` with a req_context set (the readable-count query reads
     solr_editions off it)."""
@@ -196,6 +217,36 @@ def _with_req_context(fn):
         return fn()
     finally:
         req_context.reset(token)
+
+
+def test_rewrite_list_query_for_missing_list():
+    mock_site = MagicMock()
+    mock_site.get.return_value = None
+    site_token = site_context.set(mock_site)
+
+    try:
+        with (
+            patch("web.ctx") as mock_ctx,
+            patch(
+                "openlibrary.plugins.worksearch.code.cache.memcache_memoize",
+                side_effect=lambda func, *args, **kwargs: func,
+            ),
+        ):
+            mock_ctx.__contains__ = lambda self, key: key == "env"
+
+            params = {}
+            result = code.rewrite_list_query(
+                "/lists/OL999999999L",
+                page=1,
+                offset=0,
+                limit=100,
+                params=params,
+            )
+
+        assert result == ("*:*", 1, 0, 100)
+        assert params["fq"] == ["-key:*"]
+    finally:
+        site_context.reset(site_token)
 
 
 class TestRunWorkSearch:
@@ -330,3 +381,13 @@ class TestSearchAvailabilityPreparedInPython:
         works_arg = render_args[2]
         assert works_arg == [get_doc(solr_doc)]
         assert works_arg is not get_doc
+
+
+def test_barcode_scanner_strings_match_the_javascript_defaults(request_context_fixture):
+    """The server's strings and the scanner's English fallbacks list the same keys and the same English."""
+    request_context_fixture(lang="en")
+    source = (Path(__file__).resolve().parents[4] / "openlibrary/components/BarcodeScanner.vue").read_text()
+    block = source.split("const DEFAULT_STRINGS = {")[1].split("\n};")[0]
+    javascript = dict(re.findall(r"^    (\w+): '([^']*)',?$", block, re.MULTILINE))
+
+    assert code.barcode_scanner_strings() == javascript

@@ -21,7 +21,7 @@
  * @module book-state
  */
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
-import { translate } from '../../../components/lit/utils/labels.js';
+import { translate } from './i18n.js';
 import { debounce } from './nonjquery_utils.js';
 import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';

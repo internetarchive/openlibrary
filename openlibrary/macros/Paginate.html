@@ -1,4 +1,4 @@
-$def with (path="", limit=50, use_repr=False)
+$def with (path="", limit=50)
 
 $ page = safeint(query_param("page", "0"))
 $ pages = list_pages(path, limit=limit, offset=page * limit)

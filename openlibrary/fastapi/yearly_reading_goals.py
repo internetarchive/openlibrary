@@ -15,6 +15,7 @@ from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.nonblocking import nonblocking
 
 router = APIRouter()
 
@@ -65,6 +66,7 @@ class ReadingGoalForm(BaseModel):
     )
 
 
+@nonblocking
 @router.get("/reading-goal.json", response_model=ReadingGoalsResponse)
 async def get_reading_goals_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
@@ -87,6 +89,7 @@ async def get_reading_goals_endpoint(
     return ReadingGoalsResponse(status="ok", goal=goals)
 
 
+@nonblocking
 @router.post("/reading-goal.json", response_model=ReadingGoalUpdateResponse)
 async def update_reading_goal_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],

@@ -76,8 +76,11 @@ master's copy.
 - **Updating the branch from master** (the "Update branch" button, or merging master in) waits
   like any push. Then the bot re-reviews only files where you fixed a merge conflict by hand. If
   there were none, it doesn't run the model and the check gets the previous verdict.
-- **No re-review** for pushes made by bots, or PRs labelled `no-automation`. Ask for a review if
-  you want one.
+- **pre-commit.ci's autofix commit** waits like any push of yours, then gets reviewed. It often
+  lands while the review of your commit is running, which supersedes that review.
+- **The `Bot: Fast Review` label** skips the wait; see [Labels](#labels).
+- **No re-review** for pushes made by other bots, or PRs labelled `Bot: No Automation`. Ask for a review
+  if you want one.
 
 ```mermaid
 sequenceDiagram
@@ -164,11 +167,20 @@ Every review covers five areas:
 
 | Area | What it looks for |
 |---|---|
-| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path |
+| Correctness | Bugs, unhandled edge cases, callers that rely on the old behaviour, blocking calls on the async path, submodule pointers changed by accident |
 | Security | Anything touching auth, sessions, redirects, user input in SQL, shell, files or templates |
 | Accessibility | Templates, JS and CSS against WCAG 2.1 AA: alt text, labels, keyboard access, contrast |
 | Test coverage | A missing test that would catch a real bug, a test that can't fail, and tests that aren't worth keeping |
-| Styleguide | Material problems only: unrelated edits, error-prone patterns, speculative abstractions |
+| Styleguide | Material problems only: unrelated edits, error-prone patterns, speculative abstractions, code comments that restate the code or narrate its history |
+
+For database code, FastAPI, CSS and web components, it also checks the PR against the rules in
+[`docs/core/database.md`](core/database.md), [`docs/core/fastapi-pages.md`](core/fastapi-pages.md),
+[`docs/frontend/css.md`](frontend/css.md) and [`docs/frontend/web-components.md`](frontend/web-components.md).
+It reads master's copy of each doc, so to change what the bot checks in those areas, update the doc.
+
+It checks that the PR's title and description still match what the diff does, since maintainers read
+the description and the title becomes the squash commit's message. When they don't, it leaves a note
+that doesn't block merging. Edit the PR to fix it.
 
 It also checks the PR against the issues it links to and lists which of their requirements the
 PR meets, doesn't meet, or needs a person to verify.
@@ -202,7 +214,10 @@ The full instructions the bot follows are in
   with no line in the diff to sit on, is a comment on the file instead. Every finding that blocks
   has one of these threads, so you can always reply to it there.
 - **Suggestions (won't block)** in the summary, for low-severity findings, findings the bot isn't
-  sure about, and every test-coverage finding.
+  sure about, and every test-coverage finding. When the bot has a change for one, such as deleting
+  a comment that restates the code, it also comments on the lines with the change, headed
+  **Suggestion (won't block)**, so you can apply it in one click. These comments never block
+  merging, and you don't need to resolve them.
 - **Notes (won't block)** in the summary, for findings about code outside the PR's changes, which
   have no thread. Reply in a comment on the PR if one doesn't apply.
 - **Prompt for AI agents**, collapsed blocks you can paste into a coding agent: one under each
@@ -226,11 +241,12 @@ The full instructions the bot follows are in
 | Check | Message | Meaning |
 |---|---|---|
 | ⏳ pending | Review in progress. | The bot is reviewing this commit. |
-| ⏳ pending | Waiting for pushes to stop. Review starts ~`<time>` UTC, or comment @openlibrary-bot review to start now. | A re-review starts 10 minutes after the last push. Commenting starts it right away. |
-| ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `no-automation`). |
+| ⏳ pending | `<time>` UTC: review starts if there are no more pushes. To start it now, re-request review from openlibrary-bot. | A re-review starts 10 minutes after the last push. Re-requesting the review starts it right away. |
+| ⏳ pending | `<time>` UTC: review starts now (Bot: Fast Review label). | The PR, or an issue it links to, has the `Bot: Fast Review` label, so the re-review starts without waiting. |
+| ⏳ pending | New commits since the last review. Re-request review from openlibrary-bot to review them. | This push doesn't start a re-review (for example, the PR is labelled `Bot: No Automation`). |
 | ⏳ pending | Not reviewed yet. A maintainer can request review from openlibrary-agentic-code-reviewer. | No review has been requested yet. |
 | ⏳ pending | Stacked on another branch. Comment @openlibrary-bot review to review it. | The PR is into another PR's branch, so pushes don't start a review. |
-| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit gets its own review. |
+| ⏳ pending | Superseded by `<commit>`: the PR changed during the review. | New commits arrived mid-review. The review was posted on this commit; the newest commit's check says when it will be reviewed. |
 | ❌ failure | N findings to address. | The review found problems that block. |
 | ❌ failure | N unresolved review threads. | No blocking findings, but some review threads are still open. |
 | ❌ failure | Feedback withheld for maintainer review. | Part of the review was held back. See the security note above. |
@@ -240,7 +256,8 @@ The full instructions the bot follows are in
 
 The check passes only when the latest commit has a clean review with no blocking findings, **and**
 no review thread on the PR is unresolved, including threads people opened. A thread on lines that
-a later push changed (GitHub marks it "outdated") doesn't count. After each new push, the check
+a later push changed (GitHub marks it "outdated") doesn't count, and neither does one of the bot's
+**Suggestion (won't block)** comments. After each new push, the check
 waits for that commit's review.
 
 ## Responding to a finding
@@ -300,12 +317,30 @@ names, though Open Library doesn't run PR-Agent itself.
 | Setting | What it does |
 |---|---|
 | `handle_push_trigger` | Re-review after new commits (on) |
-| `push_review_delay_minutes` | How long to wait with no new pushes before that re-review (10) |
+| `push_review_delay_minutes` | How long to wait with no new pushes before that re-review. The `Bot: Fast Review` label skips it (10) |
 | `push_trigger_ignore_bot_commits`, `push_trigger_ignore_merge_commits` | Skip pushes by bots, and pushes that only merge the base branch |
 | `require_*_review` | Turn each review area on or off; security can't be turned off |
 | `require_ticket_analysis_review` | Check the PR against its linked issues |
 | `inline_key_issues` | Post findings as inline comments, or put them all in the summary |
 | `num_max_findings` | Cap the findings per review |
+
+## Labels
+
+A maintainer can add these labels to a PR to change what the bot does with it.
+
+| Label | What it does |
+|---|---|
+| `Bot: Fast Review` | Skips the wait after a push, so each push is reviewed right away instead of after 10 quiet minutes. Put it on the PR, or on an issue the PR links to, to cover every PR for that issue. |
+| `Bot: No Automation` | The bot doesn't re-review pushes to the PR. A review can still be requested by hand. |
+
+How `Bot: Fast Review` is applied:
+
+- **Linked issues count.** The bot looks for the issue number in the PR description, then the branch
+  name, then the title, for up to 5 issues. "Part of #123" and "Closes #123" both count.
+- **Only re-reviews.** It skips the wait on a PR that already has a first review. The first review
+  is still a maintainer's call.
+- **Read at push time.** Adding the label while a wait is already running doesn't end that wait;
+  re-request review from openlibrary-bot to start the review now.
 
 ## How it's built
 

@@ -161,6 +161,8 @@ max-statements = 70
 "web.database".msg = "Legacy sync database access. New SQL goes through openlibrary.core.async_db; see docs/core/database.md"
 "web.db".msg = "Legacy sync database access. New SQL goes through openlibrary.core.async_db; see docs/core/database.md"
 
+# Existing debt, being paid down. Don't add a file here, or a code to a file, to silence one
+# line: put `# noqa: <CODE>` on that line instead, so the rest of the file stays checked.
 [tool.ruff.lint.per-file-ignores]
 "openlibrary/admin/stats.py" = ["BLE001"]
 "openlibrary/catalog/add_book/tests/test_add_book.py" = ["PT007"]

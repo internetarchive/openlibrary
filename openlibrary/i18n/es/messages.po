@@ -93,6 +93,22 @@ msgstr ""
 msgid "Barcode Scanner (Beta)"
 msgstr "Escáner de código de barras (Beta)"
 
+#: openlibrary/plugins/worksearch/code.py
+msgid "Advanced"
+msgstr "Avanzado"
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Read Text ISBN"
+msgstr "Leer ISBN en texto"
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "For books that print the ISBN without a barcode"
+msgstr "Para libros que imprimen el ISBN sin código de barras"
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Point your camera at a barcode! 📷"
+msgstr "¡Apunta la cámara a un código de barras! 📷"
+
 #: batch_import.html
 msgid "Batch Imports"
 msgstr "Importaciones por lotes"
