@@ -1,6 +1,9 @@
 import pytest
 
-from scripts.solr_builder.solr_builder.solr_builder import LocalPostgresDataProvider
+from scripts.solr_builder.solr_builder.solr_builder import (
+    LocalPostgresDataProvider,
+    build_job_query,
+)
 
 
 @pytest.fixture
@@ -31,3 +34,23 @@ class TestLocalPostgresDataProvider:
             "key": "/authors/OL2A",
             "type": {"key": "/type/delete"},
         }
+
+
+@pytest.mark.parametrize(
+    ("job", "thing_type"),
+    [
+        ("works", "/type/work"),
+        ("orphans", "/type/edition"),
+        ("authors", "/type/author"),
+        ("lists", "/type/list"),
+        ("series", "/type/series"),
+    ],
+)
+def test_build_job_query_selects_job_type(job, thing_type):
+    assert f"""WHERE "Type" = '{thing_type}'""" in build_job_query(job)
+
+
+def test_build_job_query_chunking():
+    q = build_job_query("series", start_at="/series/OL5L", limit=100)
+    assert """AND "Key" >= '/series/OL5L'""" in q
+    assert "LIMIT 100" in q

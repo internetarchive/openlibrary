@@ -339,7 +339,7 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 
 def build_job_query(
-    job: Literal["works", "orphans", "authors", "lists"],
+    job: Literal["works", "orphans", "authors", "lists", "series"],
     start_at: str | None = None,
     offset: int = 0,
     last_modified: str | None = None,
@@ -357,6 +357,7 @@ def build_job_query(
         "orphans": "edition",
         "authors": "author",
         "lists": "list",
+        "series": "series",
     }[job]
 
     q_select = """SELECT "Key", "JSON" FROM test"""
@@ -387,7 +388,7 @@ def build_job_query(
 
 async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
     cmd: Literal["index", "fetch-end"],
-    job: Literal["works", "orphans", "authors", "lists"],
+    job: Literal["works", "orphans", "authors", "lists", "series"],
     osp_dump: Path | None = None,
     postgres="postgres.ini",
     ol="http://ol/",
@@ -605,7 +606,7 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
-                elif job == "lists":
+                elif job in ("lists", "series"):
                     # Nothing to cache ; just need the lists themselves and
                     # they are already cached
                     pass

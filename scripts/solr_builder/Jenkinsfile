@@ -18,6 +18,7 @@ pipeline {
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INDEX_LISTS', defaultValue: true, description: 'If true, reindexes lists into solr')
+    booleanParam(name: 'INDEX_SERIES', defaultValue: true, description: 'If true, reindexes series into solr')
     string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
     string(name: 'PIP_INDEX_URL', defaultValue: '', description: 'Path to custom PIP index (needed on prod)')
     string(name: 'HTTPS_PROXY', defaultValue: '', description: 'Proxy for HTTP requests (needed on prod)')
@@ -206,7 +207,7 @@ pipeline {
         stage('Reindexing') {
           parallel {
             stage('Reindex from ol dump') {
-              when { expression { return params.INDEX_WORKS || params.INDEX_ORPHANS || params.INDEX_SUBJECTS || params.INDEX_AUTHORS || params.INDEX_LISTS } }
+              when { expression { return params.INDEX_WORKS || params.INDEX_ORPHANS || params.INDEX_SUBJECTS || params.INDEX_AUTHORS || params.INDEX_LISTS || params.INDEX_SERIES } }
               stages {
                 stage('Insert works') {
                   when { expression { return params.INDEX_WORKS } }
@@ -307,6 +308,27 @@ pipeline {
                         // Save Log Files
                         sh '''cat $(ls -tr logs/lists/*) | gzip > logs/lists-indexing.log.gz'''
                         archiveArtifacts artifacts: "logs/lists-indexing.log.gz"
+                      }
+                    }
+                  }
+                }
+                stage('Insert series') {
+                  when { expression { return params.INDEX_SERIES } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "docker compose run --name ol_run_series --rm -T ol ./index-type.sh series ${params.MAX_CORES} series"
+                      solr_commit()
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        // Save Progress Files
+                        sh '''tail --quiet -n1 $(ls -tr progress/series/*) | gzip > progress/series-progress.txt.gz'''
+                        archiveArtifacts artifacts: "progress/series-progress.txt.gz"
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/series/*) | gzip > logs/series-indexing.log.gz'''
+                        archiveArtifacts artifacts: "logs/series-indexing.log.gz"
                       }
                     }
                   }
