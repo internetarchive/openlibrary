@@ -320,6 +320,17 @@ class TestWorkSolrBuilder:
             assert d[k + "_facet"] == ["a", "b c"]
             assert d[k + "_key"] == ["a", "b_c"]
 
+    def test_subjects_as_text_values(self):
+        w = make_work(subject_people=[{"type": "/type/text", "value": "John Bunyan (1628-1688)"}, "b c"])
+        builder = make_work_solr_builder(w)
+        d = builder._subjects
+
+        assert d["person"] == ["John Bunyan (1628-1688)", "b c"]
+        assert d["person_facet"] == ["John Bunyan (1628-1688)", "b c"]
+        assert d["person_key"] == ["john_bunyan_(1628-1688)", "b_c"]
+        assert "/subjects/person:john_bunyan_(1628-1688)" in builder.seed
+        assert "/subjects/person:b_c" in builder.seed
+
     def test_author_info(self):
         authors = [
             {

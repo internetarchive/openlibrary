@@ -347,16 +347,15 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def seed(self) -> list[str]:
-        w = self._work
         return uniq(
             itertools.chain(
                 (e.key for e in self._solr_editions),
                 (self.key,),
                 (author["key"] for author in self._authors),
-                (subject_name_to_key("subject", s) for s in w.get("subjects", [])),
-                (subject_name_to_key("person", s) for s in w.get("subject_people", [])),
-                (subject_name_to_key("place", s) for s in w.get("subject_places", [])),
-                (subject_name_to_key("time", s) for s in w.get("subject_times", [])),
+                (subject_name_to_key("subject", s) for s in self._get_subjects("subjects")),
+                (subject_name_to_key("person", s) for s in self._get_subjects("subject_people")),
+                (subject_name_to_key("place", s) for s in self._get_subjects("subject_places")),
+                (subject_name_to_key("time", s) for s in self._get_subjects("subject_times")),
             )
         )
 
@@ -720,15 +719,19 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             "subject_people": "person",
         }
         for work_field, subject_type in field_map.items():
-            if not self._work.get(work_field):
+            if not (subjects := self._get_subjects(work_field)):
                 continue
 
             doc |= {
-                subject_type: self._work[work_field],
-                f"{subject_type}_facet": self._work[work_field],
-                f"{subject_type}_key": [normalize_subject_name(s) for s in self._work[work_field]],
+                subject_type: subjects,
+                f"{subject_type}_facet": subjects,
+                f"{subject_type}_key": [normalize_subject_name(s) for s in subjects],
             }
         return doc
+
+    def _get_subjects(self, work_field: str) -> list[str]:
+        # Some records store subjects as /type/text values instead of plain strings
+        return [s["value"] if isinstance(s, dict) else s for s in self._work.get(work_field, [])]
 
 
 def get_edition_ddcs(ed: dict):
