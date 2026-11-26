@@ -1014,7 +1014,7 @@ msgstr ""
 msgid "Searching solr took %(count)s seconds"
 msgstr ""
 
-#: about/index.html.jinja openlibrary/plugins/openlibrary/code.py
+#: about/index.html.jinja openlibrary/fastapi/about.py openlibrary/plugins/openlibrary/code.py
 msgid "The Open Library Team"
 msgstr ""
 
