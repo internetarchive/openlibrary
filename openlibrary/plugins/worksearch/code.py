@@ -73,6 +73,15 @@ OLID_URLS = {"A": "authors", "M": "books", "W": "works"}
 NO_LANGUAGE = "none"
 NO_LANGUAGE_FQ = "-language:[* TO *]"
 
+
+def with_no_language_bucket(fields: Iterable[str]) -> list[str | dict[str, str]]:
+    """Facet fields for the filter UIs, where `language` also counts works with no language.
+
+    Kept opt-in because other callers (e.g. subject pages) read the `language` facet and expect real languages only.
+    """
+    return [{"name": f, "missing": "true"} if f == "language" else f for f in fields]
+
+
 re_isbn_field = re.compile(r"^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$", re.IGNORECASE)
 re_olid = re.compile(r"^OL\d+([AMW])$")
 

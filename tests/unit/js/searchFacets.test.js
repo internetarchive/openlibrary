@@ -241,10 +241,18 @@ describe('mergeFacetCounts', () => {
         });
 
         test('keeps a selected extra value with no matches so it can be unticked', () => {
-            const result = mergeFacetCounts(ITEMS, COUNTS, ['none'], [NO_LANGUAGE]);
+            // The API lists "No language" at 0 so it keeps a translated label.
+            const zero = { value: 'none', label: 'Sin idioma', count: 0 };
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, zero], ['none'], [NO_LANGUAGE]);
             const none = result.find(it => it.value === 'none');
             expect(none.count).toBe(0);
-            expect(none.label).toBe('No language');
+            expect(none.label).toBe('Sin idioma');
+        });
+
+        test('hides a zero-count extra value when it is not selected', () => {
+            const zero = { value: 'none', label: 'No language', count: 0 };
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, zero], [], [NO_LANGUAGE]);
+            expect(result.map(it => it.value)).not.toContain('none');
         });
 
         test('does not duplicate a value already in the catalogue', () => {

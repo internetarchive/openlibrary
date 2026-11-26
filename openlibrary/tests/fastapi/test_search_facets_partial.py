@@ -48,6 +48,31 @@ class TestSearchFacetsPartial:
         assert "/search?q=tolkien&amp;language=eng" in sidebar
         assert "/install" not in sidebar
 
+    def test_asks_solr_for_works_with_no_language(self, fastapi_client, mock_solr):
+        """The sidebar's language counts must sum to the result total (#14492)."""
+        get_facets(fastapi_client, {"param": {"q": "tolkien"}, "path": "/search", "query": "?q=tolkien"})
+
+        facet = mock_solr.call_args.kwargs["facet"]
+        assert {"name": "language", "missing": "true"} in facet
+        assert "subject_facet" in facet
+        assert "has_fulltext" in facet
+
+    def test_lists_no_language_as_a_filter_link(self, fastapi_client, mock_solr):
+        mock_solr.return_value.facet_counts["language"].append(("none", "No language", 4))
+
+        response = get_facets(fastapi_client, {"param": {"q": "tolkien"}, "path": "/search", "query": "?q=tolkien"})
+
+        sidebar = response.json()["sidebar"]
+        assert "No language" in sidebar
+        assert "/search?q=tolkien&amp;language=none" in sidebar
+
+    def test_selected_no_language_titles_the_page_without_a_raw_key(self, fastapi_client, mock_solr):
+        response = get_facets(fastapi_client, {"param": {"q": "tolkien", "language": ["none"]}, "path": "/search", "query": "?q=tolkien&language=none"})
+
+        title = response.json()["title"]
+        assert "No language" in title
+        assert "/languages/none" not in title
+
     @pytest.mark.parametrize(
         "path",
         [None, "", "search", "https://example.com/search", "//example.com/search", 123],

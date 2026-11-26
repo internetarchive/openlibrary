@@ -37,9 +37,11 @@ from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, hit_editions, rend
 from openlibrary.plugins.upstream.mybooks import get_reading_states_async
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.plugins.worksearch.code import (
+    NO_LANGUAGE,
     default_spellcheck_count,
     run_solr_query_async,
     validate_search_json_query,
+    with_no_language_bucket,
     work_search_async,
 )
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
@@ -526,7 +528,8 @@ async def search_facets_json(
     Returns context-aware facet values for one or more search facet fields.
 
     Queries Solr with rows=0 alongside the current search params, returning only
-    values with count > 0, ordered by count descending. Designed to power the
+    values with count > 0, ordered by count descending. The one exception is
+    `language`, which always ends with a "No language" (`none`) entry, possibly at 0. Designed to power the
     OlSelectPopover components in the search results filter bar (PR #12949).
 
     Example: GET /search/facets.json?field=language&field=subject_facet&q=lord+of+the+rings
@@ -537,7 +540,7 @@ async def search_facets_json(
         rows=0,
         page=1,
         fields=["key", "editions"],  # opt into the same edition block-join as /search
-        facet=[{"name": f, "missing": "true"} if f == "language" else f for f in params.field],
+        facet=with_no_language_bucket(params.field),
         highlight=False,
         request_label="BOOK_SEARCH_FACETS",
         solr_internals_params=solr_internals_params,
@@ -552,6 +555,10 @@ async def search_facets_json(
             # values are (filter_value, display_label, count) tuples; label differs
             # from value for author_facet (name vs OL key) and "Name|key" subject fields.
             result[output_key] = [FacetValue(value=value, label=label, count=count) for value, label, count in values if count > 0]
+
+    # Always list "No language", even at zero, so a selected one can still be unticked with a translated label.
+    if "language" in result and not any(v.value == NO_LANGUAGE for v in result["language"]):
+        result["language"].append(FacetValue(value=NO_LANGUAGE, label=_("No language"), count=0))
 
     return result
 

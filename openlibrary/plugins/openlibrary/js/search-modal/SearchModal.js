@@ -2751,7 +2751,8 @@ export class SearchModal extends LitElement {
     _fulltextFilters() {
         return {
             readable: this._availability !== DEFAULT_AVAILABILITY,
-            languages: this._languages,
+            // The FTS backend has no "no language" filter, and would return nothing for it.
+            languages: this._languages.filter(code => code !== NO_LANGUAGE),
             allWords: this._ftAllWordsQuery !== null && this._ftAllWordsQuery === this._query.trim()
         };
     }
