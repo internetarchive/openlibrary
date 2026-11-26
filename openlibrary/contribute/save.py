@@ -148,7 +148,7 @@ def _publish_date(raw: str) -> str:
         raise InvalidAnswer(_("That year doesn't look right. Enter the year this edition came out."))
     if len(date) > 40 or not years:
         raise InvalidAnswer(_("Enter the date with its year, for example 2005 or March 2005."))
-    if any(int(start) > int(end) for start, end in re.findall(r"(?<!\d)(\d{4}) ?[-–] ?(\d{4})(?!\d)", date)):
+    if any(int(start) > int(end) for start, end in re.findall(r"(?<!\d)(\d{4}) ?[-\u2013] ?(\d{4})(?!\d)", date)):
         raise InvalidAnswer(_("Put the earlier year first, for example 1998-2002."))
     return date
 
