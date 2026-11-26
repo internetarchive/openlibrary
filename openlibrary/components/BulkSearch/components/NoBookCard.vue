@@ -1,11 +1,17 @@
 <template>
     <div class="noBookCard">
-        <p>No Books Found</p>
+        <p>{{ strings.noBooksFound }}</p>
     </div>
 </template>
 
 <script>
-export default {};
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
+
+export default {
+    data() {
+        return { strings: { noBooksFound: _('No Books Found') } };
+    }
+};
 </script>
 
 <style>
