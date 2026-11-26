@@ -767,11 +767,10 @@ class SaveBookHelper:
 
         edition = trim_doc(edition)
 
-        if list(edition.get("physical_dimensions", [])) == ["units"]:
-            edition.physical_dimensions = None
-
-        if list(edition.get("weight", [])) == ["units"]:
-            edition.weight = None
+        # A field left empty submits only its unit radio, or nothing at all.
+        for field in ("physical_dimensions", "weight"):
+            if list(edition.get(field) or []) == ["units"]:
+                edition[field] = None
 
         for k in ["roles", "identifiers", "classifications"]:
             edition[k] = edition.get(k) or []

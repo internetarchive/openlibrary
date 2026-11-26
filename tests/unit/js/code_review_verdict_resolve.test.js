@@ -726,8 +726,95 @@ async function postedBody(suggestion) {
 test('post: a suggestion that changes the anchored line is posted as an applicable suggestion', async () => {
     assert.match(await postedBody('print(2)'), /\n```suggestion\nprint\(2\)\n```/);
 });
-test('post: a suggestion with the wrong line count, or no change, is dropped', async () => {
-    for (const s of ['print(2)\nprint(3)', 'print(1)']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
+test('post: a suggestion may replace the lines with more or fewer lines', async () => {
+    assert.match(await postedBody('print(2)\nprint(3)'), /\n```suggestion\nprint\(2\)\nprint\(3\)\n```/);
+});
+test('post: an empty suggestion deletes the lines', async () => {
+    assert.match(await postedBody(''), /\n```suggestion\n```/);
+});
+test('post: a trailing newline is trimmed, and a suggestion that changes nothing is dropped', async () => {
+    assert.match(await postedBody('print(2)\n'), /\n```suggestion\nprint\(2\)\n```/);
+    for (const s of ['print(1)', 'print(1)\n']) assert.doesNotMatch(await postedBody(s), /suggestion\n/, JSON.stringify(s));
+});
+
+// A low finding is a suggestion that never blocks. With a change to apply, it also gets a line comment,
+// marked so the status check and the verdict ignore its thread.
+const low = extra => ({
+    dimension: 'styleguide',
+    severity: 'low',
+    confidence: 8,
+    title: 'Comment restates the code',
+    body: 'Delete it.',
+    path: 'a.py',
+    line: 1,
+    ...extra
+});
+async function postedLow(finding, ghOpts = {}) {
+    const d = setup(reviewWith([finding]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor', ...ghOpts });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        return calls.createReview[0];
+    } finally {
+        teardown();
+    }
+}
+test('post: a low finding with a change gets a non-blocking line comment, and the review still approves', async () => {
+    const posted = await postedLow(low({ suggestion: '' }));
+    assert.equal(posted.comments.length, 1);
+    const [c] = posted.comments;
+    assert.equal(c.path, 'a.py');
+    assert.ok(c.body.startsWith(`${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — Comment restates the code**`), c.body);
+    assert.match(c.body, /\n```suggestion\n```$/);
+    assert.doesNotMatch(c.body, /Prompt for AI agents/);
+    assert.equal(posted.event, 'APPROVE', 'a suggestion never blocks');
+    assert.match(posted.body, /^\*\*No blocking findings\*\* · 1 suggestion on `/);
+    assert.doesNotMatch(posted.body, /### Suggestions/, 'not listed twice');
+    assert.match(posted.body, /<!-- ol-pr-review-bot f=0 -->/);
+});
+test('post: a low finding without a change, or with one that changes nothing, stays in the summary only', async () => {
+    for (const extra of [{}, { suggestion: 'print(1)' }]) {
+        const posted = await postedLow(low(extra));
+        assert.equal((posted.comments || []).length, 0, JSON.stringify(extra));
+        assert.match(posted.body, /### Suggestions \(won't block\)\n\n- \*\*Comment restates the code\*\*/);
+    }
+});
+test('post: inline comments off, a low finding stays in the summary only', async () => {
+    const d = setup(reviewWith([low({ suggestion: '' })]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor' });
+        await runScript(post.validateAndPost, { github, context, env: { ...baseEnv(d), INLINE_KEY_ISSUES: 'false' }, cwd: d });
+        assert.equal((calls.createReview[0].comments || []).length, 0);
+    } finally {
+        teardown();
+    }
+});
+test('post: on a 422, suggestion comments are dropped first and blocking findings keep their threads', async () => {
+    const blocking = { dimension: 'correctness', severity: 'high', confidence: 8, title: 'Bug here', body: 'details', path: 'a.py', line: 1 };
+    const d = setup(reviewWith([blocking, low({ suggestion: '' })]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor', throw422: true });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        const posted = calls.createReview[0];
+        assert.equal(posted.comments.length, 1, 'only the blocking thread');
+        assert.match(posted.comments[0].body, /^\*\*HIGH · Correctness — Bug here\*\*/);
+        assert.equal(posted.event, 'REQUEST_CHANGES');
+        assert.match(posted.body, /- \*\*Comment restates the code\*\* · `a\.py:1`\n/, 'moved to the summary');
+    } finally {
+        teardown();
+    }
+});
+test('post: an open suggestion thread from an earlier review does not stop APPROVE', async () => {
+    const t = thread('T1', 'other.py', 'styleguide', 'Comment restates the code', { severity: 'LOW' });
+    t.comments.nodes[0].body = `${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — Comment restates the code**\n\nDelete it.`;
+    const d = setup(reviewWith([]));
+    try {
+        const { github, calls } = mockGitHub({ author: 'contributor', reviewThreads: [t] });
+        await runScript(post.validateAndPost, { github, context, env: baseEnv(d), cwd: d });
+        assert.equal(calls.createReview[0].event, 'APPROVE');
+    } finally {
+        teardown();
+    }
 });
 test('post: a suggestion containing backticks gets a longer fence', async () => {
     assert.match(await postedBody('x = "```"'), /\n````suggestion\nx = "```"\n````/);

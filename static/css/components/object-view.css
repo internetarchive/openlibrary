@@ -1,0 +1,12 @@
+/* pages of /type/object; openlibrary/templates/type/object/view.html */
+.object-view ul {
+  margin-bottom: var(--spacing-stack-md);
+}
+.object-view li {
+  line-height: 1em;
+  margin-left: var(--spacing-xl);
+}
+/* Lists of fields keep the bigger gap set on ul above. */
+.object-view .dict:not(ul) {
+  margin-bottom: var(--spacing-3xs);
+}

@@ -13,6 +13,7 @@ import web
 from markupsafe import Markup
 from pydantic import BaseModel, BeforeValidator, Field
 
+from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.book_providers import get_book_provider
 from openlibrary.core import cache
@@ -29,7 +30,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary import home_genres
+from openlibrary.plugins.openlibrary import home_genres, home_member
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -1204,6 +1205,30 @@ class HomeGenrePartial:
             config_json=json_encode(genre_row.model_dump(exclude_none=True)),
             subgenre_rows=subgenre_rows,
         )
+        return {"partials": html}
+
+
+class HomeMemberPartial:
+    """One half of the home page's top for a signed-in reader (home_member.py). The page is cached and the
+    same for everyone, so the reader's own part is fetched after load, each half on its own."""
+
+    @classmethod
+    def generate(cls, username: str, part: str = "loans") -> dict:
+        # FastAPI runs this sync handler on a threadpool worker with no web.ctx; the lending calls need one.
+        # Only web.ctx: the request context FastAPI set (language, bot or not) must stay as it is, or
+        # availability takes its bot shortcut and reports every borrowable book as free.
+        if "env" not in web.ctx:
+            delegate.fakeload()
+        variant = home_member.cache_variant(username)
+        if (html := home_member.get_cached_html(username, part, variant)) is not None:
+            return {"partials": html}
+        if not (user := get_user_object(username)):
+            return {"partials": ""}
+        member = home_member.build_part(user, part)
+        html = render_jinja_template("home/member.html.jinja", member=member).strip()
+        # A part that failed to load (a lending outage) is retried on the next view, not kept for five minutes.
+        if member["complete"]:
+            home_member.cache_html(username, part, html, variant)
         return {"partials": html}
 
 

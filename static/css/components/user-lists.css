@@ -1,0 +1,4 @@
+/* a person's lists; openlibrary/templates/lists/lists.html */
+.user-lists-page span.list-owner {
+  display: none;
+}

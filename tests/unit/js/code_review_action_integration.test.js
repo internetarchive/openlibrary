@@ -1309,6 +1309,8 @@ test('threadKind: line, file, or none', () => {
     assert.equal(shared.threadKind({ path: 'mid.py', start_line: 18, line: 20 }, a), 'line');
     assert.equal(shared.threadKind({ path: 'mid.py', line: 1 }, a), 'file', 'a line outside the diff: the whole file');
     assert.equal(shared.threadKind({ path: 'mid.py', start_line: 1, line: 20 }, a), 'file', 'a range starting outside the diff');
+    const twoHunks = shared.diffAnchors('diff --git a/t.py b/t.py\n--- a/t.py\n+++ b/t.py\n@@ -1 +1 @@\n+a\n@@ -5 +5 @@\n+e\n');
+    assert.equal(shared.threadKind({ path: 't.py', start_line: 1, line: 5 }, twoHunks), 'file', 'a range across two hunks: the whole file');
     assert.equal(shared.threadKind({ path: 'gone.py' }, a), 'file');
     assert.equal(shared.threadKind({ path: 'other.py', line: 1 }, a), null);
     assert.equal(shared.threadKind({ line: 20 }, a), null);

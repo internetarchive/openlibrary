@@ -13,7 +13,7 @@ from openlibrary.core.models import User
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.utils.request_context import site
 
-from .. import addbook
+from .. import addbook, models
 
 
 @pytest.fixture(autouse=True)
@@ -21,6 +21,7 @@ def initialized_site(monkeypatch):
     current = MockSite()
     monkeypatch.setattr(web.ctx, "site", current, raising=False)
     token = site.set(current)
+    models.setup()
     yield
     site.reset(token)
 
@@ -258,6 +259,154 @@ class TestSaveBookHelper:
 
         assert site.get().get("/works/OL1W").title == "Original Work Title"
         assert site.get().get("/books/OL1M").title == "Modified Edition Title"
+
+    def test_process_edition_treats_empty_weight_and_dimensions_as_cleared(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        s = addbook.SaveBookHelper(None, None)
+        edition = s.process_edition(web.storage({"weight": None, "physical_dimensions": None}))
+
+        assert edition.weight is None
+        assert edition.physical_dimensions is None
+
+    def test_clearing_weight_and_dimensions_without_units(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        site.get().save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                    "weight": "0.000",
+                    "physical_dimensions": "9 x 6 x 1 inches",
+                },
+            ]
+        )
+
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Modified Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--weight--value": "",
+                "edition--physical_dimensions--units": "inches",
+                "edition--physical_dimensions--height": "",
+                "edition--physical_dimensions--width": "",
+                "edition--physical_dimensions--depth": "",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = site.get().get("/books/OL1M")
+        assert saved_edition.title == "Modified Edition Title"
+        assert saved_edition.weight is None
+        assert saved_edition.physical_dimensions is None
+
+    def test_unparseable_weight_and_dimensions_survive_unrelated_edit(self, monkeypatch):
+        """Values the form can't display render as empty inputs; saving must not wipe them."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        site.get().save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                    "weight": "about 2 lbs",
+                    "physical_dimensions": "24 cm",
+                },
+            ]
+        )
+
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
+        # What the browser posts: empty inputs, plus the default "centimeters" radio
+        # the template checks when it can't parse the stored dimensions.
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Modified Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--weight--value": "",
+                "edition--physical_dimensions--units": "centimeters",
+                "edition--physical_dimensions--height": "",
+                "edition--physical_dimensions--width": "",
+                "edition--physical_dimensions--depth": "",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = site.get().get("/books/OL1M")
+        assert saved_edition.title == "Modified Edition Title"
+        assert saved_edition.weight == "about 2 lbs"
+        assert saved_edition.physical_dimensions == "24 cm"
+
+    def test_clearing_weight_with_unit_checked_and_replacing_unparseable_dimensions(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        site.get().save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                    "weight": "300 grams",
+                    "physical_dimensions": "24 cm",
+                },
+            ]
+        )
+
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
+        # The browser still posts the checked unit radio for an emptied weight.
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--weight--value": "",
+                "edition--weight--units": "grams",
+                "edition--physical_dimensions--units": "centimeters",
+                "edition--physical_dimensions--height": "24",
+                "edition--physical_dimensions--width": "16",
+                "edition--physical_dimensions--depth": "2",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = site.get().get("/books/OL1M")
+        assert saved_edition.weight is None
+        assert saved_edition.physical_dimensions == "24 x 16 x 2 centimeters"
 
     def test_editing_work_and_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)

@@ -70,9 +70,6 @@ features:
     debug: enabled
 
 upstream_to_www_migration: true
-default_template_root: /upstream
-css_root: /upstream/css
-js_root: /upstream/js
 logging_config_file: conf/logging.ini
 email_config_file: conf/email.ini
 

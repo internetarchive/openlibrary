@@ -481,7 +481,6 @@ async def test_deploy_drops_staged_removals():
     state = _make_state(prs=[doomed, survivor])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
@@ -760,7 +759,6 @@ async def test_pull_latest_stages_the_new_head_sha():
     info = _gh_info(pr.pr).model_copy(update={"head_sha": "f" * 40})
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
@@ -806,7 +804,6 @@ async def test_deploy_unconfigured_answers_error_but_advances_state():
     state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
@@ -853,7 +850,6 @@ async def test_deploy_failure_never_persists_staged_changes():
     state = _make_deploy_state()
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
@@ -877,7 +873,6 @@ async def test_deploy_success_applies_staged_changes_then_saves_once():
     pinned, toggled = state.prs
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
@@ -911,7 +906,6 @@ async def test_deploy_records_who_clicked_it():
     user.key = "/people/mecha-kraken"
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),

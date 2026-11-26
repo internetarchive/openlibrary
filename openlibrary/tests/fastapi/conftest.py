@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 from collections.abc import Callable
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import httpx
@@ -276,6 +277,7 @@ class FakeSite:
 
     def __init__(self, username: str | None):
         self.username = username
+        self._conn = SimpleNamespace(get_auth_token=lambda: username)
 
     def get_user(self):
         return FakeUser(self.username) if self.username else None
@@ -290,6 +292,8 @@ def site_page_app(monkeypatch) -> Callable[..., FastAPI]:
     from a recognized crawler if it sends ``x-recognized-bot: 1``.
     """
     monkeypatch.setitem(get_jinja_env().globals, "static_url", lambda p: f"/static/{p}")
+    # vue_component_html imports static_url itself rather than using the Jinja global.
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *a, **kw: "")
     # A linked archive.org account, so the header shows the account title (with the joined date).
     monkeypatch.setattr("openlibrary.core.shell.user.get_internet_archive_id", lambda key: "@ia")

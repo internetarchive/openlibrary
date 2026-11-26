@@ -459,9 +459,9 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             params.append(("fq", rewrite() if callable(rewrite) else rewrite))
 
     for field in facet_params:
+        values = param[field]
         if field == "author_facet":
             field = "author_key"
-        values = param[field]
         if isinstance(values, str):
             values = [values]
         non_empty = [val for val in values if val]
@@ -776,6 +776,22 @@ def get_doc(doc: SolrDocument):
     return result
 
 
+def barcode_scanner_strings() -> dict[str, str]:
+    """Translated strings for ``<ol-barcode-scanner>``.
+
+    Keys and English strings must match ``DEFAULT_STRINGS`` in
+    ``openlibrary/components/BarcodeScanner.vue``; ``test_worksearch.py`` checks
+    that they do. Built in Python like the other component string sets (see
+    ``core/shell/shelf_labels.py``).
+    """
+    return {
+        "advanced": _("Advanced"),
+        "readTextIsbn": _("Read Text ISBN"),
+        "readTextIsbnHint": _("For books that print the ISBN without a barcode"),
+        "noBooksYet": _("Point your camera at a barcode! 📷"),
+    }
+
+
 class scan(delegate.page):
     """
     Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
@@ -784,7 +800,7 @@ class scan(delegate.page):
     path = "/barcodescanner"
 
     def GET(self):
-        return render.barcodescanner()
+        return render.barcodescanner(barcode_scanner_strings())
 
 
 class search(delegate.page):
@@ -1259,7 +1275,11 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         if "env" not in web.ctx:
             delegate.fakeload()
             set_context_from_legacy_web_py()
-        lst = cast(List, site.get().get(key))
+        list_doc = site.get().get(key)
+        if list_doc is None:
+            return []
+
+        lst = cast(List, list_doc)
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):

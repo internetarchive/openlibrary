@@ -1,0 +1,11 @@
+{# Takes `url` and `attrs`, a dict of extra iframe attributes. Only archive.org URLs are embedded. #}
+{% macro iframe(url, attrs={}) %}
+    {% if url.startswith(("https://www.archive.org/", "https://archive.org/", "http://www.archive.org/", "http://archive.org/", "//archive.org/")) %}
+        {# Wiki editors write `attrs`: xmlattr escapes the values and rejects unsafe names. #}
+        <iframe src="{{ url }}"{{ attrs | xmlattr }}></iframe>
+    {% endif %}
+{% endmacro %}
+{#- Rendering this file directly (from the Templetor macro) draws the iframe; importing it doesn't. -#}
+{%- if url is defined %}
+    {{ iframe(url, attrs | default({})) }}
+{%- endif %}

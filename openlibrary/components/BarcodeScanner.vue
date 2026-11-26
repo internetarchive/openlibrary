@@ -5,19 +5,19 @@
             <details class="barcodescanner__advanced">
                 <summary class="glass-button icon-button">
                     <SettingsIcon />
-                    Advanced
+                    {{ strings.advanced }}
                 </summary>
                 <div class="barcodescanner__controls">
                     <button class="barcodescanner__read-isbn glass-button" :disabled="disableISBNTextButton || canvasInactive" @click="handleISBNDetected">
-                        Read Text ISBN
+                        {{ strings.readTextIsbn }}
                         <br />
-                        <small>For books that print the ISBN without a barcode</small>
+                        <small>{{ strings.readTextIsbnHint }}</small>
                     </button>
                 </div>
             </details>
             <div class="barcodescanner__result-strip">
                 <LazyBookCard v-for="isbnObj in isbnList" :key="isbnObj.isbn" :isbn="isbnObj.isbn" :tentative-cover="isbnObj.cover" />
-                <div class="empty">Point your camera at a barcode! 📷</div>
+                <div class="empty">{{ strings.noBooksYet }}</div>
             </div>
         </div>
     </div>
@@ -29,8 +29,27 @@ import SettingsIcon from './LibraryExplorer/components/icons/SettingsIcon.vue';
 import Quagga from '@ericblade/quagga2';
 import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js';
 
+/**
+ * English fallbacks for the translated strings passed in from the server,
+ * barcode_scanner_strings() in plugins/worksearch/code.py; test_worksearch.py
+ * checks they match.
+ */
+const DEFAULT_STRINGS = {
+    advanced: 'Advanced',
+    readTextIsbn: 'Read Text ISBN',
+    readTextIsbnHint: 'For books that print the ISBN without a barcode',
+    noBooksYet: 'Point your camera at a barcode! 📷'
+};
+
 export default {
     components: { LazyBookCard, SettingsIcon },
+    props: {
+        /** URI-encoded JSON of translated strings. */
+        i18n: {
+            type: String,
+            default: ''
+        }
+    },
     data() {
         let returnTo = new URLSearchParams(location.search).get('returnTo');
         // Only allow same-origin redirects to prevent open redirect attacks.
@@ -44,7 +63,14 @@ export default {
                 returnTo = null;
             }
         }
+        let strings = DEFAULT_STRINGS;
+        try {
+            strings = { ...DEFAULT_STRINGS, ...JSON.parse(decodeURIComponent(this.i18n)) };
+        } catch {
+            // A missing or malformed translation payload falls back to English.
+        }
         return {
+            strings,
             disableISBNTextButton: false,
             canvasInactive: true,
             lastISBN: null,

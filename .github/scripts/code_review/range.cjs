@@ -170,7 +170,7 @@ async function resolveRange({ github, context, core, require, process }) {
                repository(owner:$owner,name:$repo){
                  pullRequest(number:$pr){
                    reviewThreads(first:100, after:$cursor){
-                     nodes { isResolved isOutdated }
+                     nodes { isResolved isOutdated comments(first:1){ nodes { author { login } body } } }
                      pageInfo { hasNextPage endCursor }
                    }
                  }

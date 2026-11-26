@@ -144,17 +144,8 @@ $(function () {
     }
 
     // conditionally load for author merge page
-    const mergePageElement = document.querySelector('#author-merge-page');
-    const preMergePageElement = document.getElementById('preMerge');
-    if (mergePageElement || preMergePageElement) {
-        import('./merge').then(module => {
-            if (mergePageElement) {
-                module.initAuthorMergePage();
-            }
-            if (preMergePageElement) {
-                module.initAuthorView();
-            }
-        });
+    if (document.querySelector('#author-merge-page')) {
+        import('./merge').then(module => module.initAuthorMergePage());
     }
 
     // conditionally load for type changing input
@@ -283,7 +274,8 @@ $(function () {
     const anonymizationButton = document.querySelector('.account-anonymization-button');
     const adminLinks = document.getElementById('adminLinks');
     const confirmButtons = document.querySelectorAll('.do-confirm');
-    if (adminLinks || anonymizationButton || confirmButtons.length) {
+    const newAccountsForm = document.querySelector('.new-accounts__form');
+    if (adminLinks || anonymizationButton || confirmButtons.length || newAccountsForm) {
         import('./admin').then(module => {
             if (adminLinks) {
                 module.initAdmin();
@@ -293,6 +285,9 @@ $(function () {
             }
             if (confirmButtons.length) {
                 module.initConfirmationButtons(confirmButtons);
+            }
+            if (newAccountsForm) {
+                module.initNewAccountsReview(newAccountsForm);
             }
         });
     }
@@ -607,6 +602,12 @@ $(function () {
         import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
     }
 
+    // Home page: a signed-in reader's loans, holds and Want to Read row
+    const homeMemberSlot = document.querySelector('.home-member-slot');
+    if (homeMemberSlot) {
+        import('./home-member').then(module => module.initHomeMember(homeMemberSlot));
+    }
+
     // Home page librarian call-out: /tasks can be slow to start painting.
     const librarianCta = document.querySelector('.librarian-card__cta');
     if (librarianCta) {
@@ -646,8 +647,8 @@ $(function () {
         import('./stats').then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 
-    // History page comparison
-    const pageHistory = document.querySelector('#pageHistory');
+    // History page comparison (the footer box in lib/history.html reuses the id without data-i18n)
+    const pageHistory = document.querySelector('table#pageHistory[data-i18n]');
     if (pageHistory) {
         import('./history').then(module => module.initHistory(pageHistory));
     }

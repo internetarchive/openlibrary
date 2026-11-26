@@ -41,6 +41,17 @@ test('parseFindings returns null (=> blocks) for absent or malformed input -- NO
     }
 });
 
+test("unresolvedThreadCount skips the bot's suggestion threads, but not a marker someone else wrote", () => {
+    const first = (login, body) => ({ isResolved: false, isOutdated: false, comments: { nodes: [{ author: { login }, body }] } });
+    const marked = `${shared.SUGGESTION_MARKER}\n**Suggestion (won't block) · Styleguide — x**`;
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', marked)]), 0, "the bot's suggestion");
+    assert.equal(unresolvedThreadCount([first('someone', marked)]), 1, 'a human copying the marker still blocks');
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', '**MEDIUM · Correctness — x**')]), 1, "the bot's finding");
+    // A finding's text is written by the model and can quote the marker (say, in a PR that edits shared.cjs).
+    const quoting = `**MEDIUM · Correctness — x**\n\nThe line \`${shared.SUGGESTION_MARKER}\` is wrong.\n\n${shared.SUGGESTION_MARKER}`;
+    assert.equal(unresolvedThreadCount([first('openlibrary-bot', quoting)]), 1, 'a finding that quotes the marker still blocks');
+});
+
 // ---- unresolvedThreadCount: GitHub's own isResolved/isOutdated are authoritative ----
 test('unresolvedThreadCount counts only threads that are unresolved AND not outdated', () => {
     const threads = [
