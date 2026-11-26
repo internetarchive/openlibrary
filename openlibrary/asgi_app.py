@@ -133,6 +133,7 @@ sentry: Sentry | None = None
 
 def _include_routers(app: FastAPI) -> None:
     """Include all FastAPI routers."""
+    from openlibrary.fastapi.about import pages as about_pages
     from openlibrary.fastapi.account import pages as account_pages
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.books import router as books_router
@@ -186,6 +187,7 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(yearly_reading_goals_router)
 
     # HTML pages, wrapped in the site shell (SitePageRoute).
+    app.include_router(about_pages)
     app.include_router(account_pages)
     app.include_router(library_explorer_pages)
     app.include_router(merge_stats_pages)

@@ -181,7 +181,7 @@ msgstr[1] ""
 msgid "Status:"
 msgstr ""
 
-#: about/index.html admin/new_accounts.html.jinja batch_import_list.html batch_import_view.html type/tag/index.html
+#: about/index.html.jinja admin/new_accounts.html.jinja batch_import_list.html batch_import_view.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -1014,63 +1014,63 @@ msgstr ""
 msgid "Searching solr took %(count)s seconds"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja openlibrary/fastapi/about.py openlibrary/plugins/openlibrary/code.py
 msgid "The Open Library Team"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Want to join us?"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Role:"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Staff"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Leads"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Fellows"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Volunteers"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Department:"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Communications"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Design"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Engineering"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Librarianship"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "Year:"
 msgstr ""
 
-#: about/index.html
+#: about/index.html.jinja
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
 msgstr ""
 

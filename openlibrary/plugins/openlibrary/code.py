@@ -263,7 +263,15 @@ class team(delegate.page):
     path = "/about/team"
 
     def GET(self):
-        return render_template("about/index.html")
+        # Local imports: this handler is temporary and goes with the Templetor template.
+        from markupsafe import escape
+
+        from infogami.utils.context import context
+
+        context.setdefault("cssfile", "team")
+        body = render_jinja_template("about/index.html.jinja")
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("The Open Library Team")))
 
 
 class addbook(delegate.page):
