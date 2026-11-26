@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h3>Add your reviews:</h3>
-        <p class="subtitle">Reviews listed above have been saved.</p>
+        <h3>{{ strings.addReviews }}</h3>
+        <p class="subtitle">{{ strings.reviewsSaved }}</p>
         <div class="chip-group">
             <OLChip
                 v-for="o in observationsArray"
@@ -24,6 +24,7 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import OLChip from './OLChip.vue';
 
 export default {
@@ -74,6 +75,10 @@ export default {
     emits: ['update-selected'],
     data: function () {
         return {
+            strings: {
+                addReviews: _('Add your reviews:'),
+                reviewsSaved: _('Reviews listed above have been saved.')
+            },
             /**
              * The ID of the selected book tag type.
              *

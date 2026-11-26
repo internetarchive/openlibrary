@@ -8667,6 +8667,22 @@ msgstr ""
 msgid "That ID already exists for an identifier."
 msgstr ""
 
+#: ObservationForm/components/CategorySelector.vue
+msgid "Add your reviews:"
+msgstr ""
+
+#: ObservationForm/components/CategorySelector.vue
+msgid "Reviews listed above have been saved."
+msgstr ""
+
+#: ObservationForm/components/SavedTags.vue
+msgid "No tags selected."
+msgstr ""
+
+#: ObservationForm/components/SavedTags.vue
+msgid "Remove value"
+msgstr ""
+
 #: TestingEnvironment/utils.js
 msgid "Loading testing environment…"
 msgstr ""

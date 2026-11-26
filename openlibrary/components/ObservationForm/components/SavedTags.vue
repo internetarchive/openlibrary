@@ -1,12 +1,12 @@
 <template>
     <div v-show="selectedValues.length" class="selections">
-        <div v-if="!selectedValues.length" class="no-selections-message">No tags selected.</div>
+        <div v-if="!selectedValues.length" class="no-selections-message">{{ strings.noTags }}</div>
         <div v-else class="selection-panel">
             <OLChip v-for="value in selectedValues" :key="value" :ref="value" :text="value" :class-list="getClassList(value)" class="selection-chip">
                 <template #after>
                     <span
                         class="close-icon"
-                        title="Remove value"
+                        :title="strings.removeValue"
                         @mouseover="addHoverClass(value)"
                         @mouseout="removeHoverClass(value)"
                         @click="removeItem(value)"
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 import OLChip from './OLChip.vue';
 
 import { updateObservation } from '../ObservationService';
@@ -63,6 +64,10 @@ export default {
     },
     data: function () {
         return {
+            strings: {
+                noTags: _('No tags selected.'),
+                removeValue: _('Remove value')
+            },
             /**
              * Contains class strings for each selected book tag
              *
