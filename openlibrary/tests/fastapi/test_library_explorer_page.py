@@ -9,9 +9,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from infogami.utils.context import context
-from openlibrary.core.jinja import get_jinja_env, render_jinja_template
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.fastapi.library_explorer import pages
 from openlibrary.plugins.upstream import code as upstream_code
+from openlibrary.plugins.upstream.utils import vue_component_html
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def test_library_explorer_page_renders_the_component(client):
     html = response.text
     assert "<title>Library Explorer | Open Library</title>" in html
     assert '<body class="full-width library-explorer"' in html
-    assert html.count("<ol-library-explorer>") == 1
+    assert html.count("<ol-library-explorer></ol-library-explorer>") == 1
     assert 'src="/static/build/components/production/ol-LibraryExplorer.js"' in html
     assert "body.library-explorer" in html
 
@@ -35,7 +36,7 @@ def test_library_explorer_page_renders_the_component(client):
 @pytest.fixture
 def stubbed_static_url(monkeypatch) -> None:
     """``static_url`` hashes a file under ``static/``, which CI has no Vite build for."""
-    monkeypatch.setitem(get_jinja_env().globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setattr(upstream_code, "static_url", lambda p: f"/static/{p}")
 
 
 def test_webpy_handler_renders_the_fastapi_body(monkeypatch, stubbed_static_url):
@@ -46,7 +47,7 @@ def test_webpy_handler_renders_the_fastapi_body(monkeypatch, stubbed_static_url)
 
     assert result.title == "Library Explorer"  # web.py's layout reads the title from here
     assert context.bodyclass == ["full-width", "library-explorer"]
-    assert str(result) == render_jinja_template("library_explorer.html.jinja")
+    assert str(result) == render_jinja_template("library_explorer.html.jinja", vue_component_html=vue_component_html)
 
 
 def test_library_explorer_page_does_not_read_webpy_ctx(client, webpy_leftovers):

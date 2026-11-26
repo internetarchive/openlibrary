@@ -1,4 +1,4 @@
-{# Takes no values: the page is the LibraryExplorer component. #}
+{# Takes `vue_component_html` #}
 <style>
     body.library-explorer {
         background: linear-gradient(to bottom, #f6f1e6 50px, #ebdfc5 218px) !important;
@@ -9,7 +9,4 @@
         display: none;
     }
 </style>
-<script type="module"
-        src="{{ static_url('build/components/production/ol-LibraryExplorer.js') }}"></script>
-<ol-library-explorer>
-</ol-library-explorer>
+{{ vue_component_html("LibraryExplorer") }}
