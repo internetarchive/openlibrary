@@ -17,8 +17,6 @@ from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
-from openlibrary.i18n import gettext as _
-from openlibrary.i18n import ungettext
 from openlibrary.plugins.openlibrary.github import (
     GitHubAPIError,
     GitHubPRInfo,
@@ -55,92 +53,8 @@ def status_page_values(is_maintainer: bool) -> dict[str, Any]:
         "is_maintainer": is_maintainer,
         "has_testing_state": has_testing_state,
         "show_testing": has_testing_state and is_maintainer,
-        "testing_panel_strings": testing_panel_strings(),
         "jenkins_job_url": JENKINS_JOB_URL,
         "vue_component_html": vue_component_html,
-    }
-
-
-def testing_panel_strings() -> dict[str, Any]:
-    """Translated strings for ``<ol-testing-environment>``, built for client-side fill.
-
-    Keys and English strings must match ``DEFAULT_STRINGS`` in
-    ``openlibrary/components/TestingEnvironment/utils.js``; ``test_status_page.py``
-    checks that they do. A plural set carries one form per CLDR category; the
-    component picks by count. Built in Python for the same reason as
-    ``core/shell/shelf_labels.py``: the ``%(name)s`` placeholders must reach the
-    browser intact.
-    """
-    return {
-        "loading": _("Loading testing environment…"),
-        "loadError": _("Could not load the testing environment."),
-        "retry": _("Try again"),
-        "actionFailed": _("Could not complete that action."),
-        "addFailedNotFound": _("PR %(num)s does not exist."),
-        "addFailedUnavailable": _("Could not check PR %(num)s — GitHub is unavailable."),
-        "addFailedTokenInvalid": _("Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."),
-        "addFailedOther": _("Could not add PR %(num)s."),
-        "title": _("Testing Environment"),
-        "addPrs": _("Add PRs"),
-        "addPlaceholder": _("PR numbers or URLs, space or comma separated"),
-        "add": _("Add PRs"),
-        "addChange": _("Add"),
-        "pr": _("PR"),
-        "draft": _("Draft"),
-        "author": _("Author"),
-        "assignee": _("Assignee"),
-        "drift": _("Drift"),
-        "next": _("Next deploy"),
-        "liveNow": _("Live now"),
-        "notLive": _("Not yet deployed"),
-        "mergeConflict": _("Deploy failed (merge conflict)"),
-        "closed": _("This PR is already closed."),
-        "actions": _("Actions"),
-        "ok": _("OK"),
-        "prOnTesting": _("PR %(num)s on testing"),
-        "changeOnDeploy": _("changes on deploy"),
-        "update": _("Update"),
-        "updatePin": _("Update pin"),
-        "enable": _("Enable"),
-        "disable": _("Disable"),
-        "remove": _("Remove"),
-        "restore": _("Restore"),
-        "refresh": _("Refresh from GitHub"),
-        "deploy": _("Deploy"),
-        "changes": {
-            "one": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 1),
-            "two": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 2),
-            "few": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 3),
-            "many": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 11),
-            "other": ungettext("%(num)s change will be applied", "%(num)s changes will be applied", 100),
-        },
-        "nothingToDeploy": _("Nothing to deploy — testing matches the current set."),
-        "mergedToMaster": _("merged to master"),
-        "closedWithoutMerging": _("closed without merging"),
-        "unknown": _("Drift unknown, pinned at %(sha)s"),
-        "currentCommit": _("Up-to-date, pinned at %(sha)s"),
-        "behind": {
-            "one": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 1),
-            "two": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 2),
-            "few": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 3),
-            "many": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 11),
-            "other": ungettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 100),
-        },
-        "neverDeployed": _("Never deployed"),
-        "deployingStarted": _("Deploying, started %(time)s"),
-        "deployingStartedBy": _("Deploying, started %(time)s by %(user)s"),
-        "deployingStage": _("Deploying, started %(time)s — %(stage)s"),
-        "deployingStageBy": _("Deploying, started %(time)s — %(stage)s by %(user)s"),
-        "deploySucceeded": _("Deploy succeeded %(time)s"),
-        "deploySucceededBy": _("Deploy succeeded %(time)s by %(user)s"),
-        "deployFailed": _("Deploy failed %(time)s"),
-        "deployFailedBy": _("Deploy failed %(time)s by %(user)s"),
-        "deployFailedTrigger": _("Could not start the deploy — Jenkins did not accept the build."),
-        "deployUnconfigured": _("Deploy is not configured on this instance — nothing was deployed."),
-        "lastDeploy": _("Last deploy %(time)s"),
-        "lastDeployBy": _("Last deploy %(time)s by %(user)s"),
-        "viewJenkins": _("View Jenkins"),
-        "noPrs": _("No PRs in testing set."),
     }
 
 

@@ -18,10 +18,9 @@ const RECENT_HIGHLIGHT_MS = 10000;
  * @param {import('vue').ShallowRef<boolean>} opts.busy       — whether the action queue is processing
  * @param {import('vue').Ref<object|null>} opts.payload       — server snapshot rows (mutated optimistically, confirmed at drain end)
  * @param {Function} opts.setToast   — show an error toast
- * @param {object}  opts.strings     — translated strings (plain object, set once at setup)
  * @returns {object} action flags and methods
  */
-export function useActions({ busy, payload, setToast, strings }) {
+export function useActions({ busy, payload, setToast }) {
     const refreshing = shallowRef(false);
     const adding = shallowRef(false);
     const deploying = shallowRef(false);
@@ -45,12 +44,12 @@ export function useActions({ busy, payload, setToast, strings }) {
             // completed request, not a thrown fetch — say why instead of
             // pretending the action landed.
             if (result && result.ok === false) {
-                setToast(actionErrorMessage(result, strings));
+                setToast(actionErrorMessage(result));
                 return result;
             }
             return result;
         } catch {
-            setToast(panelString(strings, 'actionFailed'));
+            setToast(panelString('actionFailed'));
             return false;
         }
     }

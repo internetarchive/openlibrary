@@ -1,4 +1,10 @@
-import { sprintf } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
+import { fmt, sprintf } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
+
+describe('fmt', () => {
+    it('fills named placeholders in whatever order a translation puts them', () => {
+        expect(fmt('%(sha)s : %(num)s commits', { num: 4, sha: 'abc1234' })).toBe('abc1234 : 4 commits');
+    });
+});
 
 describe('sprintf', () => {
     it('fills %s placeholders in order', () => {
