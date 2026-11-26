@@ -225,7 +225,7 @@ repos:
       name: Generate POT
       description: This hook generates the .pot file for internationalization.
       entry: python ./scripts/i18n-messages extract --skip-untracked
-      types_or: [python, html, jinja]
+      types_or: [python, html, jinja, javascript, vue]
       language: python
       pass_filenames: false
       # Renovate bumps these alongside requirements.txt (same package rules, same PRs).

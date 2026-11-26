@@ -135,6 +135,7 @@ def test_layout_context_is_frozen():
             icon_sprite_url="",
             days_registered_json='"visitor"',
             sentry=None,
+            javascript_catalog_url=None,
         ),
         shelf_button_labels_json="{}",
         announcement_banner=None,

@@ -23,7 +23,7 @@
         </ol-banner>
     {% endcall %}
     {% call ex.example("Dismissible", "Without cookie-name, dismissal only lasts for the current page. Content comes from the page template, so links and emphasis work as usual.") %}
-        <ol-banner dismissible label-close="Close">
+        <ol-banner dismissible>
             <a href="/collections">Explore our new collections</a>
         </ol-banner>
     {% endcall %}
@@ -51,7 +51,7 @@
         output_style="display: flex; flex-direction: column; gap: 12px;") %}
         {# The real guard is server-side in the page template. This demo checks the
            same cookie client-side so dismissal is still observable across reloads. #}
-        <ol-banner id="demo-banner-persisted" hidden dismiss-id="ol-banner-demo" data-cookie-duration-days="1" dismissible label-close="Close">
+        <ol-banner id="demo-banner-persisted" hidden dismiss-id="ol-banner-demo" data-cookie-duration-days="1" dismissible>
             <a href="/account/books/already-read/year/2026">Set your 2026 Yearly Reading Goal</a>
         </ol-banner>
         <div>

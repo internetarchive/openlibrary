@@ -20,7 +20,7 @@ Internationalization (i18n) covers translation of UI strings across two template
 |---------|-----------|
 | Templetor `.html` templates | `$_("string")` |
 | Jinja `.jinja` templates | `{{ _('string') }}`, `{% trans %}...{% endtrans %}` |
-| JavaScript / Lit components | `data-i18n` bridge (server renders JSON → JS reads it) |
+| JavaScript / Lit / Vue components | `_()` / `ngettext()` from `i18n.js` (see [i18n.md](i18n.md)); older components use the `data-i18n` bridge (server renders JSON → JS reads it) |
 
 All paths use the same `.po`/`.mo` locale files under `openlibrary/i18n/<lang>/`. Those files are
 populated at image-build time from the authoritative `openlibrary-i18n` store and compiled to `.mo`
