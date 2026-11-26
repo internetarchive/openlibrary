@@ -1,6 +1,7 @@
 /* eslint no-console: 0 */
 import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService';
 import CONFIGS from '../configs.js';
+import { _, fmt } from '../../plugins/openlibrary/js/i18n.js';
 
 const collator = new Intl.Collator('en-US', { numeric: true });
 export const DEFAULT_EDITION_LIMIT = 200;
@@ -202,7 +203,7 @@ export function get_editions(work_key) {
     }
     return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({ limit: DEFAULT_EDITION_LIMIT + 1 })}`).then(r => {
         if (r.ok) return r.json();
-        if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
+        if (confirm(fmt(_('Network error; failed to load editions for %(key)s. Click OK to reload.'), { key: work_key }))) location.reload();
     });
 }
 

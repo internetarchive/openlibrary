@@ -1,18 +1,18 @@
 <template>
     <div class="edition-snippet">
-        <img loading="lazy" :src="cover_url" tabindex="0" aria-label="Click to enlarge cover image" @click="openEnlargedCover" />
+        <img loading="lazy" :src="cover_url" tabindex="0" :aria-label="strings.enlargeCover" @click="openEnlargedCover" />
         <div class="links">
             <a :href="edition.key" target="_blank">OL</a>
             <a v-if="edition.ocaid" :href="`https://archive.org/details/${edition.ocaid}`" target="_blank">IA</a>
             <a v-if="edition.oclc_numbers" :href="`https://www.worldcat.org/oclc/${edition.oclc_numbers[0]}?tab=details`" target="_blank"
-                >WC<span v-if="edition.oclc_numbers.length > 1" title="This edition has multiple OCLCs">*</span></a
+                >WC<span v-if="edition.oclc_numbers.length > 1" :title="strings.multipleOclcs">*</span></a
             >
             <a v-if="asins.length" :href="`https://www.amazon.com/dp/${asins[0]}`" target="_blank"
-                >AZ<span v-if="asins.length > 1" title="This edition has multiple potential ASINs">*</span></a
+                >AZ<span v-if="asins.length > 1" :title="strings.multipleAsins">*</span></a
             >
         </div>
         <div class="info">
-            <b>{{ number_of_pages }} p | {{ languages }} | {{ publish_year }}</b>
+            <b>{{ pagesLabel }} | {{ languages }} | {{ publish_year }}</b>
             {{ ' ' }}
             <span class="publishers" :title="`${publishers.join(', ')}`">{{ publishers.join(', ') }}</span>
         </div>
@@ -25,6 +25,7 @@
 
 <script>
 import ISBN from 'isbn3';
+import { _, fmt } from '../../plugins/openlibrary/js/i18n.js';
 
 export default {
     props: {
@@ -33,7 +34,21 @@ export default {
             default: () => ({})
         }
     },
+    data() {
+        return {
+            strings: {
+                enlargeCover: _('Click to enlarge cover image'),
+                multipleOclcs: _('This edition has multiple OCLCs'),
+                multipleAsins: _('This edition has multiple potential ASINs')
+            }
+        };
+    },
     computed: {
+        pagesLabel() {
+            // NOTE: Abbreviation of "pages", after the edition's page count.
+            return fmt(_('%(pages)s p'), { pages: this.number_of_pages });
+        },
+
         publish_year() {
             if (!this.edition.publish_date) return '';
             const m = this.edition.publish_date.match(/\d{4}/);

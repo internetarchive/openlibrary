@@ -31,10 +31,10 @@
                             v-model="master_key"
                             type="radio"
                             name="master_key"
-                            title="Primary Record"
+                            :title="strings.primaryRecord"
                             :value="record.key"
                         />
-                        <input v-model="selected[record.key]" type="checkbox" title="Include in Merge" />
+                        <input v-model="selected[record.key]" type="checkbox" :title="strings.includeInMerge" />
                     </td>
                     <td v-else />
                 </template>
@@ -57,6 +57,7 @@
 
 <script>
 /* eslint no-console: 0 */
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 import MergeRow from './MergeRow.vue';
 import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON, isEditionListTruncated } from './utils.js';
 import CONFIGS from '../configs.js';
@@ -103,6 +104,10 @@ export default {
     },
     data() {
         return {
+            strings: {
+                primaryRecord: _('Primary Record'),
+                includeInMerge: _('Include in Merge')
+            },
             master_key: null,
             /** @type {{[key: string]: Boolean}} */
             selected: []

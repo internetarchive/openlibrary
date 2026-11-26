@@ -69,6 +69,7 @@
 </template>
 
 <script>
+import { fmt, ngettext } from '../../plugins/openlibrary/js/i18n.js';
 import AuthorRoleTable from './AuthorRoleTable.vue';
 import ExcerptsTable from './ExcerptsTable.vue';
 import TextDiff from './TextDiff.vue';
@@ -98,12 +99,11 @@ export default {
     },
     computed: {
         title() {
-            let title = `.${this.field}`;
             if (this.value instanceof Array) {
                 const length = this.value.length;
-                title += ` (${length} item${length === 1 ? '' : 's'})`;
+                return fmt(ngettext('.%(field)s (%(count)s item)', '.%(field)s (%(count)s items)', length), { field: this.field, count: length });
             }
-            return title;
+            return `.${this.field}`;
         }
     }
 };
