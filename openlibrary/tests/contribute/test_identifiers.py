@@ -110,7 +110,7 @@ def test_a_shared_isbn_save_names_the_other_editions(monkeypatch):
         ("  March   2005 ", "March 2005"),
         ("c1987", "c1987"),
         ("1998-2002", "1998-2002"),
-        ("1998–2002", "1998–2002"),
+        ("1998\u20132002", "1998\u20132002"),
         ("2005-06-01", "2005-06-01"),
         ("20050601", "2005-06-01"),
         ("200506", "2005-06"),
@@ -135,7 +135,7 @@ def test_a_publish_date_is_kept_as_typed(raw, expected):
         ("20051301", "doesn't look right"),
         ("1440", "doesn't look right"),
         ("2005-1998", "earlier year first"),
-        ("2005 – 1998", "earlier year first"),
+        ("2005 \u2013 1998", "earlier year first"),
     ],
 )
 def test_a_publish_date_needs_a_plausible_year(raw, match):
