@@ -103,12 +103,41 @@ def test_a_shared_isbn_save_names_the_other_editions(monkeypatch):
     assert saved["data"]["isbn_shared_with"] == ["/books/OL7M"]
 
 
-@pytest.mark.parametrize(("raw", "expected"), [("2005", "2005"), ("  March   2005 ", "March 2005"), ("c1987", "c1987")])
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("2005", "2005"),
+        ("  March   2005 ", "March 2005"),
+        ("c1987", "c1987"),
+        ("1998-2002", "1998-2002"),
+        ("1998\u20132002", "1998\u20132002"),
+        ("2005-06-01", "2005-06-01"),
+        ("20050601", "2005-06-01"),
+        ("200506", "2005-06"),
+        ("2005 (facsimile of 1440 ed.)", "2005 (facsimile of 1440 ed.)"),
+        ("2005, reprint of 1400s text", "2005, reprint of 1400s text"),
+    ],
+)
 def test_a_publish_date_is_kept_as_typed(raw, expected):
     assert save.answer_changes(FakeEdition(), "publish_date", raw) == {"publish_date": expected}
 
 
-@pytest.mark.parametrize(("raw", "match"), [("March", "with its year"), ("85", "with its year"), ("1066", "doesn't look right"), ("9999", "doesn't look right")])
+@pytest.mark.parametrize(
+    ("raw", "match"),
+    [
+        ("March", "with its year"),
+        ("85", "with its year"),
+        ("1066", "doesn't look right"),
+        ("9999", "doesn't look right"),
+        ("20059", "doesn't look right"),
+        ("2005\u20139999", "doesn't look right"),  # en-dash as reported in #14566
+        ("2005-9999", "doesn't look right"),
+        ("20051301", "doesn't look right"),
+        ("1440", "doesn't look right"),
+        ("2005-1998", "earlier year first"),
+        ("2005 \u2013 1998", "earlier year first"),
+    ],
+)
 def test_a_publish_date_needs_a_plausible_year(raw, match):
     with pytest.raises(save.InvalidAnswer, match=match):
         save.answer_changes(FakeEdition(), "publish_date", raw)

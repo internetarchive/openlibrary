@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 import './OlIcon.js';
 
 /**
@@ -15,7 +16,7 @@ import './OlIcon.js';
  * translated via $_(), visible to search engines. On upgrade, the
  * component captures those children, re-renders them inside its own
  * structure, and adds the variant icon and close button. Its only owned
- * string is the close button label (override via `label-close` for i18n).
+ * string is the close button label (`label-close` overrides it).
  *
  * The component owns no persistence. Dismissing fires `ol-banner-dismiss`
  * (with the optional `dismiss-id` in the detail) and removes the element —
@@ -148,7 +149,7 @@ export class OlBanner extends LitElement {
         this.appearance = 'outlined';
         this.dismissId = '';
         this.dismissible = false;
-        this.labelClose = 'Close';
+        this.labelClose = _('Close');
         this._closing = false;
     }
 

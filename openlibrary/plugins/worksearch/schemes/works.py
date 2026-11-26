@@ -322,6 +322,9 @@ class WorkSearchScheme(SearchScheme):
         for k in self.public_api_params & set(params):
             values = params[k] if isinstance(params[k], list) else [params[k]]
             for val in values:
+                # A blank value would build `field:()`, which is not valid lucene
+                if not val.strip():
+                    continue
                 if k == "author":
                     v = val.strip()
                     m = re_author_key.search(v)
@@ -332,7 +335,7 @@ class WorkSearchScheme(SearchScheme):
                         q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
                 elif k == "isbn":
                     normalized = normalize_isbn(val)
-                    q_list.append(f"isbn:({normalized or val})")
+                    q_list.append(f"isbn:({normalized or fully_escape_query(val)})")
                 else:
                     q_list.append(f"{k}:({fully_escape_query(val)})")
 

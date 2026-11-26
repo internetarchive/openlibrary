@@ -9,7 +9,6 @@ import logging
 import math
 import os
 import random
-import socket
 import sys
 from time import time
 from urllib.parse import parse_qs, parse_qsl, quote, urlencode
@@ -400,6 +399,21 @@ class opensearchxml(delegate.page):
 
 class health(delegate.page):
     path = "/health"
+
+    def GET(self):
+        web.header("Content-Type", "text/plain")
+        return web.ok("OK")
+
+
+class health_webpy(delegate.page):
+    """Health check that always reaches web.py. On Kubernetes the gateway sends /health to FastAPI,
+    so HAProxy checks web.py with this path instead (olsystem: etc/haproxy/haproxy.cfg, backend ol-web-k8s).
+    FastAPI must never register it.
+
+    Keep it until web.py is retired: removing or porting it would fail that check and move all
+    Kubernetes traffic to the VMs."""
+
+    path = "/health/webpy"
 
     def GET(self):
         web.header("Content-Type", "text/plain")
@@ -1073,29 +1087,6 @@ def get_recent_changes(*a, **kw):
         return []
     else:
         return _get_recentchanges(*a, **kw)
-
-
-local_ip = None
-
-
-class invalidate(delegate.page):
-    path = "/system/invalidate"
-
-    def POST(self):
-        global local_ip
-        if local_ip is None:
-            local_ip = socket.gethostbyname(socket.gethostname())
-
-        if web.ctx.ip != "127.0.0.1" and web.ctx.ip.rsplit(".", 1)[0] != local_ip.rsplit(".", 1)[0]:
-            raise Forbidden("Allowed only in the local network.")
-
-        data = json.loads(web.data())
-        if not isinstance(data, list):
-            data = [data]
-        for d in data:
-            thing = client.Thing(site.get(), d["key"], client.storify(d))
-            client._run_hooks("on_new_version", thing)
-        return delegate.RawText("ok")
 
 
 def save_error():

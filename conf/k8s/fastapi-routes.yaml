@@ -4,13 +4,17 @@ fastapiRoutes:
   default:
     # Pages (SitePageRoute)
     - GET /advancedsearch
+    - GET /explore
     - GET /publishers
     - GET /publishers/{name}
     - GET /search/authors
+    - GET /search/bulk
     - GET /search/inside
     - GET /search/lists
     - GET /search/publishers
     - GET /search/subjects
+    - GET /stats/merges
+    - GET /status
     - GET /tasks/admin
     - GET POST /tasks/admin/new
     - GET /tasks/admin/{slug}
@@ -21,7 +25,7 @@ fastapiRoutes:
     - POST /tasks/admin/{slug}/stop
     - POST /tasks/admin/{slug}/unhide
     - GET /tasks/faq
-    - GET POST /verify_human
+    - GET /verify_human
     # JSON / API
     - POST /account/anonymize.json
     - GET /account/loan-history.json
@@ -115,6 +119,7 @@ fastapiRoutes:
     - GET /search/authors.json
     - GET /search/editions.json
     - GET /search/subjects.json
+    - POST /verify_human
     - POST /works/OL{work_id}W/awards.json
     - GET /works/OL{work_id}W/bookshelves.json
     - POST /works/OL{work_id}W/check-ins

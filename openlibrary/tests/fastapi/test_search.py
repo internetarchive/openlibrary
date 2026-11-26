@@ -7,6 +7,7 @@ from typing import get_args
 from unittest.mock import MagicMock, patch
 from urllib.parse import urlencode
 
+import httpx
 import pytest
 
 from openlibrary.fastapi.search import FacetField, PublicQueryOptions
@@ -285,6 +286,26 @@ class TestSearchEndpoint:
         query_arg = call_args[0][0]
         assert "author_key" in query_arg
         assert query_arg["author_key"] == ["OL1A", "OL2A"]
+
+    def test_author_facet_filters_like_author_key(self, client):
+        """author_facet is documented as an alias for author_key, so it must reach Solr
+        as an author_key filter instead of being dropped."""
+        solr_response = httpx.Response(200, json={"response": {"numFound": 0, "numFoundExact": True, "start": 0, "docs": []}})
+        # The search reads solr_editions off req_context, which the test client never populates.
+        token = req_context.set(create_context_for_script())
+        try:
+            with (
+                # Only set from config at startup; nothing is sent there since the request is mocked.
+                patch("openlibrary.plugins.worksearch.code.solr_select_url", "http://solr/select", create=True),
+                patch("openlibrary.plugins.worksearch.code.execute_solr_query_async", return_value=solr_response) as solr,
+            ):
+                response = search(client, q="tolkien", author_facet="OL26320A")
+        finally:
+            req_context.reset(token)
+
+        assert response.status_code == 200
+        fqs = [value for call in solr.call_args_list for key, value in call.args[1] if key == "fq"]
+        assert 'author_key:"OL26320A"' in fqs
 
     @pytest.mark.parametrize(
         ("q_value", "expected_status"),

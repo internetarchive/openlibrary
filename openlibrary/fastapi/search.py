@@ -35,7 +35,7 @@ from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SiteP
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.inside.code import RESULTS_PER_PAGE, hit_editions, render_inside_body
 from openlibrary.plugins.upstream.mybooks import get_reading_states_async
-from openlibrary.plugins.upstream.utils import get_coverstore_public_url
+from openlibrary.plugins.upstream.utils import get_coverstore_public_url, vue_component_html
 from openlibrary.plugins.worksearch.code import (
     NO_LANGUAGE,
     default_spellcheck_count,
@@ -676,6 +676,14 @@ async def search_lists(nav: SearchNavDep, user: CurrentUserDep, q: str = "", pag
         total_pages=ceil(response.num_found / limit),
     )
     return SitePage(body, page=PageMeta(title=lists_search_title(q)))
+
+
+@pages.get("/search/bulk")
+async def bulk_search() -> SitePage:
+    # TODO: Retire the web.py `bulk_search` handler (it still serves /search/bulk
+    # in production) once production routes /search/bulk here.
+    body = render_jinja_template("bulk_search/bulk_search.html.jinja", vue_component_html=vue_component_html)
+    return SitePage(body, page=PageMeta(title=_("Bulk Search (beta)")))
 
 
 class InsideSearchParams(BaseModel):

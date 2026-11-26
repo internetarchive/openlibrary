@@ -22,6 +22,7 @@ from openlibrary.core import jinja as jinja_module
 from openlibrary.core import shell as shell_module
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.shell import PageMeta, ShellRequest
+from openlibrary.core.shell.head import _javascript_catalog_url
 from openlibrary.i18n import load_translations
 from openlibrary.plugins.upstream.code import static_url as upstream_static_url
 from openlibrary.utils.request_context import req_context
@@ -102,13 +103,13 @@ def _create_validation_env() -> jinja2.Environment:
 
     env.globals["icon"] = lambda *a, **kw: ""
 
-    # The TestingEnvironment macro renders a Vue component via
-    # render_component(); this env has no component build output, so stub it
-    # the same way render_templetor_template is stubbed above.
-    def _stub_render_component(*a, **kw):
+    # Templates that render a Vue component are passed vue_component_html; this
+    # env has no component build output, so stub it the same way
+    # render_templetor_template is stubbed above.
+    def _stub_vue_component_html(*a, **kw):
         return ""
 
-    env.globals["render_component"] = _stub_render_component
+    env.globals["vue_component_html"] = _stub_vue_component_html
 
     # static_url is a true Jinja global (like icon) — used by many templates.
     # For validation, stub it so it does not require built files on disk.
@@ -499,6 +500,35 @@ def test_head_renders_shell(monkeypatch, request_context_fixture):
     assert "window.OL_EXPERIMENTS = {};" in html
     assert "@licstart" in html
     assert "/static/build/css/page-user.css" in html
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected"),
+    [
+        ("es", '<script src="/static/build/i18n/es.js?v=hash"></script>'),
+        ("en", None),
+        # Not a language code, so it never becomes a path.
+        ("../../x", None),
+    ],
+)
+def test_head_loads_the_javascript_catalog(monkeypatch, request_context_fixture, lang, expected):
+    request_context_fixture(lang=lang)
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", lambda path: f"/static/{path}?v=hash")
+    html = _render_head(monkeypatch)
+    if expected:
+        assert expected in html
+    else:
+        assert "build/i18n/" not in html
+
+
+def test_javascript_catalog_url_is_none_before_make_i18n(monkeypatch):
+    """No file yet (a checkout that hasn't run ``make i18n``): the page loads no catalog and shows English."""
+
+    def missing(path):
+        raise FileNotFoundError(path)
+
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", missing)
+    assert _javascript_catalog_url("es") is None
 
 
 def test_head_omits_analytics_for_bots(monkeypatch, request_context_fixture):

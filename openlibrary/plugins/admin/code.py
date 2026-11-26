@@ -1,21 +1,14 @@
 """Plugin to provide admin interface."""
 
-import functools
 import json
 import logging
-import os
 import re
-import socket
-import subprocess
 import sys
-import traceback
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 
-import requests
 import web
 
-import openlibrary
 from infogami import config
 from infogami.plugins.api.code import jsonapi  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
@@ -31,6 +24,7 @@ from openlibrary.core import (
     cache,
     imports,
 )
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.models import Work
 from openlibrary.i18n import gettext as _
@@ -164,64 +158,6 @@ class admin(delegate.page):
 class admin_index:
     def GET(self):
         return web.seeother("/stats")
-
-
-class gitpull:
-    def GET(self):
-        root = os.path.join(os.path.dirname(openlibrary.__file__), os.path.pardir)
-        root = os.path.normpath(root)
-
-        p = subprocess.Popen(
-            "cd %s && git pull" % root,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-        )
-        out = p.stdout.read()
-        p.wait()
-        return "<pre>" + web.websafe(out) + "</pre>"
-
-
-class reload:
-    def GET(self):
-        if servers := config.get("plugin_admin", {}).get("webservers", []):
-            body = "".join(self.reload(servers))
-        else:
-            body = "No webservers specified in the configuration file."
-
-        return render_template("message", "Reload", body)
-
-    def reload(self, servers):
-        for s in servers:
-            s = s.removesuffix("/") + "/_reload"
-            yield "<h3>" + s + "</h3>"
-            try:
-                response = requests.get(s).text
-                yield "<p><pre>" + response[:100] + "</pre></p>"
-            except:
-                yield "<p><pre>%s</pre></p>" % traceback.format_exc()
-
-
-@functools.cache
-def local_ip():
-
-    return socket.gethostbyname(socket.gethostname())
-
-
-class _reload(delegate.page):
-    def GET(self):
-        # make sure the request is coming from the LAN.
-        if web.ctx.ip not in ["127.0.0.1", "0.0.0.0"] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
-            return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
-
-        from infogami.plugins.wikitemplates import code as wikitemplates
-
-        wikitemplates.load_all()
-
-        from openlibrary.plugins.upstream import code as upstream
-
-        upstream.reload()
-        return delegate.RawText("done")
 
 
 class any:
@@ -384,6 +320,7 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_su(self, account):
+        raise web.forbidden("Temporarily disabled")
         code = account.generate_login_code()
         # Clear all existing admin cookies before logging in as another user
         clear_cookies()
@@ -468,11 +405,6 @@ class new_accounts_view:
             add_flash_message("info", message)
         # fullpath keeps ?days= and ?show=
         raise web.seeother(web.ctx.fullpath)
-
-
-class ipaddress:
-    def GET(self):
-        return render_template("admin/ip/index")
 
 
 class ipaddress_view:
@@ -691,6 +623,9 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
+        if not get_ol_env().LOCAL_DEV:
+            raise web.forbidden()
+
         import debugpy  # noqa: T100
 
         # Allow other computers to attach to ptvsd at this IP address and port.
@@ -754,16 +689,6 @@ class imports_by_date:
         return render_template("admin/imports_by_date", date=date, summary=summary, items=items)
 
 
-class show_log:
-    def GET(self):
-        i = web.input(name="")
-        logname = i.name
-        filepath = config.get("errorlog", "errors") + "/" + logname + ".html"
-        if os.path.exists(filepath):
-            with open(filepath) as f:
-                return f.read()
-
-
 class pd_dashboard:
     def GET(self):
         dashboard_data = get_pd_dashboard_data()
@@ -772,20 +697,16 @@ class pd_dashboard:
 
 
 def setup():
-    register_admin_page("/admin/git-pull", gitpull, label="git-pull")
-    register_admin_page("/admin/reload", reload, label="Reload Templates")
     register_admin_page("/admin/people", people, label="People")
     register_admin_page("/admin/new-accounts", new_accounts_view, label="Spam review")
     register_admin_page("/admin/people/([^/]*)", people_view, label="View People")
     register_admin_page("/admin/people/([^/]*)/edits", people_edits, label="Edits")
-    register_admin_page("/admin/ip", ipaddress, label="IP")
     register_admin_page("/admin/ip/(.*)", ipaddress_view, label="View IP")
     register_admin_page(r"/admin/stats/(\d\d\d\d-\d\d-\d\d)", stats, label="Stats JSON")
     register_admin_page("/admin/block", block, label="")
     register_admin_page("/admin/attach_debugger", attach_debugger, label="Attach Debugger")
     register_admin_page("/admin/inspect(?:(/.+))?", inspect, label="")
     register_admin_page("/admin/graphs", _graphs, label="")
-    register_admin_page("/admin/logs", show_log, label="")
     register_admin_page("/admin/permissions", permissions, label="")
     register_admin_page("/admin/solr", solr, label="", librarians=True)
     register_admin_page("/admin/sync", sync_ol_ia, label="", librarians=True)

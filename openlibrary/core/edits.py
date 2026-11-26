@@ -1,14 +1,14 @@
 import datetime as dt
 import json
 from types import MappingProxyType
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 from psycopg.errors import UniqueViolation
 from psycopg.types.json import Json
 
 from infogami.utils.view import public
 from openlibrary.core import cache
-from openlibrary.core.async_db import connection, fetch_one
+from openlibrary.core.async_db import connection, fetch_all, fetch_one, fetch_val
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
@@ -28,6 +28,39 @@ def get_status_for_view(status_code: int) -> str:
 
 
 ApiMode = Literal["all", "open", "closed"]
+StatsRole = Literal["reviewer", "submitter"]
+StatsSort = Literal["total", "merged", "declined", "rate", "username"]
+
+# Number of days covered by each date range offered on the stats page.
+# `None` means no lower bound.
+STATS_RANGES: MappingProxyType[str, int | None] = MappingProxyType(
+    {
+        "all": None,
+        "year": 365,
+        "month": 30,
+    }
+)
+
+# Column to sort by -> SQL expression. Only these are ever interpolated into a query.
+STATS_SORT_COLUMNS: MappingProxyType[str, str] = MappingProxyType(
+    {
+        "total": "total",
+        "merged": "merged",
+        "declined": "declined",
+        "rate": "merge_rate",
+        "username": "username",
+    }
+)
+
+
+class MergeStatsRow(TypedDict):
+    username: str
+    total: int
+    merged: int
+    declined: int
+    author_requests: int
+    work_requests: int
+    merge_rate: float
 
 
 class CommunityEditsQueue:
@@ -111,6 +144,85 @@ class CommunityEditsQueue:
         oldb = db.get_db()
         query = f"SELECT DISTINCT reviewer FROM {cls.TABLENAME} WHERE reviewer IS NOT NULL"
         return list(oldb.query(query))
+
+    @classmethod
+    def _stats_where(cls, role: StatsRole, since: dt.date | None) -> str:
+        """WHERE clause for the stats queries: only closed requests are counted,
+        so that merge percentages aren't skewed by requests still waiting."""
+        closed = f"status IN ({cls.STATUS['DECLINED']}, {cls.STATUS['MERGED']})"
+        where = f"{role} IS NOT NULL AND {closed}"
+        if since:
+            where += " AND updated >= %(since)s"
+        return where
+
+    @classmethod
+    async def get_stats(
+        cls,
+        role: StatsRole,
+        since: dt.date | None = None,
+        sort: StatsSort = "total",
+        order: Literal["asc", "desc"] = "desc",
+        limit: int = 25,
+        page: int = 1,
+    ) -> list[MergeStatsRow]:
+        """Per-librarian counts of closed merge requests.
+
+        `role` picks whether requests are grouped by `reviewer` or `submitter`.
+        `since` limits the counts to requests last updated on or after that date.
+        Each row has: username, total, merged, declined, author_requests,
+        work_requests and merge_rate (percentage of requests closed by merging).
+        """
+        if role not in ("reviewer", "submitter"):
+            raise ValueError(f"Unknown stats role: {role}")
+        if sort not in STATS_SORT_COLUMNS:
+            raise ValueError(f"Unknown stats sort: {sort}")
+        sort_column = STATS_SORT_COLUMNS[sort]
+        direction = "ASC" if order == "asc" else "DESC"
+        merged = cls.STATUS["MERGED"]
+        declined = cls.STATUS["DECLINED"]
+
+        query = f"""
+            SELECT {role} AS username,
+                count(*) AS total,
+                count(*) FILTER (WHERE status = {merged}) AS merged,
+                count(*) FILTER (WHERE status = {declined}) AS declined,
+                count(*) FILTER (WHERE mr_type = {cls.TYPE["AUTHOR_MERGE"]}) AS author_requests,
+                count(*) FILTER (WHERE mr_type = {cls.TYPE["WORK_MERGE"]}) AS work_requests,
+                count(*) FILTER (WHERE status = {merged}) * 100.0 / count(*) AS merge_rate
+            FROM {cls.TABLENAME}
+            WHERE {cls._stats_where(role, since)}
+            GROUP BY {role}
+            ORDER BY {sort_column} {direction}, username ASC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """
+        rows = await fetch_all(
+            query,
+            {
+                "since": since.isoformat() if since else None,
+                "limit": limit,
+                "offset": limit * (max(page, 1) - 1),
+            },
+        )
+        return [
+            {
+                "username": row["username"],
+                "total": int(row["total"]),
+                "merged": int(row["merged"]),
+                "declined": int(row["declined"]),
+                "author_requests": int(row["author_requests"]),
+                "work_requests": int(row["work_requests"]),
+                "merge_rate": float(row["merge_rate"]),
+            }
+            for row in rows
+        ]
+
+    @classmethod
+    async def get_stats_count(cls, role: StatsRole, since: dt.date | None = None) -> int:
+        """Number of librarians `get_stats` would list across all pages."""
+        if role not in ("reviewer", "submitter"):
+            raise ValueError(f"Unknown stats role: {role}")
+        query = f"SELECT count(DISTINCT {role}) AS count FROM {cls.TABLENAME} WHERE {cls._stats_where(role, since)}"
+        return int(await fetch_val(query, {"since": since.isoformat() if since else None}))
 
     @classmethod
     def where_clause(cls, mode: ApiMode, **kwargs):

@@ -1,5 +1,6 @@
 """Tests for the /cdn/archive.org JS proxy endpoint (FastAPI)."""
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -8,17 +9,15 @@ import pytest
 
 @pytest.fixture
 def mock_upstream():
-    """Patch httpx.AsyncClient so no real network calls are made."""
+    """Patch the shared httpx client so no real network calls are made."""
     mock_response = MagicMock(spec=httpx.Response)
     mock_response.content = b"/* mocked JS */"
     mock_response.raise_for_status = MagicMock()
 
     mock_client = AsyncMock()
-    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-    mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(return_value=mock_response)
 
-    with patch("openlibrary.fastapi.cdn.httpx.AsyncClient", return_value=mock_client):
+    with patch("openlibrary.fastapi.cdn.get_async_session", return_value=mock_client):
         yield mock_client, mock_response
 
 
@@ -102,4 +101,17 @@ class TestIaJsCdn:
         mock_client, _ = mock_upstream
         fastapi_client.get("/cdn/archive.org/donate.js")
 
-        mock_client.get.assert_called_once_with("https://archive.org/includes/donate.js")
+        mock_client.get.assert_called_once_with("https://archive.org/includes/donate.js", timeout=10.0)
+
+
+def test_get_async_session_reuses_one_client_per_loop():
+    """Requests on one event loop share a client instead of building one (and its TLS context) each time."""
+    from openlibrary.fastapi import cdn  # noqa: PLC0415
+
+    async def get_twice():
+        first, second = cdn.get_async_session(), cdn.get_async_session()
+        await first.aclose()
+        return first, second
+
+    first, second = asyncio.run(get_twice())
+    assert first is second

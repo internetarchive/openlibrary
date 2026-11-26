@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
 
-import httpx
 import web
 from markupsafe import escape
 
@@ -46,23 +45,19 @@ from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
 )
-from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.search import execute_solr_query_async
 from openlibrary.plugins.worksearch.sort_menu import SortMenu
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import get_request_lang, req_context, set_context_from_legacy_web_py, site
-from openlibrary.utils.solr import (
-    DEFAULT_PASS_TIME_ALLOWED,
-    DEFAULT_SOLR_TIMEOUT_SECONDS,
-    SolrRequestLabel,
-)
 
 if TYPE_CHECKING:
     from requests import Response
 
     from openlibrary.plugins.worksearch.schemes import SearchScheme
     from openlibrary.solr.solr_types import SolrDocument
+    from openlibrary.utils.solr import SolrRequestLabel
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -348,33 +343,6 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
-async def execute_solr_query_async(
-    solr_path: str,
-    params: dict | list[tuple[str, Any]],
-    _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
-    _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
-) -> httpx.Response | None:
-    url = solr_path
-    if params:
-        url += "&" if "?" in url else "?"
-        url += urlencode(params)
-
-    try:
-        response = await get_solr().raw_request(
-            solr_path,
-            urlencode(params),
-            _timeout=_timeout,
-            _pass_time_allowed=_pass_time_allowed,
-        )
-    except httpx.HTTPError:
-        logger.exception("Failed solr query")
-        return None
-    return response
-
-
-execute_solr_query = async_bridge.wrap(execute_solr_query_async)
-
-
 # Gates work_search.html's Search Inside band, mirroring the modal's gate.
 public(is_passage_query)
 
@@ -479,9 +447,9 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             params.append(("fq", rewrite() if callable(rewrite) else rewrite))
 
     for field in facet_params:
+        values = param[field]
         if field == "author_facet":
             field = "author_key"
-        values = param[field]
         if isinstance(values, str):
             values = [values]
         non_empty = [val for val in values if val]
@@ -1282,7 +1250,11 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         if "env" not in web.ctx:
             delegate.fakeload()
             set_context_from_legacy_web_py()
-        lst = cast(List, site.get().get(key))
+        list_doc = site.get().get(key)
+        if list_doc is None:
+            return []
+
+        lst = cast(List, list_doc)
         return list(itertools.islice(lst.get_work_keys(), offset, offset + limit))
 
     if list_key_match := re.match(r"^(/people/[^/]+)?/lists/OL\d+L", q):

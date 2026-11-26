@@ -120,7 +120,7 @@ The three tests:
 - Put each fix in its own commit, and explain it in the description (see [A port changes nothing the user can see](#a-port-changes-nothing-the-user-can-see)).
 - Keep it in draft until it's ready for review.
 - After you merge master, regenerate `messages.pot`.
-- If your PR adds, moves or removes a route (any new path or method FastAPI serves), commit the regenerated Kubernetes route list `conf/k8s/fastapi-routes.yaml`. `openlibrary/tests/fastapi/test_fastapi_routes.py` fails while it is stale and prints the command to run. See #14384.
+- If your PR adds, moves or removes a route (any new path or method FastAPI serves), commit the regenerated route lists: `conf/k8s/fastapi-routes.yaml` for Kubernetes and `conf/haproxy/fastapi-routes-*.txt` for the production HAProxy. `openlibrary/tests/fastapi/test_fastapi_routes.py` fails while they are stale and prints the command to run. See #14384.
 
 ## Where code goes
 

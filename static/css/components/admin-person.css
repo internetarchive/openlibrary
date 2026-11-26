@@ -1,0 +1,38 @@
+/* /admin/people/<username>; openlibrary/templates/admin/people/view.html */
+.admin-person-page .admin-person__status {
+  margin-bottom: var(--spacing-stack-md);
+}
+.admin-person-page span.status {
+  font-weight: var(--font-weight-bold);
+}
+.admin-person-page span.invalid {
+  padding-left: var(--spacing-xl);
+  float: right;
+}
+.admin-person-page span.time {
+  font-weight: var(--font-weight-bold);
+}
+.admin-person-page input.big {
+  font-size: inherit;
+  width: 20em;
+}
+.admin-person-page .tag {
+  padding: var(--spacing-inset-xs);
+  background: var(--color-surface-header);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-text-muted);
+}
+.admin-person-page .tag.active {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-text);
+}
+@media (hover: hover) {
+  .admin-person-page .tag:hover {
+    text-decoration: underline;
+    color: var(--color-text);
+  }
+}

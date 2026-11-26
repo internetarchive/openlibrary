@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 import './OlToast.js';
 
 /** Vertical gap between stacked toasts. */
@@ -48,7 +49,7 @@ export class OlToastRegion extends LitElement {
 
     constructor() {
         super();
-        this.labelRegion = 'Notifications';
+        this.labelRegion = _('Notifications');
         this._expanded = false;
     }
 

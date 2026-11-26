@@ -31,7 +31,7 @@ from openlibrary.accounts.model import HUMAN_CHECK_EXEMPT_PATHS, check_human_coo
 from openlibrary.core.shell.context import render_site
 from openlibrary.core.shell.request import FLASH_COOKIE, PageMeta, ShellRequest
 from openlibrary.core.shell.user import ShellUser, load_shell_user
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import req_context, site
 
 if TYPE_CHECKING:
     from fastapi.params import Depends as DependsParam
@@ -144,8 +144,8 @@ class SitePageRoute(APIRoute):
 
     Before the route runs, it rejects forged ``vf`` and session cookies, as
     web.py does for every page. After, it loads the user for the shell only if
-    the route returned a ``SitePage`` (a redirect or an error needs none),
-    reusing ``CurrentUserDep``'s if the route took it. Headers and cookies set on
+    the route returned a ``SitePage`` (a redirect or an error needs none) and
+    the request has a session, reusing ``CurrentUserDep``'s if the route took it. Headers and cookies set on
     FastAPI's injected ``Response`` are added to whatever the route returns (see
     ``_copy_headers``); its status code isn't. Every
     route answers HEAD as well as GET (as web.py does) and is left out of the
@@ -171,6 +171,10 @@ class SitePageRoute(APIRoute):
             if isinstance(response, SitePage):
                 if hasattr(request.state, "current_user"):
                     user = request.state.current_user
+                elif site.get()._conn.get_auth_token() is None:
+                    # No session, so load_shell_user() would return None without I/O: skip the worker thread.
+                    # Keeps visitors' pages, /verify_human above all, from queueing for a thread when the pool is busy.
+                    user = None
                 else:
                     user = await run_in_threadpool(get_shell_user, request)
                 # The shell is built from values loaded already, so it does no I/O on the event loop.

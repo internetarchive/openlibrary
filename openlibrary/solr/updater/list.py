@@ -2,11 +2,10 @@ import logging
 import re
 from collections import defaultdict
 from functools import cached_property
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import httpx
 
-from openlibrary.core.models import SubjectType
 from openlibrary.plugins.openlibrary.lists import (
     SeedType,
     seed_key_to_seed_type,
@@ -15,6 +14,9 @@ from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
 from openlibrary.utils import normalize_subject_name
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import SubjectType
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -95,7 +97,7 @@ class ListSolrBuilder(AbstractSolrBuilder):
 
         doc: dict = {}
         for facet, counts in self._solr_reply["facet_counts"]["facet_fields"].items():
-            subject_type = cast(SubjectType, facet.split("_")[0])
+            subject_type = cast("SubjectType", facet.split("_")[0])
             subjects = [s for s, count in counts]
             doc |= {
                 subject_type: subjects,

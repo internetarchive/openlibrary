@@ -6,7 +6,7 @@ import { getLists, subscribeToLists, loadLists, removeListSeeds } from './utils/
 import { redirectToLogin } from './utils/books-api.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { translate } from './utils/labels.js';
+import { translate } from '../../plugins/openlibrary/js/i18n.js';
 
 export const DEFAULT_LABELS = {
     onYourLists: 'On your lists',

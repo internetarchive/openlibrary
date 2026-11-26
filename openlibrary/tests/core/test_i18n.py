@@ -1,9 +1,12 @@
+import functools
 from io import BytesIO
 
 import pytest
 import web
 from babel.messages.catalog import Catalog
-from babel.messages.pofile import write_po
+from babel.messages.mofile import write_mo
+from babel.messages.pofile import read_po, write_po
+from babel.support import Translations
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
@@ -273,3 +276,106 @@ class Test_install_translations:
         (tmp_path / "src").mkdir()
         with pytest.raises(ValueError, match="no locales"):
             i18n.install_translations(str(tmp_path / "src"), str(tmp_path))
+
+
+def test_extract_vue_reads_the_script_block():
+    source = b"""<template>
+    <p>{{ strings.heading }}</p>
+</template>
+
+<script>
+import { gettext } from './i18n.js';
+// NOTE: The page heading.
+const heading = gettext('Scan a barcode');
+</script>
+"""
+    found = list(i18n.extract_vue(BytesIO(source), {"gettext": None}, ["NOTE:"], {}))
+
+    assert found == [(8, "gettext", "Scan a barcode", ["NOTE: The page heading."])]
+
+
+def test_extract_messages_reads_lit_templates_and_vue_scripts(tmp_path, monkeypatch):
+    """Calls inside a Lit tagged template are found, and so are a .vue file's (in any-case <script> tags)."""
+    source = tmp_path / "components"
+    source.mkdir()
+    (source / "OlThing.js").write_text("const label = gettext('Outside');\nconst t = html`<b>${gettext('In a template')}</b>`;\n")
+    (source / "Thing.vue").write_text("<template><p>{{ x }}</p></template>\n<SCRIPT>\nconst x = gettext('In a script');\n</SCRIPT >\n")
+    monkeypatch.setattr(i18n, "root", str(tmp_path))
+
+    i18n.extract_messages([str(source)], verbose=False, skip_untracked=False)
+
+    with open(tmp_path / "messages.pot", "rb") as f:
+        assert {message.id for message in read_po(f) if message.id} == {"Outside", "In a template", "In a script"}
+
+
+def test_extract_vue_rejects_calls_in_the_template():
+    """Including after a nested <template>."""
+    source = b"<template><div><template v-if='x'><p>a</p></template><p>{{ gettext('Never extracted') }}</p></div></template>\n<script>\nconst x = 1;\n</script>\n"
+
+    with pytest.raises(ValueError, match="not <template>"):
+        list(i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {}))
+
+
+def test_extract_vue_reads_every_script_block():
+    source = b"<script>\nconst a = gettext('First');\n</script>\n<script setup>\nconst b = gettext('Second');\n</script>\n<template><p>{{ a }}</p></template>\n"
+
+    assert [(m[0], m[2]) for m in i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {})] == [(2, "First"), (5, "Second")]
+
+
+def test_extract_vue_reads_html_strings_in_the_script():
+    source = b"<template><p>{{ x }}</p></template>\n<script>\nconst html = '</template>';\nconst x = gettext('In the script');\n</script>\n"
+
+    assert [m[2] for m in i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {})] == ["In the script"]
+
+
+def test_javascript_msgids_are_the_strings_in_the_javascript_sources(tmp_path, monkeypatch):
+    (tmp_path / "openlibrary" / "i18n").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "components" / "lit").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "components" / "BarcodeScanner.vue").write_text("<script>\nconst a = gettext('Advanced');\n</script>\n")
+    (tmp_path / "openlibrary" / "components" / "lit" / "OlShelf.js").write_text("const n = ngettext('%(count)s list', '%(count)s lists', count);\n")
+    (tmp_path / "openlibrary" / "plugins" / "openlibrary" / "js").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "plugins" / "openlibrary" / "js" / "edit.js").write_text("const a = gettext('Advanced');\n")
+    monkeypatch.setattr(i18n, "root", str(tmp_path / "openlibrary" / "i18n"))
+
+    assert sorted(i18n._javascript_msgids(), key=str) == [("%(count)s list", "%(count)s lists"), "Advanced"]
+
+
+@pytest.mark.parametrize(
+    ("lang", "advanced", "list_forms", "expected_list"),
+    [
+        ("es", "Avanzado", ("%(count)s lista", "%(count)s listas"), {"one": "%(count)s lista", "other": "%(count)s listas"}),
+        # Japanese has only the "other" plural category.
+        ("ja", "詳細", ("%(count)s 件のリスト",), {"other": "%(count)s 件のリスト"}),
+    ],
+)
+def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, lang, advanced, list_forms, expected_list):
+    catalog = Catalog(locale=lang)
+    catalog.add("Advanced", advanced)
+    catalog.add(("%(count)s list", "%(count)s lists"), list_forms)
+    catalog.add("Untranslated", "")
+    mo = BytesIO()
+    write_mo(mo, catalog)
+    mo.seek(0)
+    monkeypatch.setattr(i18n, "load_translations", lambda lang: Translations(mo))
+    msgids = ["Advanced", ("%(count)s list", "%(count)s lists"), "Untranslated"]
+
+    assert i18n.javascript_catalog(lang, msgids) == {"Advanced": advanced, "%(count)s list": expected_list}
+
+
+def test_compile_translations_writes_the_javascript_catalog(tmp_path, monkeypatch):
+    i18n_root = tmp_path / "openlibrary" / "i18n"
+    (i18n_root / "es").mkdir(parents=True)
+    (tmp_path / "openlibrary" / "components").mkdir()
+    (tmp_path / "openlibrary" / "components" / "BarcodeScanner.vue").write_text("<script>\nconst a = gettext('Advanced');\n</script>\n")
+    catalog = Catalog(locale="es")
+    catalog.add("Advanced", "Avanzado")
+    catalog.add("Edit", "Editar")
+    with open(i18n_root / "es" / "messages.po", "wb") as f:
+        write_po(f, catalog)
+    monkeypatch.setattr(i18n, "root", str(i18n_root))
+    # A fresh cache, so this reads the .mo it just compiled.
+    monkeypatch.setattr(i18n, "load_translations", functools.lru_cache(i18n.load_translations.__wrapped__))
+
+    i18n.compile_translations(["es"])
+
+    assert (tmp_path / "static" / "build" / "i18n" / "es.js").read_text() == 'window.OL_I18N = {"Advanced": "Avanzado"};\n'
