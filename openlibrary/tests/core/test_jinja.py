@@ -22,6 +22,7 @@ from openlibrary.core import jinja as jinja_module
 from openlibrary.core import shell as shell_module
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.shell import PageMeta, ShellRequest
+from openlibrary.core.shell.head import _javascript_catalog_url
 from openlibrary.i18n import load_translations
 from openlibrary.plugins.upstream.code import static_url as upstream_static_url
 from openlibrary.utils.request_context import req_context
@@ -518,6 +519,16 @@ def test_head_loads_the_javascript_catalog(monkeypatch, request_context_fixture,
         assert expected in html
     else:
         assert "build/i18n/" not in html
+
+
+def test_javascript_catalog_url_is_none_before_make_i18n(monkeypatch):
+    """No file yet (a checkout that hasn't run ``make i18n``): the page loads no catalog and shows English."""
+
+    def missing(path):
+        raise FileNotFoundError(path)
+
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", missing)
+    assert _javascript_catalog_url("es") is None
 
 
 def test_head_omits_analytics_for_bots(monkeypatch, request_context_fixture):

@@ -153,22 +153,21 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 
 
 def extract_vue(fileobj, keywords, comment_tags, options):
-    """Extract i18n messages from a Vue single-file component's first ``<script>`` block.
+    """Extract i18n messages from a Vue single-file component's ``<script>`` blocks.
 
     Babel's JavaScript extractor can't read the ``<template>``, so a ``.vue`` file calls
     ``_()`` in its script and the template shows the result. A call anywhere outside the
-    script is an error, since it would never be translated.
+    scripts is an error, since it would never be translated.
     """
     source = fileobj.read().decode("utf-8")
-    script = re.search(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE)
-    outside_script = source[: script.start()] + source[script.end() :] if script else source
-    if re.search(r"\b(?:_|n?gettext)\(", outside_script):
+    scripts = list(re.finditer(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE))
+    outside_scripts = re.sub(r"<script[^>]*>.*?</script[^>]*>", "", source, flags=re.DOTALL | re.IGNORECASE)
+    if re.search(r"\b(?:_|n?gettext)\(", outside_scripts):
         raise ValueError(f"{getattr(fileobj, 'name', 'a .vue file')}: call _() in <script>, not <template>, or it won't be extracted")
-    if not script:
-        return
-    offset = source[: script.start(1)].count("\n")
-    for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):
-        yield lineno + offset, funcname, message, comments
+    for script in scripts:
+        offset = source[: script.start(1)].count("\n")
+        for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):
+            yield lineno + offset, funcname, message, comments
 
 
 # Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location

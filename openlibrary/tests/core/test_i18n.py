@@ -316,6 +316,12 @@ def test_extract_vue_rejects_calls_in_the_template():
         list(i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {}))
 
 
+def test_extract_vue_reads_every_script_block():
+    source = b"<script>\nconst a = gettext('First');\n</script>\n<script setup>\nconst b = gettext('Second');\n</script>\n<template><p>{{ a }}</p></template>\n"
+
+    assert [(m[0], m[2]) for m in i18n.extract_vue(BytesIO(source), {"gettext": None}, [], {})] == [(2, "First"), (5, "Second")]
+
+
 def test_extract_vue_reads_html_strings_in_the_script():
     source = b"<template><p>{{ x }}</p></template>\n<script>\nconst html = '</template>';\nconst x = gettext('In the script');\n</script>\n"
 
