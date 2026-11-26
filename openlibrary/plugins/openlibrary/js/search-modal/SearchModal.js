@@ -11,11 +11,10 @@ import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
-import { isWorkKey, orphanedEditionKey, readLabels } from '../book-state.js';
+import { isWorkKey, orphanedEditionKey } from '../book-state.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
-    availabilityOptionsFromElement,
     DEFAULT_AVAILABILITY,
     DEFAULT_LANGUAGE_OPTIONS,
     DEFAULT_SEARCH_MODAL_STRINGS,
@@ -26,7 +25,6 @@ import {
     recentSearchUsedAllWords,
     removeRecentSearch,
     saveRecentSearch,
-    searchModalStringsFromElement,
     siteLanguageToMarc,
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
@@ -1122,14 +1120,8 @@ export class SearchModal extends LitElement {
         this._langsLoading = false;
         this._navigatingKey = null;
 
-        // Availability options. Defaults to the built-in English list; the
-        // localized list (from the trigger's data-i18n) is set in
-        // initSearchModal before the modal first renders.
         this._availabilityOptions = AVAILABILITY_OPTIONS;
 
-        // Chrome strings (labels, placeholders, status messages). Defaults to
-        // English; the translated set (from the trigger's data-i18n-ui) is set
-        // in initSearchModal before the modal first renders.
         this._i18n = DEFAULT_SEARCH_MODAL_STRINGS;
 
         // Curated set shown instantly; replaced by the real catalogue list
@@ -1210,7 +1202,6 @@ export class SearchModal extends LitElement {
         // For the rows' shelf buttons. State is keyed by work OLID and outlives
         // the query, so a book seen again never refetches. Filled on intent.
         this._userKey = '';
-        this._shelfLabels = null;
         this._readingState = new Map();
         this._stateRequested = new Set();
         this._shelfStateWanted = false;
@@ -2135,14 +2126,7 @@ export class SearchModal extends LitElement {
     _renderShelfButton(work, edition, title) {
         const orphan = orphanedEditionKey(work.key);
         if (orphan) {
-            return html`<ol-shelf-button
-                variant="outline"
-                lists-only
-                work-key=${orphan}
-                book-title=${title}
-                user-key=${this._userKey}
-                .labels=${this._shelfLabels || {}}
-            ></ol-shelf-button>`;
+            return html`<ol-shelf-button variant="outline" lists-only work-key=${orphan} book-title=${title} user-key=${this._userKey}></ol-shelf-button>`;
         }
         const state = this._readingState.get(olidOf(work.key));
         return html`<ol-shelf-button
@@ -2151,7 +2135,6 @@ export class SearchModal extends LitElement {
             edition-key=${ifDefined(edition?.key ? olidOf(edition.key) : undefined)}
             book-title=${title}
             user-key=${this._userKey}
-            .labels=${this._shelfLabels || {}}
             .shelf=${state?.shelf ?? null}
             .rating=${state?.rating ?? null}
             .readDate=${state?.read_date ?? null}
@@ -2788,12 +2771,6 @@ export function initSearchModal(trigger) {
 
     const modal = document.createElement('ol-search-modal');
 
-    // Translated strings are built in openlibrary/core/shell/search_modal.py and serialized
-    // into the trigger's data-i18n (availability options) and data-i18n-ui
-    // (chrome) attributes. Apply them before the modal mounts so the first
-    // render is already localized.
-    modal._availabilityOptions = availabilityOptionsFromElement(trigger);
-    modal._i18n = searchModalStringsFromElement(trigger);
     // The patron's site language as a MARC code, matching Solr's `language`
     // field so the modal can compare it against a readable edition's language.
     // The trigger carries the 2-letter UI code (data-search-lang); map it to
@@ -2803,9 +2780,8 @@ export function initSearchModal(trigger) {
     // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
     // printdisabled scans for these patrons, matching the readable count.
     modal._printDisabled = trigger.dataset.printDisabled === 'true';
-    // For the rows' shelf buttons (shell/base.html.jinja, core/shell/shelf_labels.py).
+    // For the rows' shelf buttons.
     modal._userKey = document.body.dataset.userKey || '';
-    modal._shelfLabels = readLabels();
 
     // Mount only once ol-components.js has defined ol-dialog: this bundle can run
     // first, and an un-upgraded dialog would let the [autofocus] input scroll the page.

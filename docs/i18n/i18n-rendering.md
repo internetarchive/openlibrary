@@ -37,7 +37,9 @@ Configured in `openlibrary/core/jinja.py` via `get_jinja_env()`:
 
 **New templates should use Jinja (`.jinja`).** Templetor is maintained for backward compatibility only.
 
-### The `data-i18n` bridge (for JavaScript/Lit)
+### The `data-i18n` bridge (for older JavaScript/Lit code)
+
+New client-side strings call `_()` / `ngettext()` from `i18n.js` instead (see [i18n.md](i18n.md)). The bridge below is how components translated before that existed work.
 
 JavaScript cannot call `$_()`. The `ugettext` JS helper in the codebase is a **pass-through only** — strings hardcoded in JS ship in English everywhere.
 
@@ -47,10 +49,10 @@ JavaScript cannot call `$_()`. The `ugettext` JS helper in the codebase is a **p
 plain `gettext` leaves client-side `sprintf` placeholders (`%s`) intact, while
 Jinja's formatting `_()` would consume them. Its docstring must name which JS
 file consumes the strings and which JS constant holds the English defaults
-(see `openlibrary/core/shell/search_modal.py`):
+(for example, a `build_widget_i18n()` helper):
 
 ```python
-# openlibrary/core/shell/search_modal.py
+# openlibrary/core/shell/widget.py
 "strings": {
     "inputPlaceholder": _("Search books, authors…"),
     "closeAria":        _("Close search"),
@@ -66,33 +68,33 @@ dict and emits it with `$json_encode` — see `type/edition/notes_modal_i18n.htm
 ```jinja
 <button
   class="search-bar-trigger"
-  data-i18n-ui="{{ layout.header.search_modal.strings | tojson | force_escape }}"
+  data-i18n="{{ layout.header.widget.strings | tojson | force_escape }}"
 ></button>
 ```
 
 `tojson` makes the JSON HTML-safe and `force_escape` protects the quotes inside
 the attribute. In a Templetor template, render the partial with `$:` instead —
 without the colon, Templetor HTML-escapes the JSON. For two independent payloads
-on one element, use two attribute names (`data-i18n` and `data-i18n-ui`).
+on one element, use two attribute names.
 
 **3. Keep English defaults in the JS module** — they are the fallback AND the extraction source:
 
 ```js
-export const DEFAULT_SEARCH_MODAL_STRINGS = {
+export const DEFAULT_STRINGS = {
     inputPlaceholder: 'Search books, authors…',
     closeAria: 'Close search',
     noResults: 'No results found',
 };
 
-export function searchModalStringsFromElement(el) {
+export function stringsFromElement(el) {
     let overrides = null;
     try {
-        const raw = el?.dataset?.i18nUi;
+        const raw = el?.dataset?.i18n;
         if (raw) overrides = JSON.parse(raw);
     } catch { /* fall through to defaults */ }
     return overrides
-        ? { ...DEFAULT_SEARCH_MODAL_STRINGS, ...overrides }
-        : DEFAULT_SEARCH_MODAL_STRINGS;
+        ? { ...DEFAULT_STRINGS, ...overrides }
+        : DEFAULT_STRINGS;
 }
 ```
 
@@ -101,7 +103,7 @@ Spreading overrides over defaults means partial translations never blank out a s
 **4. Use the merged strings to build DOM:**
 
 ```js
-const strings = searchModalStringsFromElement(trigger);
+const strings = stringsFromElement(trigger);
 input.placeholder = strings.inputPlaceholder;
 ```
 
@@ -171,11 +173,7 @@ for readability, with multiple HTML elements.
 |------|---------|
 | `openlibrary/core/jinja.py` | Jinja environment setup; `install_gettext_callables` |
 | `openlibrary/i18n/` | `messages.pot` + per-locale `<lang>/` directories |
-| `openlibrary/core/shell/search_modal.py` | Builds the search modal's client-fill strings in Python (keeps `%s` for browser-side sprintf) |
-| `openlibrary/core/shell/shelf_labels.py` | Builds the shelf buttons' client-fill strings in Python, including plurals |
 | `openlibrary/templates/type/edition/notes_modal_i18n.html` | Reference Templetor `_i18n.html` partial |
-| `openlibrary/plugins/openlibrary/js/search-modal/constants.js` | Reference JS reader + English defaults |
-| `openlibrary/templates/shell/header.html.jinja` | How client-fill payloads are wired onto trigger buttons |
 | `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using all i18n patterns |
 | `openlibrary/tests/core/test_jinja.py` | `test_translations_via_gettext_callables` — all four paths |
 | `tests/unit/js/searchModalConstants.test.js` | Tests for the reader/merge logic |

@@ -13,7 +13,8 @@
  * `labels` blob straight down — extra keys a child doesn't know are harmless,
  * so one server-rendered blob can feed a whole subtree.
  *
- * A label can also be a plural set: an object keyed by CLDR plural category
+ * A label can be a function of the count (`count => ngettext(...)`), which
+ * `translate` calls with `vars.count`, or a plural set: an object keyed by CLDR plural category
  * (`one`, `other`, and for languages that need them `zero`, `two`, `few`,
  * `many`). `translate` picks the form for `vars.count` with the page
  * language's rules, so a translation blob can carry every form its language
@@ -75,7 +76,8 @@ export function ngettext(singular, pluralForm, count) {
  */
 export function translate(labels, defaults, key, vars) {
     let s = labels?.[key] ?? defaults?.[key] ?? key;
-    if (typeof s === 'object') s = plural(s, vars?.count ?? 0);
+    if (typeof s === 'function') s = s(vars?.count ?? 0);
+    else if (typeof s === 'object') s = plural(s, vars?.count ?? 0);
     return vars ? fmt(s, vars) : s;
 }
 

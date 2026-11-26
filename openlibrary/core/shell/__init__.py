@@ -16,7 +16,6 @@ from openlibrary.core.shell.head import HeadContext, SentryContext
 from openlibrary.core.shell.header import HeaderContext, HeaderUser
 from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
 from openlibrary.core.shell.request import PageMeta, ShellRequest
-from openlibrary.core.shell.search_modal import SearchModalContext
 from openlibrary.core.shell.user import ShellUser, load_shell_user
 
 __all__ = [
@@ -28,7 +27,6 @@ __all__ = [
     "LayoutContext",
     "NavLink",
     "PageMeta",
-    "SearchModalContext",
     "SentryContext",
     "ShellRequest",
     "ShellUser",

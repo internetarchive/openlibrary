@@ -45,4 +45,11 @@ describe('_ and ngettext', () => {
         const { _ } = await withCatalog(null);
         expect(_('Advanced')).toBe('Advanced');
     });
+
+    it('calls a function label with the count and fills its placeholders', async () => {
+        const { ngettext, translate } = await withCatalog({ '%(count)s item': { one: '%(count)s elemento', other: '%(count)s elementos' } });
+        const defaults = { items: count => ngettext('%(count)s item', '%(count)s items', count) };
+        expect(translate(null, defaults, 'items', { count: 1 })).toBe('1 elemento');
+        expect(translate(null, defaults, 'items', { count: 4 })).toBe('4 elementos');
+    });
 });

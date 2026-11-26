@@ -14,7 +14,6 @@ from openlibrary.core.shell import (
     HeaderContext,
     LayoutContext,
     PageMeta,
-    SearchModalContext,
     SentryContext,
     ShellRequest,
     ShellUser,
@@ -119,7 +118,6 @@ def test_layout_context_is_frozen():
             my_books_props={},
             browse_links=[],
             browse_featured_count=4,
-            search_modal=SearchModalContext(availability={}, strings={}),
         ),
         head=HeadContext(
             title="",
@@ -137,7 +135,6 @@ def test_layout_context_is_frozen():
             sentry=None,
             javascript_catalog_url=None,
         ),
-        shelf_button_labels_json="{}",
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
@@ -302,20 +299,6 @@ def test_layout_build_header_navigation(request_context_fixture):
     assert len(layout.header.browse_links) > 0
     assert layout.header.browse_featured_count == 4
     assert layout.ol_env in ("production", "development", "testing")
-
-
-def test_layout_build_search_modal_preserves_client_fill_placeholders(request_context_fixture):
-    """Client-fill strings must keep their ``%s`` for browser-side ``sprintf``.
-
-    Building them in Python (rather than a Jinja template) is what keeps Jinja's
-    formatting ``_`` away from placeholders it cannot fill.
-    """
-    request_context_fixture(lang="en")
-    modal = _build().header.search_modal
-    assert modal.availability["all"]["label"] == "All books"
-    assert modal.strings["seeOne"] == "See %s book"
-    assert modal.strings["resultsAnnounce"] == "Showing %(shown)s of %(total)s results"
-    assert modal.strings["removeRecent"] == 'Remove "%s" from recent searches'
 
 
 def test_layout_build_head_defaults(request_context_fixture):

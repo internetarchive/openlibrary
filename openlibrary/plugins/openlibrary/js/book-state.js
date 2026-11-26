@@ -8,8 +8,7 @@
  *
  * It also fills in what the server could not. Carousel buttons arrive without
  * state (their HTML is cached, or fetched lazily): they get the
- * reader's key from <body data-user-key>, labels from the hidden input in
- * shell/base.html.jinja, and their state from one batched request, repeated for
+ * reader's key from <body data-user-key> and their state from one batched request, repeated for
  * buttons that arrive later. They stay pending until that lands, so nobody can
  * act on a shelf we have not read yet.
  *
@@ -21,7 +20,7 @@
  * @module book-state
  */
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
-import { translate } from './i18n.js';
+import { _, translate } from './i18n.js';
 import { debounce } from './nonjquery_utils.js';
 import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';
@@ -30,17 +29,16 @@ import { buildPartialsUrl } from './utils';
 export const BATCH_SIZE = 100;
 /** How long insertions are pooled before a pass. Long enough to outlast a lazy carousel's fetch. */
 export const HYDRATE_DELAY = 100;
-const LABELS_INPUT = 'input[name="shelf-button-i18n-strings"]';
-/** English fallbacks for the left-shelf notice; core/shell/shelf_labels.py carries the translations. */
+/** The left-shelf notice's strings, keyed like the shelf components' labels. */
 const NOTICE_LABELS = {
-    wantToRead: 'Want to Read',
-    currentlyReading: 'Currently Reading',
-    alreadyRead: 'Already Read',
-    stoppedReading: 'Stopped Reading',
-    movedTo: 'Moved to %(shelf)s',
-    removedFromShelf: 'Removed from shelf',
-    undo: 'Undo',
-    errorGeneric: 'Something went wrong. Please try again.'
+    wantToRead: _('Want to Read'),
+    currentlyReading: _('Currently Reading'),
+    alreadyRead: _('Already Read'),
+    stoppedReading: _('Stopped Reading'),
+    movedTo: _('Moved to %(shelf)s'),
+    removedFromShelf: _('Removed from shelf'),
+    undo: _('Undo'),
+    errorGeneric: _('Something went wrong. Please try again.')
 };
 
 const WORK_OLID = /^OL\d+W$/;
@@ -64,28 +62,12 @@ export function orphanedEditionKey(key) {
  */
 export const isWorkKey = key => WORK_OLID.test((key || '').split('/').pop());
 
-/** @type {Object<string, string|Object<string, string>>|null} */
-let labels = null;
-/** Buttons that have their labels and user key. */
+/** Buttons that have their user key. */
 const seen = new WeakSet();
 /** Buttons whose state has been fetched, or is in flight. */
 const requested = new WeakSet();
 /** Whether the document listeners are attached; a pending pass is dropped once they are not. */
 let listening = false;
-
-/**
- * The labels shell/base.html.jinja rendered.
- * @returns {Object<string, string|Object<string, string>>|null}
- */
-export function readLabels() {
-    const input = document.querySelector(LABELS_INPUT);
-    if (!input) return null;
-    try {
-        return JSON.parse(input.value);
-    } catch {
-        return null;
-    }
-}
 
 /** @returns {string} The reader's key, e.g. "/people/foo", or "" when logged out. */
 function userKey() {
@@ -120,8 +102,7 @@ export function applyState(button, state) {
  * @returns {string}
  */
 function t(key, vars) {
-    labels ??= readLabels();
-    return translate(labels, NOTICE_LABELS, key, vars);
+    return translate(null, NOTICE_LABELS, key, vars);
 }
 
 /**
@@ -290,7 +271,7 @@ async function fetchState(buttons) {
 }
 
 /**
- * Give every button its labels and the reader's key, then fetch state for the ones the server left without it.
+ * Give every button the reader's key, then fetch state for the ones the server left without it.
  * @returns {Promise<void>}
  */
 export async function hydrate() {
@@ -299,8 +280,6 @@ export async function hydrate() {
     for (const button of document.querySelectorAll('ol-shelf-button')) {
         if (!seen.has(button)) {
             seen.add(button);
-            labels ??= readLabels();
-            if (labels) button.labels = labels;
             if (key && !button.hasAttribute('user-key')) button.userKey = key;
         }
         // An edition with no work has no shelf to ask about, only lists to
@@ -341,7 +320,6 @@ export function initBookState() {
 
 /** For tests. */
 export function resetBookState() {
-    labels = null;
     listening = false;
     document.removeEventListener('ol-book-state-change', onStateChange);
     document.removeEventListener('ol-book-check-in', onCheckIn);

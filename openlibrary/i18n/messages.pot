@@ -170,7 +170,7 @@ msgstr ""
 msgid "View Batch Status"
 msgstr ""
 
-#: batch_import_card.html openlibrary/core/shell/shelf_labels.py
+#: batch_import_card.html lit/OlShelfActions.js
 #, python-format
 msgid "%(count)s item"
 msgid_plural "%(count)s items"
@@ -792,7 +792,7 @@ msgstr ""
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html openlibrary/core/shell/shelf_labels.py trending.html
+#: admin/graphs.html admin/index.html lit/OlShelfActions.js trending.html
 msgid "Today"
 msgstr ""
 
@@ -824,12 +824,12 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html home/member.html.jinja openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
+#: account/mybooks.html account/sidebar.html book-state.js home/member.html.jinja lit/OlShelfActions.js openlibrary/plugins/worksearch/sort_menu.py trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html home/member.html.jinja openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html book-state.js home/member.html.jinja lit/OlShelfActions.js openlibrary/plugins/worksearch/sort_menu.py trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -838,7 +838,7 @@ msgid "Read"
 msgstr ""
 
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/worksearch/sort_menu.py trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html book-state.js lit/OlShelfActions.js openlibrary/plugins/worksearch/sort_menu.py trending.html
 msgid "Stopped Reading"
 msgstr ""
 
@@ -939,7 +939,7 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py search/inside.html.jinja type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search-modal/constants.js search/inside.html.jinja type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
@@ -947,19 +947,19 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html.jinja type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search-modal/constants.js search/inside.html.jinja type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py search/inside.html.jinja work_search.html
+#: search-modal/constants.js search/inside.html.jinja work_search.html
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html contribute/parts.html.jinja languages/index.html openlibrary/core/shell/search_modal.py work_search.html
+#: books/edit/edition.html contribute/parts.html.jinja languages/index.html search-modal/constants.js work_search.html
 msgid "Languages"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py search/inside.html.jinja work_search.html
+#: search-modal/constants.js search/inside.html.jinja work_search.html
 msgid "Loading…"
 msgstr ""
 
@@ -993,7 +993,7 @@ msgstr ""
 msgid "Full URL:"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py work_search.html
+#: search-modal/constants.js work_search.html
 msgid "No matching books or authors"
 msgstr ""
 
@@ -1001,11 +1001,11 @@ msgstr ""
 msgid "Add a new book"
 msgstr ""
 
-#: SearchNavigation.html.jinja authors/index.html.jinja merge/authors.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/authors.py publishers/view.html.jinja shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja authors/index.html.jinja merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html.jinja search-modal/constants.js shell/footer.html.jinja work_search.html
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html contribute/admin/index.html.jinja contribute/admin/new.html.jinja contribute/admin/project.html.jinja openlibrary/core/shell/search_modal.py openlibrary/plugins/upstream/mybooks.py shell/footer.html.jinja work_search.html
+#: SearchNavigation.html.jinja books/custom_carousel.html.jinja books/mybooks_breadcrumb_select.html contribute/admin/index.html.jinja contribute/admin/new.html.jinja contribute/admin/project.html.jinja openlibrary/plugins/upstream/mybooks.py search-modal/constants.js shell/footer.html.jinja work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1426,7 +1426,7 @@ msgid "Loans & History"
 msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html openlibrary/core/shell/shelf_labels.py openlibrary/plugins/upstream/mybooks.py openlibrary/plugins/worksearch/sort_menu.py
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html book-state.js lit/OlShelfActions.js openlibrary/plugins/upstream/mybooks.py openlibrary/plugins/worksearch/sort_menu.py
 msgid "Already Read"
 msgstr ""
 
@@ -1525,7 +1525,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/admin/project.html.jinja contribute/parts.html.jinja covers/manage.html openlibrary/core/shell/shelf_labels.py
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/admin/project.html.jinja contribute/parts.html.jinja covers/manage.html lit/OlShelfActions.js
 msgid "Save"
 msgstr ""
 
@@ -1782,7 +1782,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html openlibrary/core/shell/shelf_labels.py type/list/edit.html type/series/edit.html
+#: account/sidebar.html lit/OlShelfActions.js type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -2954,7 +2954,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html.jinja authors/index.html.jinja lists/home.html openlibrary/core/shell/search_modal.py publishers/index.html.jinja publishers/notfound.html.jinja publishers/view.html.jinja search/advancedsearch.html.jinja search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html.jinja authors/index.html.jinja lists/home.html publishers/index.html.jinja publishers/notfound.html.jinja publishers/view.html.jinja search-modal/constants.js search/advancedsearch.html.jinja search/searchbox.html search/searchbox.html.jinja shell/header.html.jinja type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3271,7 +3271,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: BulkSearch/components/MatchTable.vue SearchAuthorSuggestion.html TestingEnvironment/utils.js books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
+#: BulkSearch/components/MatchTable.vue SearchAuthorSuggestion.html TestingEnvironment/utils.js books/add.html books/edit.html books/edit/edition.html openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search-modal/constants.js search/advancedsearch.html.jinja
 msgid "Author"
 msgstr ""
 
@@ -3467,7 +3467,7 @@ msgstr ""
 msgid "Return book"
 msgstr ""
 
-#: books/daisy.html openlibrary/core/shell/shelf_labels.py
+#: books/daisy.html lit/OlShelfActions.js
 msgid "Back"
 msgstr ""
 
@@ -5685,12 +5685,12 @@ msgstr ""
 msgid "Remove from %(name)s"
 msgstr ""
 
-#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+#: lists/widget.html lit/OlShelfActions.js
 #, python-format
 msgid "Removed from %(name)s"
 msgstr ""
 
-#: lists/widget.html openlibrary/core/shell/shelf_labels.py
+#: book-state.js lists/widget.html lit/OlShelfActions.js
 msgid "Something went wrong. Please try again."
 msgstr ""
 
@@ -6322,7 +6322,7 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
-#: SearchNavigation.html.jinja openlibrary/core/shell/search_modal.py search/inside.html.jinja
+#: SearchNavigation.html.jinja search-modal/constants.js search/inside.html.jinja
 msgid "Search Inside"
 msgstr ""
 
@@ -6876,7 +6876,7 @@ msgstr ""
 msgid "Group by"
 msgstr ""
 
-#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
+#: lit/OlShelfActions.js stats/tasks.html.jinja
 msgid "Day"
 msgstr ""
 
@@ -6884,7 +6884,7 @@ msgstr ""
 msgid "Week"
 msgstr ""
 
-#: openlibrary/core/shell/shelf_labels.py stats/tasks.html.jinja
+#: lit/OlShelfActions.js stats/tasks.html.jinja
 msgid "Month"
 msgstr ""
 
@@ -7841,7 +7841,7 @@ msgstr ""
 msgid "Edition"
 msgstr ""
 
-#: openlibrary/core/shell/search_modal.py type/work/editions_datatable.html
+#: search-modal/constants.js type/work/editions_datatable.html
 msgid "Availability"
 msgstr ""
 
@@ -8029,7 +8029,7 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
-#: FulltextSearchSuggestion.html.jinja openlibrary/core/shell/search_modal.py
+#: FulltextSearchSuggestion.html.jinja search-modal/constants.js
 msgid "Search inside books"
 msgstr ""
 
@@ -8619,7 +8619,7 @@ msgstr ""
 msgid "Save and next"
 msgstr ""
 
-#: contribute/parts.html.jinja openlibrary/core/shell/shelf_labels.py
+#: contribute/parts.html.jinja lit/OlShelfActions.js
 msgid "Skip"
 msgstr ""
 
@@ -8769,7 +8769,7 @@ msgstr ""
 msgid "Now that you've found your books, why not save them to your reading log? Or a list?"
 msgstr ""
 
-#: BulkSearch/components/BulkSearchControls.vue openlibrary/core/shell/shelf_labels.py
+#: BulkSearch/components/BulkSearchControls.vue lit/OlShelfActions.js
 msgid "Add to list"
 msgstr ""
 
@@ -9155,6 +9155,172 @@ msgid_plural "%(num)s commits behind %(sha)s"
 msgstr[0] ""
 msgstr[1] ""
 
+#: lit/OlShelfActions.js
+#, python-format
+msgid "Actions for %(title)s"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Reading log"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "Added to %(shelf)s"
+msgstr ""
+
+#: book-state.js lit/OlShelfActions.js
+msgid "Removed from shelf"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "Rated %(rating)s of 5"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Rating cleared"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "Finished %(date)s"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Date removed"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Add date"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Rate this book"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "Rate %(rating)s of 5"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Clear rating"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "This edition has no work record yet, so it can be added to lists but not to your reading log."
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "%(count)s other edition"
+msgid_plural "%(count)s other editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lit/OlShelfActions.js
+msgid "Already on this list"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "List name"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Create"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Filter lists…"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Create your first list"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "No lists match."
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Loading lists…"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "On %(count)s list"
+msgid_plural "On %(count)s lists"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lit/OlShelfActions.js
+msgid "Recently used"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "On this book and recently used"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Other lists"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "Added to %(name)s"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Manage lists"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "When did you finish this book?"
+msgstr ""
+
+#: lit/OlShelfActions.js
+#, python-format
+msgid "In %(year)s"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Other date"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Year"
+msgstr ""
+
+#: lit/OlShelfActions.js
+msgid "Remove date"
+msgstr ""
+
+#: lit/OlShelfButton.js
+#, python-format
+msgid "Save %(title)s to your reading log"
+msgstr ""
+
+#: lit/OlShelfButton.js
+#, python-format
+msgid "%(title)s is on your reading log"
+msgstr ""
+
+#: lit/OlShelfButton.js
+#, python-format
+msgid "%(shelf)s: %(title)s"
+msgstr ""
+
+#: lit/OlShelfButton.js
+#, python-format
+msgid "More options for %(title)s"
+msgstr ""
+
+#: lit/OlShelfButton.js
+#, python-format
+msgid "Add %(title)s to a list"
+msgstr ""
+
 #: admin.js
 #, python-format
 msgid "Really anonymize %(name)s's account? This will delete %(name)s's profile page and booknotes, and anonymize %(name)s's reading log, reviews, star ratings, and merge request submissions."
@@ -9176,6 +9342,15 @@ msgstr ""
 
 #: autocomplete.js
 msgid "Item is already at that position."
+msgstr ""
+
+#: book-state.js
+#, python-format
+msgid "Moved to %(shelf)s"
+msgstr ""
+
+#: book-state.js
+msgid "Undo"
 msgstr ""
 
 #: covers.js
@@ -9412,6 +9587,179 @@ msgstr ""
 
 #: modals/index.js
 msgid "No observations for this work."
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search-modal/constants.js
+msgid "All books"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search-modal/constants.js
+msgid "Free to read now"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search-modal/constants.js
+msgid "Borrow online"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search Open Library"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search books and authors…"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Close search"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Clear search"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "See results"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Go to full search"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "See %s book"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "See %s books"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "See all %s books"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "All %s books"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Clear all"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search scope"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Inside books"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search filters"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Searching books and authors…"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Searching inside books…"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "No results found"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "Showing %(shown)s of %(total)s results"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py search-modal/constants.js
+msgid "Untitled"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Readable"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "Readable in %s"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Recent searches"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "Remove \"%s\" from recent searches"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "Search Inside %s book"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "Search Inside %s books"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "View all"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search inside books…"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Type a word or phrase to find it on the pages of millions of books."
+msgstr ""
+
+#: search-modal/constants.js
+msgid "No matches inside books"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search inside books is temporarily unavailable. Please try again later."
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "Showing exact matches for \"%s\"."
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search for all of these words instead."
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Showing all of these words, in any order."
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Search for the exact phrase instead."
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "No exact matches for \"%s\". Showing books containing all of these words."
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "%s match found inside books"
+msgstr ""
+
+#: search-modal/constants.js
+#, python-format
+msgid "%s matches found inside books"
 msgstr ""
 
 #: openlibrary/contribute/feed.py
@@ -10105,354 +10453,6 @@ msgstr ""
 
 #: openlibrary/core/shell/nav.py
 msgid "Random Book"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py
-msgid "All books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py
-msgid "Free to read now"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py
-msgid "Borrow online"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search Open Library"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search books and authors…"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Close search"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Clear search"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "See results"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Go to full search"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "See %s book"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "See %s books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "See all %s books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "All %s books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Clear all"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search scope"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Inside books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search filters"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Searching books and authors…"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Searching inside books…"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "No results found"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "Showing %(shown)s of %(total)s results"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/home_member.py
-msgid "Untitled"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Readable"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "Readable in %s"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Recent searches"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "Remove \"%s\" from recent searches"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "Search Inside %s book"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "Search Inside %s books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "View all"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search inside books…"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Type a word or phrase to find it on the pages of millions of books."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "No matches inside books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search inside books is temporarily unavailable. Please try again later."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "Showing exact matches for \"%s\"."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search for all of these words instead."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Showing all of these words, in any order."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-msgid "Search for the exact phrase instead."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "No exact matches for \"%s\". Showing books containing all of these words."
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "%s match found inside books"
-msgstr ""
-
-#: openlibrary/core/shell/search_modal.py
-#, python-format
-msgid "%s matches found inside books"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Save %(title)s to your reading log"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "%(title)s is on your reading log"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "%(shelf)s: %(title)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "More options for %(title)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Add %(title)s to a list"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Actions for %(title)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Reading log"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Added to %(shelf)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Removed from shelf"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Rated %(rating)s of 5"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Rating cleared"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Finished %(date)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Date removed"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Rate this book"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Rate %(rating)s of 5"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Clear rating"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "This edition has no work record yet, so it can be added to lists but not to your reading log."
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "List name"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Create"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Filter lists…"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Create your first list"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "No lists match."
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Loading lists…"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "%(count)s other edition"
-msgid_plural "%(count)s other editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Already on this list"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "On %(count)s list"
-msgid_plural "On %(count)s lists"
-msgstr[0] ""
-msgstr[1] ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Recently used"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "On this book and recently used"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Other lists"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Added to %(name)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Manage lists"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Add date"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "When did you finish this book?"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "In %(year)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Other date"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Year"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Remove date"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-#, python-format
-msgid "Moved to %(shelf)s"
-msgstr ""
-
-#: openlibrary/core/shell/shelf_labels.py
-msgid "Undo"
 msgstr ""
 
 #: openlibrary/core/tags.py
