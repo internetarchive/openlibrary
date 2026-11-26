@@ -54,6 +54,8 @@ export function sortable_lcc_to_short_lcc(lcc) {
  */
 export function clean_raw_lcc(raw_lcc) {
     let lcc = raw_lcc.replace(/\\/g, ' ').trim();
+    // Repeated dots are typos, e.g. "PL2898..5.J86"
+    lcc = lcc.replace(/\.(\s*\.)+/g, '.');
     if ((lcc.startsWith('[') && lcc.endsWith(']')) || (lcc.startsWith('(') && lcc.endsWith(')'))) {
         lcc = lcc.slice(1, -1);
     }

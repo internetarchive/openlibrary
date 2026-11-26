@@ -25,6 +25,8 @@ TESTS = [
         "brackets",
     ),
     ("SF-0427.00000000.G74", "SF427 . G74", "SF427.G74", "space in cutter1"),
+    ("PL-2898.50000000.J86 S45 2007", "PL2898..5.J86 S45 2007", "PL2898.5.J86 S45 2007", "double dot"),
+    ("PC-4813.50000000.A36", "PC4813. .5. A36", "PC4813.5.A36", "double dot with space"),
 ]
 
 
@@ -54,6 +56,7 @@ INVALID_TESTS = [
     pytest.param("MLCSN+", id="ol_mlcsn_plus"),
     pytest.param("UNCLASSIFIED 809 (S)", id="ol_unclassified_809"),
     pytest.param("CPB Box no. 1516 vol. 17", id="cpb_box_number"),
+    pytest.param("DS357..6R9 V34", id="double_dot_before_digit_cutter"),
 ]
 
 
