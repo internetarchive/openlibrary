@@ -1,9 +1,7 @@
 import {
     ACTION_ERRORS,
-    DEFAULT_STRINGS,
     actionErrorMessage,
     canUpdate,
-    decodeAndParseJSON,
     driftPill,
     effectiveActive,
     faviconEnv,
@@ -12,6 +10,7 @@ import {
     postAction,
     panelString,
     parsePrNumbers,
+    STRINGS,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
 
@@ -122,32 +121,27 @@ describe('Testing Environment utils', () => {
     });
 
     test('picks the plural form for the count', () => {
-        expect(panelString(DEFAULT_STRINGS, 'changes', { count: 1, num: 1 })).toBe('1 change will be applied');
-        expect(panelString(DEFAULT_STRINGS, 'changes', { count: 3, num: 3 })).toBe('3 changes will be applied');
-    });
-
-    test('fills named placeholders in whatever order a translation puts them', () => {
-        const strings = { ...DEFAULT_STRINGS, behind: { one: '%(sha)s : %(num)s commit', other: '%(sha)s : %(num)s commits' } };
-        expect(panelString(strings, 'behind', { count: 4, num: 4, sha: 'abc1234' })).toBe('abc1234 : 4 commits');
+        expect(panelString('changes', { count: 1, num: 1 })).toBe('1 change will be applied');
+        expect(panelString('changes', { count: 3, num: 3 })).toBe('3 changes will be applied');
     });
 
     test('deploy-status strings carry the deployer username variant', () => {
         const vars = { time: '2 minutes ago', stage: 'Checkout', user: 'openlibrary' };
-        expect(panelString(DEFAULT_STRINGS, 'deployingStageBy', vars)).toBe('Deploying, started 2 minutes ago — Checkout by openlibrary');
-        expect(panelString(DEFAULT_STRINGS, 'deploySucceededBy', vars)).toBe('Deploy succeeded 2 minutes ago by openlibrary');
-        expect(panelString(DEFAULT_STRINGS, 'lastDeployBy', vars)).toBe('Last deploy 2 minutes ago by openlibrary');
+        expect(panelString('deployingStageBy', vars)).toBe('Deploying, started 2 minutes ago — Checkout by openlibrary');
+        expect(panelString('deploySucceededBy', vars)).toBe('Deploy succeeded 2 minutes ago by openlibrary');
+        expect(panelString('lastDeployBy', vars)).toBe('Last deploy 2 minutes ago by openlibrary');
     });
 
     test('names the PR an add could not find', () => {
         const result = { ok: false, error: 'add_failed', failed_prs: { 9999: 'not_found' } };
 
-        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('PR 9999 does not exist.');
+        expect(actionErrorMessage(result)).toBe('PR 9999 does not exist.');
     });
 
     test('separates a GitHub outage from a missing PR', () => {
         const result = { ok: false, error: 'add_failed', failed_prs: { 12914: 'unavailable' } };
 
-        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('Could not check PR 12914 — GitHub is unavailable.');
+        expect(actionErrorMessage(result)).toBe('Could not check PR 12914 — GitHub is unavailable.');
     });
 
     test('lists every failed PR in numeric order', () => {
@@ -160,37 +154,31 @@ describe('Testing Environment utils', () => {
             failed_prs: { 13269: 'unavailable', 9999: 'not_found', 12914: 'not_found' }
         };
 
-        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe(
-            'PR 9999 does not exist. PR 12914 does not exist. Could not check PR 13269 — GitHub is unavailable.'
-        );
+        expect(actionErrorMessage(result)).toBe('PR 9999 does not exist. PR 12914 does not exist. Could not check PR 13269 — GitHub is unavailable.');
     });
 
     test('still names the PR when the reason is unrecognized', () => {
         const result = { ok: false, error: 'add_failed', failed_prs: { 9999: 'something_new' } };
 
-        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('Could not add PR 9999.');
+        expect(actionErrorMessage(result)).toBe('Could not add PR 9999.');
     });
 
     test('falls back to the generic string when an add carries no detail', () => {
-        expect(actionErrorMessage({ ok: false, error: 'add_failed' }, DEFAULT_STRINGS)).toBe('Could not complete that action.');
-        expect(actionErrorMessage({ ok: false, error: 'add_failed', failed_prs: {} }, DEFAULT_STRINGS)).toBe('Could not complete that action.');
+        expect(actionErrorMessage({ ok: false, error: 'add_failed' })).toBe('Could not complete that action.');
+        expect(actionErrorMessage({ ok: false, error: 'add_failed', failed_prs: {} })).toBe('Could not complete that action.');
     });
 
     test('maps the other action failures to their fixed strings', () => {
-        expect(actionErrorMessage({ ok: false, error: 'deploy_failed' }, DEFAULT_STRINGS)).toBe(
-            'Could not start the deploy — Jenkins did not accept the build.'
-        );
-        expect(actionErrorMessage({ ok: false, error: 'deploy_unconfigured' }, DEFAULT_STRINGS)).toBe(
-            'Deploy is not configured on this instance — nothing was deployed.'
-        );
-        expect(actionErrorMessage({ ok: false, error: 'who_knows' }, DEFAULT_STRINGS)).toBe('Could not complete that action.');
+        expect(actionErrorMessage({ ok: false, error: 'deploy_failed' })).toBe('Could not start the deploy — Jenkins did not accept the build.');
+        expect(actionErrorMessage({ ok: false, error: 'deploy_unconfigured' })).toBe('Deploy is not configured on this instance — nothing was deployed.');
+        expect(actionErrorMessage({ ok: false, error: 'who_knows' })).toBe('Could not complete that action.');
     });
 
     test('every action error code has a string to show', () => {
         // Guards a code being added to ACTION_ERRORS without its string, which
         // would toast the bare key.
         Object.entries(ACTION_ERRORS).forEach(([code, key]) => {
-            expect(DEFAULT_STRINGS[key], `${code} -> ${key}`).toBeTruthy();
+            expect(STRINGS[key], `${code} -> ${key}`).toBeTruthy();
         });
     });
 
@@ -204,11 +192,6 @@ describe('Testing Environment utils', () => {
         expect(faviconEnv('')).toBeNull();
         expect(faviconEnv('/favicon.ico')).toBeNull();
         expect(faviconEnv('https://example.com/custom.png')).toBeNull();
-    });
-
-    test('decodes render_component JSON attributes', () => {
-        const encoded = encodeURIComponent(JSON.stringify({ title: 'Testing Environment' }));
-        expect(decodeAndParseJSON(encoded)).toEqual({ title: 'Testing Environment' });
     });
 
     test('formats ISO timestamps for display', () => {
@@ -248,21 +231,21 @@ describe('Testing Environment utils', () => {
     });
 
     test('decides the drift pill per state', () => {
-        const ok = driftPill(pr, DEFAULT_STRINGS);
+        const ok = driftPill(pr);
         expect(ok.label).toBe('OK');
         expect(ok.title).toBe('Up-to-date, pinned at 1d23364');
         expect(ok.href).toBe('');
 
-        const unknown = driftPill({ ...pr, drift: -1 }, DEFAULT_STRINGS);
+        const unknown = driftPill({ ...pr, drift: -1 });
         expect(unknown.label).toBe('?');
         expect(unknown.href).toContain('/commit/1d23364');
 
-        const behind = driftPill({ ...pr, drift: 3 }, DEFAULT_STRINGS);
+        const behind = driftPill({ ...pr, drift: 3 });
         expect(behind.label).toBe('-3');
         expect(behind.title).toBe('3 commits behind 1d23364');
         expect(behind.href).toContain('/compare/1d23364b8c652d6107e2dc685f918551fda5d327...1d23364');
 
-        const behindWithoutSha = driftPill({ ...pr, drift: 1, head_sha: '' }, DEFAULT_STRINGS);
+        const behindWithoutSha = driftPill({ ...pr, drift: 1, head_sha: '' });
         expect(behindWithoutSha.href).toBe('');
         expect(behindWithoutSha.title).toBe('1 commit behind 1d23364');
     });

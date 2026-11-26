@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { REPO_URL, formatTime, panelString, timeAgo } from './utils.js';
+import { REPO_URL, STRINGS as strings, formatTime, panelString, timeAgo } from './utils.js';
 
 defineOptions({ name: 'DeploySection' });
 
@@ -18,10 +18,6 @@ const props = defineProps({
     maintainer: {
         type: Boolean,
         default: false
-    },
-    strings: {
-        type: Object,
-        required: true
     },
     jenkinsUrl: {
         type: String,
@@ -51,7 +47,7 @@ const changes = computed(() => (props.payload && props.payload.pending_changes) 
 
 const changeCount = computed(() => changes.value.length);
 
-const changeHeading = computed(() => panelString(props.strings, 'changes', { count: changeCount.value, num: changeCount.value }));
+const changeHeading = computed(() => panelString('changes', { count: changeCount.value, num: changeCount.value }));
 
 const deployResult = computed(() => (props.payload && props.payload.deploy_result) || '');
 
@@ -68,7 +64,7 @@ const deployingKey = computed(() => {
 
 function changeLabel(kind) {
     const key = CHANGE_LABELS[kind];
-    return key ? props.strings[key] : kind;
+    return key ? strings[key] : kind;
 }
 
 function changeKey(change) {
@@ -150,7 +146,7 @@ function prUrl(pr) {
         <div class="testing-env__deploy-state">
             <span v-if="deployResult === 'SUCCESS'" class="testing-env__status" :title="formatTime(deployFinishedAt)">
                 <span class="testing-env__dot" aria-hidden="true" />{{
-                    panelString(strings, deployer ? 'deploySucceededBy' : 'deploySucceeded', { time: timeAgo(deployFinishedAt, now), user: deployer })
+                    panelString(deployer ? 'deploySucceededBy' : 'deploySucceeded', { time: timeAgo(deployFinishedAt, now), user: deployer })
                 }}
             </span>
             <span
@@ -159,17 +155,17 @@ function prUrl(pr) {
                 :title="formatTime(deployFinishedAt)"
             >
                 <span class="testing-env__dot" aria-hidden="true" />{{
-                    panelString(strings, deployer ? 'deployFailedBy' : 'deployFailed', { time: timeAgo(deployFinishedAt, now), user: deployer })
+                    panelString(deployer ? 'deployFailedBy' : 'deployFailed', { time: timeAgo(deployFinishedAt, now), user: deployer })
                 }}
             </span>
             <span v-else-if="payload.deploying" class="testing-env__status testing-env__status--deploying" :title="formatTime(payload.deploy_started_at)">
                 <span class="testing-env__dot" aria-hidden="true" />{{
-                    panelString(strings, deployingKey, { time: timeAgo(payload.deploy_started_at, now), stage: deployStage, user: deployer })
+                    panelString(deployingKey, { time: timeAgo(payload.deploy_started_at, now), stage: deployStage, user: deployer })
                 }}
             </span>
             <span v-else-if="payload.last_deploy_at" class="testing-env__status" :title="formatTime(payload.last_deploy_at)">
                 <span class="testing-env__dot" aria-hidden="true" />{{
-                    panelString(strings, deployer ? 'lastDeployBy' : 'lastDeploy', { time: timeAgo(payload.last_deploy_at, now), user: deployer })
+                    panelString(deployer ? 'lastDeployBy' : 'lastDeploy', { time: timeAgo(payload.last_deploy_at, now), user: deployer })
                 }}
             </span>
             <span v-else class="testing-env__status testing-env__status--idle">{{ strings.neverDeployed }}</span>
