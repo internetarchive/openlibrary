@@ -233,7 +233,8 @@ def build_loans(loans: list[dict], holds: list[dict], past: list[dict] | None = 
             "thumb_url": book["thumb_url"],
             "status": status,
             "tone": tone,
-            "action": {"label": label, "href": book["url"], "form": form},
+            # Borrowing and reading take the primary fill, as they do across the site.
+            "action": {"label": label, "href": book["url"], "form": form, "access": bool(form) and form["value"] in ("borrow", "read")},
         }
 
     loan_cards = [

@@ -110,7 +110,7 @@
                                        data-ol-link-track="HomeMember|TitleClick|{{ item.kind }}">{{ item.title }}</a>
                                     {{ status(item) }}
                                 </div>
-                                {{ action(item) }}
+                                {{ action(item, "primary" if item.action.access else "secondary") }}
                             </li>
                         {% endfor %}
                     </ul>
