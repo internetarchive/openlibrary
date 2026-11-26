@@ -8,14 +8,17 @@
             <div class="byline">
                 {{ doc.author_name[0] }}
             </div>
-            <div class="identifier">{{ doc.first_publish_year }} - {{ doc.edition_count }} editions</div>
+            <div class="identifier">{{ doc.first_publish_year }} - {{ editions }}</div>
             <a class="action actionName" target="_blank" />
         </div>
     </div>
 </template>
 
 <script>
+import { translate } from '../../../plugins/openlibrary/js/i18n.js';
+
 export default {
+    inject: ['strings'],
     props: {
         doc: {
             type: Object,
@@ -27,6 +30,9 @@ export default {
         }
     },
     computed: {
+        editions() {
+            return translate(this.strings, null, 'editions', { count: this.doc.edition_count });
+        },
         coverImage() {
             if (!this.doc.cover_i) {
                 return '';

@@ -1,11 +1,13 @@
 <template>
     <div class="noBookCard">
-        <p>No Books Found</p>
+        <p>{{ strings.noBooksFound }}</p>
     </div>
 </template>
 
 <script>
-export default {};
+export default {
+    inject: ['strings']
+};
 </script>
 
 <style>

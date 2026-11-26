@@ -1,26 +1,30 @@
 <template>
     <div class="bulk-search-controls">
         <div>
-            <p v-if="showColumnHint">Please include a header row. Supported columns include: "Title", "Author", "ISBN".</p>
-            <p class="bulk-search-instructions"><strong>Enter your books below</strong> - one per line, or paste from a spreadsheet.</p>
+            <p v-if="showColumnHint">{{ strings.columnHint }}</p>
+            <p class="bulk-search-instructions">
+                <strong>{{ strings.enterBooks }}</strong> {{ strings.enterBooksHint }}
+            </p>
 
             <select v-model="selectedValue" class="sampleBar">
                 <option v-for="sample in sampleData" :key="sample.source" :value="sample.text">
-                    {{ sample.name }}
+                    {{ strings[sample.key] }}
                 </option>
             </select>
-            <textarea v-model="bulkSearchState.inputText" placeholder="Enter your books..." />
+            <textarea v-model="bulkSearchState.inputText" :placeholder="strings.inputPlaceholder" />
             <br />
             <div class="progressCarousel">
                 <div ref="step1" class="progressCard" :class="{ activeStep: activeStep === 1 }">
                     <div class="numeral">1</div>
                     <div class="info">
                         <div class="heading">
-                            <h3>Extract Books</h3>
-                            <p><i>How to convert your books above into structured information, like title and author.</i></p>
+                            <h3>{{ strings.extractBooks }}</h3>
+                            <p>
+                                <i>{{ strings.extractDescription }}</i>
+                            </p>
                         </div>
                         <label
-                            ><strong> Extractor</strong> <br />
+                            ><strong> {{ strings.extractor }}</strong> <br />
                             <select v-model="bulkSearchState._activeExtractorIndex">
                                 <option v-for="(extractor, index) in bulkSearchState.extractors" :key="index" :value="index">
                                     {{ extractor.label }}
@@ -29,12 +33,12 @@
                         >
 
                         <label v-if="showApiKey"
-                            ><strong>OpenAI API Key</strong> <br />
+                            ><strong>{{ strings.apiKey }}</strong> <br />
                             <input
                                 v-model="bulkSearchState.extractionOptions.openaiApiKey"
                                 class="api-key-bar"
                                 :type="showPassword ? 'password' : 'text'"
-                                placeholder="OpenAI API key here...."
+                                :placeholder="strings.apiKeyPlaceholder"
                                 @focus="showPassword = false"
                                 @blur="showPassword = true"
                             />
@@ -49,12 +53,14 @@
                     <div class="numeral">2</div>
                     <div class="info">
                         <div class="heading">
-                            <h3>Match Books</h3>
-                            <p><i>Once structured data has been found, it's time to match it to a book in OpenLibrary!</i></p>
+                            <h3>{{ strings.matchBooks }}</h3>
+                            <p>
+                                <i>{{ strings.matchDescription }}</i>
+                            </p>
                         </div>
                         <label
-                            ><strong>Options</strong> <br />
-                            <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in search query
+                            ><strong>{{ strings.options }}</strong> <br />
+                            <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> {{ strings.useAuthor }}
                         </label>
                         <button :disabled="loadingMatchedBooks || matchBooksDisabled" @click="matchBooks">
                             {{ matchBooksText }}
@@ -65,19 +71,19 @@
                     <div class="numeral">3</div>
                     <div class="info">
                         <div class="heading">
-                            <h3 class="heading">Save your Matches</h3>
+                            <h3 class="heading">{{ strings.saveMatches }}</h3>
                             <p class="heading">
-                                <i> Now that you've found your books, why not save them to your reading log? Or a list?</i>
+                                <i>{{ strings.saveDescription }}</i>
                             </p>
                         </div>
                         <div v-if="bulkSearchState?.matchedBooks.length < 50">
                             <a id="listMakerLink" :href="bulkSearchState.listUrl" target="_blank"
-                                ><button :disabled="createListDisabled">Add to list</button></a
+                                ><button :disabled="createListDisabled">{{ strings.addToList }}</button></a
                             >
                         </div>
                         <form v-else method="POST" action="/account/lists/add" target="_blank">
                             <input type="hidden" name="seeds" :value="bulkSearchState?.listString" />
-                            <button type="submit">Add to List</button>
+                            <button type="submit">{{ strings.addToList }}</button>
                         </form>
                     </div>
                 </div>
@@ -96,6 +102,7 @@ import { sampleData } from '../utils/samples.js';
 import { BulkSearchState } from '../utils/classes.js';
 import { buildSearchUrl } from '../utils/searchUtils.js';
 export default {
+    inject: ['strings'],
     props: {
         bulkSearchState: BulkSearchState
     },
@@ -125,12 +132,10 @@ export default {
             return false;
         },
         extractBooksText() {
-            if (this.loadingExtractedBooks) return 'Loading...';
-            return 'Extract Books';
+            return this.loadingExtractedBooks ? this.strings.loading : this.strings.extractBooks;
         },
         matchBooksText() {
-            if (this.loadingMatchedBooks) return 'Loading...';
-            return 'Match Books';
+            return this.loadingMatchedBooks ? this.strings.loading : this.strings.matchBooks;
         },
         showColumnHint() {
             if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor';

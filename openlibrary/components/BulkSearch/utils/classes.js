@@ -186,7 +186,10 @@ export class BookMatch {
 const BASE_LIST_URL = '/account/lists/add?seeds=';
 
 export class BulkSearchState {
-    constructor() {
+    /**
+     * @param {Record<string, any>} strings translated UI strings; the extractor labels come from here
+     */
+    constructor(strings) {
         /** @type {string} */
         this.inputText = '';
         /** @type {BookMatch[]} */
@@ -198,21 +201,21 @@ export class BulkSearchState {
         /** @type {AbstractExtractor[]} */
         this.extractors = [
             new RegexExtractor(
-                'Pattern: Title by Author',
+                strings.patternTitleByAuthor,
                 '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'
             ),
             new RegexExtractor(
-                'Pattern: Author - Title',
+                strings.patternAuthorTitle,
                 '(^|>)(?<author>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<title>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'
             ),
             new RegexExtractor(
-                'Pattern: Title - Author',
+                strings.patternTitleAuthor,
                 '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'
             ),
-            new RegexExtractor('Pattern: Title (Author)', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
-            new RegexExtractor('Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
-            new AiExtractor('✨ AI Extraction (Beta)', 'gpt-4o-mini'),
-            new TableExtractor('Extract from a Table/Spreadsheet')
+            new RegexExtractor(strings.patternTitleParenAuthor, '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
+            new RegexExtractor(strings.patternWikipedia, '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
+            new AiExtractor(strings.aiExtraction, 'gpt-4o-mini'),
+            new TableExtractor(strings.tableExtraction)
         ];
         /** @type {Number} */
         this._activeExtractorIndex = 0;

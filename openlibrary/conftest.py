@@ -1,5 +1,8 @@
 """pytest configuration for openlibrary"""
 
+import re
+from pathlib import Path
+
 import pytest
 import web
 
@@ -96,6 +99,40 @@ def monkeytime(monkeypatch):
     monkeypatch.setattr("time.time", time)
     monkeypatch.setattr("time.sleep", sleep)
     monkeypatch.setattr("asyncio.sleep", async_sleep)
+
+
+@pytest.fixture
+def javascript_strings_mismatches():
+    """Compare strings the server builds for a component with the component's English defaults.
+
+    Returns a function ``(strings, path)`` giving what differs, so a test asserts it is ``[]``.
+    ``path`` is the JavaScript file (from the repo root) whose ``DEFAULT_STRINGS`` object has one
+    entry per line: ``key: 'text'``, or a plural set ``key: { one: '...', other: '...' }``.
+    Build ``strings`` in English (``request_context_fixture(lang="en")``).
+    """
+    quoted = r"""'([^']*)'|"([^"]*)\""""
+
+    def mismatches(strings: dict, path: str) -> list:
+        source = (Path(__file__).resolve().parents[1] / path).read_text()
+        block = source.split("const DEFAULT_STRINGS = {")[1].split("\n};")[0]
+        javascript: dict = {}
+        for key, value in re.findall(r"^    (\w+): (.+?),?$", block, re.MULTILINE):
+            if value.startswith("{"):
+                javascript[key] = {form: a or b for form, a, b in re.findall(r"(\w+): (?:" + quoted + ")", value)}
+            elif match := re.fullmatch(quoted, value):
+                javascript[key] = match[1] if match[1] is not None else match[2]
+            else:
+                javascript[key] = value
+        found: list = sorted(set(strings) ^ set(javascript))
+        for key in sorted(set(strings) & set(javascript)):
+            english = javascript[key]
+            if isinstance(english, dict):
+                found += [(key, form, text, strings[key].get(form)) for form, text in english.items() if text != strings[key].get(form)]
+            elif english != strings[key]:
+                found.append((key, english, strings[key]))
+        return found
+
+    return mismatches
 
 
 @pytest.fixture

@@ -4,12 +4,12 @@
             <thead>
                 <tr>
                     <th rowspan="2" style="width: 4ch">#</th>
-                    <th :colspan="columns.length" style="width: 400px">Extracted Books</th>
-                    <th rowspan="2">Matched Books</th>
+                    <th :colspan="columns.length" style="width: 400px">{{ strings.extractedBooks }}</th>
+                    <th rowspan="2">{{ strings.matchedBooks }}</th>
                 </tr>
                 <tr>
                     <th v-for="(column, colIndex) in columns" :key="colIndex">
-                        {{ column }}
+                        {{ strings[column] }}
                     </th>
                 </tr>
             </thead>
@@ -35,6 +35,7 @@ export default {
     components: {
         MatchRow
     },
+    inject: ['strings'],
     props: {
         bulkSearchState: BulkSearchState
     },

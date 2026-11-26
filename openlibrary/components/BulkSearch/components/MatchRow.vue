@@ -6,7 +6,7 @@
         </td>
         <td>
             <div class="bookCards">
-                <a :href="searchUrl" title="View results in Open Library">🔎</a>
+                <a :href="searchUrl" :title="strings.viewResults">🔎</a>
                 <BookCard v-for="(doc, docIndex) in bookMatch.solrDocs.docs" :key="docIndex" :doc="doc" :is-primary="docIndex === 0" />
                 <NoBookCard v-if="bookMatch.solrDocs.numFound === 0" />
             </div>
@@ -24,6 +24,7 @@ export default {
         BookCard,
         NoBookCard
     },
+    inject: ['strings'],
     props: {
         bulkSearchState: BulkSearchState,
         bookMatch: BookMatch,
