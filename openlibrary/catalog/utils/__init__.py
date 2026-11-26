@@ -207,7 +207,6 @@ def pick_first_date(dates):
     # this is to handle this case:
     # 100: $aLogan, Olive (Logan), $cSikes, $dMrs., $d1839-
     # see http://archive.org/download/gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc
-    # or http://pharosdb.us.archive.org:9090/show-marc?record=gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc:0:521
 
     dates = list(dates)
     if len(dates) == 1 and re_cent.match(dates[0]):
