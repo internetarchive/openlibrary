@@ -6,14 +6,14 @@
  * testable without mounting an SFC.
  */
 
-import { translate } from '../lit/utils/labels.js';
+import { translate } from '../../plugins/openlibrary/js/i18n.js';
 
 export const REPO_URL = 'https://github.com/internetarchive/openlibrary';
 
 /**
  * English fallbacks for the translated strings passed in from the server.
  * Placeholders are `%(name)s`, as in the server's strings. `changes` and
- * `behind` are plural sets, keyed by CLDR plural category: labels.js picks the
+ * `behind` are plural sets, keyed by CLDR plural category: i18n.js picks the
  * form by `count`, and their text says `%(num)s` to keep the existing msgids.
  */
 export const DEFAULT_STRINGS = {
