@@ -1,13 +1,10 @@
 {#
    Testing Environment panel for /status, rendered by the Vue web component
-   ol-testing-environment. The server supplies maintainer visibility, the
-   Jenkins link, and translated strings (testing_panel_strings() in
-   plugins/openlibrary/status.py) because those are page configuration, not
-   testing-environment state — the component fetches /status/testing.json
-   and renders from that.
+   ol-testing-environment. The server supplies maintainer visibility and the
+   Jenkins link because those are page configuration, not testing-environment
+   state — the component fetches /status/testing.json and renders from that.
    #}
 {{ vue_component_html('TestingEnvironment', attrs={
     'maintainer': 'true' if is_maintainer else 'false',
     'jenkins-url': jenkins_job_url,
-    'i18n': testing_panel_strings,
 }) }}

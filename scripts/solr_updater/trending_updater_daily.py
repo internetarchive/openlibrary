@@ -1,7 +1,6 @@
 import datetime as dt
 
-from openlibrary.plugins.worksearch.code import execute_solr_query
-from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.search import execute_solr_query, get_solr
 
 
 def fetch_works_trending_scores(current_day: int):

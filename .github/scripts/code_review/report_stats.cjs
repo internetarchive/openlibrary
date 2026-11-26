@@ -3,6 +3,8 @@
 // writes stats.json for the `report` and `publish` jobs, and checks the alert thresholds.
 'use strict';
 
+const { rereviews } = require('./shared.cjs');
+
 const BOT = 'openlibrary-bot';
 const WORKFLOWS = ['code_review_action.yml', 'code_review_awaiting.yml'];
 // A merged PR that touched any of these could have fixed a review bot failure.
@@ -158,9 +160,18 @@ function summarizeReviews(prs, w) {
             const c = t.comments.nodes[0];
             return c && c.author && c.author.login === BOT && inWindow(c.createdAt, w) && parseFindingHeader(c.body);
         });
-        if (!reviews.length && !threads.length) continue;
+        // Clean re-reviews added to an earlier approval instead of posted (see post.cjs), by when they ran.
+        const added = (pr.reviews.nodes || [])
+            .filter(r => r.author && r.author.login === BOT && r.state === 'APPROVED')
+            .flatMap(r => rereviews(r.body))
+            .filter(r => inWindow(r.at, w)).length;
+        if (!reviews.length && !threads.length && !added) continue;
         out.prs_reviewed++;
-        const row = { number: pr.number, title: pr.title, url: pr.url, state: pr.merged ? 'MERGED' : pr.state, reviews: reviews.length, findings: [] };
+        if (added) {
+            out.reviews += added;
+            out.states.ADDED_TO_APPROVAL = (out.states.ADDED_TO_APPROVAL || 0) + added;
+        }
+        const row = { number: pr.number, title: pr.title, url: pr.url, state: pr.merged ? 'MERGED' : pr.state, reviews: reviews.length + added, findings: [] };
         for (const r of reviews) {
             out.reviews++;
             out.states[r.state] = (out.states[r.state] || 0) + 1;

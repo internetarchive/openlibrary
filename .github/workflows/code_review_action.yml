@@ -348,6 +348,9 @@ jobs:
           PUSH_REVIEW_MINUTES: ${{ needs.analyze.outputs.push_review_minutes }}
           HELD_BACK: ${{ needs.analyze.outputs.held_back }}
           WITHHELD_BLOCKING: ${{ needs.analyze.outputs.withheld_blocking }}
+          # A review request, from the bot after a push (code_review_awaiting.yml) or a person skipping the
+          # wait, rather than an `@openlibrary-bot review` comment or a manual run.
+          REVIEW_REQUEST: ${{ github.event_name == 'pull_request_target' }}
         with:
           # Fine-grained PAT with only Pull requests: read and write, on this repo.
           github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}

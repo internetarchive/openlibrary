@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import PersonCell from './PersonCell.vue';
-import { REPO_URL, canUpdate, driftPill, effectiveActive, panelString } from './utils.js';
+import { REPO_URL, STRINGS as strings, canUpdate, driftPill, effectiveActive, panelString } from './utils.js';
 
 defineOptions({ name: 'TestingRow' });
 
@@ -13,10 +13,6 @@ const props = defineProps({
     maintainer: {
         type: Boolean,
         default: false
-    },
-    strings: {
-        type: Object,
-        required: true
     },
     recent: {
         type: Boolean,
@@ -43,8 +39,8 @@ const mergeConflict = computed(() => props.pr.merge_conflict === true);
 // Red beats live-now: a conflicted PR never landed, so the dot says so
 // even if a stale live flag would still claim it.
 const dotLabel = computed(() => {
-    if (mergeConflict.value) return props.strings.mergeConflict;
-    return liveNow.value ? props.strings.liveNow : props.strings.notLive;
+    if (mergeConflict.value) return strings.mergeConflict;
+    return liveNow.value ? strings.liveNow : strings.notLive;
 });
 
 // The switch shows what the next deploy leaves the row as: the staged
@@ -58,7 +54,7 @@ const pending = computed(() => Boolean(props.pr.action));
 
 const canUpdatePr = computed(() => !removalStaged.value && canUpdate(props.pr));
 
-const pill = computed(() => driftPill(props.pr, props.strings));
+const pill = computed(() => driftPill(props.pr));
 
 const prUrl = computed(() => `${REPO_URL}/pull/${encodeURIComponent(props.pr.pr)}`);
 </script>
@@ -71,7 +67,7 @@ const prUrl = computed(() => `${REPO_URL}/pull/${encodeURIComponent(props.pr.pr)
                 type="button"
                 class="testing-env__switch"
                 :aria-pressed="isActive ? 'true' : 'false'"
-                :aria-label="panelString(strings, 'prOnTesting', { num: pr.pr })"
+                :aria-label="panelString('prOnTesting', { num: pr.pr })"
                 @click="emit('toggle', pr)"
             >
                 <span class="testing-env__switch-knob" aria-hidden="true" />
