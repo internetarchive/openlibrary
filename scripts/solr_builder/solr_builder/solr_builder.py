@@ -286,9 +286,12 @@ class LocalPostgresDataProvider(DataProvider):
         """
             % key
         )
-        row = next(self.query_iter(q))
+        row = next(self.query_iter(q), None)
         if row:
             return row[0]
+        # Match DatabaseDataProvider, so callers can filter dangling refs by type
+        logger.warning("NOT FOUND %s", key)
+        return {"key": key, "type": {"key": "/type/delete"}}
 
     def get_cover_dimensions(self, cover_id: int) -> tuple[int, int] | None:
         dimensions = self.covers_cache.get(cover_id)
