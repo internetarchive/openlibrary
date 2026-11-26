@@ -4,6 +4,7 @@ fastapiRoutes:
   default:
     # Pages (SitePageRoute)
     - GET /advancedsearch
+    - GET /explore
     - GET /publishers
     - GET /publishers/{name}
     - GET /search/authors

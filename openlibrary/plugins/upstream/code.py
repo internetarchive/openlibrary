@@ -42,7 +42,7 @@ from openlibrary.plugins.upstream import (
     utils,
     yearly_reading_goals,
 )  # TODO: unused imports?
-from openlibrary.plugins.upstream.utils import render_component
+from openlibrary.plugins.upstream.utils import render_component, vue_component_html
 
 if not config.get("coverstore_url"):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
@@ -173,7 +173,16 @@ class library_explorer(delegate.page):
     path = "/explore"
 
     def GET(self):
-        return render_template("library_explorer")
+        # Local imports: this handler is temporary.
+        from markupsafe import escape
+
+        from openlibrary.core.jinja import render_jinja_template
+        from openlibrary.i18n import gettext as _
+
+        context.setdefault("bodyclass", []).extend(("full-width", "library-explorer"))
+        body = render_jinja_template("library_explorer.html.jinja", vue_component_html=vue_component_html)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Library Explorer")))
 
 
 class merge_work(delegate.page):

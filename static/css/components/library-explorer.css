@@ -1,4 +1,4 @@
-/* /explore; openlibrary/templates/library_explorer.html */
+/* /explore; openlibrary/templates/library_explorer.html.jinja */
 /* Fades into the background of LibraryExplorer.vue, which uses these colours too. */
 body.library-explorer {
   /* stylelint-disable-next-line color-no-hex */
