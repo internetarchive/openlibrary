@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing } from 'lit';
-import { translate } from './utils/labels.js';
+import { translate } from '../../plugins/openlibrary/js/i18n.js';
 import './OlTooltip.js';
 
 export const DEFAULT_LABELS = {

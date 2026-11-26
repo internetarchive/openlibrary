@@ -19,7 +19,7 @@ const props = defineProps({
         default: ''
     },
     /** URI-encoded JSON of translated panel strings.
-     * @see render_component() in openlibrary/plugins/upstream/utils.py */
+     * @see vue_component_html() in openlibrary/plugins/upstream/utils.py */
     i18n: {
         type: String,
         default: ''

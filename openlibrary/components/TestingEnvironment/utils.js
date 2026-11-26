@@ -6,21 +6,26 @@
  * testable without mounting an SFC.
  */
 
+import { translate } from '../../plugins/openlibrary/js/i18n.js';
+
 export const REPO_URL = 'https://github.com/internetarchive/openlibrary';
 
 /**
- * English fallbacks for the translated strings passed in from the server.
- * Placeholder values are normalized to %s by the template.
+ * English fallbacks for the translated strings passed in from the server,
+ * testing_panel_strings() in status.py; test_status_page.py checks they match.
+ * Placeholders are `%(name)s`, as in the server's strings. `changes` and
+ * `behind` are plural sets, keyed by CLDR plural category: i18n.js picks the
+ * form by `count`, and their text says `%(num)s` to keep the existing msgids.
  */
 export const DEFAULT_STRINGS = {
     loading: 'Loading testing environment…',
     loadError: 'Could not load the testing environment.',
     retry: 'Try again',
     actionFailed: 'Could not complete that action.',
-    addFailedNotFound: 'PR %s does not exist.',
-    addFailedUnavailable: 'Could not check PR %s — GitHub is unavailable.',
-    addFailedTokenInvalid: 'Could not add PR %s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml.',
-    addFailedOther: 'Could not add PR %s.',
+    addFailedNotFound: 'PR %(num)s does not exist.',
+    addFailedUnavailable: 'Could not check PR %(num)s — GitHub is unavailable.',
+    addFailedTokenInvalid: 'Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml.',
+    addFailedOther: 'Could not add PR %(num)s.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
     addPlaceholder: 'PR numbers or URLs, space or comma separated',
@@ -38,7 +43,7 @@ export const DEFAULT_STRINGS = {
     closed: 'This PR is already closed.',
     actions: 'Actions',
     ok: 'OK',
-    prOnTesting: 'PR #%s on testing',
+    prOnTesting: 'PR %(num)s on testing',
     changeOnDeploy: 'changes on deploy',
     update: 'Update',
     updatePin: 'Update pin',
@@ -48,37 +53,36 @@ export const DEFAULT_STRINGS = {
     restore: 'Restore',
     refresh: 'Refresh from GitHub',
     deploy: 'Deploy',
-    changeOne: '%s change will be applied',
-    changeMany: '%s changes will be applied',
+    changes: { one: '%(num)s change will be applied', other: '%(num)s changes will be applied' },
     nothingToDeploy: 'Nothing to deploy — testing matches the current set.',
     mergedToMaster: 'merged to master',
     closedWithoutMerging: 'closed without merging',
-    unknown: 'Drift unknown, pinned at %s',
-    currentCommit: 'Up-to-date, pinned at %s',
-    behindOne: '%s commit behind %s',
-    behindMany: '%s commits behind %s',
+    unknown: 'Drift unknown, pinned at %(sha)s',
+    currentCommit: 'Up-to-date, pinned at %(sha)s',
+    behind: { one: '%(num)s commit behind %(sha)s', other: '%(num)s commits behind %(sha)s' },
     neverDeployed: 'Never deployed',
-    deployingStarted: 'Deploying, started %s',
-    deployingStartedBy: 'Deploying, started %s by %s',
-    deployingStage: 'Deploying, started %s — %s',
-    deployingStageBy: 'Deploying, started %s — %s by %s',
-    deploySucceeded: 'Deploy succeeded %s',
-    deploySucceededBy: 'Deploy succeeded %s by %s',
-    deployFailed: 'Deploy failed %s',
-    deployFailedBy: 'Deploy failed %s by %s',
+    deployingStarted: 'Deploying, started %(time)s',
+    deployingStartedBy: 'Deploying, started %(time)s by %(user)s',
+    deployingStage: 'Deploying, started %(time)s — %(stage)s',
+    deployingStageBy: 'Deploying, started %(time)s — %(stage)s by %(user)s',
+    deploySucceeded: 'Deploy succeeded %(time)s',
+    deploySucceededBy: 'Deploy succeeded %(time)s by %(user)s',
+    deployFailed: 'Deploy failed %(time)s',
+    deployFailedBy: 'Deploy failed %(time)s by %(user)s',
     deployFailedTrigger: 'Could not start the deploy — Jenkins did not accept the build.',
     deployUnconfigured: 'Deploy is not configured on this instance — nothing was deployed.',
-    lastDeploy: 'Last deploy %s',
-    lastDeployBy: 'Last deploy %s by %s',
+    lastDeploy: 'Last deploy %(time)s',
+    lastDeployBy: 'Last deploy %(time)s by %(user)s',
     viewJenkins: 'View Jenkins',
     noPrs: 'No PRs in testing set.'
 };
 
 /**
- * Replace %s placeholders in order; %% is a literal percent.
+ * The panel string for `key`, with its `%(name)s` placeholders filled from
+ * `vars`. A plural set picks its form by `vars.count`.
  */
-export function sprintf(fmt, ...args) {
-    return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
+export function panelString(strings, key, vars) {
+    return translate(strings, DEFAULT_STRINGS, key, vars);
 }
 
 /**
@@ -115,9 +119,9 @@ export function actionErrorMessage(result, strings) {
     const failed = result?.failed_prs;
     if (result?.error === 'add_failed' && failed && Object.keys(failed).length) {
         const reasons = {
-            not_found: strings.addFailedNotFound,
-            unavailable: strings.addFailedUnavailable,
-            token_invalid: strings.addFailedTokenInvalid
+            not_found: 'addFailedNotFound',
+            unavailable: 'addFailedUnavailable',
+            token_invalid: 'addFailedTokenInvalid'
         };
         // Numeric order, not insertion order: JSON object keys that look like
         // integers come back re-sorted ascending by the JS engine, so relying
@@ -125,7 +129,7 @@ export function actionErrorMessage(result, strings) {
         return Object.keys(failed)
             .map(Number)
             .sort((a, b) => a - b)
-            .map(prNumber => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
+            .map(prNumber => panelString(strings, reasons[failed[prNumber]] || 'addFailedOther', { num: prNumber }))
             .join(' ');
     }
     const key = ACTION_ERRORS[result?.error] || 'actionFailed';
@@ -133,7 +137,7 @@ export function actionErrorMessage(result, strings) {
 }
 
 /**
- * Decode a URL-encoded JSON attribute value (how render_component passes
+ * Decode a URL-encoded JSON attribute value (how vue_component_html passes
  * dict/list attrs to Vue components).
  */
 export function decodeAndParseJSON(str) {
@@ -320,28 +324,27 @@ export function canUpdate(pr) {
 
 /**
  * Decide the drift verdict: label, optional href, and the hover title. `strings`
- * are the translated panel strings, with %s placeholders filled by sprintf.
+ * are the translated panel strings.
  * Merged PRs are filtered out before a row is rendered, so they never reach
  * this.
  */
 export function driftPill(pr, strings) {
     const pinned = String(pr.commit || '').slice(0, 7);
     const drift = Number(pr.drift);
-    const t = (key, ...args) => sprintf(strings[key] || key, ...args);
 
     if (drift === 0) {
-        return { label: strings.ok, href: '', title: t('currentCommit', pinned) };
+        return { label: strings.ok, href: '', title: panelString(strings, 'currentCommit', { sha: pinned }) };
     }
     if (drift < 0 || Number.isNaN(drift)) {
         return {
             label: '?',
             href: `${REPO_URL}/commit/${encodeURIComponent(pr.commit || '')}`,
-            title: t('unknown', pinned)
+            title: panelString(strings, 'unknown', { sha: pinned })
         };
     }
     return {
         label: `-${drift}`,
         href: pr.head_sha ? `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${encodeURIComponent(pr.head_sha)}` : '',
-        title: drift === 1 ? t('behindOne', drift, pinned) : t('behindMany', drift, pinned)
+        title: panelString(strings, 'behind', { count: drift, num: drift, sha: pinned })
     };
 }

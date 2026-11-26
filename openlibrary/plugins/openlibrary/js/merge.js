@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { fmt, plural } from '../../../components/lit/utils/labels.js';
+import { fmt, plural } from './i18n.js';
 import { alertFromTemplate, confirmFromTemplate } from './confirm-template';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 

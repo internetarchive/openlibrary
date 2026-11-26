@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import PersonCell from './PersonCell.vue';
-import { REPO_URL, canUpdate, driftPill, effectiveActive, sprintf } from './utils.js';
+import { REPO_URL, canUpdate, driftPill, effectiveActive, panelString } from './utils.js';
 
 defineOptions({ name: 'TestingRow' });
 
@@ -61,10 +61,6 @@ const canUpdatePr = computed(() => !removalStaged.value && canUpdate(props.pr));
 const pill = computed(() => driftPill(props.pr, props.strings));
 
 const prUrl = computed(() => `${REPO_URL}/pull/${encodeURIComponent(props.pr.pr)}`);
-
-function text(key, ...args) {
-    return sprintf(props.strings[key] || key, ...args);
-}
 </script>
 
 <template>
@@ -75,7 +71,7 @@ function text(key, ...args) {
                 type="button"
                 class="testing-env__switch"
                 :aria-pressed="isActive ? 'true' : 'false'"
-                :aria-label="text('prOnTesting', pr.pr)"
+                :aria-label="panelString(strings, 'prOnTesting', { num: pr.pr })"
                 @click="emit('toggle', pr)"
             >
                 <span class="testing-env__switch-knob" aria-hidden="true" />
