@@ -176,7 +176,6 @@ for readability, with multiple HTML elements.
 | `openlibrary/templates/type/edition/notes_modal_i18n.html` | Reference Templetor `_i18n.html` partial |
 | `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using all i18n patterns |
 | `openlibrary/tests/core/test_jinja.py` | `test_translations_via_gettext_callables` — all four paths |
-| `tests/unit/js/searchModalConstants.test.js` | Tests for the reader/merge logic |
 
 ---
 
