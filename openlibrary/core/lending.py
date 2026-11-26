@@ -579,14 +579,17 @@ def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
 
     Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
     """
-    ocaid_availability = get_availability("identifier", ocaids)
-    editions = site.get().get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
+    return editions_for_availability(get_availability("identifier", ocaids))
 
-    # Attach availability
+
+def editions_for_availability(ocaid_availability: dict) -> dict[str, Edition]:
+    """The Open Library editions of the items in an availability answer keyed by ocaid, each with its availability."""
+    # A failed request's answer also holds "error" and "details" strings beside the items.
+    found = {ocaid: availability for ocaid, availability in ocaid_availability.items() if isinstance(availability, dict)}
+    editions = site.get().get_many([f"/books/{item['openlibrary_edition']}" for item in found.values() if item.get("openlibrary_edition")])
     for edition in editions:
-        if edition.ocaid in ocaids:
-            edition.availability = ocaid_availability.get(edition.ocaid)
-
+        if edition.ocaid in found:
+            edition.availability = found[edition.ocaid]
     return {edition.ocaid: edition for edition in editions if edition.ocaid}
 
 

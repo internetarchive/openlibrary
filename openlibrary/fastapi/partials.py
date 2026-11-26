@@ -270,12 +270,13 @@ async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dic
 def home_member_partial(
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
     part: Annotated[Literal["loans", "shelves"], Query(description="Which half of the section")] = "loans",
+    s3: Annotated[str | None, Cookie(include_in_schema=False)] = None,
 ) -> dict:
-    """One half of the signed-in reader's own top of the home page: `loans` is their loans and ready holds,
-    `shelves` their Currently Reading and Want to Read books with a copy free now. Empty when signed out."""
+    """One half of the signed-in reader's own top of the home page: `loans` is their loans and ready holds
+    and the books they borrowed lately, `shelves` their Currently Reading and Want to Read books with a copy free now. Empty when signed out."""
     if not user:
         return {"partials": ""}
-    return HomeMemberPartial.generate(user.username, part)
+    return HomeMemberPartial.generate(user.username, part, s3_cookie=s3)
 
 
 @router.get("/partials/NearbyBooks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

@@ -833,7 +833,7 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html account/loan_actions.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
+#: LoanReadForm.html ReadButton.html account/loan_actions.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html openlibrary/plugins/openlibrary/home_member.py trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -5257,7 +5257,15 @@ msgid "Ready to Borrow"
 msgstr ""
 
 #: home/member.html.jinja
+msgid "Recently Borrowed"
+msgstr ""
+
+#: home/member.html.jinja
 msgid "Loans and Holds"
+msgstr ""
+
+#: home/member.html.jinja
+msgid "Your Loans"
 msgstr ""
 
 #: LoanStatus.html home/member.html.jinja
@@ -11280,6 +11288,15 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/home_member.py
+msgid "Borrowed before"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+#, python-format
+msgid "Borrowed %(when)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
 msgid "Borrow it soon, or it goes to the next reader."
 msgstr ""
 
@@ -11304,6 +11321,18 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/home_member.py
 #, python-format
 msgid "You're number %(position)d of %(size)d in line"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Borrow again"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "Join waitlist"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_member.py
+msgid "View book"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_member.py

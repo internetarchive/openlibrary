@@ -1213,7 +1213,7 @@ class HomeMemberPartial:
     same for everyone, so the reader's own part is fetched after load, each half on its own."""
 
     @classmethod
-    def generate(cls, username: str, part: str = "loans") -> dict:
+    def generate(cls, username: str, part: str = "loans", s3_cookie: str | None = None) -> dict:
         # FastAPI runs this sync handler on a threadpool worker with no web.ctx; the lending calls need one.
         # Only web.ctx: the request context FastAPI set (language, bot or not) must stay as it is, or
         # availability takes its bot shortcut and reports every borrowable book as free.
@@ -1224,7 +1224,7 @@ class HomeMemberPartial:
             return {"partials": html}
         if not (user := get_user_object(username)):
             return {"partials": ""}
-        member = home_member.build_part(user, part)
+        member = home_member.build_part(user, part, s3_cookie)
         html = render_jinja_template("home/member.html.jinja", member=member).strip()
         # A part that failed to load (a lending outage) is retried on the next view, not kept for five minutes.
         if member["complete"]:
