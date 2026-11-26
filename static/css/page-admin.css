@@ -24,6 +24,9 @@
 @import "legacy-borrowTable-adminUser.css";
 @import "components/pd-dashboard.css";
 @import "components/admin-person.css";
+@import "components/admin-inspect-store.css";
+@import "components/admin-imports.css";
+@import "components/admin-people.css";
 
 /* graphite graphs may be bigger than viewport... */
 img {
