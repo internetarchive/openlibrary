@@ -370,6 +370,6 @@
 .mr-stats-table th,
 .mr-stats-table td {
   padding: var(--spacing-inset-sm);
-  text-align: left;
-  border-top: 1px solid var(--color-border-subtle);
+  text-align: start;
+  border-top: 1px solid var(--color-border-extra-subtle);
 }

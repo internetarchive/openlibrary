@@ -184,11 +184,11 @@ class CommunityEditsQueue:
         query = f"""
             SELECT {role} AS username,
                 count(*) AS total,
-                SUM(CASE WHEN status = {merged} THEN 1 ELSE 0 END) AS merged,
-                SUM(CASE WHEN status = {declined} THEN 1 ELSE 0 END) AS declined,
-                SUM(CASE WHEN mr_type = {cls.TYPE["AUTHOR_MERGE"]} THEN 1 ELSE 0 END) AS author_requests,
-                SUM(CASE WHEN mr_type = {cls.TYPE["WORK_MERGE"]} THEN 1 ELSE 0 END) AS work_requests,
-                SUM(CASE WHEN status = {merged} THEN 1.0 ELSE 0.0 END) * 100 / count(*) AS merge_rate
+                count(*) FILTER (WHERE status = {merged}) AS merged,
+                count(*) FILTER (WHERE status = {declined}) AS declined,
+                count(*) FILTER (WHERE mr_type = {cls.TYPE["AUTHOR_MERGE"]}) AS author_requests,
+                count(*) FILTER (WHERE mr_type = {cls.TYPE["WORK_MERGE"]}) AS work_requests,
+                count(*) FILTER (WHERE status = {merged}) * 100.0 / count(*) AS merge_rate
             FROM {cls.TABLENAME}
             WHERE {cls._stats_where(role, since)}
             GROUP BY {role}
