@@ -358,6 +358,52 @@ class TestSaveBookHelper:
         assert saved_edition.weight == "about 2 lbs"
         assert saved_edition.physical_dimensions == "24 cm"
 
+    def test_clearing_weight_with_unit_checked_and_replacing_unparseable_dimensions(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        site.get().save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                    "weight": "300 grams",
+                    "physical_dimensions": "24 cm",
+                },
+            ]
+        )
+
+        work = site.get().get("/works/OL1W")
+        edition = site.get().get("/books/OL1M")
+        # The browser still posts the checked unit radio for an emptied weight.
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+                "edition--weight--value": "",
+                "edition--weight--units": "grams",
+                "edition--physical_dimensions--units": "centimeters",
+                "edition--physical_dimensions--height": "24",
+                "edition--physical_dimensions--width": "16",
+                "edition--physical_dimensions--depth": "2",
+            }
+        )
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        saved_edition = site.get().get("/books/OL1M")
+        assert saved_edition.weight is None
+        assert saved_edition.physical_dimensions == "24 x 16 x 2 centimeters"
+
     def test_editing_work_and_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
