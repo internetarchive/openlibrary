@@ -10,6 +10,7 @@ from io import BytesIO
 from pathlib import Path
 
 import web
+from babel import Locale
 from babel.messages import Catalog, Message
 from babel.messages.extract import (
     extract_from_dir,
@@ -469,11 +470,16 @@ def load_translations(lang: str):
         return Translations(open(mo_path, "rb"))
 
 
-# A count in each CLDR plural category, to build the plural sets ``i18n.js`` picks from with gettext.
-PLURAL_SAMPLES = {"zero": 0, "one": 1, "two": 2, "few": 3, "many": 11, "other": 100}
+def _plural_samples(lang: str) -> dict[str, int]:
+    """The smallest count in each of the language's CLDR plural categories, plus ``other``, which ``i18n.js`` falls back to."""
+    rule = Locale.parse(lang).plural_form
+    samples: dict[str, int] = {}
+    for n in range(200):
+        samples.setdefault(rule(n), n)
+    samples.setdefault("other", 100)
+    return samples
 
 
-@functools.cache
 def _javascript_msgids() -> list[str | tuple[str, str]]:
     """The strings JavaScript translates (``_()`` / ``ngettext()`` in ``.js`` and ``.vue`` files), from messages.pot."""
     with open(os.path.join(root, "messages.pot"), "rb") as f:
@@ -495,7 +501,7 @@ def javascript_catalog(lang: str) -> dict:
     for msgid in _javascript_msgids():
         if isinstance(msgid, tuple):
             singular, plural = msgid
-            forms = {category: translations.ungettext(singular, plural, n) for category, n in PLURAL_SAMPLES.items()}
+            forms = {category: translations.ungettext(singular, plural, n) for category, n in _plural_samples(lang).items()}
             if forms["one"] != singular or forms["other"] != plural:
                 catalog[singular] = forms
         elif (text := translations.ugettext(msgid)) != msgid:

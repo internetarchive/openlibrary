@@ -23,9 +23,9 @@
  * jsdef.js; those are pass-throughs, not translations.
  */
 
-/** "%(name)s" style interpolation, matching the server-side i18n strings. */
+/** "%(name)s" (or "%(name)d") style interpolation, matching the server-side i18n strings. */
 export function fmt(template, vars) {
-    return template.replace(/%\((\w+)\)s/g, (_, k) => vars[k] ?? '');
+    return template.replace(/%\((\w+)\)[sd]/g, (_, k) => vars[k] ?? '');
 }
 
 let _rules = null;

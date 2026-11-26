@@ -57,7 +57,7 @@ class HeadContext:
     days_registered_json: str
     sentry: SentryContext | None
     # The page language's translations for ``i18n.js``'s ``_()`` / ``ngettext()``.
-    javascript_catalog_json: str = "{}"
+    javascript_catalog_json: str
 
     @classmethod
     def build(cls, *, req: ShellRequest, page: PageMeta, user: ShellUser | None) -> HeadContext:

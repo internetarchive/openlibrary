@@ -308,16 +308,13 @@ def test_extract_messages_reads_lit_templates_and_vue_scripts(tmp_path, monkeypa
 
 
 @pytest.fixture
-def clear_javascript_caches():
-    cached = (i18n._javascript_msgids, i18n.javascript_catalog)
-    for function in cached:
-        function.cache_clear()
+def clear_javascript_catalog():
+    i18n.javascript_catalog.cache_clear()
     yield
-    for function in cached:
-        function.cache_clear()
+    i18n.javascript_catalog.cache_clear()
 
 
-def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monkeypatch, clear_javascript_caches):
+def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monkeypatch):
     catalog = Catalog()
     catalog.add("Server only", locations=[("openlibrary/plugins/worksearch/code.py", None)])
     catalog.add("Advanced", locations=[("BarcodeScanner.vue", None)])
@@ -329,7 +326,7 @@ def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monke
     assert i18n._javascript_msgids() == ["Advanced", ("%(count)s list", "%(count)s lists")]
 
 
-def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, clear_javascript_caches):
+def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, clear_javascript_catalog):
     catalog = Catalog(locale="es")
     catalog.add("Advanced", "Avanzado")
     catalog.add(("%(count)s list", "%(count)s lists"), ("%(count)s lista", "%(count)s listas"))
@@ -342,5 +339,5 @@ def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, c
 
     assert i18n.javascript_catalog("es") == {
         "Advanced": "Avanzado",
-        "%(count)s list": {category: "%(count)s lista" if category == "one" else "%(count)s listas" for category in i18n.PLURAL_SAMPLES},
+        "%(count)s list": {"one": "%(count)s lista", "other": "%(count)s listas"},
     }

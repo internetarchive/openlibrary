@@ -16,7 +16,7 @@ describe('sprintf', () => {
 
 describe('_ and ngettext', () => {
     async function withCatalog(catalog) {
-        document.head.innerHTML = `<script type="application/json" id="ol-js-i18n">${JSON.stringify(catalog)}</script>`;
+        document.head.innerHTML = catalog ? `<script type="application/json" id="ol-js-i18n">${JSON.stringify(catalog)}</script>` : '';
         vi.resetModules();
         return import('../../../openlibrary/plugins/openlibrary/js/i18n.js');
     }
@@ -36,9 +36,7 @@ describe('_ and ngettext', () => {
     });
 
     it('shows the English when the page has no catalog', async () => {
-        document.head.innerHTML = '';
-        vi.resetModules();
-        const { _ } = await import('../../../openlibrary/plugins/openlibrary/js/i18n.js');
+        const { _ } = await withCatalog(null);
         expect(_('Advanced')).toBe('Advanced');
     });
 });
