@@ -25,66 +25,66 @@ import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, ngettext, translate } from '../../plugins/openlibrary/js/i18n.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import './OlPopover.js';
 import './OLButton.js';
 
 export const DEFAULT_LABELS = {
-    actionsFor: 'Actions for %(title)s',
-    readingLog: 'Reading log',
-    wantToRead: 'Want to Read',
-    currentlyReading: 'Currently Reading',
-    alreadyRead: 'Already Read',
-    stoppedReading: 'Stopped Reading',
+    actionsFor: _('Actions for %(title)s'),
+    readingLog: _('Reading log'),
+    wantToRead: _('Want to Read'),
+    currentlyReading: _('Currently Reading'),
+    alreadyRead: _('Already Read'),
+    stoppedReading: _('Stopped Reading'),
     // Live-region announcements: a change is confirmed to a screen reader
     // the way the checkmark confirms it on screen.
-    addedToShelf: 'Added to %(shelf)s',
-    removedFromShelf: 'Removed from shelf',
-    rated: 'Rated %(rating)s of 5',
-    ratingCleared: 'Rating cleared',
-    dateSaved: 'Finished %(date)s',
-    dateRemoved: 'Date removed',
-    addDate: 'Add date',
-    rateThisBook: 'Rate this book',
-    rateStar: 'Rate %(rating)s of 5',
-    clearRating: 'Clear rating',
-    addToList: 'Add to list',
+    addedToShelf: _('Added to %(shelf)s'),
+    removedFromShelf: _('Removed from shelf'),
+    rated: _('Rated %(rating)s of 5'),
+    ratingCleared: _('Rating cleared'),
+    dateSaved: _('Finished %(date)s'),
+    dateRemoved: _('Date removed'),
+    addDate: _('Add date'),
+    rateThisBook: _('Rate this book'),
+    rateStar: _('Rate %(rating)s of 5'),
+    clearRating: _('Clear rating'),
+    addToList: _('Add to list'),
     // Above the lists of an edition with no work: why the shelves and stars are missing.
-    listsOnlyEdition: 'This edition has no work record yet, so it can be added to lists but not to your reading log.',
-    // A plural set: how many other editions of this book the list already holds.
-    otherEditions: { one: '%(count)s other edition', other: '%(count)s other editions' },
+    listsOnlyEdition: _('This edition has no work record yet, so it can be added to lists but not to your reading log.'),
+    // A function of count: how many other editions of this book the list already holds.
+    otherEditions: count => ngettext('%(count)s other edition', '%(count)s other editions', count),
     // The list holds the book but not this edition; shown while the row is unticked.
-    alreadyOnList: 'Already on this list',
-    back: 'Back',
-    createList: 'Create a list',
-    listName: 'List name',
-    create: 'Create',
-    filterLists: 'Filter lists…',
-    createFirstList: 'Create your first list',
-    noMatchingLists: 'No lists match.',
-    loadingLists: 'Loading lists…',
-    // A plural set: the form is picked for `count` by the page language's rules.
-    itemsInList: { one: '%(count)s item', other: '%(count)s items' },
-    // A plural set: how many of the reader's lists hold this book.
-    onLists: { one: 'On %(count)s list', other: 'On %(count)s lists' },
-    recentLists: 'Recently used',
-    pinnedLists: 'On this book and recently used',
-    otherLists: 'Other lists',
-    addedToList: 'Added to %(name)s',
-    removedFromList: 'Removed from %(name)s',
-    manageLists: 'Manage lists',
-    errorGeneric: 'Something went wrong. Please try again.',
-    whenFinished: 'When did you finish this book?',
-    skipDate: 'Skip',
-    today: 'Today',
-    inYear: 'In %(year)s',
-    otherDate: 'Other date',
-    year: 'Year',
-    month: 'Month',
-    day: 'Day',
-    saveDate: 'Save',
-    removeDate: 'Remove date'
+    alreadyOnList: _('Already on this list'),
+    back: _('Back'),
+    createList: _('Create a list'),
+    listName: _('List name'),
+    create: _('Create'),
+    filterLists: _('Filter lists…'),
+    createFirstList: _('Create your first list'),
+    noMatchingLists: _('No lists match.'),
+    loadingLists: _('Loading lists…'),
+    // A function of count; the plural form is picked by the page language's rules.
+    itemsInList: count => ngettext('%(count)s item', '%(count)s items', count),
+    // A function of count: how many of the reader's lists hold this book.
+    onLists: count => ngettext('On %(count)s list', 'On %(count)s lists', count),
+    recentLists: _('Recently used'),
+    pinnedLists: _('On this book and recently used'),
+    otherLists: _('Other lists'),
+    addedToList: _('Added to %(name)s'),
+    removedFromList: _('Removed from %(name)s'),
+    manageLists: _('Manage lists'),
+    errorGeneric: _('Something went wrong. Please try again.'),
+    whenFinished: _('When did you finish this book?'),
+    skipDate: _('Skip'),
+    today: _('Today'),
+    inYear: _('In %(year)s'),
+    otherDate: _('Other date'),
+    year: _('Year'),
+    month: _('Month'),
+    day: _('Day'),
+    saveDate: _('Save'),
+    removeDate: _('Remove date')
 };
 
 const SHELF_ROWS = Object.values(SHELF).map(id => ({ id, icon: SHELF_ICON[id], iconOn: SHELF_ICON_FILLED[id], label: SHELF_LABEL[id] }));
@@ -1355,7 +1355,7 @@ export class OlShelfActions extends LitElement {
     _renderDateFields() {
         const { year, month, day } = this._date;
         const thisYear = new Date().getFullYear();
-        const years = Array.from({ length: 121 }, (_, i) => thisYear - i);
+        const years = Array.from({ length: 121 }, (_unused, i) => thisYear - i);
         const days = month ? new Date(Number(year), Number(month), 0).getDate() : 31;
         return html`
             <form
@@ -1384,7 +1384,7 @@ export class OlShelfActions extends LitElement {
                     </select>
                     <select class="select" aria-label=${this.t('day')} ?disabled=${!month} @change=${e => this._setDatePart('day', e.target.value)}>
                         <option value="" .selected=${!day}>${this.t('day')}</option>
-                        ${Array.from({ length: days }, (_, i) => i + 1).map(d => html`<option value=${d} .selected=${String(d) === day}>${d}</option>`)}
+                        ${Array.from({ length: days }, (_unused, i) => i + 1).map(d => html`<option value=${d} .selected=${String(d) === day}>${d}</option>`)}
                     </select>
                 </div>
                 <div class="date-actions">

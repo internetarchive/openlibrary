@@ -25,7 +25,6 @@ from openlibrary.core.shell.chrome import (
 from openlibrary.core.shell.head import HeadContext
 from openlibrary.core.shell.header import HeaderContext
 from openlibrary.core.shell.request import PageMeta, ShellRequest
-from openlibrary.core.shell.shelf_labels import build_shelf_button_labels
 from openlibrary.core.shell.user import ShellUser, load_shell_user
 
 if TYPE_CHECKING:
@@ -59,7 +58,6 @@ class LayoutContext:
     is_local_dev: bool
     header: HeaderContext
     head: HeadContext
-    shelf_button_labels_json: str
     announcement_banner: AnnouncementBanner | None = None
     # The edit pages' thank-you, with the Tasks projects it names; the other flash messages stay in ``flash_messages``.
     edit_saved: EditSaved | None = None
@@ -86,7 +84,6 @@ class LayoutContext:
         from openlibrary.core.env import get_ol_env
         from openlibrary.plugins.openlibrary.code import get_supported_languages
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
-        from openlibrary.plugins.upstream.utils import json_encode
         from openlibrary.utils.request_context import get_request_lang, req_context
 
         flash_messages, edit_saved = _extract_edit_saved(req.flash_messages)
@@ -108,7 +105,6 @@ class LayoutContext:
             is_local_dev=get_ol_env().LOCAL_DEV,
             header=HeaderContext.build(req=req, user=user),
             head=HeadContext.build(req=req, page=page, user=user),
-            shelf_button_labels_json=json_encode(build_shelf_button_labels()),
             announcement_banner=_extract_announcement_banner(req.banner_dismissed),
             edit_saved=edit_saved,
         )

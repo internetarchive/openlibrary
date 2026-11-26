@@ -1,175 +1,109 @@
 /**
  * Filter options for the header search modal.
  */
+import { _ } from '../i18n.js';
 
-// Availability values and their display labels. The labels are the English
-// source/fallback for the localized strings in openlibrary/core/shell/search_modal.py;
-// keep the two in sync. The header modal and the search-page filter row both
-// surface availability as a binary "Readable Only" toggle, so only the
-// `readable` label is rendered today; the full set mirrors the taxonomy in
-// AVAILABILITY_TO_PARAMS and feeds availabilityFromParams' URL round-tripping.
+// Availability values and their display labels. The header modal and the
+// search-page filter row both surface availability as a binary "Readable Only"
+// toggle, so only the `readable` label is rendered today; the full set mirrors
+// the taxonomy in AVAILABILITY_TO_PARAMS and feeds availabilityFromParams' URL
+// round-tripping. `value` is an identifier, never translated.
 export const AVAILABILITY_OPTIONS = [
-    { value: 'all', label: 'All books' },
-    { value: 'readable', label: 'Readable Only' },
-    { value: 'open', label: 'Free to read now' },
-    { value: 'borrowable', label: 'Borrow online' }
+    { value: 'all', label: _('All books') },
+    { value: 'readable', label: _('Readable Only') },
+    { value: 'open', label: _('Free to read now') },
+    { value: 'borrowable', label: _('Borrow online') }
 ];
 
 export const DEFAULT_AVAILABILITY = 'all';
 
 /**
- * Returns a copy of AVAILABILITY_OPTIONS with each option's `label` replaced by
- * the translated string in `i18nStrings` (keyed by the option's `value`). The
- * English strings above are the source/fallback: any value the translations
- * omit keeps its built-in text, so a missing or partial translation never
- * blanks out an option.
- *
- * The translated strings are built server-side in openlibrary/core/shell/search_modal.py
- * and serialized into the `data-i18n` attribute; the JS-side `ugettext` is only
- * a pass-through.
- *
- * @param {Object<string, {label?: string}>|null} i18nStrings
- * @returns {typeof AVAILABILITY_OPTIONS}
- */
-export function localizeAvailabilityOptions(i18nStrings) {
-    if (!i18nStrings) return AVAILABILITY_OPTIONS;
-    return AVAILABILITY_OPTIONS.map(opt => {
-        const t = i18nStrings[opt.value];
-        if (!t) return opt;
-        return Object.assign({}, opt, { label: t.label || opt.label });
-    });
-}
-
-/**
- * Reads translated availability strings from an element's `data-i18n` JSON
- * attribute (built in openlibrary/core/shell/search_modal.py) and returns the
- * localized option list. Falls back to the English defaults when the attribute
- * is absent or malformed.
- *
- * @param {Element|null} el
- * @returns {typeof AVAILABILITY_OPTIONS}
- */
-export function availabilityOptionsFromElement(el) {
-    let i18nStrings = null;
-    try {
-        const raw = el && el.dataset ? el.dataset.i18n : null;
-        if (raw) i18nStrings = JSON.parse(raw);
-    } catch {
-        /* fall back to the English defaults below */
-    }
-    return localizeAvailabilityOptions(i18nStrings);
-}
-
-/**
- * English source/fallback for the header search modal's chrome strings (labels,
- * placeholders, aria-labels, status messages). Built server-side in
- * openlibrary/core/shell/search_modal.py and serialized into the `data-i18n-ui` attribute;
- * this object is what ships when no translation is present.
+ * The header search modal's chrome strings (labels, placeholders, aria-labels,
+ * status messages), in the page language. `%s` placeholders are filled with sprintf.
  */
 export const DEFAULT_SEARCH_MODAL_STRINGS = {
-    dialogAria: 'Search Open Library',
-    inputPlaceholder: 'Search books and authors…',
-    inputAria: 'Search',
-    closeAria: 'Close search',
-    clearAria: 'Clear search',
+    dialogAria: _('Search Open Library'),
+    inputPlaceholder: _('Search books and authors…'),
+    inputAria: _('Search'),
+    closeAria: _('Close search'),
+    clearAria: _('Clear search'),
     // Footer button label. "all" only appears when there are more matches than
     // the modal renders inline — when every hit is already shown there's nothing
     // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
     // the there's-more case (always plural, since a lone result is always shown).
     // Counts are books (works); author rows come from the same docs.
-    seeAll: 'See results',
+    seeAll: _('See results'),
     // Zero hits: the button still leads to /search, so name the destination.
-    seeNone: 'Go to full search',
-    seeOne: 'See %s book',
-    seeMany: 'See %s books',
-    seeAllMany: 'See all %s books',
+    seeNone: _('Go to full search'),
+    seeOne: _('See %s book'),
+    seeMany: _('See %s books'),
+    seeAllMany: _('See all %s books'),
     // Narrow-footer form of seeAllMany; the wide form stays the accessible name.
-    seeAllManyNarrow: 'All %s books',
-    clearAll: 'Clear all',
+    seeAllManyNarrow: _('All %s books'),
+    clearAll: _('Clear all'),
     // Scope tabs: the catalogue, and the text of the scans.
-    tabsAria: 'Search scope',
-    tabBooks: 'Books',
-    tabInside: 'Inside books',
-    filtersAria: 'Search filters',
-    availabilityLabel: 'Availability',
-    languageLabel: 'Language',
-    languagePlaceholder: 'Search languages…',
-    languageHeading: 'Languages',
-    languagesLoading: 'Loading…',
+    tabsAria: _('Search scope'),
+    tabBooks: _('Books'),
+    tabInside: _('Inside books'),
+    filtersAria: _('Search filters'),
+    availabilityLabel: _('Availability'),
+    languageLabel: _('Language'),
+    languagePlaceholder: _('Search languages…'),
+    languageHeading: _('Languages'),
+    languagesLoading: _('Loading…'),
     // Loading labels, one per scope tab so the wait names what's being searched.
-    searchingBooks: 'Searching books and authors…',
-    searchingInside: 'Searching inside books…',
-    noResults: 'No results found',
+    searchingBooks: _('Searching books and authors…'),
+    searchingInside: _('Searching inside books…'),
+    noResults: _('No results found'),
     // When only the Search Inside band has matches, "No results found" would contradict it.
-    noCatalogResults: 'No matching books or authors',
+    noCatalogResults: _('No matching books or authors'),
     // Screen-reader-only live announcement when results land: %(shown)s = rows
     // shown in the modal, %(total)s = total matches. e.g. "Showing 7 of 134,731
     // results". Sighted users see the list appear; this gives assistive tech the
     // same feedback (see the aria-live region in SearchModal.render).
-    resultsAnnounce: 'Showing %(shown)s of %(total)s results',
-    authorResults: 'Authors',
-    topResults: 'Books',
-    untitled: 'Untitled',
-    authorLabel: 'Author',
+    resultsAnnounce: _('Showing %(shown)s of %(total)s results'),
+    authorResults: _('Authors'),
+    topResults: _('Books'),
+    untitled: _('Untitled'),
+    authorLabel: _('Author'),
     // Result-row access badge, shown beside the title for any readable book
     // (public-domain or lendable). Keep short — it sits in a small badge.
-    accessReadable: 'Readable',
+    accessReadable: _('Readable'),
     // Replaces "Readable" when the readable copy is in a language other than the
     // patron's site language. %s = the localized language name, e.g.
     // "Readable in French". Filled client-side via sprintf.
-    readableInLanguage: 'Readable in %s',
-    recentSearches: 'Recent searches',
-    removeRecent: 'Remove "%s" from recent searches',
-    insideHeading: 'Search inside books',
+    readableInLanguage: _('Readable in %s'),
+    recentSearches: _('Recent searches'),
+    removeRecent: _('Remove "%s" from recent searches'),
+    insideHeading: _('Search inside books'),
     // Inside tab footer action. %s = books with matches.
-    seeAllInsideOne: 'Search Inside %s book',
-    seeAllInsideMany: 'Search Inside %s books',
+    seeAllInsideOne: _('Search Inside %s book'),
+    seeAllInsideMany: _('Search Inside %s books'),
     // Before a total is measured for the current input.
-    seeAllInsidePlain: 'Search Inside',
+    seeAllInsidePlain: _('Search Inside'),
     // Crosses from the band to the Inside books tab — it doesn't leave the modal.
-    viewAllInside: 'View all',
+    viewAllInside: _('View all'),
     // Inside tab placeholder, too-short prompt, and empty result.
-    insidePlaceholder: 'Search inside books…',
-    insidePrompt: 'Type a word or phrase to find it on the pages of millions of books.',
-    noInsideResults: 'No matches inside books',
+    insidePlaceholder: _('Search inside books…'),
+    insidePrompt: _('Type a word or phrase to find it on the pages of millions of books.'),
+    noInsideResults: _('No matches inside books'),
     // Replaces the empty state when the fulltext backend failed, so an outage
     // doesn't read as a verdict on the query.
-    insideError: 'Search inside books is temporarily unavailable. Please try again later.',
+    insideError: _('Search inside books is temporarily unavailable. Please try again later.'),
     // Above Inside tab hits when the query was searched as one exact phrase. %s = the query.
-    insideExactMatches: 'Showing exact matches for "%s".',
+    insideExactMatches: _('Showing exact matches for "%s".'),
     // Follows insideExactMatches; reruns the query as loose words.
-    insideSearchAllWords: 'Search for all of these words instead.',
+    insideSearchAllWords: _('Search for all of these words instead.'),
     // Above Inside tab hits after the patron chose all words.
-    insideAllWords: 'Showing all of these words, in any order.',
+    insideAllWords: _('Showing all of these words, in any order.'),
     // Follows insideAllWords; goes back to the exact phrase.
-    insideSearchExactPhrase: 'Search for the exact phrase instead.',
+    insideSearchExactPhrase: _('Search for the exact phrase instead.'),
     // The exact phrase found nothing, so the hits match all the words. %s = the query.
-    insideNoExactMatches: 'No exact matches for "%s". Showing books containing all of these words.',
+    insideNoExactMatches: _('No exact matches for "%s". Showing books containing all of these words.'),
     // %s = snippet rows shown (1–3), not the backend total.
-    insideAnnounceOne: '%s match found inside books',
-    insideAnnounceMany: '%s matches found inside books'
+    insideAnnounceOne: _('%s match found inside books'),
+    insideAnnounceMany: _('%s matches found inside books')
 };
-
-/**
- * Reads translated modal chrome strings from an element's `data-i18n-ui` JSON
- * attribute (built in openlibrary/core/shell/search_modal.py) and merges them over
- * DEFAULT_SEARCH_MODAL_STRINGS, so any key the translations omit keeps its
- * English text. Falls back to the full English set when the attribute is absent
- * or malformed.
- *
- * @param {Element|null} el
- * @returns {typeof DEFAULT_SEARCH_MODAL_STRINGS}
- */
-export function searchModalStringsFromElement(el) {
-    let overrides = null;
-    try {
-        const raw = el && el.dataset ? el.dataset.i18nUi : null;
-        if (raw) overrides = JSON.parse(raw);
-    } catch {
-        /* fall back to the English defaults below */
-    }
-    return overrides ? { ...DEFAULT_SEARCH_MODAL_STRINGS, ...overrides } : DEFAULT_SEARCH_MODAL_STRINGS;
-}
 
 /**
  * Maps an availability value to the `/search` query params that express it.

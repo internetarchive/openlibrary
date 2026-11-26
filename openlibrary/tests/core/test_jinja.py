@@ -89,8 +89,7 @@ def _create_validation_env() -> jinja2.Environment:
     env.policies["ext.i18n.trimmed"] = True
 
     # Structural validation renders with ``RenderableUndefined`` data, so
-    # ``tojson`` (used for the search trigger's ``data-i18n`` payloads) must
-    # coerce unknown values instead of raising. ``str(undefined)`` is ``""``.
+    # ``tojson`` must coerce unknown values instead of raising. ``str(undefined)`` is ``""``.
     env.policies["json.dumps_function"] = lambda obj, **kwargs: json.dumps(obj, default=str, **kwargs)
 
     # Stubbed: this env only validates template structure, without infogami's
@@ -180,7 +179,6 @@ def test_site_layout_template_uses_jinja_template(monkeypatch, request_context_f
         assert isinstance(layout.header.homepath, str)
         assert isinstance(layout.header.my_books_props, dict)
         assert isinstance(layout.header.browse_links, list)
-        assert isinstance(layout.header.search_modal, shell_module.SearchModalContext)
         assert isinstance(layout.header, shell_module.HeaderContext)
         assert isinstance(layout.head, shell_module.HeadContext)
         # No flat layout keys should leak into root context
@@ -435,13 +433,7 @@ class TestGetJinjaEnv:
 
 
 def test_ngettext_formats_named_placeholders(request_context_fixture):
-    """Standard Jinja newstyle ngettext formats ``%(num)s`` placeholders.
-
-    Client-fill strings — which must reach the browser with their ``%s``
-    placeholders intact — are built in Python and serialized to JSON rather
-    than rendered through ``_`` (see ``SearchModalContext`` in
-    ``openlibrary/core/shell/search_modal.py``).
-    """
+    """Standard Jinja newstyle ngettext formats ``%(num)s`` placeholders."""
     request_context_fixture(lang="en")
     env = get_jinja_env()
     assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3) }}").render() == "3 books"
@@ -623,24 +615,3 @@ def test_third_party_scripts_load_async(monkeypatch, request_context_fixture):
     athena = soup.find("script", src="/cdn/archive.org/athena.js")
     assert athena is not None
     assert athena.has_attr("async")
-
-
-def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatch, request_context_fixture):
-    """The search trigger ships client-fill strings as JSON with ``%s`` intact.
-
-    These strings are interpolated in the browser (``sprintf``), so they are
-    built in Python and serialized — never rendered through Jinja's formatting
-    ``_``, which would turn ``"See %s book"`` into ``"See {} book"``.
-    """
-    request_context_fixture(lang="en")
-    env = get_jinja_env()
-    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
-    monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
-    layout = _layout("x")
-    html = env.get_template("shell/header.html.jinja").render(layout=layout)
-    trigger = BeautifulSoup(html, "lxml").find("button", class_="search-bar-trigger")
-    availability = json.loads(trigger["data-i18n"])
-    strings = json.loads(trigger["data-i18n-ui"])
-    assert availability["all"]["label"] == "All books"
-    assert strings["seeOne"] == "See %s book"
-    assert strings["resultsAnnounce"] == "Showing %(shown)s of %(total)s results"

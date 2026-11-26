@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, translate } from '../../plugins/openlibrary/js/i18n.js';
 import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
@@ -10,14 +10,14 @@ import './OlIcon.js';
 
 export const DEFAULT_LABELS = {
     ...ACTION_LABELS,
-    save: 'Save %(title)s to your reading log',
-    saved: '%(title)s is on your reading log',
+    save: _('Save %(title)s to your reading log'),
+    saved: _('%(title)s is on your reading log'),
     // The main half's accessible name: the shelf it toggles plus the book, so
     // one of twenty in a list still says which. The shelf name leads because
     // it is the visible label.
-    shelfToggle: '%(shelf)s: %(title)s',
-    shelfMenu: 'More options for %(title)s',
-    addToListFor: 'Add %(title)s to a list'
+    shelfToggle: _('%(shelf)s: %(title)s'),
+    shelfMenu: _('More options for %(title)s'),
+    addToListFor: _('Add %(title)s to a list')
 };
 
 /**

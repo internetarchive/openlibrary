@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any
 from openlibrary.core.helpers import datestr
 from openlibrary.core.shell._util import _safe
 from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
-from openlibrary.core.shell.search_modal import SearchModalContext, build_search_modal_i18n
 from openlibrary.utils.request_context import get_request_lang
 
 if TYPE_CHECKING:
@@ -86,7 +85,6 @@ class HeaderContext:
     my_books_props: dict[str, Any]
     browse_links: list[NavLink]
     browse_featured_count: int
-    search_modal: SearchModalContext
 
     @classmethod
     def build(cls, *, req: ShellRequest, user: ShellUser | None) -> HeaderContext:
@@ -104,5 +102,4 @@ class HeaderContext:
             my_books_props=_extract_my_books_props(req.homepath),
             browse_links=links,
             browse_featured_count=BROWSE_FEATURED_COUNT,
-            search_modal=build_search_modal_i18n(),
         )

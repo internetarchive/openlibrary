@@ -1,10 +1,10 @@
 /**
- * book-state.js: labels and the reader's key reach every button, state is
+ * book-state.js: the reader's key reaches every button, state is
  * fetched in one batch for the buttons the server left without it, and a
  * change on one button lands on every button for that work.
  */
 import '../../../openlibrary/components/lit/OlShelfButton.js';
-import { BATCH_SIZE, HYDRATE_DELAY, hydrate, initBookState, readLabels, resetBookState } from '../../../openlibrary/plugins/openlibrary/js/book-state.js';
+import { BATCH_SIZE, HYDRATE_DELAY, hydrate, initBookState, resetBookState } from '../../../openlibrary/plugins/openlibrary/js/book-state.js';
 
 let calls;
 let posts;
@@ -19,15 +19,10 @@ function stubFetch(works = {}, { status = 200 } = {}) {
     });
 }
 
-const LABELS = { wantToRead: 'Quiero leer', save: 'Guardar %(title)s' };
-
-function page({ userKey = '/people/tester', labels = LABELS, buttons = '' } = {}) {
+function page({ userKey = '/people/tester', buttons = '' } = {}) {
     if (userKey) document.body.dataset.userKey = userKey;
     else delete document.body.dataset.userKey;
-    document.body.innerHTML = `
-        ${labels ? `<input type="hidden" name="shelf-button-i18n-strings" value='${JSON.stringify(labels)}'>` : ''}
-        ${buttons}
-    `;
+    document.body.innerHTML = buttons;
 }
 
 const button = (workKey, attrs = '') => `<ol-shelf-button work-key="${workKey}" book-title="A book" ${attrs}></ol-shelf-button>`;
@@ -57,28 +52,12 @@ afterEach(() => {
     delete document.body.dataset.userKey;
 });
 
-describe('readLabels', () => {
-    test('parses the hidden input shell/base.html.jinja renders', () => {
-        page();
-        expect(readLabels()).toEqual(LABELS);
-    });
-
-    test('is null without one, or with a broken one', () => {
-        page({ labels: null });
-        expect(readLabels()).toBeNull();
-        document.body.innerHTML = '<input type="hidden" name="shelf-button-i18n-strings" value="{not json">';
-        expect(readLabels()).toBeNull();
-    });
-});
-
 describe('hydrate', () => {
-    test("hands every button its labels and the reader's key", async () => {
+    test("hands every button the reader's key", async () => {
         stubFetch();
         page({ buttons: button('/works/OL1W') + button('/works/OL2W', 'user-key="/people/other" data-hydrated') });
         await hydrate();
         const [carousel, row] = all();
-        expect(carousel.labels).toEqual(LABELS);
-        expect(row.labels).toEqual(LABELS);
         expect(carousel.userKey).toBe('/people/tester');
         // A key the server rendered is the server's to set.
         expect(row.userKey).toBe('/people/other');
@@ -158,12 +137,11 @@ describe('hydrate', () => {
         expect(all()[0].pending).toBe(false);
     });
 
-    test('signed out, applies labels and never asks for state', async () => {
+    test('signed out, never asks for state', async () => {
         stubFetch();
         page({ userKey: '', buttons: button('/works/OL1W') });
         await hydrate();
         expect(calls).toHaveLength(0);
-        expect(all()[0].labels).toEqual(LABELS);
         expect(all()[0].userKey).toBe('');
     });
 
@@ -251,7 +229,6 @@ describe('initBookState', () => {
         await tick(); // the fetch
         expect(calls).toHaveLength(1);
         const late = all()[0];
-        expect(late.labels).toEqual(LABELS);
         expect(late.userKey).toBe('/people/tester');
         expect(late.shelf).toBe(4);
     });
