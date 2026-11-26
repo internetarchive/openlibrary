@@ -12,6 +12,7 @@ import time
 from datetime import UTC, datetime
 from urllib.parse import urlencode
 
+from openlibrary.accounts.model import parse_s3_cookie
 from openlibrary.core import cache, helpers, lending
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.i18n import gettext as _
@@ -30,6 +31,8 @@ ROW_SHOWN = 14
 LOANS_SHOWN = 2
 # Past loans read to fill those slots: more than there are slots, as some are books the reader has out now.
 PAST_LOANS_CHECKED = 6
+# How long the loan history and its availability may take together before the card goes on without them.
+HISTORY_BUDGET_SECS = 2
 # Editions of a work checked for a free copy, after the one the reader shelved.
 COPIES_CHECKED = 5
 # How many of a work's ebook editions search hands over to choose those from, the reader's language first.
@@ -173,17 +176,32 @@ def get_holds(user) -> list[dict]:
     return sorted(holds, key=lambda hold: not hold["ready"])
 
 
-def get_past_loans(username: str, s3_cookie: str | None) -> list[dict]:
+async def _loan_history_async(s3_keys: dict) -> tuple[list[dict], dict]:
+    """The reader's latest loan records from IA, newest first, and the availability of each item."""
+    response = await lending.s3_loan_api_async(s3_keys=s3_keys, action="user_borrow_history", limit=PAST_LOANS_CHECKED, offset=0, newest=True)
+    items = [item for item in (response.json().get("history") or {}).get("items") or [] if item.get("identifier")]
+    return items, await lending.get_availability_async("identifier", [item["identifier"] for item in items])
+
+
+def get_past_loans(s3_cookie: str | None) -> list[dict]:
     """The books this reader borrowed lately, most recent first, with what they can do about each now.
     A one-hour loan is over before the reader is back, so this is how they find the book again."""
-    history = lending.get_loan_history_data(username, page=1, s3_cookie=s3_cookie, limit=PAST_LOANS_CHECKED)
+    if not (s3_keys := parse_s3_cookie(s3_cookie)):
+        return []
+    try:
+        items, availability = async_bridge.run(asyncio.wait_for(_loan_history_async(s3_keys), HISTORY_BUDGET_SECS))
+    except TimeoutError:
+        logger.warning("home: the loan history took longer than the %ss the card allows", HISTORY_BUDGET_SECS)
+        return []
+    editions = lending.editions_for_availability(availability)
     past = []
     # Books only on archive.org have no page here to send the reader to.
-    for book in (doc for doc in history["docs"] if not doc.get("ia_only")):
-        past.append(
-            brief_from_book(book)
-            | {"borrowed": borrowed_label(book.get("last_loan_date")), "availability": book.get("availability") or {}, "borrow_url": book.url("/borrow")}
-        )
+    for item in items:
+        if book := editions.get(item["identifier"]):
+            past.append(
+                brief_from_book(book)
+                | {"borrowed": borrowed_label(item.get("updatedate") or ""), "availability": book.get("availability") or {}, "borrow_url": book.url("/borrow")}
+            )
     return past
 
 
@@ -387,17 +405,20 @@ def build_part(user, part: str, s3_cookie: str | None = None) -> dict:
     """One half of what the home page shows of the reader's own: `loans` is their loans and ready holds, topped
     up with the books they borrowed lately (the loan history is read with their `s3_cookie`), `shelves` their
     Currently Reading and Want to Read books with a copy free. Each piece fails on its own, so a lending outage
-    costs the loans and not the holds. Without availability the row is the shelves as they stand."""
+    costs the loans and not the holds. Without availability the row is the shelves as they stand. A half missing
+    its loans, holds or availability is built again on the next view; one missing only the loan history is kept,
+    so a slow or failing history isn't asked for on every view."""
     from openlibrary.plugins.upstream.mybooks import ReadingLog
 
     failed = []
 
-    def attempt(what, fn, fallback):
+    def attempt(what, fn, fallback, required=True):
         try:
             return fn()
         except Exception:
             logger.error("home: could not load %s", what, exc_info=True)
-            failed.append(what)
+            if required:
+                failed.append(what)
             return fallback
 
     member: dict = {"name": greeting_name(user), "part": part}
@@ -411,7 +432,7 @@ def build_part(user, part: str, s3_cookie: str | None = None) -> dict:
         holds = attempt("holds", lambda: get_holds(user), [])
         past = []
         if len(loans) + sum(hold["ready"] for hold in holds) < LOANS_SHOWN:
-            past = attempt("loan history", lambda: get_past_loans(user.key.split("/")[-1], s3_cookie), [])
+            past = attempt("loan history", lambda: get_past_loans(s3_cookie), [], required=False)
         member |= {"loans": build_loans(loans, holds, past)[:LOANS_SHOWN]}
     # A half built without availability is shown, and built again on the next view.
     return member | {"complete": not failed and known}

@@ -290,3 +290,18 @@ class TestGetLoanHistoryData:
             lending.get_loan_history_data("nobody", page=1, s3_cookie="irrelevant")
 
         mock_api.assert_not_called()
+
+
+def test_editions_for_availability_skips_the_error_of_a_failed_request():
+    # A timed-out availability request answers with "error" and "details" strings beside the items.
+    answer = {
+        "ocaid1": {"status": "error", "openlibrary_edition": "OL1M"},
+        "ocaid2": {"status": "error"},
+        "error": "request_timeout",
+        "details": "timed out",
+    }
+    edition = SimpleNamespace(ocaid="ocaid1")
+    with patch.object(lending, "site", Mock(**{"get.return_value.get_many.return_value": [edition]})) as site:
+        assert lending.editions_for_availability(answer) == {"ocaid1": edition}
+    site.get.return_value.get_many.assert_called_once_with(["/books/OL1M"])
+    assert edition.availability == answer["ocaid1"]
