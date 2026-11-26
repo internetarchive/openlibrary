@@ -1365,7 +1365,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
+#: account/loans.html admin/loans_table.html openlibrary/plugins/openlibrary/status.py
 msgid "Actions"
 msgstr ""
 
@@ -1960,7 +1960,7 @@ msgstr ""
 msgid "Imports"
 msgstr ""
 
-#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
+#: admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html openlibrary/plugins/openlibrary/status.py type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -2628,7 +2628,7 @@ msgstr ""
 msgid "Write one entry per line"
 msgstr ""
 
-#: TestingEnvironment.html.jinja admin/solr.html
+#: admin/solr.html openlibrary/plugins/openlibrary/status.py
 msgid "Update"
 msgstr ""
 
@@ -3264,7 +3264,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
+#: SearchAuthorSuggestion.html books/add.html books/edit.html books/edit/edition.html openlibrary/core/shell/search_modal.py openlibrary/plugins/openlibrary/status.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html.jinja
 msgid "Author"
 msgstr ""
 
@@ -5629,7 +5629,7 @@ msgstr ""
 msgid "Remove from this list?"
 msgstr ""
 
-#: TestingEnvironment.html.jinja lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
+#: lists/lists.html openlibrary/plugins/openlibrary/status.py type/list/edit.html type/list/view_body.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
@@ -5719,7 +5719,7 @@ msgstr ""
 msgid "No primary record"
 msgstr ""
 
-#: TestingEnvironment.html.jinja merge/authors.html
+#: merge/authors.html openlibrary/plugins/openlibrary/status.py
 msgid "OK"
 msgstr ""
 
@@ -8322,229 +8322,6 @@ msgstr ""
 msgid "Page %s"
 msgstr ""
 
-#: TestingEnvironment.html.jinja
-msgid "Loading testing environment…"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Could not load the testing environment."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Try again"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Could not complete that action."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "PR %(num)s does not exist."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Could not check PR %(num)s — GitHub is unavailable."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Could not add PR %(num)s."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Testing Environment"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Add PRs"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "PR numbers or URLs, space or comma separated"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "PR"
-msgstr ""
-
-#: TestingEnvironment.html.jinja openlibrary/contribute/manage.py
-msgid "Draft"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Assignee"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Drift"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Next deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Live now"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Not yet deployed"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Deploy failed (merge conflict)"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "This PR is already closed."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "PR %(num)s on testing"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "changes on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Update pin"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Enable"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Disable"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Restore"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Refresh from GitHub"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "%(num)s change will be applied"
-msgid_plural "%(num)s changes will be applied"
-msgstr[0] ""
-msgstr[1] ""
-
-#: TestingEnvironment.html.jinja
-msgid "Nothing to deploy — testing matches the current set."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "merged to master"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "closed without merging"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Drift unknown, pinned at %(sha)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Up-to-date, pinned at %(sha)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "%(num)s commit behind %(sha)s"
-msgid_plural "%(num)s commits behind %(sha)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: TestingEnvironment.html.jinja
-msgid "Never deployed"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploying, started %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploying, started %(time)s by %(user)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploying, started %(time)s — %(stage)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploying, started %(time)s — %(stage)s by %(user)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploy succeeded %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploy succeeded %(time)s by %(user)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploy failed %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploy failed %(time)s by %(user)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Could not start the deploy — Jenkins did not accept the build."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Deploy is not configured on this instance — nothing was deployed."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Last deploy %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Last deploy %(time)s by %(user)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "View Jenkins"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "No PRs in testing set."
-msgstr ""
-
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
@@ -9218,6 +8995,10 @@ msgstr ""
 
 #: openlibrary/contribute/manage.py
 msgid "Scheduled"
+msgstr ""
+
+#: openlibrary/contribute/manage.py openlibrary/plugins/openlibrary/status.py
+msgid "Draft"
 msgstr ""
 
 #: openlibrary/contribute/manage.py
@@ -11025,6 +10806,225 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Loading testing environment…"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Could not load the testing environment."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Try again"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Could not complete that action."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "PR %(num)s does not exist."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Could not check PR %(num)s — GitHub is unavailable."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Could not add PR %(num)s."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Testing Environment"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Add PRs"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "PR numbers or URLs, space or comma separated"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "PR"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Assignee"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Drift"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Next deploy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Live now"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Not yet deployed"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Deploy failed (merge conflict)"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "This PR is already closed."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "PR %(num)s on testing"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "changes on deploy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Update pin"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Enable"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Disable"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Restore"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Refresh from GitHub"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Deploy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "%(num)s change will be applied"
+msgid_plural "%(num)s changes will be applied"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Nothing to deploy — testing matches the current set."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "merged to master"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "closed without merging"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Drift unknown, pinned at %(sha)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Up-to-date, pinned at %(sha)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "%(num)s commit behind %(sha)s"
+msgid_plural "%(num)s commits behind %(sha)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Never deployed"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploying, started %(time)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploying, started %(time)s by %(user)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploying, started %(time)s — %(stage)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploying, started %(time)s — %(stage)s by %(user)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploy succeeded %(time)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploy succeeded %(time)s by %(user)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploy failed %(time)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Deploy failed %(time)s by %(user)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Could not start the deploy — Jenkins did not accept the build."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "Deploy is not configured on this instance — nothing was deployed."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Last deploy %(time)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+#, python-format
+msgid "Last deploy %(time)s by %(user)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "View Jenkins"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/status.py
+msgid "No PRs in testing set."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py

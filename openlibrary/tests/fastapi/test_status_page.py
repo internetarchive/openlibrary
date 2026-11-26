@@ -1,9 +1,6 @@
 """`/status` HTML page."""
 
-import json
-import re
 from types import SimpleNamespace
-from urllib.parse import unquote
 
 import pytest
 from fastapi.testclient import TestClient
@@ -53,9 +50,10 @@ def test_maintainers_see_build_result_and_panel(client):
     assert '<ol-testing-environment maintainer="true"' in html
 
 
-def test_panel_strings_keep_the_placeholders_the_panel_fills(client):
-    html = client.get("/status", headers={"x-user": "maintainer"}).text
-    strings = json.loads(unquote(re.search(r' i18n="([^"]*)"', html).group(1)))
+def test_panel_strings_keep_the_placeholders_the_panel_fills(request_context_fixture):
+    """The panel fills these placeholders in the browser, so they must reach it unformatted."""
+    request_context_fixture(lang="en")
+    strings = status_module.testing_panel_strings()
 
     assert strings["addFailedNotFound"] == "PR %(num)s does not exist."
     assert strings["deployingStageBy"] == "Deploying, started %(time)s — %(stage)s by %(user)s"
