@@ -51,6 +51,7 @@ GET /search/lists.json
 GET /search/publishers
 GET /search/subjects
 GET /search/subjects.json
+GET /stats/merges
 GET /stats/tasks.json
 GET /status
 GET /tasks/admin

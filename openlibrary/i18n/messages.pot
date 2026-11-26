@@ -193,7 +193,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: batch_import_list.html batch_import_view.html merge_request_table/table_header.html
+#: batch_import_list.html batch_import_view.html merge_request_table/merge_request_stats.html.jinja merge_request_table/table_header.html
 msgid "Submitter"
 msgstr ""
 
@@ -2071,6 +2071,10 @@ msgstr ""
 
 #: admin/index.html contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
 msgid "Tasks"
+msgstr ""
+
+#: admin/index.html
+msgid "Merge requests"
 msgstr ""
 
 #: admin/index.html admin/menu.html admin/new_accounts.html.jinja
@@ -5805,6 +5809,62 @@ msgstr ""
 msgid "Merge Works"
 msgstr ""
 
+#: merge_request_table/merge_request_stats.html.jinja stats/readinglog.html
+msgid "All time"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Last year"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Last month"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Requests"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja merge_request_table/table_header.html openlibrary/core/edits.py
+msgid "Merged"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja merge_request_table/table_header.html openlibrary/core/edits.py
+msgid "Declined"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja openlibrary/fastapi/merge_stats.py
+msgid "Community Edit Request Statistics"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Closed requests only. Requests still waiting for review are not counted."
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Reviewers"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Submitters"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja merge_request_table/table_header.html
+msgid "Reviewer"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Author requests"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja
+msgid "Work requests"
+msgstr ""
+
+#: merge_request_table/merge_request_stats.html.jinja merge_request_table/merge_request_table.html
+msgid "No entries here!"
+msgstr ""
+
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
 msgstr ""
@@ -5835,7 +5895,7 @@ msgid "Community Edit Requests"
 msgstr ""
 
 #: merge_request_table/merge_request_table.html
-msgid "No entries here!"
+msgid "View reviewer and submitter statistics"
 msgstr ""
 
 #: merge_request_table/table_header.html
@@ -5854,14 +5914,6 @@ msgstr ""
 msgid "Request Status"
 msgstr ""
 
-#: merge_request_table/table_header.html openlibrary/core/edits.py
-msgid "Merged"
-msgstr ""
-
-#: merge_request_table/table_header.html openlibrary/core/edits.py
-msgid "Declined"
-msgstr ""
-
 #: merge_request_table/table_header.html
 msgid "Submitter ▾"
 msgstr ""
@@ -5876,10 +5928,6 @@ msgstr ""
 
 #: merge_request_table/table_header.html
 msgid "Reviewer ▾"
-msgstr ""
-
-#: merge_request_table/table_header.html
-msgid "Reviewer"
 msgstr ""
 
 #: merge_request_table/table_header.html
@@ -6711,10 +6759,6 @@ msgstr ""
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
-
-#: stats/readinglog.html
-msgid "All time"
 msgstr ""
 
 #: stats/readinglog.html
@@ -10164,6 +10208,10 @@ msgstr ""
 
 #: openlibrary/fastapi/account.py openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+msgstr ""
+
+#: openlibrary/fastapi/merge_stats.py
+msgid "Merged %"
 msgstr ""
 
 #: openlibrary/fastapi/publishers.py openlibrary/plugins/worksearch/publishers.py
