@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from scripts.solr_builder.solr_builder.solr_builder import (
@@ -54,3 +56,55 @@ def test_build_job_query_chunking():
     q = build_job_query("series", start_at="/series/OL5L", limit=100)
     assert """AND "Key" >= '/series/OL5L'""" in q
     assert "LIMIT 100" in q
+
+
+class TestCacheSeries:
+    @pytest.fixture
+    def provider(self, tmp_path, monkeypatch):
+        conf = tmp_path / "postgres.ini"
+        conf.write_text("[postgres]\nhost=db\n")
+        provider = LocalPostgresDataProvider(str(conf))
+        queries: list[str] = []
+
+        def fake_query_all(query, json_cache=None):
+            queries.append(query)
+            rows = [(key, {"key": key, "type": {"key": "/type/series"}}) for key in re.findall(r"'(/series/[^']+)'", query)]
+            if json_cache is not None:
+                json_cache.update(rows)
+            return rows
+
+        monkeypatch.setattr(provider, "query_all", fake_query_all)
+        provider.queries = queries
+        return provider
+
+    def test_one_query_for_all_referenced_series(self, provider):
+        work = {
+            "key": "/works/OL1W",
+            "series": [{"series": {"key": "/series/OL1L"}, "position": "1"}],
+        }
+        editions = [
+            {"key": "/books/OL1M", "series": ["Legacy series string"]},
+            {"key": "/books/OL2M", "series": [{"series": {"key": "/series/OL2L"}}]},
+            {"key": "/books/OL3M", "series": [{"series": {"key": "/series/OL1L"}}]},
+            {"key": "/books/OL4M"},
+        ]
+        provider.cache_series([work, *editions])
+
+        assert len(provider.queries) == 1
+        assert set(provider.cache) == {"/series/OL1L", "/series/OL2L"}
+
+    def test_skips_query_when_nothing_to_fetch(self, provider):
+        provider.cache["/series/OL1L"] = {"key": "/series/OL1L"}
+        provider.cache_series(
+            [
+                {"key": "/works/OL1W", "series": [{"series": {"key": "/series/OL1L"}}]},
+                {"key": "/books/OL1M", "series": ["Legacy series string"]},
+            ]
+        )
+        assert provider.queries == []
+
+    @pytest.mark.asyncio
+    async def test_get_document_served_from_cache(self, provider):
+        provider.cache_series([{"key": "/works/OL1W", "series": [{"series": {"key": "/series/OL1L"}}]}])
+        assert (await provider.get_document("/series/OL1L"))["key"] == "/series/OL1L"
+        assert len(provider.queries) == 1

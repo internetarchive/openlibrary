@@ -5,7 +5,7 @@ import logging
 import time
 import uuid
 from collections import namedtuple
-from collections.abc import Awaitable, Iterator
+from collections.abc import Awaitable, Iterable, Iterator
 from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Literal, Self
@@ -163,6 +163,26 @@ class LocalPostgresDataProvider(DataProvider):
         """
         self.query_all(q, json_cache=self.cache)
         self.cached_work_editions_ranges.append((lo_key, hi_key))
+
+    def cache_series(self, docs: Iterable[dict]):
+        """Cache the series referenced by the given works'/editions' series edges"""
+        series_keys = {
+            key
+            for doc in docs
+            for edge in doc.get("series") or []
+            # Editions also store legacy series as plain strings
+            if isinstance(edge, dict) and (key := (edge.get("series") or {}).get("key"))
+        } - self.cache.keys()
+        if not series_keys:
+            return
+
+        keys_sql = ", ".join("'%s'" % key.replace("'", "''") for key in sorted(series_keys))
+        q = f"""
+            SELECT "Key", "JSON"
+            FROM "test"
+            WHERE "Key" IN ({keys_sql})
+        """
+        self.query_all(q, json_cache=self.cache)
 
     def cache_edition_authors(self, lo_key, hi_key):
         q = f"""
@@ -575,6 +595,9 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
                         cached=len(db.cache) + len(db2.cache),
                     )
 
+                    # cache series of works and their editions
+                    db2.cache_series([*db.cache.values(), *db2.cache.values()])
+
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
                     plog.update(
@@ -593,6 +616,9 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
                     db2.cache_work_ratings(*key_range)
                     db2.cache_work_reading_logs(*key_range)
                 elif job == "orphans":
+                    # cache series
+                    db2.cache_series(db.cache.values())
+
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
                     plog.update(
