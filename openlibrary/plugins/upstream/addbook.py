@@ -731,7 +731,9 @@ class SaveBookHelper:
     @staticmethod
     def _form_showed(parsed: web.Storage | None, fields: list[str]) -> bool:
         """Whether the edit form displayed any of a stored weight/dimensions value."""
-        return bool(parsed) and any(parsed.get(f) for f in fields)
+        if not parsed:
+            return False
+        return any(parsed.get(f) for f in fields)
 
     def process_edition(self, edition):
         """Process input data for edition."""
