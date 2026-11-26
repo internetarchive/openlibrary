@@ -1,4 +1,7 @@
 import $ from 'jquery';
+import { _, fmt, ngettext } from './i18n.js';
+
+const importLabel = count => fmt(ngettext('Import %(count)s Book', 'Import %(count)s Books', count), { count });
 export function initGoodreadsImport() {
     let count, prevPromise;
 
@@ -13,7 +16,7 @@ export function initGoodreadsImport() {
             }
         });
         const l = $('.add-book[checked*="checked"]').length;
-        $('.import-submit').attr('value', `Import ${l} Books`);
+        $('.import-submit').attr('value', importLabel(l));
     });
 
     $(document).on('click', 'input.add-book', function () {
@@ -23,7 +26,7 @@ export function initGoodreadsImport() {
             $(this).removeAttr('checked');
         }
         const l = $('.add-book[checked*="checked"]').length;
-        $('.import-submit').attr('value', `Import ${l} Books`);
+        $('.import-submit').attr('value', importLabel(l));
     });
 
     //updates the progress bar based on the book count
@@ -31,10 +34,10 @@ export function initGoodreadsImport() {
         const l = $('.add-book[checked*="checked"]').length;
         const elem = document.getElementById('myBar');
         elem.style.width = `${value * (100 / l)}%`;
-        elem.innerHTML = `${value} Books`;
+        elem.textContent = fmt(ngettext('%(count)s Book', '%(count)s Books', value), { count: value });
         if (value * (100 / l) >= 100) {
             elem.innerHTML = '';
-            $('#myBar').append('<a href="/account/books" style="color:white"> Go to your Reading Log </a>');
+            $('#myBar').append($('<a href="/account/books" style="color:white"></a>').text(_('Go to your Reading Log')));
             $('.cancel-button').addClass('hidden');
         }
     }
@@ -60,7 +63,7 @@ export function initGoodreadsImport() {
             const fail = function (reason) {
                 if (!hasFailure()) {
                     const element = $(`[isbn=${value['ISBN']}]`);
-                    element.append(`<td class="error-imported">Error</td><td class="error-imported">${reason}</td>'`);
+                    element.append($('<td class="error-imported"></td>').text(_('Error')), $('<td class="error-imported"></td>').text(reason));
                     element.removeClass('selected');
                     element.addClass('import-failure');
                 }
@@ -77,7 +80,7 @@ export function initGoodreadsImport() {
 
             //used 'return' instead of 'return false' because the loop was being exited entirely
             if (shelf_id === 0) {
-                fail('Custom shelves are not supported');
+                fail(_('Custom shelves are not supported'));
                 func1(++count);
                 return;
             }
@@ -101,7 +104,7 @@ export function initGoodreadsImport() {
                         dataType: 'json'
                     })
                         .fail(function () {
-                            fail('Failed to add book to reading log');
+                            fail(_('Failed to add book to reading log'));
                         })
                         .done(function () {
                             if (value['My Rating'] !== '0') {
@@ -115,7 +118,7 @@ export function initGoodreadsImport() {
                                     },
                                     dataType: 'json',
                                     fail: function () {
-                                        fail('Failed to add rating');
+                                        fail(_('Failed to add rating'));
                                     }
                                 });
                             }
@@ -140,19 +143,19 @@ export function initGoodreadsImport() {
                                         xhr.setRequestHeader('Accept', 'application/json');
                                     },
                                     fail: function () {
-                                        fail('Failed to set the read date');
+                                        fail(_('Failed to set the read date'));
                                     }
                                 });
                             }
                         });
                     if (!hasFailure()) {
-                        $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>');
+                        $(`[isbn=${value['ISBN']}]`).append($('<td class="success-imported"></td>').text(_('Imported')));
                         $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                     }
                     func1(++count);
                 })
                 .catch(function () {
-                    fail('Book not in collection');
+                    fail(_('Book not in collection'));
                     func1(++count);
                 });
         });

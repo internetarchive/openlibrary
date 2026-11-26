@@ -3,6 +3,7 @@
  * @module ile/BulkTagger
  */
 import { debounce } from '../nonjquery_utils.js';
+import { _ } from '../i18n.js';
 
 import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
 import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
@@ -521,7 +522,7 @@ export class BulkTagger {
         // Disable button
         this.submitButton.disabled = true;
 
-        this.submitButton.textContent = 'Submitting...';
+        this.submitButton.textContent = _('Submitting...');
 
         const url = this.rootElement.action;
         this.prepareFormForSubmission();
@@ -536,12 +537,12 @@ export class BulkTagger {
         }).then(response => {
             if (!response.ok) {
                 this.submitButton.disabled = false;
-                this.submitButton.textContent = 'Submit';
-                showToast('Batch subject update failed. Please try again in a few minutes.', { type: 'error' });
+                this.submitButton.textContent = _('Submit');
+                showToast(_('Batch subject update failed. Please try again in a few minutes.'), { type: 'error' });
             } else {
                 this.hideTaggingMenu();
-                showToast('Subjects successfully updated.', { type: 'success' });
-                this.submitButton.textContent = 'Submit';
+                showToast(_('Subjects successfully updated.'), { type: 'success' });
+                this.submitButton.textContent = _('Submit');
                 this.updateFetchedSubjects();
                 this.resetTaggingMenu();
                 if (this.isBookPageEdit) {

@@ -1,3 +1,5 @@
+import { _ } from './i18n.js';
+
 export function initAddProviderRowLink(elem) {
     elem.addEventListener('click', function () {
         let index = Number(elem.dataset.index);
@@ -38,18 +40,18 @@ function createSelectDataCell(index, type, values) {
 
 const accessTypeValues = [
     { value: '', text: '' },
-    { value: 'read', text: 'Read' },
-    { value: 'listen', text: 'Listen' },
-    { value: 'buy', text: 'Buy' },
-    { value: 'borrow', text: 'Borrow' },
-    { value: 'preview', text: 'Preview' }
+    { value: 'read', text: _('Read') },
+    { value: 'listen', text: _('Listen') },
+    { value: 'buy', text: _('Buy') },
+    { value: 'borrow', text: _('Borrow') },
+    { value: 'preview', text: _('Preview') }
 ];
 
 const formatValues = [
     { value: '', text: '' },
-    { value: 'web', text: 'Web' },
-    { value: 'epub', text: 'ePub' },
-    { value: 'pdf', text: 'PDF' }
+    { value: 'web', text: _('Web') },
+    { value: 'epub', text: _('ePub') },
+    { value: 'pdf', text: _('PDF') }
 ];
 function createSelectOptions(values) {
     let html = '';

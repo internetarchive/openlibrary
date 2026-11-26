@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { _, fmt } from './i18n.js';
 import { isbnOverride } from './isbnOverride';
 import {
     parseIsbn,
@@ -93,7 +94,8 @@ export function initRoleValidation() {
  * @param {String} isbnConfirmString  a const with the HTML to create the confirmation message/buttons
  */
 export function isbnConfirmAdd(data) {
-    const isbnConfirmString = `ISBN ${data.value} may be invalid. Add it anyway? <button class="repeat-add" id="yes-add-isbn" type="button">Yes</button>&nbsp;<button id="do-not-add-isbn" type="button">No</button>`;
+    const message = fmt(_('ISBN %(isbn)s may be invalid. Add it anyway?'), { isbn: data.value });
+    const isbnConfirmString = `${message} <button class="repeat-add" id="yes-add-isbn" type="button">${_('Yes')}</button>&nbsp;<button id="do-not-add-isbn" type="button">${_('No')}</button>`;
     // Display the error and option to add the ISBN anyway.
     $('#id-errors').show().html(isbnConfirmString);
 
