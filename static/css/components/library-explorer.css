@@ -1,0 +1,6 @@
+/* /explore; openlibrary/templates/library_explorer.html */
+/* Fades into the background of LibraryExplorer.vue, which uses these colours too. */
+body.library-explorer {
+  /* stylelint-disable-next-line color-no-hex */
+  background: linear-gradient(to bottom, #f6f1e6 50px, #ebdfc5 218px);
+}

@@ -5,95 +5,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 
 $var title: $_("[Admin Center]") $person.displayname
 
-<style type="text/css">
-
-div.status {
-    background-color: #eeeeee;
-    border: 1px solid #cccccc;
-    padding: 10px;
-
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-
-    margin-bottom: 20px;
-}
-
-div.status-active, div.status-verified {
-    background: #dfd;
-}
-
-div.status-pending {
-    background: #ffd;
-}
-
-span.invalid {
-    padding-left: 20px;
-    float: right;
-}
-
-span.status {
-    font-weight: bold;
-    padding: 4px;
-    font-size: 1.1em;
-
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
-}
-
-span.safe {
-    background-color: #aaffaa;
-    padding: 0 3pt;
-    color: black;
-}
-
-span.warning {
-    /*background-color: #ff8888; */
-    padding: 0 3pt;
-    /*color: black;*/
-    color: darkred;
-}
-
-form.account-actions {
-    display:inline;
-}
-
-.borrow-table .who {
-    display: none;
-}
-
-span.time {
-    font-weight: bold;
-}
-
-input.big {
-    font-size: 1.0em !important;
-    width: 20em !important;
-}
-
-a.tag {
-	padding: 5px;
-	background: #eee;
-	border: 1px solid #ddd;
-	border-radius: 5px;
-	cursor: pointer;
-	text-decoration: none;
-	color: #aaa;
-    font-size: 1.1em;
-}
-
-a.tag:hover {
-	text-decoration: underline;
-	color: black;
-}
-
-a.tag.active {
-	background: #fffdcd;
-	border-color: #ccb;
-    color: black;
-}
-</style>
+$ _x = ctx.setdefault('bodyclass', []).append('admin-person-page')
 
 <div id="contentHead">
     $:render_template("admin/menu")
@@ -105,7 +17,8 @@ $ has_profile = person.get_user() is not None
 
 <div id="contentBody">
 
-    <div class="status status-$person.status">
+    $ status_variant = {'active': 'success', 'verified': 'success', 'pending': 'warning', 'blocked': 'error'}.get(person.status, 'info')
+    <div class="ol-message ol-message--$status_variant admin-person__status">
         <form method="POST">
             Status: <span class="status">$person.status</span>
 

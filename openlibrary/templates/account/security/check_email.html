@@ -2,22 +2,6 @@ $def with (affected)
 
 $var title: $_("Account Security Check — 2026-04-28T18Z")
 
-<style>
-.security-check-result {
-    padding: 1em 1.5em;
-    border-radius: 4px;
-    margin-bottom: 1em;
-}
-.security-check-result--affected {
-    background-color: rgba(220, 53, 69, 0.15);
-    border: 1px solid rgba(220, 53, 69, 0.4);
-}
-.security-check-result--safe {
-    background-color: rgba(40, 167, 69, 0.15);
-    border: 1px solid rgba(40, 167, 69, 0.4);
-}
-</style>
-
 <div id="contentHead">
     <h1>$_("Account Security Check")</h1>
     <p class="sansserif grey">$_("Incident date: 2026-04-28T18Z")</p>
@@ -28,12 +12,12 @@ $var title: $_("Account Security Check — 2026-04-28T18Z")
     $if affected is None:
         <p>$:_('Please <a href="/account/login?redirect=/account/security/2026-04-28T18">log in</a> to check whether your account was affected.')</p>
     $elif affected:
-        <div class="security-check-result security-check-result--affected">
+        <div class="ol-message ol-message--error">
             <strong>$_("Your account is in the affected set.")</strong>
             <p>$_("Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password.")</p>
         </div>
     $else:
-        <div class="security-check-result security-check-result--safe">
+        <div class="ol-message ol-message--success">
             <strong>$:_("Your account is <em>not</em> in the affected set.")</strong>
             <p>$:_("Your account was <em>not</em> found in the affected accounts list. No action is required.")</p>
         </div>
