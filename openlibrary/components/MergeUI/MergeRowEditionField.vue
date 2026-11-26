@@ -1,8 +1,8 @@
 <template>
     <div class="editions-wrapper">
-        <div v-if="editions" class="edition-count">{{ editions[record.key].size }} edition{{ editions[record.key].size == 1 ? '' : 's' }}</div>
+        <div v-if="editions" class="edition-count">{{ editionCount(editions[record.key].size) }}</div>
         <div v-else-if="merged && record == merged.record" class="edition-count">
-            {{ merged.edition_count }} edition{{ merged.edition_count == 1 ? '' : 's' }}
+            {{ editionCount(merged.edition_count) }}
         </div>
         <div v-if="editions" class="td-container">
             <EditionSnippet v-for="edition in editions[record.key].entries" :key="edition.key" :edition="edition" />
@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import { fmt, ngettext } from '../../plugins/openlibrary/js/i18n.js';
 import EditionSnippet from './EditionSnippet.vue';
 
 export default {
@@ -29,6 +30,11 @@ export default {
         merged: {
             type: Object,
             default: null
+        }
+    },
+    methods: {
+        editionCount(count) {
+            return fmt(ngettext('%(count)s edition', '%(count)s editions', count), { count });
         }
     }
 };
