@@ -60,9 +60,7 @@
 /* Import styles for sort options */
 @import "components/sort-dropper.css";
 @import "components/pagination.css";
-/* Import styles for the reading log stats charts */
-@import "components/readinglog-charts.css";
-@import "components/choice-list.css";
+/* Page-specific styles moved out of their templates */
 @import "components/account-loans.css";
 @import "components/admin-inspect-store.css";
 @import "components/admin-imports.css";
@@ -71,6 +69,9 @@
 @import "components/library-explorer.css";
 @import "components/admin-people.css";
 @import "components/user-lists.css";
+/* Import styles for the reading log stats charts */
+@import "components/readinglog-charts.css";
+@import "components/choice-list.css";
 
 body {
   background-color: var(--color-background);
