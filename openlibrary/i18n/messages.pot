@@ -8616,6 +8616,22 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
+#: BarcodeScanner.vue
+msgid "Advanced"
+msgstr ""
+
+#: BarcodeScanner.vue
+msgid "Read Text ISBN"
+msgstr ""
+
+#: BarcodeScanner.vue
+msgid "For books that print the ISBN without a barcode"
+msgstr ""
+
+#: BarcodeScanner.vue
+msgid "Point your camera at a barcode! 📷"
+msgstr ""
+
 #: openlibrary/contribute/feed.py
 msgid "Edited this book"
 msgstr ""
@@ -11309,22 +11325,6 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Advanced"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Read Text ISBN"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "For books that print the ISBN without a barcode"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Point your camera at a barcode! 📷"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/facets.py

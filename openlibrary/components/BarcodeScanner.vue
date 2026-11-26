@@ -28,28 +28,10 @@ import LazyBookCard from './BarcodeScanner/components/LazyBookCard.vue';
 import SettingsIcon from './LibraryExplorer/components/icons/SettingsIcon.vue';
 import Quagga from '@ericblade/quagga2';
 import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js';
-
-/**
- * English fallbacks for the translated strings passed in from the server,
- * barcode_scanner_strings() in plugins/worksearch/code.py; test_worksearch.py
- * checks they match.
- */
-const DEFAULT_STRINGS = {
-    advanced: 'Advanced',
-    readTextIsbn: 'Read Text ISBN',
-    readTextIsbnHint: 'For books that print the ISBN without a barcode',
-    noBooksYet: 'Point your camera at a barcode! 📷'
-};
+import { _ } from '../plugins/openlibrary/js/i18n.js';
 
 export default {
     components: { LazyBookCard, SettingsIcon },
-    props: {
-        /** URI-encoded JSON of translated strings. */
-        i18n: {
-            type: String,
-            default: ''
-        }
-    },
     data() {
         let returnTo = new URLSearchParams(location.search).get('returnTo');
         // Only allow same-origin redirects to prevent open redirect attacks.
@@ -63,14 +45,13 @@ export default {
                 returnTo = null;
             }
         }
-        let strings = DEFAULT_STRINGS;
-        try {
-            strings = { ...DEFAULT_STRINGS, ...JSON.parse(decodeURIComponent(this.i18n)) };
-        } catch {
-            // A missing or malformed translation payload falls back to English.
-        }
         return {
-            strings,
+            strings: {
+                advanced: _('Advanced'),
+                readTextIsbn: _('Read Text ISBN'),
+                readTextIsbnHint: _('For books that print the ISBN without a barcode'),
+                noBooksYet: _('Point your camera at a barcode! 📷')
+            },
             disableISBNTextButton: false,
             canvasInactive: true,
             lastISBN: null,

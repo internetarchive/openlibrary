@@ -1,5 +1,6 @@
 import functools
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from babel.messages import Catalog, Message
 from babel.messages.extract import (
     extract_from_dir,
     extract_from_file,
+    extract_javascript,
     extract_python,
 )
 from babel.messages.mofile import write_mo
@@ -148,6 +150,20 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
+def extract_vue(fileobj, keywords, comment_tags, options):
+    """Extract i18n messages from a Vue single-file component's first ``<script>`` block.
+
+    Babel's JavaScript extractor can't read the ``<template>``, so a ``.vue`` file calls
+    ``_()`` in its script and the template shows the result.
+    """
+    source = fileobj.read().decode("utf-8")
+    if not (script := re.search(r"<script[^>]*>(.*?)</script>", source, re.DOTALL)):
+        return
+    offset = source[: script.start(1)].count("\n")
+    for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):
+        yield lineno + offset, funcname, message, comments
+
+
 # Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location
 # comments that list which templates use each string. When a string gains or loses one
 # file, that wrapping re-flows the whole block and rewrites filenames that didn't change,
@@ -173,21 +189,27 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         ("**.py", "python"),
         ("**.html", "openlibrary.i18n:extract_templetor"),
         ("**.jinja", "jinja2.ext:babel_extract"),
+        ("**.js", "javascript"),
+        ("**.vue", "openlibrary.i18n:extract_vue"),
     ]
+    # Lit templates are tagged template literals; without this, calls inside them are missed.
+    OPTIONS = {"**.js": {"parse_template_string": True}, "**.vue": {"parse_template_string": True}}
     COMMENT_TAGS = ["NOTE:"]
 
     skipped_files = set()
     if skip_untracked:
-        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja"))
+        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja", ".js", ".vue"))
 
     for source in map(Path, sources):
         counts: dict[Path, int] = {}
 
         if source.is_file():
+            glob, method = next((glb, method) for (glb, method) in METHODS if source.match(glb))
             extracted = extract_from_file(
-                next(method for (glb, method) in METHODS if source.match(glb)),
+                method,
                 source,
                 comment_tags=COMMENT_TAGS,
+                options=OPTIONS.get(glob),
                 strip_comment_tags=True,
             )
 
@@ -197,6 +219,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
             extracted = extract_from_dir(
                 source,
                 METHODS,
+                OPTIONS,
                 comment_tags=COMMENT_TAGS,
                 strip_comment_tags=True,
             )
@@ -444,6 +467,40 @@ def load_translations(lang: str):
 
     if os.path.exists(mo_path):
         return Translations(open(mo_path, "rb"))
+
+
+# A count in each CLDR plural category, to build the plural sets ``i18n.js`` picks from with gettext.
+PLURAL_SAMPLES = {"zero": 0, "one": 1, "two": 2, "few": 3, "many": 11, "other": 100}
+
+
+@functools.cache
+def _javascript_msgids() -> list[str | tuple[str, str]]:
+    """The strings JavaScript translates (``_()`` / ``ngettext()`` in ``.js`` and ``.vue`` files), from messages.pot."""
+    with open(os.path.join(root, "messages.pot"), "rb") as f:
+        catalog = read_po(f)
+    return [message.id for message in catalog if message.id and any(path.endswith((".js", ".vue")) for path, _line in message.locations)]
+
+
+@functools.lru_cache(maxsize=256)
+def javascript_catalog(lang: str) -> dict:
+    """This language's translations of the strings JavaScript uses, for ``i18n.js``.
+
+    A string maps to its translation; a plural maps its singular to a set of forms keyed
+    by CLDR plural category. Untranslated strings are left out, so the browser shows the
+    English it already has.
+    """
+    catalog: dict = {}
+    if not (translations := load_translations(lang)):
+        return catalog
+    for msgid in _javascript_msgids():
+        if isinstance(msgid, tuple):
+            singular, plural = msgid
+            forms = {category: translations.ungettext(singular, plural, n) for category, n in PLURAL_SAMPLES.items()}
+            if forms["one"] != singular or forms["other"] != plural:
+                catalog[singular] = forms
+        elif (text := translations.ugettext(msgid)) != msgid:
+            catalog[msgid] = text
+    return catalog
 
 
 class GetText:

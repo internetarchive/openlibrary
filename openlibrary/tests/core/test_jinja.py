@@ -501,6 +501,14 @@ def test_head_renders_shell(monkeypatch, request_context_fixture):
     assert "/static/build/css/page-user.css" in html
 
 
+def test_head_carries_the_javascript_catalog(monkeypatch, request_context_fixture):
+    """The page language's translations for i18n.js, escaped so a translation can't end the script."""
+    request_context_fixture(lang="es")
+    monkeypatch.setattr("openlibrary.i18n.javascript_catalog", lambda lang: {"Advanced": f"Avanzado ({lang}) </script>"})
+    html = _render_head(monkeypatch)
+    assert '<script type="application/json" id="ol-js-i18n">{"Advanced": "Avanzado (es) \\u003c/script\\u003e"}</script>' in html
+
+
 def test_head_omits_analytics_for_bots(monkeypatch, request_context_fixture):
     """Bots must not get the Matomo/analytics bootstrap, but keep the license notice."""
     request_context_fixture(lang="en", is_bot=True)

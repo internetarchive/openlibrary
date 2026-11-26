@@ -42,6 +42,8 @@ def main(cmd, args):
         message_sources = [
             "openlibrary/templates/",
             "openlibrary/macros/",
+            "openlibrary/components/",
+            "openlibrary/plugins/openlibrary/js/",
             # grep can return things in an inconsistent order depending on the system
             *sorted(py_sources),
         ]

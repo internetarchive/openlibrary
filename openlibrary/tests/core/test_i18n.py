@@ -3,7 +3,9 @@ from io import BytesIO
 import pytest
 import web
 from babel.messages.catalog import Catalog
+from babel.messages.mofile import write_mo
 from babel.messages.pofile import write_po
+from babel.support import Translations
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
@@ -273,3 +275,58 @@ class Test_install_translations:
         (tmp_path / "src").mkdir()
         with pytest.raises(ValueError, match="no locales"):
             i18n.install_translations(str(tmp_path / "src"), str(tmp_path))
+
+
+def test_extract_vue_reads_the_script_block():
+    source = b"""<template>
+    <p>{{ strings.heading }}</p>
+</template>
+
+<script>
+import { gettext } from './i18n.js';
+// NOTE: The page heading.
+const heading = gettext('Scan a barcode');
+</script>
+"""
+    found = list(i18n.extract_vue(BytesIO(source), {"gettext": None}, ["NOTE:"], {}))
+
+    assert found == [(8, "gettext", "Scan a barcode", ["NOTE: The page heading."])]
+
+
+@pytest.fixture
+def clear_javascript_caches():
+    cached = (i18n._javascript_msgids, i18n.javascript_catalog)
+    for function in cached:
+        function.cache_clear()
+    yield
+    for function in cached:
+        function.cache_clear()
+
+
+def test_javascript_msgids_are_the_strings_from_js_and_vue_files(tmp_path, monkeypatch, clear_javascript_caches):
+    catalog = Catalog()
+    catalog.add("Server only", locations=[("openlibrary/plugins/worksearch/code.py", None)])
+    catalog.add("Advanced", locations=[("BarcodeScanner.vue", None)])
+    catalog.add(("%(count)s list", "%(count)s lists"), locations=[("lit/OlShelfActions.js", None), ("lists.html", None)])
+    with open(tmp_path / "messages.pot", "wb") as f:
+        write_po(f, catalog)
+    monkeypatch.setattr(i18n, "root", str(tmp_path))
+
+    assert i18n._javascript_msgids() == ["Advanced", ("%(count)s list", "%(count)s lists")]
+
+
+def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, clear_javascript_caches):
+    catalog = Catalog(locale="es")
+    catalog.add("Advanced", "Avanzado")
+    catalog.add(("%(count)s list", "%(count)s lists"), ("%(count)s lista", "%(count)s listas"))
+    catalog.add("Untranslated", "")
+    mo = BytesIO()
+    write_mo(mo, catalog)
+    mo.seek(0)
+    monkeypatch.setattr(i18n, "load_translations", lambda lang: Translations(mo))
+    monkeypatch.setattr(i18n, "_javascript_msgids", lambda: ["Advanced", ("%(count)s list", "%(count)s lists"), "Untranslated"])
+
+    assert i18n.javascript_catalog("es") == {
+        "Advanced": "Avanzado",
+        "%(count)s list": {category: "%(count)s lista" if category == "one" else "%(count)s listas" for category in i18n.PLURAL_SAMPLES},
+    }

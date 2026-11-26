@@ -75,6 +75,7 @@
         }
         </style>
     </noscript>
+    <script type="application/json" id="ol-js-i18n">{{ layout.head.javascript_catalog_json | safe }}</script>
     <script>window.OL_EXPERIMENTS = {{ layout.head.experiments_json | safe }};</script>
     <script>
  {% if not layout.is_bot and not layout.head.disable_analytics %}

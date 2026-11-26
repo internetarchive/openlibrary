@@ -56,11 +56,15 @@ class HeadContext:
     icon_sprite_url: str
     days_registered_json: str
     sentry: SentryContext | None
+    # The page language's translations for ``i18n.js``'s ``_()`` / ``ngettext()``.
+    javascript_catalog_json: str = "{}"
 
     @classmethod
     def build(cls, *, req: ShellRequest, page: PageMeta, user: ShellUser | None) -> HeadContext:
         from openlibrary.accounts import get_days_registered
+        from openlibrary.i18n import javascript_catalog
         from openlibrary.plugins.upstream.utils import canonical_url, icon_sprite_url, json_encode
+        from openlibrary.utils.request_context import get_request_lang
 
         return cls(
             title=page.title,
@@ -77,4 +81,5 @@ class HeadContext:
             icon_sprite_url=_safe(icon_sprite_url, "/static/icons/sprite.svg"),
             days_registered_json=_safe(lambda: json_encode(get_days_registered(user)), '"visitor"'),
             sentry=SentryContext.build(),
+            javascript_catalog_json=_safe(lambda: json_encode(javascript_catalog(get_request_lang())), "{}"),
         )
