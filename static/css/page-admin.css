@@ -15,6 +15,7 @@
 @import "components/status-tables.css";
 @import "components/batch-import-list.css";
 @import "components/flash-messages.css";
+@import "components/ol-message.css";
 /* Import all common components */
 @import "legacy.css";
 @import "components/stats-bar-chart.css";
