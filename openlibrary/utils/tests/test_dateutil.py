@@ -1,5 +1,7 @@
 import datetime as dt
 
+import pytest
+
 from .. import dateutil
 
 
@@ -44,3 +46,56 @@ def test_parse_daterange():
         dt.date(2010, 2, 3),
         dt.date(2010, 2, 4),
     )
+
+
+@pytest.mark.parametrize(
+    ("date_str", "expected"),
+    [
+        # Full dates
+        ("1993-11-03", "1993-11-03T00:00:00Z"),
+        ("1993-11", "1993-11-01T00:00:00Z"),
+        ("10 Jan 2000", "2000-01-10T00:00:00Z"),
+        ("2 Jan 2000", "2000-01-02T00:00:00Z"),
+        ("January 10, 2000", "2000-01-10T00:00:00Z"),
+        ("23 Sep 1889", "1889-09-23T00:00:00Z"),
+        ("dec 25.2010", "2010-12-25T00:00:00Z"),
+        ("April 1980", "1980-04-01T00:00:00Z"),
+        # Numeric day/month order is ambiguous, so only the year is kept
+        ("12/22/1924", "1924-01-01T00:00:00Z"),
+        ("12.01.1954", "1954-01-01T00:00:00Z"),
+        # Year only, with cruft/qualifiers
+        ("1842", "1842-01-01T00:00:00Z"),
+        ("1984.,", "1984-01-01T00:00:00Z"),
+        ("1897. [from old catalog]", "1897-01-01T00:00:00Z"),
+        ("(1686", "1686-01-01T00:00:00Z"),
+        ("1687?.", "1687-01-01T00:00:00Z"),
+        ("approx 1990", "1990-01-01T00:00:00Z"),
+        ("b. ca. 1841", "1841-01-01T00:00:00Z"),
+        ("fl. 1880", "1880-01-01T00:00:00Z"),
+        ("1195 or 1196", "1195-01-01T00:00:00Z"),
+        ("1840-1845", "1840-01-01T00:00:00Z"),
+        # Years before 1000
+        ("673", "0673-01-01T00:00:00Z"),
+        ("ca. 673", "0673-01-01T00:00:00Z"),
+        ("584?", "0584-01-01T00:00:00Z"),
+        ("ca. 95", "0095-01-01T00:00:00Z"),
+        # BC: astronomical year numbering
+        ("ca. 264 B.C.", "-0263-01-01T00:00:00Z"),
+        ("1207 B.C.", "-1206-01-01T00:00:00Z"),
+        ("1 BC", "0000-01-01T00:00:00Z"),
+        ("63 BCE", "-0062-01-01T00:00:00Z"),
+        # Unparsable / ambiguous
+        (None, None),
+        ("", None),
+        ("19th cent.", None),
+        ("16th/17th cent.", None),
+        ("19..", None),
+        ("12/24", None),
+        ("12.04.21", None),
+        ("95", None),
+        ("[from old catalog]", None),
+        ("19 Mar 007", None),
+    ],
+)
+def test_parse_author_date(date_str, expected):
+    assert dateutil.parse_author_date(date_str) == expected

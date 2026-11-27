@@ -34,12 +34,9 @@ class AuthorSearchScheme(SearchScheme):
         {
             "work_count desc": "work_count desc",
             "name": "name_sort asc",
-            # Birth Year (legacy, using string field)
-            "birth_date asc": "birth_date asc",
-            "birth_date desc": "birth_date desc",
-            # Birth Timestamp (normalized for proper chronological sorting)
-            "birth_timestamp asc": "birth_timestamp asc",
-            "birth_timestamp desc": "birth_timestamp desc",
+            # Birth Date
+            "birth_date asc": "birth_timestamp asc",
+            "birth_date desc": "birth_timestamp desc",
             # Random
             "random": "random_1 asc",
             "random asc": "random_1 asc",
@@ -54,8 +51,6 @@ class AuthorSearchScheme(SearchScheme):
             "name",
             "birth_date",
             "death_date",
-            "birth_timestamp",
-            "death_timestamp",
             "date",
             "top_subjects",
             "work_count",

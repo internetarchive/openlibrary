@@ -48,10 +48,10 @@ def _options(scheme: SortScheme, selected_sort: str, can_see_beta_sorts: bool) -
             SortOption("work_count desc", _("Work Count"), "WorkCountDesc"),
             SortOption("random", _("Random"), "Random"),
         ]
-        if selected_sort in ("birth_timestamp asc", "birth_timestamp desc") or can_see_beta_sorts:
+        if selected_sort in ("birth_date asc", "birth_date desc") or can_see_beta_sorts:
             options += [
-                SortOption("birth_timestamp asc", _("Birth Date (oldest) (beta: Librarian only)"), "BirthDateOldest"),
-                SortOption("birth_timestamp desc", _("Birth Date (youngest) (beta: Librarian only)"), "BirthDateYoungest"),
+                SortOption("birth_date asc", _("Birth Date (oldest) (beta: Librarian only)"), "BirthDateOldest"),
+                SortOption("birth_date desc", _("Birth Date (youngest) (beta: Librarian only)"), "BirthDateYoungest"),
             ]
         return options
     if scheme == "lists_seeds":

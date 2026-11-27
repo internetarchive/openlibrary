@@ -2,6 +2,7 @@
 
 import calendar
 import datetime as dt
+import re
 from contextlib import contextmanager
 from sys import stderr
 from time import perf_counter
@@ -102,6 +103,92 @@ def _resize_list(x, size: int) -> None:
     """Increase the size of the list x to the specified size it is smaller."""
     if len(x) < size:
         x += [None] * (size - len(x))
+
+
+MONTH_NAMES: dict[str, int] = {
+    name: i
+    for i, names in enumerate(
+        [
+            ("january", "jan"),
+            ("february", "feb"),
+            ("march", "mar"),
+            ("april", "apr"),
+            ("may",),
+            ("june", "jun"),
+            ("july", "jul"),
+            ("august", "aug"),
+            ("september", "sept", "sep"),
+            ("october", "oct"),
+            ("november", "nov"),
+            ("december", "dec"),
+        ],
+        start=1,
+    )
+    for name in names
+}
+_BC_RE = re.compile(r"\bb\.?\s?c\.?(?:e\.?)?(?!\w)", re.IGNORECASE)
+_ISO_RE = re.compile(r"(?<!\d)(\d{4})-(\d{2})(?:-(\d{2}))?(?!\d)")
+_YEAR_RE = re.compile(r"(?<!\d)\d{4}(?!\d)")
+_DAY_RE = re.compile(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)")
+_WORD_RE = re.compile(r"[^\W\d_]+")
+# Words/punctuation allowed around a bare 1-3 digit year, e.g. "ca. 673?" or "(584)"
+_SHORT_YEAR_RE = re.compile(
+    r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died|a\.?d)\b|[\s?.,;:()\[\]])*"
+    r"(\d{1,3})"
+    r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
+    re.IGNORECASE,
+)
+
+
+def parse_author_date(date_str: str | None) -> str | None:
+    """Best-effort parse of a free-text author birth/death date into a Solr date
+    string (e.g. ``1842-03-01T00:00:00Z``), for sorting.
+
+    Missing month/day default to January 1st. BC years use ISO 8601's
+    astronomical numbering (1 BC = ``0000``, 2 BC = ``-0001``). Returns None
+    when no year can be identified unambiguously (e.g. "19th cent.", "19..",
+    "12/24"), so the author sorts with the undated ones.
+
+    >>> parse_author_date("10 Jan 2000")
+    '2000-01-10T00:00:00Z'
+    >>> parse_author_date("ca. 264 B.C.")
+    '-0263-01-01T00:00:00Z'
+    """
+    if not date_str:
+        return None
+    is_bc = bool(_BC_RE.search(date_str))
+    text = _BC_RE.sub(" ", date_str)
+    month = day = None
+
+    if m := _ISO_RE.search(text):
+        year = int(m.group(1))
+        month = int(m.group(2))
+        day = int(m.group(3)) if m.group(3) else None
+    elif m := _YEAR_RE.search(text):
+        year = int(m.group())
+        rest = text[: m.start()] + " " + text[m.end() :]
+        months = {MONTH_NAMES[w] for w in _WORD_RE.findall(rest.lower()) if w in MONTH_NAMES}
+        if len(months) == 1:
+            month = months.pop()
+            if (days := _DAY_RE.findall(rest)) and len(days) == 1:
+                day = int(days[0])
+    elif m := _SHORT_YEAR_RE.fullmatch(text.strip()):
+        year = int(m.group(1))
+        # A bare 1-2 digit number is more likely a truncated year ("95") or a
+        # day than an ancient year, unless it's marked as such
+        if year < 100 and not is_bc and not re.search(r"[a-z]", text, re.IGNORECASE):
+            return None
+    else:
+        return None
+
+    if is_bc:
+        year = 1 - year
+    try:
+        dt.date(2000, month or 1, day or 1)  # validate month/day; 2000 is a leap year
+    except ValueError:
+        month = day = None
+    year_str = f"-{-year:04d}" if year < 0 else f"{year:04d}"
+    return f"{year_str}-{month or 1:02d}-{day or 1:02d}T00:00:00Z"
 
 
 @public
