@@ -9,16 +9,9 @@ import {
     isValidLccn,
     isValidOclc
 } from './idValidation.js';
+import { _ } from './i18n.js';
 import { trimInputValues } from './utils.js';
 import { isValidURL } from './edit.js';
-
-let invalidChecksum;
-let invalidIsbn10;
-let invalidIsbn13;
-let invalidLccn;
-let invalidOclc;
-let emptyId;
-let i18nStrings;
 
 export function initAddBookImport() {
     const addBookForm = document.querySelector('form#addbook');
@@ -53,20 +46,9 @@ export function initAddBookImport() {
         submitMatchChoice('none-of-these');
     });
 
-    // `data-i18n` (and everything below that depends on it) is only rendered on
-    // add.html's form. check.html reuses the same #addbook/form[name=edit] markup
-    // for its "possible matches" page, but has none of the ID-validation or
-    // publish-date fields this block wires up.
-    if (addBookForm.dataset.i18n) {
-        i18nStrings = JSON.parse(addBookForm.dataset.i18n);
-
-        invalidChecksum = i18nStrings.invalid_checksum;
-        invalidIsbn10 = i18nStrings.invalid_isbn10;
-        invalidIsbn13 = i18nStrings.invalid_isbn13;
-        invalidLccn = i18nStrings.invalid_lccn;
-        invalidOclc = i18nStrings.invalid_oclc;
-        emptyId = i18nStrings.empty_id;
-
+    // The ID and publish-date fields are only rendered on add.html's form. check.html reuses the same #addbook/form[name=edit] markup
+    // for its "possible matches" page, but has none of the fields this block wires up.
+    if (document.getElementById('id_value')) {
         document.getElementById('id_value').addEventListener('change', autoCompleteIdName);
         document.getElementById('addbook').addEventListener('submit', parseAndValidateId);
         document.getElementById('id_value').addEventListener('input', clearErrors);
@@ -148,7 +130,7 @@ function isEmptyId(event, idValue) {
     if (!idValue.trim()) {
         const errorDiv = document.getElementById('id-errors');
         errorDiv.classList.remove('hidden');
-        errorDiv.textContent = emptyId;
+        errorDiv.textContent = _('Please enter a value for the selected identifier');
         event.preventDefault();
         return true;
     }
@@ -159,10 +141,10 @@ function parseAndValidateIsbn10(event, idValue) {
     // parsing valid ISBN that passes checks
     idValue = parseIsbn(idValue);
     if (!isFormatValidIsbn10(idValue)) {
-        return displayIsbnError(event, invalidIsbn10);
+        return displayIsbnError(event, _('ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531'));
     }
     if (!isChecksumValidIsbn10(idValue)) {
-        return displayIsbnError(event, invalidChecksum);
+        return displayIsbnError(event, _('Invalid ISBN checksum digit'));
     }
     document.getElementById('id_value').value = idValue;
 }
@@ -170,10 +152,10 @@ function parseAndValidateIsbn10(event, idValue) {
 function parseAndValidateIsbn13(event, idValue) {
     idValue = parseIsbn(idValue);
     if (!isFormatValidIsbn13(idValue)) {
-        return displayIsbnError(event, invalidIsbn13);
+        return displayIsbnError(event, _('ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100'));
     }
     if (!isChecksumValidIsbn13(idValue)) {
-        return displayIsbnError(event, invalidChecksum);
+        return displayIsbnError(event, _('Invalid ISBN checksum digit'));
     }
     document.getElementById('id_value').value = idValue;
 }
@@ -181,7 +163,7 @@ function parseAndValidateIsbn13(event, idValue) {
 function parseAndValidateLccn(event, idValue) {
     idValue = parseLccn(idValue);
     if (!isValidLccn(idValue)) {
-        return displayIdentifierError(event, invalidLccn);
+        return displayIdentifierError(event, _('Invalid LC Control Number format'));
     }
     document.getElementById('id_value').value = idValue;
 }
@@ -189,7 +171,7 @@ function parseAndValidateLccn(event, idValue) {
 function parseAndValidateOclc(event, idValue) {
     idValue = parseOclc(idValue);
     if (!isValidOclc(idValue)) {
-        return displayIdentifierError(event, invalidOclc);
+        return displayIdentifierError(event, _('Invalid OCLC/WorldCat Control Number format'));
     }
     document.getElementById('id_value').value = idValue;
 }
@@ -223,7 +205,7 @@ function validatePublishDate() {
 
     if (!isValidDate) {
         errorDiv.classList.remove('hidden');
-        errorDiv.textContent = i18nStrings['invalid_publish_date'];
+        errorDiv.textContent = _("Are you sure that's the published date?");
     } else {
         errorDiv.classList.add('hidden');
     }
@@ -245,7 +227,7 @@ function validateWebBookUrl(event) {
         errorDiv.classList.add('hidden');
     } else {
         errorDiv.classList.remove('hidden');
-        errorDiv.textContent = i18nStrings['invalid_web_book_url'];
+        errorDiv.textContent = _('Please enter a valid URL starting with http:// or https://');
         event?.preventDefault();
     }
 }
