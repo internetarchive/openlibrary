@@ -1,5 +1,6 @@
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from json.decoder import JSONDecodeError
 from typing import TYPE_CHECKING
@@ -14,6 +15,7 @@ from openlibrary.catalog.add_book import (
     SourceNeedsISBN,
     validate_record,
 )
+from openlibrary.core.import_labels import ImportLabels
 from openlibrary.core.imports import Batch
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
@@ -71,7 +73,7 @@ class BatchResult:
     errors: list[BatchImportError] | None = None
 
 
-def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
+def batch_import(raw_data: bytes, import_status: str, labels: Mapping[str, str] | None = None) -> BatchResult:
     """
     This processes raw byte data from a JSONL POST to the batch import endpoint.
 
@@ -84,6 +86,12 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     The line numbers errors use 1-based counting because they are line numbers in a file.
 
     import_status: "pending", "needs_review", etc.
+
+    labels: optional batch-wide key/value metadata (#14751) applied to the
+        created batch, e.g. ``{"source_app": "openshelf", "type": "import"}``.
+        Additive and opt-in -- with no labels the behaviour is unchanged.
+        Per-item labels (e.g. a per-patron provenance id for #14750) ride the
+        item write path on ``ImportLabels``, not this parameter.
     """
     user = accounts.get_current_user()
     username = user.get_username() if user else None
@@ -133,5 +141,8 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     # Create the batch
     batch = Batch.find(batch_name) or Batch.new(name=batch_name, submitter=username)
     batch.add_items(batch_data)
+
+    if labels:
+        ImportLabels.add_many_sync(labels, batch_id=batch.id)
 
     return BatchResult(batch=batch)

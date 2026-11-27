@@ -207,3 +207,45 @@ CREATE TABLE provider_tokens (
     updated timestamp without time zone default (current_timestamp at time zone 'utc'),
     UNIQUE (username, provider_name)
 );
+
+-- Lightweight key/value metadata ("labels") on import batches and items (#14751).
+-- Distinct from GitHub issue labels: these let the import system categorize and
+-- *query* what flows through it -- e.g. whether a submission is an import or an
+-- edit, which app it came from, and a pseudonymous originating-patron id so that
+-- edits are queryable and bulk-repairable by originating user (#14750).
+--
+-- Each row labels exactly one target -- either a batch or an import item -- which
+-- the CHECK enforces. `batch_id`/`import_item_id` are plain integers, not foreign
+-- keys: this file is applied at database INIT before `import_batch`/`import_item`
+-- exist (they arrive with dev_db.pg_dump), and Open Library app tables do not
+-- hard-FK the infobase tables (cf. `acquisitions.edition_id`). Model-level
+-- deletes (`ImportLabels.delete_for_batch`/`delete_for_item`) keep labels from
+-- outliving their target.
+--
+-- The two partial-unique indexes make (target, key, value) unique per target so
+-- re-applying a label is idempotent (the writes are `ON CONFLICT DO NOTHING`); a
+-- plain UNIQUE will not do, because NULL != NULL would let a batch label and an
+-- item label collide into duplicate rows. `import_label_lookup` serves the
+-- query path -- "find every target carrying label X" -- which is what makes the
+-- #14750 "query + repair by originating patron" use case cheap.
+--
+-- This file is applied at database INIT only, and Open Library has no
+-- DDL-migration mechanism (everything under scripts/migrations/ migrates data).
+-- An existing database gets this table when an operator runs the statement by
+-- hand. The copy that has actually been executed is POSTGRES_DDL in
+-- openlibrary/tests/core/test_import_labels.py, and a test in that file asserts
+-- the two have not drifted apart.
+CREATE TABLE import_label (
+    id serial primary key,
+    batch_id integer default null,
+    import_item_id integer default null,
+    label_key text not null,
+    label_value text not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    CONSTRAINT import_label_one_target CHECK (
+        (batch_id IS NOT NULL)::int + (import_item_id IS NOT NULL)::int = 1
+    )
+);
+CREATE UNIQUE INDEX import_label_batch_uniq ON import_label (batch_id, label_key, label_value) WHERE batch_id IS NOT NULL;
+CREATE UNIQUE INDEX import_label_item_uniq ON import_label (import_item_id, label_key, label_value) WHERE import_item_id IS NOT NULL;
+CREATE INDEX import_label_lookup ON import_label (label_key, label_value);
