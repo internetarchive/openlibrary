@@ -19,6 +19,7 @@ from markupsafe import escape
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
+from infogami.utils.context import context
 from infogami.utils.view import public, render, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
@@ -36,6 +37,7 @@ from openlibrary.plugins.upstream.utils import (
     get_language_name,
     safeget,
     urlencode,
+    vue_component_html,
 )
 from openlibrary.plugins.worksearch.author_suggestion import derive_authors
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
@@ -752,7 +754,10 @@ class scan(delegate.page):
     path = "/barcodescanner"
 
     def GET(self):
-        return render.barcodescanner()
+        context.setdefault("show_ol_shell", False)
+        body = render_jinja_template("barcodescanner.html.jinja", vue_component_html=vue_component_html)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Barcode Scanner (Beta)")))
 
 
 class search(delegate.page):
