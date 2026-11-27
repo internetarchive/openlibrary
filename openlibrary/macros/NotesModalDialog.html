@@ -25,8 +25,7 @@ $code:
     edition_info = ', '.join(p for p in edition_parts if p)
 
 $if render_once('notes-modal'):
-  <ol-dialog id="$id" class="js-notes-modal" label="$_('Notes')" icon="sticky-note" width="medium"
-             data-i18n="$:render_template('type/edition/notes_modal_i18n')">
+  <ol-dialog id="$id" class="js-notes-modal" label="$_('Notes')" icon="sticky-note" width="medium">
     <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
       <label class="book-notes-form__label" for="notes-modal-textarea">
         <span class="book-notes-form__title">$book_title</span>
