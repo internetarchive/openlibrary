@@ -537,10 +537,6 @@ msgstr ""
 msgid "Continue without waiting"
 msgstr ""
 
-#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
-msgid "Loading..."
-msgstr ""
-
 #: login.html shell/header.html.jinja
 msgid "Log In"
 msgstr ""
@@ -1074,22 +1070,6 @@ msgstr ""
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
 msgstr ""
 
-#: account/create.html openlibrary/plugins/upstream/forms.py
-msgid "Must be a valid email address"
-msgstr ""
-
-#: account/create.html openlibrary/plugins/upstream/forms.py
-msgid "Must be between 3 and 20 characters"
-msgstr ""
-
-#: account/create.html
-msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
-
-#: account/create.html
-msgid "A qualifying program must be selected"
-msgstr ""
-
 #: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
@@ -1100,6 +1080,10 @@ msgstr ""
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
+msgstr ""
+
+#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html search/work_search_facets.html.jinja signup.js
+msgid "Loading..."
 msgstr ""
 
 #: account/create.html merge/authors.html
@@ -8153,10 +8137,6 @@ msgstr ""
 msgid "Related..."
 msgstr ""
 
-#: ReturnForm.html openlibrary/plugins/openlibrary/partials.py
-msgid "Really return this book?"
-msgstr ""
-
 #: SearchResultsWork.html
 msgid "added to"
 msgstr ""
@@ -9763,6 +9743,22 @@ msgstr ""
 msgid "Published between %(first)s & %(last)s."
 msgstr ""
 
+#: openlibrary/plugins/upstream/forms.py signup.js
+msgid "Must be between 3 and 20 characters"
+msgstr ""
+
+#: signup.js
+msgid "Username may only contain numbers, letters, - or _"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py signup.js
+msgid "Must be a valid email address"
+msgstr ""
+
+#: signup.js
+msgid "A qualifying program must be selected"
+msgstr ""
+
 #: team.js
 msgid "It looks like we don't have anyone with those specifications."
 msgstr ""
@@ -9943,6 +9939,10 @@ msgstr ""
 
 #: modals/index.js
 msgid "No observations for this work."
+msgstr ""
+
+#: return-form/index.js
+msgid "Really return this book?"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search-modal/constants.js
