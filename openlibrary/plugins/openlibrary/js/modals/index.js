@@ -53,36 +53,6 @@ function addShareModalButtonListeners() {
     });
 }
 
-/** English fallbacks. Must match type/edition/notes_modal_i18n.html. */
-export const DEFAULT_NOTES_MODAL_STRINGS = {
-    saveError: 'Could not save your note. Please try again.',
-    deleteError: 'Could not delete your note. Please try again.',
-    deleteTitle: 'Delete this note?',
-    deleteMessage: 'This cannot be undone.',
-    deleteConfirm: 'Delete Note',
-    cancel: 'Cancel',
-    close: 'Close'
-};
-
-/**
- * Reads the server-rendered translations off the dialog's data-i18n attribute.
- * Falls back to English if the attribute is missing or malformed.
- *
- * @param {HTMLElement} el Element carrying the data-i18n attribute.
- * @returns {Object} Translated strings merged over the English defaults.
- */
-export function notesModalStrings(el) {
-    try {
-        const raw = el?.dataset?.i18n;
-        if (raw) {
-            return { ...DEFAULT_NOTES_MODAL_STRINGS, ...JSON.parse(raw) };
-        }
-    } catch {
-        // Malformed attribute: fall through to the English defaults.
-    }
-    return DEFAULT_NOTES_MODAL_STRINGS;
-}
-
 /**
  * Wires up the book notes dialog. One dialog per page (NotesModalDialog.html),
  * one trigger link per sidebar (desktop and mobile), so every link opens it.
@@ -95,7 +65,6 @@ export function initNotesModal(modalLinks) {
         return;
     }
 
-    const strings = notesModalStrings(dialog);
     const form = dialog.querySelector('.book-notes-form');
     const textarea = form.querySelector('.notes-modal-textarea');
     const deleteButton = dialog.querySelector('.js-notes-modal-delete');
@@ -162,7 +131,7 @@ export function initNotesModal(modalLinks) {
             setNoteIndicator(true);
         } catch {
             // Leave the dialog open so the patron does not lose the note.
-            showToast(strings.saveError, { type: 'error' });
+            showToast(_('Could not save your note. Please try again.'), { type: 'error' });
         } finally {
             pending = null;
             syncButtons();
@@ -187,7 +156,7 @@ export function initNotesModal(modalLinks) {
             deleteButton.classList.add('hidden');
             setNoteIndicator(false);
         } catch {
-            showToast(strings.deleteError, { type: 'error' });
+            showToast(_('Could not delete your note. Please try again.'), { type: 'error' });
         } finally {
             pending = null;
             syncButtons();
@@ -209,11 +178,10 @@ export function initNotesModal(modalLinks) {
 
     deleteButton.addEventListener('click', async () => {
         const confirmed = await olConfirm({
-            title: strings.deleteTitle,
-            message: strings.deleteMessage,
-            confirmLabel: strings.deleteConfirm,
-            cancelLabel: strings.cancel,
-            labelClose: strings.close,
+            title: _('Delete this note?'),
+            message: _('This cannot be undone.'),
+            confirmLabel: _('Delete Note'),
+            labelClose: _('Close'),
             destructive: true
         });
         if (confirmed) {

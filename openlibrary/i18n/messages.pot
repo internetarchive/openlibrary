@@ -529,16 +529,12 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html lit/alert-dialog.js merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html lit/alert-dialog.js merge/authors.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
 #: interstitial.html.jinja
 msgid "Continue without waiting"
-msgstr ""
-
-#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian-dashboard/index.js librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
-msgid "Loading..."
 msgstr ""
 
 #: login.html shell/header.html.jinja
@@ -622,7 +618,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html modals/index.js native_dialog.html.jinja shell/edit_saved.html.jinja type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -1074,22 +1070,6 @@ msgstr ""
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
 msgstr ""
 
-#: account/create.html openlibrary/plugins/upstream/forms.py
-msgid "Must be a valid email address"
-msgstr ""
-
-#: account/create.html openlibrary/plugins/upstream/forms.py
-msgid "Must be between 3 and 20 characters"
-msgstr ""
-
-#: account/create.html
-msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
-
-#: account/create.html
-msgid "A qualifying program must be selected"
-msgstr ""
-
 #: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
@@ -1100,6 +1080,10 @@ msgstr ""
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
+msgstr ""
+
+#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian-dashboard/index.js librarian_dashboard/data_quality_table.html search/work_search_facets.html.jinja signup.js
+msgid "Loading..."
 msgstr ""
 
 #: account/create.html merge/authors.html
@@ -1489,7 +1473,7 @@ msgstr ""
 msgid "in %(language)s"
 msgstr ""
 
-#: NotesModalDialog.html account/notes.html type/edition/notes_modal_i18n.html
+#: NotesModalDialog.html account/notes.html modals/index.js
 msgid "Delete Note"
 msgstr ""
 
@@ -3216,38 +3200,6 @@ msgid "Add a book"
 msgstr ""
 
 #: books/add.html
-msgid "Invalid ISBN checksum digit"
-msgstr ""
-
-#: books/add.html
-msgid "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"
-msgstr ""
-
-#: books/add.html
-msgid "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"
-msgstr ""
-
-#: books/add.html
-msgid "Invalid LC Control Number format"
-msgstr ""
-
-#: books/add.html
-msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
-
-#: books/add.html
-msgid "Please enter a value for the selected identifier"
-msgstr ""
-
-#: books/add.html
-msgid "Are you sure that's the published date?"
-msgstr ""
-
-#: books/add.html openlibrary/plugins/upstream/addbook.py
-msgid "Please enter a valid URL starting with http:// or https://"
-msgstr ""
-
-#: books/add.html
 msgid "Add a book to Open Library"
 msgstr ""
 
@@ -4174,14 +4126,6 @@ msgid "This field can accept arbitrary key:value pairs"
 msgstr ""
 
 #: books/edit/excerpts.html
-msgid "Please provide an excerpt."
-msgstr ""
-
-#: books/edit/excerpts.html
-msgid "That excerpt is too long."
-msgstr ""
-
-#: books/edit/excerpts.html
 msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
 msgstr ""
 
@@ -4227,18 +4171,6 @@ msgstr ""
 
 #: books/edit/excerpts.html
 msgid "From page"
-msgstr ""
-
-#: books/edit/web.html
-msgid "Please provide a label."
-msgstr ""
-
-#: books/edit/web.html
-msgid "Please provide a URL."
-msgstr ""
-
-#: books/edit/web.html
-msgid "Please enter a valid URL."
 msgstr ""
 
 #: books/edit/web.html
@@ -5612,7 +5544,7 @@ msgstr ""
 msgid "Delete list"
 msgstr ""
 
-#: lists/lists.html type/edition/notes_modal_i18n.html
+#: lists/lists.html modals/index.js
 msgid "This cannot be undone."
 msgstr ""
 
@@ -7169,18 +7101,6 @@ msgstr ""
 msgid "adding notes to"
 msgstr ""
 
-#: type/edition/notes_modal_i18n.html
-msgid "Could not save your note. Please try again."
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
-msgid "Could not delete your note. Please try again."
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
-msgid "Delete this note?"
-msgstr ""
-
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -8143,10 +8063,6 @@ msgstr ""
 
 #: RelatedSubjects.html.jinja
 msgid "Related..."
-msgstr ""
-
-#: ReturnForm.html openlibrary/plugins/openlibrary/partials.py
-msgid "Really return this book?"
 msgstr ""
 
 #: SearchResultsWork.html
@@ -9661,6 +9577,38 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
+#: add-book.js
+msgid "Please enter a value for the selected identifier"
+msgstr ""
+
+#: add-book.js
+msgid "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"
+msgstr ""
+
+#: add-book.js
+msgid "Invalid ISBN checksum digit"
+msgstr ""
+
+#: add-book.js
+msgid "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"
+msgstr ""
+
+#: add-book.js
+msgid "Invalid LC Control Number format"
+msgstr ""
+
+#: add-book.js
+msgid "Invalid OCLC/WorldCat Control Number format"
+msgstr ""
+
+#: add-book.js
+msgid "Are you sure that's the published date?"
+msgstr ""
+
+#: add-book.js openlibrary/plugins/upstream/addbook.py
+msgid "Please enter a valid URL starting with http:// or https://"
+msgstr ""
+
 #: admin.js
 #, python-format
 msgid "Really anonymize %(name)s's account? This will delete %(name)s's profile page and booknotes, and anonymize %(name)s's reading log, reviews, star ratings, and merge request submissions."
@@ -9704,6 +9652,26 @@ msgstr ""
 #: edit.js
 #, python-format
 msgid "ISBN %(isbn)s may be invalid. Add it anyway?"
+msgstr ""
+
+#: edit.js
+msgid "Please provide an excerpt."
+msgstr ""
+
+#: edit.js
+msgid "That excerpt is too long."
+msgstr ""
+
+#: edit.js
+msgid "Please provide a label."
+msgstr ""
+
+#: edit.js
+msgid "Please provide a URL."
+msgstr ""
+
+#: edit.js
+msgid "Please enter a valid URL."
 msgstr ""
 
 #: fulltext-search-suggestion.js
@@ -9753,6 +9721,22 @@ msgstr ""
 #: publishing_history.js
 #, python-format
 msgid "Published between %(first)s & %(last)s."
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py signup.js
+msgid "Must be between 3 and 20 characters"
+msgstr ""
+
+#: signup.js
+msgid "Username may only contain numbers, letters, - or _"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py signup.js
+msgid "Must be a valid email address"
+msgstr ""
+
+#: signup.js
+msgid "A qualifying program must be selected"
 msgstr ""
 
 #: tasks_stats.js
@@ -10008,6 +9992,18 @@ msgid "Failed to submit comment. Please try again in a few moments."
 msgstr ""
 
 #: modals/index.js
+msgid "Could not save your note. Please try again."
+msgstr ""
+
+#: modals/index.js
+msgid "Could not delete your note. Please try again."
+msgstr ""
+
+#: modals/index.js
+msgid "Delete this note?"
+msgstr ""
+
+#: modals/index.js
 msgid "Update successful!"
 msgstr ""
 
@@ -10025,6 +10021,10 @@ msgstr ""
 
 #: modals/index.js
 msgid "No observations for this work."
+msgstr ""
+
+#: return-form/index.js
+msgid "Really return this book?"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search-modal/constants.js

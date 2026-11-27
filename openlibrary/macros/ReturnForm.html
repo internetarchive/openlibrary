@@ -5,15 +5,10 @@ $#   a Lenny provider  -> /borrow/lenny/<OLID>/return   (book_providers/read_but
 $# A single form rather than a near-copy on purpose: two copies of one control
 $# is how a latent bug gets a home in the one nobody diffs.
 
-$ i18n_strings = {
-  $ "confirm_return": _("Really return this book?")
-  $ }
-
 <form
   action="$action_url"
   method="post"
   class="return-form"
-  data-i18n="$json_encode(i18n_strings)"
 >
   $# Secondary like Nearby Libraries: returning is a real action, but not the one
   $# the page is for. ol-button is form-associated, so type="submit" submits this form.
