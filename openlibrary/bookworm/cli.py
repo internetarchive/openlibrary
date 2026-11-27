@@ -225,6 +225,21 @@ FEEDS: dict[str, dict] = {
         # No modified_since param, so this one is crawled in full each run.
         "cursor_style": "client",
     },
+    "standard_ebooks": {
+        # OPDS 2.0 via content negotiation (the harvester sends
+        # Accept: application/opds+json). /all is the crawlable whole catalogue.
+        "url": "https://standardebooks.org/feeds/opds/all",
+        "id_strategy": "standard_ebooks",
+        # Standard Ebooks has no modified_since param, so crawl in full each run
+        # and filter client-side. The catalogue is small (~1k), so this is cheap.
+        "cursor_style": "client",
+        # The Feed Registry's first AUTHENTICATED source. HTTP Basic, username =
+        # API key, blank password. The row stores only the NAME of the config
+        # key; the secret lives solely in olsystem's openlibrary.yml and is read
+        # by name at harvest time (see harvest._resolve_auth). Never committed,
+        # never stored here, never logged.
+        "auth": {"scheme": "http_basic", "username_from_config": "standard_ebooks_key"},
+    },
 }
 
 DEFAULT_PROVIDERS = ("lenny", "project_gutenberg")
@@ -237,6 +252,10 @@ denying it -- the access log shows the CONNECT allowed and tunnelled
 Whether that is IP reputation or bot-signature is not established. Registering
 it would make every harvest pass report a failing feed; add it with
 ``--provider betterworldbooks`` once BWB allowlists us.
+
+Standard Ebooks is also excluded: it is authenticated, so it must not be
+activated until ``standard_ebooks_key`` is provisioned in ``olsystem`` and the
+feed has been dry-run. Register it with ``--provider standard_ebooks``.
 """
 
 
@@ -446,7 +465,9 @@ def preview_command(
         raise SystemExit(1)
     feed = feeds[0]
 
-    session = harvest.build_session()
+    # Route through _session_for so preview authenticates the same way a harvest
+    # does -- otherwise previewing an authenticated feed (Standard Ebooks) 401s.
+    session = harvest._session_for(feed, None)
     parser_feed = feed.to_feed()
     records = []
     for page in harvest.iter_pages(feed.url, session):

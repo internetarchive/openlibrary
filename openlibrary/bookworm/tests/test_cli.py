@@ -307,6 +307,27 @@ class TestConnectorConfig:
         cli.register_command(ol_config="x.yml", provider="project_gutenberg")
         assert registered()["project_gutenberg"].local_id_is_ol_edition is False
 
+    def test_standard_ebooks_is_not_registered_by_default(self, registry_db):
+        """Authenticated feed: must be dry-run with the key provisioned first."""
+        cli.register_command(ol_config="x.yml")
+        assert "standard_ebooks" not in registered()
+
+    def test_standard_ebooks_registers_as_an_authenticated_full_crawl_feed(self, registry_db):
+        cli.register_command(ol_config="x.yml", provider="standard_ebooks")
+        feed = registered()["standard_ebooks"]
+        assert feed.id_strategy == "standard_ebooks"
+        assert feed.supports_modified_since is False  # cursor_style=client
+        assert feed.status == "pending"  # never auto-activated
+
+    def test_standard_ebooks_row_references_the_key_by_NAME_not_value(self, registry_db):
+        """The secret must never be written to the registry; only its config-key
+        name is stored, to be resolved from olsystem config at harvest time."""
+        cli.register_command(ol_config="x.yml", provider="standard_ebooks")
+        feed = registered()["standard_ebooks"]
+        # Only the config-key NAME is stored; registration never has (nor writes)
+        # the secret itself.
+        assert feed.data["auth"] == {"scheme": "http_basic", "username_from_config": "standard_ebooks_key"}
+
     def test_config_added_after_registration_warns_that_it_is_not_applied(self, registry_db, caplog):
         """register() returns an existing row without touching its data blob.
 

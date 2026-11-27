@@ -27,6 +27,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
+from infogami import config
 from openlibrary.bookworm import opds
 from openlibrary.bookworm.registry import FeedRegistry
 from openlibrary.core.acquisitions import Acquisition
@@ -125,6 +126,48 @@ def build_session() -> requests.Session:
     return session
 
 
+def _resolve_auth(feed: FeedRegistry) -> tuple[str, str] | None:
+    """The HTTP Basic credentials for a feed, or None if it needs none.
+
+    The ``feed_registry`` row stores only the NAME of the config key
+    (``data.auth.username_from_config``), never the secret -- the API key lives
+    solely in ``olsystem``'s ``openlibrary.yml``. We read it by that name at
+    harvest time and return ``(key, "")``: Standard Ebooks (the first and only
+    authenticated feed today) uses the key as the username with a blank
+    password, matching ``scripts/import_standard_ebooks.py``.
+
+    Fails CLOSED. A feed configured for auth whose key is unset raises, so the
+    feed is reported failed and its cursor holds, rather than fetching
+    unauthenticated and either 401-ing or advancing the cursor over a degraded
+    response. The message names the config key (so ops can fix it) and never the
+    value.
+    """
+    auth = (feed.data or {}).get("auth")
+    if not auth:
+        return None
+    if (scheme := auth.get("scheme")) != "http_basic":
+        raise ValueError(f"{feed.provider_name}: unsupported auth scheme {scheme!r}")
+    key_name = auth.get("username_from_config")
+    secret = config.get(key_name) if key_name else None
+    if not secret:
+        raise ValueError(f"{feed.provider_name}: auth configured but config key {key_name!r} is unset; refusing to harvest unauthenticated")
+    return (secret, "")
+
+
+def _session_for(feed: FeedRegistry, session: requests.Session | None) -> requests.Session:
+    """Build or reuse a session and apply the feed's auth to it.
+
+    ``harvest_all`` passes ``session=None``, so each feed gets its own session
+    and one feed's credentials never leak onto the next. Auth is only ever set,
+    never cleared, so a caller that deliberately shares a session across an
+    authed and an unauthed feed is its own concern.
+    """
+    session = session or build_session()
+    if auth := _resolve_auth(feed):
+        session.auth = auth
+    return session
+
+
 def _as_utc(value: dt.datetime | str | None) -> dt.datetime | None:
     if not value:
         return None
@@ -159,7 +202,7 @@ def iter_pages(start_url: str, session: requests.Session, max_pages: int | None 
         page = _fetch_page(session, url)
         yield page
         url = next(
-            (link["href"] for link in (page.get("links") or []) if link.get("rel") == "next" and link.get("href")),
+            (link["href"] for link in (page.get("links") or []) if opds.link_has_rel(link, "next") and link.get("href")),
             None,
         )
 
@@ -212,7 +255,7 @@ def _check_page_is_credible(page: dict, url: str) -> None:
     if publications:
         return
 
-    has_next = any(link.get("rel") == "next" for link in (page.get("links") or []))
+    has_next = any(opds.link_has_rel(link, "next") for link in (page.get("links") or []))
     if has_next:
         raise SuspectFeedPage(f"{url}: 0 publications but a rel=next link; treating as a failed fetch")
     if claimed := (page.get("metadata") or {}).get("numberOfItems") or 0:
@@ -395,7 +438,7 @@ def _harvest_native(
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Harvest a feed that filters server-side via ``?modified_since=<cursor>``."""
-    session = session or build_session()
+    session = _session_for(feed, session)
     now = now or dt.datetime.now(dt.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()
@@ -441,7 +484,7 @@ def _harvest_by_full_crawl(
     ``modified`` timestamp on our side. Delete this function as a unit once every
     feed supports ``modified_since``.
     """
-    session = session or build_session()
+    session = _session_for(feed, session)
     now = now or dt.datetime.now(dt.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()

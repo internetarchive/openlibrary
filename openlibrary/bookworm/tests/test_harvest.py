@@ -795,3 +795,117 @@ class TestRetries:
         """The harvester only GETs; retrying anything else would be a footgun
         for a future caller that reuses this session."""
         assert set(self._adapter().max_retries.allowed_methods or ()) == {"GET"}
+
+
+# ---------------------------------------------------------------------------
+# Standard Ebooks (#14748): the Feed Registry's first AUTHENTICATED source.
+#
+# Auth is HTTP Basic with username = API key, blank password. The key lives
+# only in olsystem config under the name `standard_ebooks_key`; the feed row
+# stores that NAME, never the secret, and the secret is never logged.
+# ---------------------------------------------------------------------------
+
+SE_URL: Final = "https://standardebooks.org/feeds/opds/all"
+SE_AUTH: Final = {"auth": {"scheme": "http_basic", "username_from_config": "standard_ebooks_key"}}
+
+
+def _se_feed(bookworm_db, *, active=True, **extra_data):
+    data = {**SE_AUTH, **extra_data}
+    feed = FeedRegistry.register("standard_ebooks", SE_URL, id_strategy="standard_ebooks", cursor_style="client", data=data)
+    assert feed is not None
+    if active:
+        FeedRegistry.set_status(feed.id, "active")
+    return FeedRegistry.get_by_id(feed.id)
+
+
+def _config(**values):
+    return web.storage(values)
+
+
+def test_auth_is_applied_to_the_session(bookworm_db, monkeypatch):
+    """The harvest session carries HTTP Basic auth: username = key, blank pw."""
+    monkeypatch.setattr(harvest, "config", _config(standard_ebooks_key="SECRET-KEY"))
+    feed = _se_feed(bookworm_db)
+    session = FakeSession({SE_URL: feed_page("standard_ebooks")})
+
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert isinstance(session.auth, tuple)
+    assert session.auth == ("SECRET-KEY", "")
+
+
+def test_auth_is_not_applied_to_a_feed_without_auth_config(bookworm_db, monkeypatch):
+    monkeypatch.setattr(harvest, "config", _config(standard_ebooks_key="SECRET-KEY"))
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    session = FakeSession({"https://bwb/opds": feed_page("bwb")})
+
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert getattr(session, "auth", None) is None
+
+
+def test_auth_fails_closed_when_the_key_is_missing(bookworm_db, monkeypatch):
+    """A feed configured for auth whose config key is unset must FAIL, not fetch.
+
+    Fetching unauthenticated would 401 at best; the danger is a feed that serves
+    a degraded-but-200 response, whose cursor would then advance past records we
+    never really got. Failing leaves the cursor untouched for the next run.
+    """
+    monkeypatch.setattr(harvest, "config", _config())  # no standard_ebooks_key
+    feed = _se_feed(bookworm_db)
+    session = FakeSession({SE_URL: feed_page("standard_ebooks")})
+
+    # The error names the CONFIG KEY so ops can fix it, and contains no secret.
+    with pytest.raises(ValueError, match="standard_ebooks_key"):
+        harvest.harvest_feed(feed, session=session, now=NOW)
+
+    # cursor untouched
+    assert FeedRegistry.get_by_id(feed.id).last_updated is None
+    # nothing staged
+    assert list(bookworm_db.select("import_item")) == []
+
+
+def test_harvest_all_reports_a_missing_key_as_a_failed_feed(bookworm_db, monkeypatch):
+    """The fail-closed error must surface as a reported failure, not a crash."""
+    monkeypatch.setattr(harvest, "config", _config())
+    _se_feed(bookworm_db)
+
+    results = harvest.harvest_all(session=FakeSession({SE_URL: feed_page("standard_ebooks")}))
+
+    assert any(r.get("feed") == "standard_ebooks" and r.get("error") for r in results)
+
+
+def test_standard_ebooks_full_crawl_stages_items_with_identifiers(bookworm_db, monkeypatch):
+    """End to end: a full-crawl SE harvest stages import_items keyed by the SE id."""
+    monkeypatch.setattr(harvest, "config", _config(standard_ebooks_key="SECRET-KEY"))
+    feed = _se_feed(bookworm_db)
+    session = FakeSession({SE_URL: feed_page("standard_ebooks")})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW)
+    assert result["records"] == 2
+
+    rows = list(bookworm_db.select("import_item"))
+    assert {r.ia_id for r in rows} == {
+        "standard_ebooks:jane-austen/pride-and-prejudice",
+        "standard_ebooks:leo-tolstoy/what-is-art/aylmer-maude",
+    }
+    data = json.loads(next(r.data for r in rows if r.ia_id.endswith("pride-and-prejudice")))
+    assert data["identifiers"] == {"standard_ebooks": ["jane-austen/pride-and-prejudice"]}
+    assert all(a["data"]["access"] == "open-access" for a in data["acquisitions"])
+
+
+def test_next_link_detected_when_rel_is_an_array():
+    """Standard Ebooks' pagination `next` rel is an array; following it must work.
+
+    `iter_pages` reads feed-level links straight from JSON, so a `rel: ["next"]`
+    would be missed by a bare `== "next"` check and the crawl would stop after
+    page one -- harvesting only the first page of the catalogue.
+    """
+    pub = {"metadata": {"title": "X"}}
+    page1 = {"publications": [pub], "links": [{"rel": ["next"], "href": "https://se/all?page=2"}]}
+    page2 = {"publications": [pub], "links": []}
+    session = FakeSession({"https://se/all": page1, "https://se/all?page=2": page2})
+    pages = list(harvest.iter_pages("https://se/all", session))
+    assert session.calls == ["https://se/all", "https://se/all?page=2"]
+    assert len(pages) == 2

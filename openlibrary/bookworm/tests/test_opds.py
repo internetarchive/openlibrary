@@ -10,6 +10,7 @@ SAMPLES = Path(__file__).parent / "samples"
 BWB = Feed(provider_name="betterworldbooks", id_strategy="isbn")
 GUTENBERG = Feed(provider_name="project_gutenberg", id_strategy="gutenberg")
 LENNY = Feed(provider_name="lenny", id_strategy="self_link")
+STANDARD_EBOOKS = Feed(provider_name="standard_ebooks", id_strategy="standard_ebooks")
 
 
 def _pubs(name: str) -> list[Publication]:
@@ -57,13 +58,101 @@ def test_lenny_id_from_self_link():
     assert acq["local_id"] == "37044775"
 
 
-def test_all_three_feeds_map_every_sample_publication():
-    # The whole point: no publication silently dropped across the 3 real feeds.
-    for name, feed in [("bwb", BWB), ("gutenberg", GUTENBERG), ("lenny", LENNY)]:
+def test_all_four_feeds_map_every_sample_publication():
+    # The whole point: no publication silently dropped across the real feeds.
+    for name, feed in [("bwb", BWB), ("gutenberg", GUTENBERG), ("lenny", LENNY), ("standard_ebooks", STANDARD_EBOOKS)]:
         pubs = _pubs(name)
         records = [to_import_record(p, feed) for p in pubs]
         assert all(r is not None for r in records), f"{name}: some publications failed to map"
         assert all(r["acquisitions"] for r in records), f"{name}: missing acquisitions"
+
+
+# ---------------------------------------------------------------------------
+# Standard Ebooks (#14748): the Feed Registry's first authenticated source.
+#
+# The entry shape here is taken from Standard Ebooks' own OPDS 2.0 generator
+# (standardebooks/web lib/OpdsFeed.php::GenerateOpds2Publication), captured into
+# the fixture with NO API key -- the key is a transport-level credential and
+# never appears in feed content.
+# ---------------------------------------------------------------------------
+
+
+def test_standard_ebooks_id_from_metadata_identifier():
+    """The id is ``metadata.identifier`` minus the ebooks-root prefix.
+
+    Standard Ebooks' identifier is the canonical ebook URL
+    (``https://standardebooks.org/ebooks/<author>/<title>``); the stable local
+    id is the ``<author>/<title>`` slug, matching the ``standard_ebooks``
+    identifier the catalog already recognises (``id_standard_ebooks`` in Solr).
+    """
+    rec = to_import_record(_pubs("standard_ebooks")[0], STANDARD_EBOOKS)
+    assert rec["identifiers"] == {"standard_ebooks": ["jane-austen/pride-and-prejudice"]}
+    assert rec["source_records"] == ["standard_ebooks:jane-austen/pride-and-prejudice"]
+    assert rec["title"] == "Pride and Prejudice"
+    assert rec["authors"] == [{"name": "Jane Austen"}]
+
+
+def test_standard_ebooks_id_keeps_multi_segment_translator_slug():
+    """A translated work's id carries three segments (author/title/translator).
+
+    Dropping to the last segment (the ``self_link`` strategy) would collide every
+    translation of a title under the translator's name; the whole path after
+    ``/ebooks/`` is the identity.
+    """
+    rec = to_import_record(_pubs("standard_ebooks")[1], STANDARD_EBOOKS)
+    assert rec["identifiers"] == {"standard_ebooks": ["leo-tolstoy/what-is-art/aylmer-maude"]}
+    assert rec["source_records"] == ["standard_ebooks:leo-tolstoy/what-is-art/aylmer-maude"]
+
+
+def test_standard_ebooks_array_valued_rel_is_not_dropped():
+    """Standard Ebooks emits ``rel`` as a JSON array, not a bare string.
+
+    Every link and image in an SE publication carries ``"rel": ["..."]``. The
+    ``Link`` model types ``rel`` as a string, so without normalisation pydantic
+    would reject the whole publication and ``_parse_publication`` would silently
+    skip it -- dropping the ENTIRE Standard Ebooks catalogue with a green run.
+    This is the single most load-bearing line for this feed.
+    """
+    pub = _pubs("standard_ebooks")[0]
+    # Links and images parsed, with rel coerced to a single relation.
+    assert pub.cover() == "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover.jpg"
+    assert [link.rel for link in pub.acquisition_links()] == [
+        "http://opds-spec.org/acquisition/open-access",
+        "http://opds-spec.org/acquisition/open-access",
+    ]
+
+
+def test_standard_ebooks_keeps_every_open_access_download():
+    """Each download format is its own open-access acquisition link."""
+    rec = to_import_record(_pubs("standard_ebooks")[0], STANDARD_EBOOKS)
+    acq = rec["acquisitions"]
+    assert len(acq) == 2
+    assert {a["data"]["access"] for a in acq} == {"open-access"}
+    assert {a["data"]["format"] for a in acq} == {"application/epub+zip", "application/kepub+zip"}
+    assert all(a["provider_name"] == "standard_ebooks" for a in acq)
+    assert all(a["local_id"] == "jane-austen/pride-and-prejudice" for a in acq)
+
+
+def test_standard_ebooks_region_language_maps_to_marc21():
+    """``en-GB`` / ``en-US`` must still reach the editions as MARC21 ``eng``.
+
+    OPDS gives a BCP-47 tag with a region subtag; ``get_marc21_language`` only
+    knows the primary subtag, so the region must be stripped or the language is
+    lost. Standard Ebooks is English-only, so this is every record.
+    """
+    assert to_import_record(_pubs("standard_ebooks")[0], STANDARD_EBOOKS)["languages"] == ["eng"]  # en-GB
+    assert to_import_record(_pubs("standard_ebooks")[1], STANDARD_EBOOKS)["languages"] == ["eng"]  # en-US
+
+
+def test_standard_ebooks_carries_the_publisher():
+    rec = to_import_record(_pubs("standard_ebooks")[0], STANDARD_EBOOKS)
+    assert rec["publishers"] == ["Standard Ebooks"]
+
+
+def test_standard_ebooks_cover_is_emitted():
+    """The SE cover host must be on coverstore's allowlist, else it is dropped."""
+    rec = to_import_record(_pubs("standard_ebooks")[0], STANDARD_EBOOKS)
+    assert rec["cover"] == "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover.jpg"
 
 
 def test_skips_publication_without_title_or_authors():

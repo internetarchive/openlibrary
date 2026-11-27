@@ -272,6 +272,43 @@ Confirmed with the Lenny maintainer, 2026-09-06:
 | `lenny` | `modified_since` | ~94 records. See the notes below before rolling out. |
 | `project_gutenberg` | `modified_since` | ~78k items; seed the cursor |
 | `betterworldbooks` | `client` (full crawl) | **not registered by default** — Cloudflare 403s our proxy egress. Register with `--provider betterworldbooks` once allowlisted. |
+| `standard_ebooks` | `client` (full crawl) | ~1k items. **Authenticated** (HTTP Basic). **not registered by default** — needs `standard_ebooks_key` in `olsystem`. Register with `--provider standard_ebooks`. See "Authenticated feeds" below. |
+
+## Authenticated feeds
+
+Standard Ebooks is the registry's first source that requires authentication, and
+the mechanism is general. A feed's `data` blob may carry an `auth` object:
+
+```json
+{"auth": {"scheme": "http_basic", "username_from_config": "standard_ebooks_key"}}
+```
+
+- The row stores only the **name** of the config key, never the secret. The key
+  itself lives solely in `olsystem`'s `openlibrary.yml` (`standard_ebooks_key`),
+  is read by name at harvest time (`harvest._resolve_auth`), and is applied as
+  `session.auth`. It is never committed, never written to `feed_registry`, and
+  never logged.
+- Standard Ebooks uses the API key as the HTTP Basic **username** with a **blank
+  password** — matching the superseded `scripts/import_standard_ebooks.py`.
+- Auth **fails closed**: a feed configured for auth whose key is unset is
+  reported *failed* and its cursor holds, rather than fetching unauthenticated.
+  Fixtures and tests carry **no** key (auth is transport-level; it never appears
+  in feed content).
+
+**Ops — provision the key.** `standard_ebooks_key` must be present in the cron
+container's `openlibrary.yml` (it already powers the legacy importer, so it is
+likely provisioned). Confirm before activating:
+
+```bash
+python - <<'PY'
+from openlibrary.config import load_config
+from infogami import config
+load_config("/olsystem/etc/openlibrary.yml")
+print("standard_ebooks_key present:", bool(config.get("standard_ebooks_key")))
+PY
+```
+
+Then follow the validate-then-activate rollout above with `--provider standard_ebooks`.
 
 ---
 
