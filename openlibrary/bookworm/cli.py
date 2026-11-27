@@ -29,7 +29,9 @@ from urllib.parse import urlparse
 from infogami import config
 from openlibrary.bookworm import harvest
 from openlibrary.bookworm.registry import (
+    CURSOR_CLIENT,
     CURSOR_MODIFIED_SINCE,
+    FEED_TYPE_OPDS,
     STATUS_ACTIVE,
     FeedRegistry,
 )
@@ -223,11 +225,24 @@ FEEDS: dict[str, dict] = {
         "url": "https://www.betterworldbooks.com/opds",
         "id_strategy": "isbn",
         # No modified_since param, so this one is crawled in full each run.
-        "cursor_style": "client",
+        "cursor_style": CURSOR_CLIENT,
+    },
+    "bookdash": {
+        # A non-OPDS source: the harvester dispatches on feed_type to the
+        # BookdashAdapter, which scrapes the HTML site behind this sitemap. See
+        # openlibrary/bookworm/adapters/bookdash.py and the README.
+        "url": "https://bookdash.org/books-sitemap.xml",
+        "feed_type": "bookdash",
+        # Unused by the scraper (id_strategy is an OPDS-parser concept); the
+        # BookdashAdapter derives its id from the page slug. Recorded for clarity.
+        "id_strategy": "slug",
+        # No modified_since param; full crawl of the sitemap each run, filtered on
+        # our side by each URL's <lastmod>.
+        "cursor_style": CURSOR_CLIENT,
     },
 }
 
-DEFAULT_PROVIDERS = ("lenny", "project_gutenberg")
+DEFAULT_PROVIDERS = ("lenny", "project_gutenberg", "bookdash")
 """Registered by default.
 
 Better World Books is deliberately excluded. As of 2026-09-05 its feed returns
@@ -309,7 +324,7 @@ def register_command(
             )
 
         existing = FeedRegistry.find(name, spec["url"])
-        extra = {k: v for k, v in spec.items() if k not in ("url", "id_strategy", "cursor_style")}
+        extra = {k: v for k, v in spec.items() if k not in ("url", "id_strategy", "cursor_style", "feed_type")}
         if existing:
             # register() is idempotent and returns the existing row WITHOUT
             # touching its data blob, so connector config added to FEEDS after a
@@ -328,6 +343,7 @@ def register_command(
         feed: FeedRegistry | None = FeedRegistry.register(
             name,
             spec["url"],
+            feed_type=spec.get("feed_type", FEED_TYPE_OPDS),
             id_strategy=spec["id_strategy"],
             cursor_style=spec["cursor_style"],
             data=extra or None,
@@ -445,6 +461,12 @@ def preview_command(
         logger.error("no registered feed named %r", provider)
         raise SystemExit(1)
     feed = feeds[0]
+
+    # preview pages the feed as OPDS 2.0 (edition-match diagnostics); a non-OPDS
+    # source has no comparable pass, so fail clearly rather than crash on JSON.
+    if (feed.feed_type or FEED_TYPE_OPDS) != FEED_TYPE_OPDS:
+        logger.error("preview only supports OPDS feeds; %r is feed_type=%r", provider, feed.feed_type)
+        raise SystemExit(1)
 
     session = harvest.build_session()
     parser_feed = feed.to_feed()

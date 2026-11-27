@@ -200,6 +200,17 @@ class TestFeedRegistrySourcedRecord:
         monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg", "lenny"}))
         assert import_validator().validate(dict(feed_sourced_record)) is True
 
+    def test_bookdash_record_without_isbn_validates_on_provider_identifier(self, monkeypatch) -> None:
+        """A Book Dash book without an ISBN imports on identifiers.bookdash (#14749)."""
+        monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"bookdash"}))
+        record = {
+            "title": "Usuku Oluhle",
+            "source_records": ["bookdash:usuku-oluhle"],
+            "authors": [{"name": "Raeesah Vawda"}],
+            "identifiers": {"bookdash": ["usuku-oluhle"]},
+        }
+        assert import_validator().validate(record) is True
+
     def test_unregistered_source_is_still_rejected(self, monkeypatch) -> None:
         monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg"}))
         record = dict(feed_sourced_record, source_records=["randomvendor:67979"])

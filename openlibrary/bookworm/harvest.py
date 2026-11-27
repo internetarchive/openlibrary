@@ -21,16 +21,20 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 from openlibrary.bookworm import opds
-from openlibrary.bookworm.registry import FeedRegistry
+from openlibrary.bookworm.adapters.bookdash import BookdashAdapter
+from openlibrary.bookworm.registry import FEED_TYPE_OPDS, FeedRegistry
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.imports import Batch
+
+if TYPE_CHECKING:
+    from openlibrary.bookworm.adapters import SourceAdapter
 
 logger = logging.getLogger("openlibrary.bookworm.harvest")
 
@@ -234,6 +238,69 @@ def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[
         return None, None
 
 
+class OpdsAdapter:
+    """The adapter for OPDS 2.0 feeds — the original harvest path (#12844).
+
+    Pages the feed following ``rel=next`` and parses each publication with
+    :mod:`openlibrary.bookworm.opds`, yielding ``(import_record, modified)`` like
+    any other :class:`~openlibrary.bookworm.adapters.SourceAdapter`. The start URL
+    depends on the cursor style: a ``modified_since`` feed is fetched pre-filtered
+    from ``feed.request_url(since)``; a full-crawl feed is fetched whole from
+    ``feed.url`` and filtered by the harvester. Everything OPDS-specific — the
+    ``rel=next`` paging, the credible-page check — stays in ``iter_pages`` behind
+    this adapter, so the harvester downstream is format-agnostic.
+
+    A publication that fails to parse is skipped (not yielded) rather than
+    surfaced as ``None``, so the harvester's cursor logic never advances past a
+    record that was never staged.
+    """
+
+    def iter_records(
+        self,
+        feed: FeedRegistry,
+        *,
+        since: dt.datetime,
+        session: requests.Session,
+        max_pages: int | None = None,
+        state: dict | None = None,
+    ):
+        parser_feed = feed.to_feed()
+        start_url = feed.request_url(since) if feed.supports_modified_since else feed.url
+        for page in iter_pages(start_url, session, max_pages=max_pages, state=state):
+            for raw in page.get("publications") or []:
+                record, modified = _parse_publication(raw, parser_feed, feed.provider_name)
+                if record:
+                    yield record, modified
+
+
+NON_OPDS_ADAPTERS: dict[str, type[SourceAdapter]] = {
+    "bookdash": BookdashAdapter,
+}
+"""Non-OPDS source adapters, keyed by ``feed_type``.
+
+OPDS is the default and is handled by :class:`OpdsAdapter` rather than listed
+here. To add a new non-OPDS source: write an adapter under
+``openlibrary/bookworm/adapters/``, add it to this map, and register a feed with
+the matching ``feed_type`` (see the README's "adding a non-OPDS source").
+"""
+
+
+def get_adapter(feed: FeedRegistry) -> SourceAdapter:
+    """The source adapter for a feed, dispatched on its ``feed_type``.
+
+    ``opds`` (the default, and any legacy row with no ``feed_type``) maps to
+    :class:`OpdsAdapter`; every other value names an entry in
+    :data:`NON_OPDS_ADAPTERS`. An unknown ``feed_type`` raises rather than
+    silently harvesting nothing.
+    """
+    feed_type = feed.feed_type or FEED_TYPE_OPDS
+    if feed_type == FEED_TYPE_OPDS:
+        return OpdsAdapter()
+    if adapter_cls := NON_OPDS_ADAPTERS.get(feed_type):
+        return adapter_cls()
+    raise ValueError(f"no adapter for feed_type {feed_type!r}; known non-OPDS feed types: {sorted(NON_OPDS_ADAPTERS)}")
+
+
 def _merge_counts(into: dict[str, int], counts: dict[str, int]) -> None:
     for key, value in (counts or {}).items():
         into[key] = into.get(key, 0) + value
@@ -244,7 +311,13 @@ def _describe(counts: dict[str, int]) -> str:
 
 
 def batch_name(feed: FeedRegistry) -> str:
-    """One stable batch per feed: ``{provider_name}-opds``.
+    """One stable batch per feed: ``{provider_name}-opds`` (OPDS) or
+    ``{provider_name}-feed`` (a non-OPDS source).
+
+    The ``-opds`` suffix is kept for OPDS feeds so existing batches
+    (``lenny-opds``, ``project_gutenberg-opds``) are unchanged; a non-OPDS feed
+    gets ``-feed`` so its batch name does not falsely claim to be OPDS. The suffix
+    is only a stable namespace — nothing parses it.
 
     Deliberately NOT date-scoped, unlike ``bwb_opds_imports`` and the other
     importers. That convention exists because those importers are append-only --
@@ -261,7 +334,8 @@ def batch_name(feed: FeedRegistry) -> str:
     The name is derived rather than stored on the registry row: derivation needs
     no migration and cannot drift from the feed it names.
     """
-    return f"{feed.provider_name}-opds"
+    suffix = "opds" if (feed.feed_type or FEED_TYPE_OPDS) == FEED_TYPE_OPDS else "feed"
+    return f"{feed.provider_name}-{suffix}"
 
 
 def _drop_unchanged(feed: FeedRegistry, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -381,37 +455,41 @@ def harvest_feed(
     ``max_pages`` is a testing cap only: truncating a crawl advances the cursor
     past the pages it didn't fetch, permanently skipping them — don't use it in
     production.
+
+    The record-production is delegated to the feed's :class:`SourceAdapter`
+    (OPDS or a non-OPDS source); the staging, dedup and cursor logic below is
+    shared by every feed, whatever its format.
     """
+    adapter = get_adapter(feed)
     if feed.supports_modified_since:
-        return _harvest_native(feed, session=session, max_pages=max_pages, now=now, dry_run=dry_run)
-    return _harvest_by_full_crawl(feed, session=session, max_pages=max_pages, now=now, dry_run=dry_run)
+        return _harvest_native(feed, adapter, session=session, max_pages=max_pages, now=now, dry_run=dry_run)
+    return _harvest_by_full_crawl(feed, adapter, session=session, max_pages=max_pages, now=now, dry_run=dry_run)
 
 
 def _harvest_native(
     feed: FeedRegistry,
+    adapter: SourceAdapter,
     session: requests.Session | None = None,
     max_pages: int | None = None,
     now: dt.datetime | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    """Harvest a feed that filters server-side via ``?modified_since=<cursor>``."""
+    """Harvest a feed that filters server-side via ``?modified_since=<cursor>``.
+
+    The adapter returns only records modified since the cursor (the server
+    filtered them), so every record is kept and its ``modified`` ignored.
+    """
     session = session or build_session()
     now = now or dt.datetime.now(dt.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
-    parser_feed = feed.to_feed()
 
     page_state: dict = {}
     staged: dict[str, int] = {}
     records: list[dict[str, Any]] = []
     total = 0
-    for page in iter_pages(feed.request_url(since), session, max_pages=max_pages, state=page_state):
-        for raw in page.get("publications") or []:
-            # The server already returned only records modified since the cursor,
-            # so keep every record and ignore its timestamp.
-            record, _modified = _parse_publication(raw, parser_feed, feed.provider_name)
-            if record:
-                records.append(record)
-                total += 1
+    for record, _modified in adapter.iter_records(feed, since=since, session=session, max_pages=max_pages, state=page_state):
+        records.append(record)
+        total += 1
         if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
             _merge_counts(staged, _submit(feed, records))
             logger.info("%s: staged %d records so far", feed.provider_name, total)
@@ -429,43 +507,42 @@ def _harvest_native(
 
 def _harvest_by_full_crawl(
     feed: FeedRegistry,
+    adapter: SourceAdapter,
     session: requests.Session | None = None,
     max_pages: int | None = None,
     now: dt.datetime | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    """Fallback for feeds WITHOUT a ``modified_since`` filter (currently only BWB).
+    """For feeds WITHOUT a ``modified_since`` filter (BWB, and non-OPDS sources).
 
     Deliberately parallel to :func:`_harvest_native` rather than sharing its body:
-    it crawls the whole feed every run and filters by each publication's
-    ``modified`` timestamp on our side. Delete this function as a unit once every
-    feed supports ``modified_since``.
+    the adapter yields the whole corpus every run and this filters by each
+    record's ``modified`` timestamp on our side, parking the cursor at the newest
+    one seen. Used for OPDS feeds with no server-side filter (BWB) and for every
+    non-OPDS source (Book Dash), which crawl in full by nature.
+
+    A record with ``modified=None`` (a source that can't date its records) is
+    always kept and never advances the cursor — change detection is then the only
+    gate against re-queueing it.
     """
     session = session or build_session()
     now = now or dt.datetime.now(dt.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
-    parser_feed = feed.to_feed()
 
     page_state: dict = {}
     staged: dict[str, int] = {}
     records: list[dict[str, Any]] = []
     max_modified = since
     total = 0
-    for page in iter_pages(feed.url, session, max_pages=max_pages, state=page_state):
-        for raw in page.get("publications") or []:
-            record, modified = _parse_publication(raw, parser_feed, feed.provider_name)
-            if modified is not None and modified <= since:
-                continue  # already seen; keep scanning (feed order isn't guaranteed)
-            if not record:
-                # Rejected by to_import_record (no title/authors/resolvable id).
-                # Deliberately does NOT advance max_modified: doing so moved the
-                # cursor past a publication that was never staged, so a later
-                # fix to the record would never see it again.
-                continue
-            if modified is not None:
-                max_modified = max(max_modified, modified)
-            records.append(record)
-            total += 1
+    # The adapter yields only records it could map (a reject is never yielded),
+    # so a record that was never staged can never advance max_modified below.
+    for record, modified in adapter.iter_records(feed, since=since, session=session, max_pages=max_pages, state=page_state):
+        if modified is not None and modified <= since:
+            continue  # already seen; keep scanning (feed order isn't guaranteed)
+        if modified is not None:
+            max_modified = max(max_modified, modified)
+        records.append(record)
+        total += 1
         if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
             _merge_counts(staged, _submit(feed, records))
             logger.info("%s: staged %d records so far", feed.provider_name, total)

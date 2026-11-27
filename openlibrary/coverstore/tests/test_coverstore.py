@@ -164,6 +164,10 @@ def test_image_path(image_dir):
         "https://m.media-amazon.com/images/I/51abc123.jpg",
         "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg",
         "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.medium.jpg",
+        # Book Dash (feed-harvested; covers under wp-content/uploads)
+        "https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104.jpg",
+        "https://bookdash.org/wp-content/uploads/2021/02/a-beautiful-day_zu_20200602_cover-1.jpg",
+        "http://bookdash.org/wp-content/uploads/2019/07/example_cover.png",
     ],
 )
 def test_is_allowed_cover_url_allowed(url):
@@ -193,6 +197,10 @@ def test_is_allowed_cover_url_allowed(url):
         # gutenberg.org outside the cover image paths
         "https://www.gutenberg.org/ebooks/1661.epub3.images",
         "https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg?evil=1",
+        # bookdash.org outside wp-content/uploads, or with query injection
+        "https://bookdash.org/books/a-beautiful-day/",
+        "https://bookdash.org/wp-content/uploads/evil.jpg?x=1/a.jpg",
+        "https://bookdash.org.evil.com/wp-content/uploads/a.jpg",
         # empty string and bare domain
         "",
         "https://archive.org",

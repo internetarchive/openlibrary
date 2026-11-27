@@ -8,6 +8,8 @@ import pytest
 import web
 
 from openlibrary.bookworm import harvest, opds
+from openlibrary.bookworm.adapters import bookdash as bookdash_adapter
+from openlibrary.bookworm.adapters.bookdash import BookdashAdapter
 from openlibrary.bookworm.harvest import _as_utc
 from openlibrary.bookworm.registry import CURSOR_MODIFIED_SINCE, FeedRegistry
 from openlibrary.core.acquisitions import Acquisition
@@ -795,3 +797,103 @@ class TestRetries:
         """The harvester only GETs; retrying anything else would be a footgun
         for a future caller that reuses this session."""
         assert set(self._adapter().max_retries.allowed_methods or ()) == {"GET"}
+
+
+# ---------------------------------------------------------------------------
+# feed_type dispatch to a source adapter (#14749)
+# ---------------------------------------------------------------------------
+
+SAMPLES_BD = SAMPLES / "bookdash"
+BOOKDASH_SITEMAP = "https://bookdash.org/books-sitemap.xml"
+BOOKDASH_BOOK_URLS = [
+    "https://bookdash.org/books/a-beautiful-day/",
+    "https://bookdash.org/books/usuku-oluhle/",
+    "https://bookdash.org/books/no-cover-book/",
+    "https://bookdash.org/books/no-lastmod-book/",
+]
+
+
+class _BytesResponse:
+    """A response carrying bytes (for the sitemap) or text (for a page)."""
+
+    def __init__(self, *, content: bytes = b"", text: str = ""):
+        self.content = content
+        self.text = text
+        self.status_code = 200
+
+    def raise_for_status(self):
+        pass
+
+
+class _BookdashSession:
+    def __init__(self):
+        real = (SAMPLES_BD / "a-beautiful-day.html").read_text()
+        self.responses = {BOOKDASH_SITEMAP: _BytesResponse(content=(SAMPLES_BD / "sitemap.xml").read_bytes())}
+        for url in BOOKDASH_BOOK_URLS:
+            self.responses[url] = _BytesResponse(text=real)
+        self.calls: list[str] = []
+
+    def get(self, url, **kwargs):
+        self.calls.append(url)
+        return self.responses[url]
+
+
+def test_get_adapter_dispatches_on_feed_type():
+    opds_feed = FeedRegistry(provider_name="lenny", url="https://lenny/opds", feed_type="opds", data={})
+    assert isinstance(harvest.get_adapter(opds_feed), harvest.OpdsAdapter)
+
+    bd_feed = FeedRegistry(provider_name="bookdash", url=BOOKDASH_SITEMAP, feed_type="bookdash", data={})
+    assert isinstance(harvest.get_adapter(bd_feed), BookdashAdapter)
+
+
+def test_get_adapter_treats_empty_feed_type_as_opds():
+    # Rows written before feed_type was a dispatch key carry no value.
+    feed = FeedRegistry(provider_name="x", url="u", feed_type="", data={})
+    assert isinstance(harvest.get_adapter(feed), harvest.OpdsAdapter)
+
+
+def test_get_adapter_unknown_feed_type_raises():
+    feed = FeedRegistry(provider_name="x", url="u", feed_type="mystery", data={})
+    with pytest.raises(ValueError, match="no adapter for feed_type"):
+        harvest.get_adapter(feed)
+
+
+def test_harvest_bookdash_full_crawl_stages_import_items(bookworm_db, monkeypatch):
+    """A non-OPDS feed harvests through the shared full-crawl staging path."""
+    monkeypatch.setattr(bookdash_adapter, "REQUEST_DELAY", 0)
+    feed = _register_active("bookdash", BOOKDASH_SITEMAP, feed_type="bookdash", id_strategy="slug", cursor_style="client")
+
+    result = harvest.harvest_feed(feed, session=_BookdashSession(), now=NOW)
+
+    assert result["records"] == 4
+    rows = list(bookworm_db.select("import_item"))
+    assert "bookdash:a-beautiful-day" in {r.ia_id for r in rows}
+    data = json.loads(next(r.data for r in rows if r.ia_id == "bookdash:a-beautiful-day"))
+    assert data["identifiers"] == {"bookdash": ["a-beautiful-day"]}
+    assert data["source_records"] == ["bookdash:a-beautiful-day"]
+
+    # A non-OPDS feed's batch is named *-feed, not the misleading *-opds.
+    assert {b.name for b in bookworm_db.select("import_batch")} == {"bookdash-feed"}
+
+    # Full crawl with clustered lastmods: the cursor advances, so a second pass
+    # over the same sitemap stages nothing new.
+    refreshed = FeedRegistry.get_by_id(feed.id)
+    assert refreshed is not None
+    assert refreshed.last_updated is not None
+
+
+def test_harvest_bookdash_advances_cursor_so_second_pass_is_idle(bookworm_db, monkeypatch):
+    monkeypatch.setattr(bookdash_adapter, "REQUEST_DELAY", 0)
+    feed = _register_active("bookdash", BOOKDASH_SITEMAP, feed_type="bookdash", id_strategy="slug", cursor_style="client")
+
+    # `now` must be after the fixture's lastmods (2026-11-27) or the full-crawl
+    # cursor clamps to `now` (its guard against a future-dated cursor) and never
+    # reaches max_modified. With a later `now` the cursor parks at 2026-11-27.
+    first_now = dt.datetime(2026, 11, 28, tzinfo=dt.UTC)
+    harvest.harvest_feed(feed, session=_BookdashSession(), now=first_now)
+    # Second pass from the advanced cursor: the 2026-11-27 books are now <= cursor.
+    later = dt.datetime(2026, 12, 1, tzinfo=dt.UTC)
+    second = harvest.harvest_feed(FeedRegistry.get_by_id(feed.id), session=_BookdashSession(), now=later)
+
+    # Only the book that carries no <lastmod> (modified=None) is reconsidered.
+    assert second["records"] == 1

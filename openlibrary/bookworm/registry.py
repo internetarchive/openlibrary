@@ -43,6 +43,15 @@ CursorStyle = Literal["client", "modified_since"]
 CURSOR_CLIENT: CursorStyle = "client"
 CURSOR_MODIFIED_SINCE: CursorStyle = "modified_since"
 
+FEED_TYPE_OPDS = "opds"
+"""The default ``feed_type``: an OPDS 2.0 feed, parsed by
+:class:`openlibrary.bookworm.harvest.OpdsAdapter`.
+
+Any other value names a non-OPDS source adapter (e.g. ``"bookdash"``) that the
+harvester dispatches to via ``harvest.get_adapter`` / ``harvest.NON_OPDS_ADAPTERS``.
+The column already existed on ``feed_registry``; #14749 made it the dispatch key.
+"""
+
 STATUS_PENDING = "pending"
 STATUS_ACTIVE = "active"
 """Whether a registered feed is harvested by a scheduled run.
@@ -119,7 +128,7 @@ class FeedRegistry(web.storage):
     def register(
         provider_name: str,
         url: str,
-        feed_type: str = "opds",
+        feed_type: str = FEED_TYPE_OPDS,
         id_strategy: str = "isbn",
         cursor_style: CursorStyle = CURSOR_CLIENT,
         data: dict | None = None,

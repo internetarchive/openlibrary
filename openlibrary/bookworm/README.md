@@ -17,10 +17,18 @@ until ImportBot has run.
 
 | File | Role |
 |---|---|
-| `openlibrary/bookworm/registry.py` | `feed_registry` rows: url, cursor, connector config |
+| `openlibrary/bookworm/registry.py` | `feed_registry` rows: url, `feed_type`, cursor, connector config |
 | `openlibrary/bookworm/opds.py` | OPDS 2.0 → import record (with `acquisitions[]`) |
-| `openlibrary/bookworm/harvest.py` | fetch, parse, submit, advance the cursor |
+| `openlibrary/bookworm/adapters/` | non-OPDS source adapters (one module per source, e.g. `bookdash.py`) |
+| `openlibrary/bookworm/harvest.py` | fetch, parse, submit, advance the cursor; `OpdsAdapter` + `feed_type` dispatch |
 | `openlibrary/bookworm/cli.py` | the command line: `harvest` (the cron entrypoint), `register` (the feed list, in git), `preview` (what would match, writing nothing) |
+
+Not every provider publishes OPDS. A feed's `feed_type` column selects a **source
+adapter** — `opds` (the default) uses `OpdsAdapter`; any other value names a
+module under `adapters/`. Every adapter exposes one method, `iter_records`,
+yielding `(import_record, modified)` pairs; the harvester owns everything
+downstream (staging, dedup, the cursor), so an OPDS feed and a scraper share the
+same battle-tested path. See "Adding a non-OPDS source" below.
 
 ## Prerequisites
 
@@ -272,6 +280,41 @@ Confirmed with the Lenny maintainer, 2026-09-06:
 | `lenny` | `modified_since` | ~94 records. See the notes below before rolling out. |
 | `project_gutenberg` | `modified_since` | ~78k items; seed the cursor |
 | `betterworldbooks` | `client` (full crawl) | **not registered by default** — Cloudflare 403s our proxy egress. Register with `--provider betterworldbooks` once allowlisted. |
+| `bookdash` | `client` (full crawl) | non-OPDS (`feed_type=bookdash`); scrapes bookdash.org. ~hundreds of free African picture books. Cursor is the sitemap's `<lastmod>`. |
+
+## Adding a non-OPDS source
+
+A source with no OPDS feed (an HTML site, a JSONL dump) is added as an **adapter**
+rather than a second importer. Three steps, each small:
+
+1. **Write the adapter.** Add a module under `openlibrary/bookworm/adapters/`
+   with a class whose `iter_records(feed, *, since, session, max_pages, state)`
+   yields `(import_record, modified)` pairs — the import records in
+   `import.schema.json` shape, exactly what the OPDS path produces. Keep fetching
+   and parsing separate so a captured response can be a fixture. See
+   `adapters/bookdash.py` and `SourceAdapter` in `adapters/__init__.py` for the
+   full contract (what `modified` means, how `max_pages` must flag truncation).
+2. **Register it for dispatch.** Add `"<feed_type>": YourAdapter` to
+   `NON_OPDS_ADAPTERS` in `harvest.py`.
+3. **Add the feed.** Add an entry to `FEEDS` in `cli.py` with `feed_type` set to
+   your key and `cursor_style: "client"` (a non-OPDS source is crawled in full,
+   filtered on our side by each record's `modified`). Then roll it out with the
+   usual register → dry-run → activate sequence above.
+
+**Fixture tests are the point.** A scraper rots silently when the upstream site is
+redesigned — bookdash.org dropped the `<picture>` element the old standalone
+scraper read for covers, and nobody noticed. Capture a real page/response as a
+fixture and pin the parse output; a shape change then breaks CI instead of a live
+harvest quietly staging nothing. The parser should also *raise* when a
+load-bearing field (the title) is missing, so the record is skipped and the cursor
+holds rather than a junk record being staged.
+
+**Covers must be allow-listed.** Coverstore only fetches covers from hosts in
+`ALLOWED_COVER_URLS` (`openlibrary/coverstore/utils.py`); a cover from anywhere
+else is rejected on upload, and on the match/merge path `add_cover` wastes ~20s
+retrying it. Add the source's cover host there and gate the adapter's cover on
+`is_allowed_cover_url`. (The old Book Dash scraper never did this, so its covers
+never actually landed even before the `<picture>` drift.)
 
 ---
 

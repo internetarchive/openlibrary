@@ -33,6 +33,9 @@ ALLOWED_COVER_URLS: Final = (
     r"^https?://m.media-amazon.com/.*$",
     # e.g. https://www.gutenberg.org/cache/epub/1661/pg1661.cover.small.jpg
     r"^https?://www.gutenberg.org/cache/epub/\d+/pg\d+\.cover\.(small|medium)\.jpg$",
+    # Book Dash (free African picture books; feed-harvested); covers live under
+    # wp-content/uploads. See openlibrary/bookworm/adapters/bookdash.py.
+    r"^https?://bookdash\.org/wp-content/uploads/[^?#]+\.(jpg|jpeg|png)$",
 )
 
 

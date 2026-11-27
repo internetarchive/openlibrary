@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en-GB" class="html js-not-ready ">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="monetization" content="">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="shortcut icon" href="https://bookdash.org/wp-content/themes/bd/assets/images/favicon/favicon.ico">
+
+  <!-- initial css, inlined so non-blocking -->
+  <style>.banner,.main [class*=grid_],.footer{position:relative;overflow:hidden}.banner::after,.main [class*=grid_]::after,.footer::after{content:"";display:block;position:absolute;width:100%;height:100%;top:0;left:0;background:#f5f5f5;z-index:200;outline:20px solid #fff;outline-offset:-20px}html,body{padding:0;margin:0;background:#fff}h1,h2,h3,h4,p{margin:1em 0}h1+h1,h1+h2,h1+h3,h1+h4,h1+p,h2+h1,h2+h2,h2+h3,h2+h4,h2+p,h3+h1,h3+h2,h3+h3,h3+h4,h3+p,h4+h1,h4+h2,h4+h3,h4+h4,h4+p,p+h1,p+h2,p+h3,p+h4,p+p{margin-top:0}iframe{border:0}.html,html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}body,input,button{font-family:Source Sans Pro,-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;color:#333;font-size:16px;line-height:1.6;-webkit-text-size-adjust:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-weight:400}.font-default{font-family:Source Sans Pro,-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif !important}.font-accent{font-family:Quicksand,-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif !important}.grid{display:-webkit-flex;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;-webkit-flex-wrap:wrap;flex-wrap:wrap;width:100%;max-width:1400px;margin:0 auto;padding:0 10px}.grid--fluid{max-width:none}.grid--xs{max-width:360px}.grid--sm{max-width:500px}.grid--md{max-width:880px}.grid--center{-ms-flex-pack:center;-webkit-justify-content:center;justify-content:center}.grid--end{-ms-flex-pack:end;-webkit-justify-content:flex-end;justify-content:flex-end}.grid--nowrap{-ms-flex-wrap:none;-webkit-flex-wrap:nowrap;flex-wrap:nowrap}.grid--no-gutters>[class*=grid_]{padding:0 !important}@media(min-width: 500px){.grid--reverse-sm{-ms-flex-direction:row-reverse;-webkit-flex-direction:row-reverse;flex-direction:row-reverse}}[class*=grid_]{width:100%;-ms-flex-pack:justify;-webkit-justify-content:space-between;justify-content:space-between}.grid .grid{padding:0}.grid--float-2-up{display:block}.grid--float-2-up [class*=grid_]{clear:none;float:left}.grid--float-2-up [class*=grid_]:nth-of-type(odd){float:left}.grid--float-2-up [class*=grid_]:nth-of-type(even){float:right}.grid--float-2-up::after{content:"";display:block;clear:both}.grid--xl{max-width:1400px}.grid_auto{-ms-flex:1;-webkit-flex:1;flex:1;width:auto;padding:0 20px}.grid_auto:first-of-type{padding-left:0}.grid_auto:last-of-type{padding-right:0}.grid_1-1{width:100%;padding:0 10px}.grid_1-2{width:50%;padding:0 10px}.grid_1-3{width:33.3333333333%;padding:0 10px}.grid_2-3{width:66.6666666667%;padding:0 10px}.grid_1-4{width:25%;padding:0 10px}.grid_3-4{width:75%;padding:0 10px}.grid_1-6{width:16.6666666667%;padding:0 10px}.grid_order-1{order:1}.grid_order-2{order:2}.grid_order-3{order:3}@media(min-width: 360px){.grid--xl-xs{max-width:1400px}.grid_auto-xs{-ms-flex:1;-webkit-flex:1;flex:1;width:auto;padding:0 20px}.grid_auto-xs:first-of-type{padding-left:0}.grid_auto-xs:last-of-type{padding-right:0}.grid_1-1-xs{width:100%;padding:0 10px}.grid_1-2-xs{width:50%;padding:0 10px}.grid_1-3-xs{width:33.3333333333%;padding:0 10px}.grid_2-3-xs{width:66.6666666667%;padding:0 10px}.grid_1-4-xs{width:25%;padding:0 10px}.grid_3-4-xs{width:75%;padding:0 10px}.grid_1-6-xs{width:16.6666666667%;padding:0 10px}.grid_order-1-xs{order:1}.grid_order-2-xs{order:2}.grid_order-3-xs{order:3}}@media(min-width: 500px){.grid--xl-sm{max-width:1400px}.grid_auto-sm{-ms-flex:1;-webkit-flex:1;flex:1;width:auto;padding:0 20px}.grid_auto-sm:first-of-type{padding-left:0}.grid_auto-sm:last-of-type{padding-right:0}.grid_1-1-sm{width:100%;padding:0 10px}.grid_1-2-sm{width:50%;padding:0 10px}.grid_1-3-sm{width:33.3333333333%;padding:0 10px}.grid_2-3-sm{width:66.6666666667%;padding:0 10px}.grid_1-4-sm{width:25%;padding:0 10px}.grid_3-4-sm{width:75%;padding:0 10px}.grid_1-6-sm{width:16.6666666667%;padding:0 10px}.grid_order-1-sm{order:1}.grid_order-2-sm{order:2}.grid_order-3-sm{order:3}}@media(min-width: 880px){.grid--xl-md{max-width:1400px}.grid_auto-md{-ms-flex:1;-webkit-flex:1;flex:1;width:auto;padding:0 20px}.grid_auto-md:first-of-type{padding-left:0}.grid_auto-md:last-of-type{padding-right:0}.grid_1-1-md{width:100%;padding:0 10px}.grid_1-2-md{width:50%;padding:0 10px}.grid_1-3-md{width:33.3333333333%;padding:0 10px}.grid_2-3-md{width:66.6666666667%;padding:0 10px}.grid_1-4-md{width:25%;padding:0 10px}.grid_3-4-md{width:75%;padding:0 10px}.grid_1-6-md{width:16.6666666667%;padding:0 10px}.grid_order-1-md{order:1}.grid_order-2-md{order:2}.grid_order-3-md{order:3}}@media(min-width: 1024px){.grid--xl-lg{max-width:1400px}.grid_auto-lg{-ms-flex:1;-webkit-flex:1;flex:1;width:auto;padding:0 20px}.grid_auto-lg:first-of-type{padding-left:0}.grid_auto-lg:last-of-type{padding-right:0}.grid_1-1-lg{width:100%;padding:0 10px}.grid_1-2-lg{width:50%;padding:0 10px}.grid_1-3-lg{width:33.3333333333%;padding:0 10px}.grid_2-3-lg{width:66.6666666667%;padding:0 10px}.grid_1-4-lg{width:25%;padding:0 10px}.grid_3-4-lg{width:75%;padding:0 10px}.grid_1-6-lg{width:16.6666666667%;padding:0 10px}.grid_order-1-lg{order:1}.grid_order-2-lg{order:2}.grid_order-3-lg{order:3}}@media(min-width: 1400px){.grid--xl-xl{max-width:1400px}.grid_auto-xl{-ms-flex:1;-webkit-flex:1;flex:1;width:auto;padding:0 20px}.grid_auto-xl:first-of-type{padding-left:0}.grid_auto-xl:last-of-type{padding-right:0}.grid_1-1-xl{width:100%;padding:0 10px}.grid_1-2-xl{width:50%;padding:0 10px}.grid_1-3-xl{width:33.3333333333%;padding:0 10px}.grid_2-3-xl{width:66.6666666667%;padding:0 10px}.grid_1-4-xl{width:25%;padding:0 10px}.grid_3-4-xl{width:75%;padding:0 10px}.grid_1-6-xl{width:16.6666666667%;padding:0 10px}.grid_order-1-xl{order:1}.grid_order-2-xl{order:2}.grid_order-3-xl{order:3}}.is-middle,.is-bottom{display:-webkit-flex;display:-ms-flexbox;display:flex;-ms-flex-direction:column;-webkit-flex-direction:column;flex-direction:column}.is-middle{-ms-flex-pack:center;-webkit-justify-content:center;justify-content:center}.is-middle img{-ms-flex-item-align:center;-webkit-align-self:center;align-self:center}.has-stretched-items{align-items:stretch}.is-not-stretched{align-self:flex-start}.is-bottom{-ms-flex-pack:end;-webkit-justify-content:flex-end;justify-content:flex-end}a,.link{cursor:pointer}a,a:visited,.link,.link:visited{color:#0083ca;text-decoration:none}a:hover,a:active,.link:hover,.link:active{text-decoration:underline}a img,.link img{outline:0;border:0}.expose{z-index:100}.expose_content{display:none;z-index:100}.expose_content.is-open{display:block}.expose_toggle-chrome:first-of-type{border-top-right-radius:10px;border-top-left-radius:10px}.expose_toggle-chrome:last-of-type{border-bottom-right-radius:10px;border-bottom-left-radius:10px}.expose_toggle-chrome.is-open{border-bottom:1px solid #e9e7e7;border-bottom-right-radius:0 !important;border-bottom-left-radius:0 !important}.expose_toggle-chrome.is-open .expose_toggle-down{transform:rotate(180deg)}.expose_content+.expose_toggle-chrome-group{border-top:1px solid #e9e7e7}.header{background:#fff;box-shadow:0 2px 2px rgba(0,0,0,.2);padding:20px;text-align:center}.header_logo{display:block;margin:0 auto 20px auto;background:url("/wp-content/themes/bd/assets/images/book-dash-logo-sm.svg") no-repeat 0 0;width:40px;height:40px;font:0/0 a;color:rgba(0,0,0,0)}.header_link{display:block;padding:10px 0;color:#333 !important;font-weight:800;transition:background-color .2s linear}.header_link:hover{text-decoration:none;background:#0083ca;color:#fff !important}.header_link-md{display:none}.header_link--donate-btn{display:none !important;position:absolute;top:10px;right:20px;line-height:normal;font-size:18px !important;padding:10px 20px !important}.header_link.is-open,.header_link.is-current{text-decoration:none;background:#0083ca;color:#fff !important}.header_wp-menu a,.header_wp-menu a:visited{display:block;color:#fff}.header_wp-menu li+li{margin-top:10px}.header_expose-content{line-height:1.6;top:64px;background:#0083ca;color:#fff;text-align:left;font-weight:800}.header_nowrap{white-space:nowrap}@media(min-width: 360px){.header{position:fixed;z-index:100;top:0;left:0;width:100vw;padding:0 5px 0 10px}:target{padding-top:84px}.has-admin-toolbar .header,.has-open-modal .header{position:relative}.has-open-modal .header{z-index:1}.header,.header_nav,.header_link{text-align:right;height:64px;line-height:64px}.header_logo{position:absolute;top:12px;left:10px}.header_link{display:inline-block;padding:0 5px;vertical-align:top}.header_link-sm{display:inline-block}.header_link-md{display:none}.header_expose-content{position:absolute;z-index:100;width:100%;left:0;max-height:calc(100vh - 64px);-ms-overflow-style:none;overflow:auto}}@media(min-width: 360px)and (max-width: 879.9px){.header_link--icn-sm-md{font:0/0 a;color:rgba(0,0,0,0);width:50px}.header_link--icn-sm-md::before{content:"";display:inline-block;width:40px;height:40px;border-radius:50%;background-repeat:no-repeat;background-position:center center;transform:translateY(12px)}.has-no-touch .header_link--icn-sm-md:hover::before{background-color:rgba(0,0,0,0)}.header_link--contact::before{background-color:#21a654;background-image:url("/wp-content/themes/bd/assets/images/email-white.svg")}.header_link--donate::before{background-color:#ee1065;background-image:url("/wp-content/themes/bd/assets/images/heart.svg")}}@media(min-width: 575px){.header{padding:0 10px 0 20px}.header_link{padding:0 10px}.header_link-md{display:inline-block}.header_link-sm{display:none}.header_expose-content{width:calc(100vw - (10px * 2));left:10px}}@media(min-width: 575px)and (max-width: 879.9px){.header_link--icn-sm-md{width:60px}}@media(min-width: 1024px){.header_logo{background-image:url("/wp-content/themes/bd/assets/images/book-dash-logo-md.svg");width:108px;height:54px;top:5px;left:20px}.header_link{font-size:24px;padding:0 20px}.header_expose{position:relative}.header_expose-content{width:auto;left:0}}@media(min-width: 1320px){.header_nav{text-align:center}.header_link{padding:0 40px}.header_link--donate{display:none}.header_link--donate-btn{display:inline-block !important}}.main{position:relative;z-index:1;display:block;padding-bottom:20px;font-size:18px;overflow-wrap:break-word;word-wrap:break-word}.main img,.main iframe{max-width:100%}.main img{height:auto}.has-open-modal .main{z-index:3}@media(min-width: 360px){.main{padding:64px 0 20px}.has-admin-toolbar .main,.has-open-modal .main{padding-top:0}}.hidden-visually{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important}</style>
+
+  <!-- deferred CSS, loaded asynchronously -->
+  <script async>
+    !function(c){"use strict";var e=function(e,t,n,r){var o,i=c.document,a=i.createElement("link");if(t)o=t;else{var d=(i.body||i.getElementsByTagName("head")[0]).childNodes;o=d[d.length-1]}var f=i.styleSheets;if(r)for(var l in r)r.hasOwnProperty(l)&&a.setAttribute(l,r[l]);a.rel="stylesheet",a.href=e,a.media="only x",function e(t){if(i.body)return t();setTimeout(function(){e(t)})}(function(){o.parentNode.insertBefore(a,t?o:o.nextSibling)});var s=function(e){for(var t=a.href,n=f.length;n--;)if(f[n].href===t)return e();setTimeout(function(){s(e)})};function u(){a.addEventListener&&a.removeEventListener("load",u),a.media=n||"all"}return a.addEventListener&&a.addEventListener("load",u),(a.onloadcssdefined=s)(u),a};"undefined"!=typeof exports?exports.loadCSS=e:c.loadCSS=e}("undefined"!=typeof global?global:this);
+    loadCSS('https://bookdash.org/wp-content/themes/bd/assets/css/1795070991605/screen.deferred.css');
+  </script>
+  <noscript><link rel="stylesheet" href="https://bookdash.org/wp-content/themes/bd/assets/css/1795070991605/screen.deferred.css"></noscript>
+
+  <!--[if lt IE 10]>
+  <link rel="stylesheet" href="https://bookdash.org/wp-content/themes/bd/assets/css/1795070991605/screen.ie9.css">
+  <![endif]-->
+
+  <!-- fonts, loaded asynchronously -->
+  <script async>
+    WebFontConfig = {
+      custom: {
+        families: [
+          'Quicksand:400,700',
+          'Source+Sans+Pro:400,400i,700,700i'
+        ],
+        urls: [
+          'https://fonts.googleapis.com/css?family=Quicksand:500,700&display=swap',
+          'https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i&display=swap'
+        ],
+      },
+    };
+    (function(d) {
+      var wf = d.createElement('script'), s = d.scripts[0];
+      wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
+      wf.async = true;
+      s.parentNode.insertBefore(wf, s);
+    })(document);
+  </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-66MLBF2GQV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-66MLBF2GQV');
+    </script>
+
+  <!-- WordPress and plugin additions -->
+  <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+
+	<!-- This site is optimized with the Yoast SEO plugin v28.9 - https://yoast.com/product/yoast-seo-wordpress/ -->
+	<title>A Beautiful Day - Book Dash</title>
+	<meta name="description" content="It’s a beautiful day for a picnic. Everyone wants to join in the fun." />
+	<link rel="canonical" href="https://bookdash.org/books/a-beautiful-day/" />
+	<meta property="og:locale" content="en_GB" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="A Beautiful Day - Book Dash" />
+	<meta property="og:description" content="It’s a beautiful day for a picnic. Everyone wants to join in the fun." />
+	<meta property="og:url" content="https://bookdash.org/books/a-beautiful-day/" />
+	<meta property="og:site_name" content="Book Dash" />
+	<meta property="article:publisher" content="https://www.facebook.com/bookdash" />
+	<meta property="article:modified_time" content="2026-11-27T00:01:40+00:00" />
+	<meta property="og:image" content="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104.jpg" />
+	<meta property="og:image:width" content="2379" />
+	<meta property="og:image:height" content="2362" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@bookdash" />
+	<meta name="twitter:label1" content="Estimated reading time" />
+	<meta name="twitter:data1" content="1 minute" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https:\/\/schema.org","@graph":[{"@type":"WebPage","@id":"https:\/\/bookdash.org\/books\/a-beautiful-day\/","url":"https:\/\/bookdash.org\/books\/a-beautiful-day\/","name":"A Beautiful Day - Book Dash","isPartOf":{"@id":"https:\/\/bookdash.org\/#website"},"primaryImageOfPage":{"@id":"https:\/\/bookdash.org\/books\/a-beautiful-day\/#primaryimage"},"image":{"@id":"https:\/\/bookdash.org\/books\/a-beautiful-day\/#primaryimage"},"thumbnailUrl":"https:\/\/bookdash.org\/wp-content\/uploads\/2016\/01\/a-beautiful-day_cover_20160104.jpg","datePublished":"2016-01-29T06:56:26+00:00","dateModified":"2026-11-27T00:01:40+00:00","description":"It’s a beautiful day for a picnic. Everyone wants to join in the fun.","breadcrumb":{"@id":"https:\/\/bookdash.org\/books\/a-beautiful-day\/#breadcrumb"},"inLanguage":"en-GB","potentialAction":[{"@type":"ReadAction","target":["https:\/\/bookdash.org\/books\/a-beautiful-day\/"]}]},{"@type":"ImageObject","inLanguage":"en-GB","@id":"https:\/\/bookdash.org\/books\/a-beautiful-day\/#primaryimage","url":"https:\/\/bookdash.org\/wp-content\/uploads\/2016\/01\/a-beautiful-day_cover_20160104.jpg","contentUrl":"https:\/\/bookdash.org\/wp-content\/uploads\/2016\/01\/a-beautiful-day_cover_20160104.jpg","width":2379,"height":2362},{"@type":"BreadcrumbList","@id":"https:\/\/bookdash.org\/books\/a-beautiful-day\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/bookdash.org\/"},{"@type":"ListItem","position":2,"name":"Books","item":"https:\/\/bookdash.org\/books\/"},{"@type":"ListItem","position":3,"name":"A Beautiful Day"}]},{"@type":"WebSite","@id":"https:\/\/bookdash.org\/#website","url":"https:\/\/bookdash.org\/","name":"Book Dash","description":"Beautiful children’s books for all","potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/bookdash.org\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-GB"}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel='dns-prefetch' href='//v0.wordpress.com' />
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://bookdash.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fbookdash.org%2Fbooks%2Fa-beautiful-day%2F" />
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://bookdash.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fbookdash.org%2Fbooks%2Fa-beautiful-day%2F&#038;format=xml" />
+<style id="wp-img-auto-sizes-contain-inline-css">
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<link rel='stylesheet' id='sbi-tokens-local-css' href='https://bookdash.org/wp-content/plugins/instagram-feed/assets/tokens/sb-tokens-local.css?ver=6.17.1' media='all' />
+<link rel='stylesheet' id='sbi_styles-css' href='https://bookdash.org/wp-content/plugins/instagram-feed/css/sbi-styles.min.css?ver=6.17.1' media='all' />
+<style id="classic-theme-styles-inline-css">
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+
+<style id="global-styles-inline-css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}:where(body) { margin: 0; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{padding-top: 0px;padding-right: 0px;padding-bottom: 0px;padding-left: 0px;}:root :where(.wp-element-button, .wp-block-button__link){background-color: #32373c;border-width: 0;color: #fff;font-family: inherit;font-size: inherit;font-style: inherit;font-weight: inherit;letter-spacing: inherit;line-height: inherit;padding-top: calc(0.667em + 2px);padding-right: calc(1.333em + 2px);padding-bottom: calc(0.667em + 2px);padding-left: calc(1.333em + 2px);text-decoration: none;text-transform: inherit;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<style id="jetpack-stats-inline-css">
+img#wpstats{display:none}
+/*# sourceURL=jetpack-stats-inline-css */
+</style>
+<link rel='stylesheet' id='newsletter-css' href='https://bookdash.org/wp-content/plugins/newsletter/style.css?ver=9.5.7' media='all' />
+<link rel="https://api.w.org/" href="https://bookdash.org/wp-json/" /><link rel="alternate" title="JSON" type="application/json" href="https://bookdash.org/wp-json/wp/v2/books/1631" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://bookdash.org/xmlrpc.php?rsd" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Book","@id":"https://bookdash.org/books/a-beautiful-day/#book","name":"A Beautiful Day","url":"https://bookdash.org/books/a-beautiful-day/","description":"It’s a beautiful day for a picnic. Everyone wants to join in the fun.","image":"https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104.jpg","bookFormat":"https://schema.org/EBook","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by/4.0/","audience":{"@type":"PeopleAudience","suggestedMaxAge":8},"publisher":{"@type":"Organization","name":"Book Dash","url":"https://bookdash.org/"},"isbn":"978-1-928318-15-6","inLanguage":"en","genre":["Family, friends, and home","Let's go on an adventure"],"author":[{"@type":"Person","name":"Elana Bregin","url":"https://bookdash.org/team-members/elana-bregin/"}],"illustrator":[{"@type":"Person","name":"Lindy Pelzl","url":"https://bookdash.org/team-members/lindy-pelzl/"}]}</script>
+<link rel="icon" href="https://bookdash.org/wp-content/uploads/2019/11/cropped-favicon-512-32x32.png" sizes="32x32" />
+<link rel="icon" href="https://bookdash.org/wp-content/uploads/2019/11/cropped-favicon-512-192x192.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://bookdash.org/wp-content/uploads/2019/11/cropped-favicon-512-180x180.png" />
+<meta name="msapplication-TileImage" content="https://bookdash.org/wp-content/uploads/2019/11/cropped-favicon-512-270x270.png" />
+</head>
+<body>
+<header class="header">
+  <nav class="font-accent header_nav">
+    <a title="Home" href="/" class="header_logo">Book Dash</a>
+    <a href="/books" class="header_link">Books</a>
+    <div class="header_link-sm header_expose expose jsExpose">
+      <a href="/what-we-do/" class="header_link jsExposeToggle" data-expose-target="#about-menu">About</a>
+      <div id="about-menu" class="expose_content header_expose-content header_about-menu jsExposeContent" aria-hidden="true">
+        <div class="grid px-2 py-3">
+          <div class="grid_1-2-xs">
+            <h2 class="txt-h2 mb-3">What we do</h2>
+            <div class="menu-what-we-do-container"><ul id="menu-what-we-do" class="list--silent header_wp-menu jsExposeSetFocus"><li id="menu-item-9520" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9520"><a href="https://bookdash.org/what-we-do/">Vision, mission and theory of change</a></li>
+<li id="menu-item-9527" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9527"><a href="https://bookdash.org/what-we-do/how-we-do-it/">The Book Dash model</a></li>
+<li id="menu-item-31571" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31571"><a href="https://bookdash.org/research-and-evidence-base/">Research and evidence base</a></li>
+<li id="menu-item-9526" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9526"><a href="https://bookdash.org/what-we-do/our-history/">Origins and recognition</a></li>
+<li id="menu-item-9522" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9522"><a href="https://bookdash.org/what-we-do/reports-financials-compliance/">Reports, financials &amp; compliance</a></li>
+<li id="menu-item-25499" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-25499"><a href="https://bookdash.org/newsletters-and-blog-posts/">Newsletters and blog posts</a></li>
+<li id="menu-item-9523" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9523"><a href="https://bookdash.org/what-we-do/get-involved/">Get involved</a></li>
+</ul></div>          </div>
+          <div class="grid_1-2-xs mt-3 mt-0-xs">
+            <h2 class="txt-h2 mb-3">Who we are</h2>
+            <div class="menu-who-we-are-container"><ul id="menu-who-we-are" class="list--silent header_wp-menu jsExposeSetFocus"><li id="menu-item-9528" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9528"><a href="https://bookdash.org/who-we-are/book-dash-team/">Book Dash team</a></li>
+<li id="menu-item-11027" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11027"><a href="https://bookdash.org/creative-volunteers/">Creative volunteers</a></li>
+<li id="menu-item-9529" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9529"><a href="https://bookdash.org/who-we-are/distribution-partners/">Distribution partners</a></li>
+<li id="menu-item-28100" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28100"><a href="https://bookdash.org/who-we-are/open-content-partners/">Open content partners</a></li>
+<li id="menu-item-9530" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9530"><a href="https://bookdash.org/who-we-are/funding-partners/">Funding partners and networks</a></li>
+</ul></div>          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header_link-md header_expose expose jsExpose">
+      <a href="/what-we-do/" class="header_link jsExposeToggle" data-expose-target="#what-menu">What we do</a>
+      <div id="what-menu" class="expose_content header_expose-content header_what-menu jsExposeContent" aria-hidden="true">
+        <div class="grid pb-3 pt-2 pt-0-md pb-4-xl px-4-xl">
+          <div class="grid_1-1 mt-3 header_nowrap">
+            <div class="menu-what-we-do-container"><ul id="menu-what-we-do-1" class="list--silent header_wp-menu jsExposeSetFocus"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9520"><a href="https://bookdash.org/what-we-do/">Vision, mission and theory of change</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9527"><a href="https://bookdash.org/what-we-do/how-we-do-it/">The Book Dash model</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31571"><a href="https://bookdash.org/research-and-evidence-base/">Research and evidence base</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9526"><a href="https://bookdash.org/what-we-do/our-history/">Origins and recognition</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9522"><a href="https://bookdash.org/what-we-do/reports-financials-compliance/">Reports, financials &amp; compliance</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-25499"><a href="https://bookdash.org/newsletters-and-blog-posts/">Newsletters and blog posts</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9523"><a href="https://bookdash.org/what-we-do/get-involved/">Get involved</a></li>
+</ul></div>          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header_link-md header_expose expose jsExpose">
+      <a href="/who-we-are/" class="header_link jsExposeToggle" data-expose-target="#who-menu">Who we are</a>
+      <div id="who-menu" class="expose_content header_expose-content header_who-menu jsExposeContent" aria-hidden="true">
+        <div class="grid pb-3 pt-2 pt-0-md pb-4-xl px-4-xl">
+          <div class="grid_1-1 mt-3 header_nowrap">
+            <div class="menu-who-we-are-container"><ul id="menu-who-we-are-1" class="list--silent header_wp-menu jsExposeSetFocus"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9528"><a href="https://bookdash.org/who-we-are/book-dash-team/">Book Dash team</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11027"><a href="https://bookdash.org/creative-volunteers/">Creative volunteers</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9529"><a href="https://bookdash.org/who-we-are/distribution-partners/">Distribution partners</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28100"><a href="https://bookdash.org/who-we-are/open-content-partners/">Open content partners</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9530"><a href="https://bookdash.org/who-we-are/funding-partners/">Funding partners and networks</a></li>
+</ul></div>          </div>
+        </div>
+      </div>
+    </div>
+    <a href="/book-dash-events" class="header_link">Events</a>
+    <a href="/contact" class="header_link header_link--icn-sm-md header_link--contact">Contact</a>
+    <a href="/what-we-do/donate-to-book-dash/" class="header_link header_link--icn-sm-md header_link--donate">Donate</a>
+    <a href="/what-we-do/donate-to-book-dash/" class="header_link--donate-btn btn btn--primary">
+      <img src="https://bookdash.org/wp-content/themes/bd/assets/images/heart.svg" alt="Heart icon" width="16" height="16" class="display-ib display-mid" />
+      <span class="display-ib display-mid">Donate</span>
+    </a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="grid grid--fluid display-js-b">
+    <div class="grid_1-1 mt-3 pl-3-md">
+      <a href="/books/" class="txt-h4 txt-bold">
+        <span class="display-flip-h-img">
+  <svg width="7" height="12" xmlns="http://www.w3.org/2000/svg" class="link_chevron"><path fill="currentColor" d="M.973.673l-.492.492a.298.298 0 000 .421l4.488 4.5-4.488 4.5a.298.298 0 000 .42l.492.492a.298.298 0 00.421 0l5.202-5.201a.298.298 0 000-.422L1.394.673a.298.298 0 00-.421 0z"/></svg></span>
+&nbsp;All books      </a>
+    </div>
+  </div>
+        <div class="grid mt-3-md mt-5-md mb-3-md">
+        <div class="grid_1-1 txt-center">
+          <h1 class="txt-h1 mt-3 mt-0-md mb-3" lang="en">A Beautiful Day</h1>
+        </div>
+      </div>
+
+      <div class="grid grid--md mb-3 mb-5-md">
+
+        <div class="grid_1-2-md">
+          <div class="position-relative display-1x1">
+                          <a
+                href="#read-book"
+                class="display-b jsExposeToggle "
+                data-expose-target="#read-book"
+                data-expose-modal="true"
+                              >
+                            <img width="880" height="874" src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104.jpg" class="img-fluid border-radius border-grey-dark wp-post-image" alt="A Beautiful Day" fetchpriority="high" sizes="(min-width: 768px) 50vw, 100vw" decoding="async" srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104.jpg 2379w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-150x150.jpg 150w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-300x298.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-768x763.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-600x596.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-105x105.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-71x70.jpg 71w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-200x199.jpg 200w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-428x425.jpg 428w" />                                  <img src="https://bookdash.org/wp-content/themes/bd/assets/images/audio.svg" alt="Audio version available" class="position-absolute bottom-0 right-0" width="35" height="28" />
+                              </a>
+          </div>
+        </div>
+
+        <div class="grid_1-2-md" lang="en">
+          <p>It’s a beautiful day for a picnic. Everyone wants to join in the fun.</p>
+          <div class="display-js-b">
+                          <a
+                href="#read-book"
+                class="btn btn--block btn--primary mb-3 jsExposeToggle "
+                data-expose-target="#read-book"
+                data-expose-modal="true"
+                              >Read this book</a>
+                      </div>
+                      <div class="txt-center mb-3">
+              <a href="/book-source-files/?book=a-beautiful-day&folder=/ebook" rel="nofollow" class="btn btn--primary txt-md py-2">Download ebook</a>
+            </div>
+                                <div class="txt-center mb-3">
+              <a href="/book-source-files/?book=a-beautiful-day" rel="nofollow">Download this book's source files</a>
+            </div>
+                    <div class="mt-2 mb-3 txt-center">
+             <ul class="list list--csv"><li><a href="/languages/eng">English</a></li></ul>              <p class="m-0 txt-sm">ISBN: 978-1-928318-15-6</p>
+                          <p class="m-0 txt-sm">BISAC: JUV013000, JUV001000</p>
+                      </div>
+        </div>
+
+                  <div class="grid_1-1 mt-4">
+                          <a href="/themes/ffh" class="txt-sm txt-norm txt-no-dec display-ib border-radius bg-green-light px-3 py-1 my-1 mr-3">
+                Family, friends, and home              </a>
+                          <a href="/themes/lga" class="txt-sm txt-norm txt-no-dec display-ib border-radius bg-green-light px-3 py-1 my-1 mr-3">
+                Let's go on an adventure              </a>
+                      </div>
+
+        <div class="grid_1-1">
+              <h3>Other languages</h3>
+    <div class="grid">
+        <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/a-beautiful-day-sasl/" class="display-b txt-norm txt-no-dec txt-center" title="A Beautiful Day (SASL)">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2025/12/a-beautiful-day_cover_sasl-200x200.jpg" loading="lazy" decoding="async" alt="A Beautiful Day (SASL)" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">A Beautiful Day (SASL)</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>South African Sign Language</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/letsatsi-le-letle-2/" class="display-b txt-norm txt-no-dec txt-center" title="Letsatsi Le Letle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/08/a-beautiful-day_st_20210801_cover-200x200.jpg" loading="lazy" decoding="async" alt="Letsatsi Le Letle" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Letsatsi Le Letle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Lesotho Sesotho</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/n-pragtige-dag/" class="display-b txt-norm txt-no-dec txt-center" title="’n Pragtige Dag">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/08/a-beautiful-day_af_20210723_cover-200x200.jpg" loading="lazy" decoding="async" alt="’n Pragtige Dag" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">’n Pragtige Dag</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Afrikaans</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/lilanga-lelihle/" class="display-b txt-norm txt-no-dec txt-center" title="Lilanga Lelihle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/06/a-beautiful-day_ss_20210627_cover-200x200.jpg" loading="lazy" decoding="async" alt="Lilanga Lelihle" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Lilanga Lelihle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>SiSwati</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/letsatsi-le-le-ntle/" class="display-b txt-norm txt-no-dec txt-center" title="Letsatsi le le Ntle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/06/a-beautiful-day_tn_20210613_cover-200x200.jpg" loading="lazy" decoding="async" alt="Letsatsi le le Ntle" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Letsatsi le le Ntle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Setswana</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/ilanga-elihle/" class="display-b txt-norm txt-no-dec txt-center" title="Ilanga Elihle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/06/a-beautiful-day_nr_20210613_cover-200x200.jpg" loading="lazy" decoding="async" alt="Ilanga Elihle" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Ilanga Elihle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>isiNdebele</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/%e1%b8%93uvha-%e1%b8%bdavhu%e1%b8%93i/" class="display-b txt-norm txt-no-dec txt-center" title="Ḓuvha Ḽavhuḓi">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/06/a-beautiful-day_ve_20210620_cover-200x200.jpg" loading="lazy" decoding="async" alt="Ḓuvha Ḽavhuḓi" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Ḓuvha Ḽavhuḓi</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Tshivenḓa</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/usuku-oluhle-2/" class="display-b txt-norm txt-no-dec txt-center" title="Usuku Oluhle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/02/a-beautiful-day_xh_20200602_cover-200x200.jpg" loading="lazy" decoding="async" alt="Usuku Oluhle" class="img-fill-y loaded">
+        </div>
+                  <img src="https://bookdash.org/wp-content/themes/bd/assets/images/audio.svg" alt="Audio version available" class="position-absolute bottom-0 right-0" width="35" height="28" />
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Usuku Oluhle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>isiXhosa</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/usuku-oluhle/" class="display-b txt-norm txt-no-dec txt-center" title="Usuku Oluhle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/02/a-beautiful-day_zu_20200602_cover-1-200x200.jpg" loading="lazy" decoding="async" alt="Usuku Oluhle" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Usuku Oluhle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>isiZulu</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/letsatsi-le-letle/" class="display-b txt-norm txt-no-dec txt-center" title="Letsatsi le Letle">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/02/a-beautiful-day_st_20210801_cover-200x200.jpg" loading="lazy" decoding="async" alt="Letsatsi le Letle" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Letsatsi le Letle</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Sesotho</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/siku-ro-saseka/" class="display-b txt-norm txt-no-dec txt-center" title="Siku ro Saseka">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/02/a-beautiful-day_ts_20200602_cover-200x200.jpg" loading="lazy" decoding="async" alt="Siku ro Saseka" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Siku ro Saseka</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Xitsonga</li>      </div>
+    </a>
+  </div>
+  <div class="grid_1-2-xs grid_1-3-sm grid_1-4-md mb-3">
+    <a href="https://bookdash.org/books/letsatsi-le-le-botse/" class="display-b txt-norm txt-no-dec txt-center" title="Letšatši le le Botse">
+      <div class="position-relative mx-3-md mx-1-xl">
+        <div class="border-radius img-lazy-bg display-1x1">
+                    <img src="https://bookdash.org/wp-content/uploads/2021/02/a-beautiful-day_nso_20200602_cover-200x200.jpg" loading="lazy" decoding="async" alt="Letšatši le le Botse" class="img-fill-y loaded">
+        </div>
+              </div>
+      <h2 class="txt-md txt-line-height-tight px-1-md mt-2 mb-2">Letšatši le le Botse</h2>
+      <div class="txt-muted txt-sm">
+         <ul class="list list--csv"><li>Sepedi</li>      </div>
+    </a>
+  </div>
+    </div>
+        </div>
+
+        <div class="grid">
+          <div class="grid_1-1 txt-center grid_1-2-lg pt-3-lg">
+                  <a href="https://bookdash.org/events/book-dash-durban-7november-2015/" class="mt-3 display-b txt-no-dec txt-green txt-center">
+        <svg width="45" height="52" xmlns="http://www.w3.org/2000/svg"><path d="M14.866 28.929h-4.018a1.209 1.209 0 01-1.205-1.206v-4.018c0-.663.542-1.205 1.205-1.205h4.018c.663 0 1.205.542 1.205 1.205v4.018a1.21 1.21 0 01-1.205 1.206zm10.848-1.206v-4.018c0-.663-.542-1.205-1.205-1.205H20.49c-.663 0-1.205.542-1.205 1.205v4.018a1.21 1.21 0 001.205 1.206h4.018a1.21 1.21 0 001.205-1.206zm9.643 0v-4.018c0-.663-.542-1.205-1.205-1.205h-4.018c-.663 0-1.205.542-1.205 1.205v4.018a1.21 1.21 0 001.205 1.206h4.018a1.21 1.21 0 001.205-1.206zm-9.643 9.643v-4.018c0-.663-.542-1.205-1.205-1.205H20.49c-.663 0-1.205.542-1.205 1.205v4.018c0 .663.542 1.205 1.205 1.205h4.018c.663 0 1.205-.542 1.205-1.205zm-9.643 0v-4.018c0-.663-.542-1.205-1.205-1.205h-4.018c-.663 0-1.205.542-1.205 1.205v4.018c0 .663.542 1.205 1.205 1.205h4.018c.663 0 1.205-.542 1.205-1.205zm19.286 0v-4.018c0-.663-.542-1.205-1.205-1.205h-4.018c-.663 0-1.205.542-1.205 1.205v4.018c0 .663.542 1.205 1.205 1.205h4.018c.663 0 1.205-.542 1.205-1.205zM45 11.25v35.357a4.823 4.823 0 01-4.821 4.822H4.82A4.823 4.823 0 010 46.607V11.25a4.823 4.823 0 014.821-4.821h4.822V1.205C9.643.542 10.185 0 10.848 0h4.018c.663 0 1.205.542 1.205 1.205V6.43H28.93V1.205A1.206 1.206 0 0130.134 0h4.018c.663 0 1.205.542 1.205 1.205V6.43h4.822A4.823 4.823 0 0145 11.25zm-4.821 34.754V16.071H4.82v29.933c0 .332.272.603.603.603h34.152a.604.604 0 00.603-.603z" fill="currentColor"/></svg>        <h2 class="txt-h4 mb-3"><span class="txt-h2">
+            Created at</span><br>
+          <span class="font-accent txt-bold">
+            Book Dash 5: Durban, November&nbsp;2015&nbsp;<svg width="7" height="12" xmlns="http://www.w3.org/2000/svg" class="link_chevron"><path fill="currentColor" d="M.973.673l-.492.492a.298.298 0 000 .421l4.488 4.5-4.488 4.5a.298.298 0 000 .42l.492.492a.298.298 0 00.421 0l5.202-5.201a.298.298 0 000-.422L1.394.673a.298.298 0 00-.421 0z"/></svg>          </span>
+        </h2>
+        <img  src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-1x1.svg" data-src="https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-428x158.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-300x111.jpg 300w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-600x222.jpg 600w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-768x284.jpg 768w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-105x39.jpg 105w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-150x56.jpg 150w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-200x74.jpg 200w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook-428x158.jpg 428w, https://bookdash.org/wp-content/uploads/2015/09/book-dash-durban-facebook.jpg 851w"  alt="Book Dash 5: Durban, November&nbsp;2015" class="img-fluid img-lazy jsLazyLoadImg">
+        <p class="txt-bold">
+          Find out more&nbsp;<svg width="7" height="12" xmlns="http://www.w3.org/2000/svg" class="link_chevron"><path fill="currentColor" d="M.973.673l-.492.492a.298.298 0 000 .421l4.488 4.5-4.488 4.5a.298.298 0 000 .42l.492.492a.298.298 0 00.421 0l5.202-5.201a.298.298 0 000-.422L1.394.673a.298.298 0 00-.421 0z"/></svg>        </p>
+      </a>
+          </div>
+          <div class="grid_1-1 grid_1-2-lg">
+              <div class="bg-blue bg-pattern txt-white p-3 my-4">
+    <h2 class="txt-h2 txt-center">Created by</h2>
+    <div class="pb-3">
+                <a href="https://bookdash.org/team-members/raeesah-vawda/" class="display-b txt-no-dec mt-3 txt-white">
+            <div class="circle team_img-xs">
+                            <div class="img-lazy-bg jsLazyLoadImgBg">
+                <img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-1x1.svg" data-src="https://bookdash.org/wp-content/uploads/2020/03/IMG_3964-3-54x105.jpg" class="img-lazy circle_img circle_img--portrait jsLazyLoadImg" alt="Raeesah Vawda">
+              </div>
+            </div>
+            <div class="team_title-xs">
+              <h3 class="txt-lg txt-regular display-ib display-mid m-0"><span class="txt-bold">Raeesah Vawda</span> (Designer)</h3>
+            </div>
+          </a>
+                <a href="https://bookdash.org/team-members/lindy-pelzl/" class="display-b txt-no-dec mt-3 txt-white">
+            <div class="circle team_img-xs">
+                            <div class="img-lazy-bg jsLazyLoadImgBg">
+                <img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-1x1.svg" data-src="https://bookdash.org/wp-content/uploads/2020/02/lindy-pelzl_illustrator-105x105.jpg" class="img-lazy circle_img circle_img--portrait jsLazyLoadImg" alt="Lindy Pelzl">
+              </div>
+            </div>
+            <div class="team_title-xs">
+              <h3 class="txt-lg txt-regular display-ib display-mid m-0"><span class="txt-bold">Lindy Pelzl</span> (Illustrator)</h3>
+            </div>
+          </a>
+                <a href="https://bookdash.org/team-members/elana-bregin/" class="display-b txt-no-dec mt-3 txt-white">
+            <div class="circle team_img-xs">
+                            <div class="img-lazy-bg jsLazyLoadImgBg">
+                <img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-1x1.svg" data-src="https://bookdash.org/wp-content/uploads/2019/11/elana-bregin_writer-2-73x105.jpg" class="img-lazy circle_img circle_img--portrait jsLazyLoadImg" alt="Elana Bregin">
+              </div>
+            </div>
+            <div class="team_title-xs">
+              <h3 class="txt-lg txt-regular display-ib display-mid m-0"><span class="txt-bold">Elana Bregin</span> (Writer)</h3>
+            </div>
+          </a>
+          </div>
+  </div>
+          </div>
+        </div>
+
+        <div class="grid_1-1 txt-center">
+          <div class="grid grid--sm mt-3 mt-5-md">
+  <div class="grid_1-1 px-5-sm txt-center">
+    <p class="txt-h4 mb-3">Sign up to receive notifications whenever we release new books</p>
+    <a href="/subscribe" class="btn btn--primary btn--block">Get notified</a>
+  </div>
+</div>
+        </div>
+
+
+                <div class="grid expose jsExpose">
+          <div class="grid_1-1">
+            <div id="read-book" class="expose_content modal jsExposeContent jsExposeClickOut jsVideoEmbedPause" aria-hidden="true">
+              <a href="#" class="modal_close modal_close--fixed jsExposeToggle jsVideoEmbedPause" data-expose-target="#read-book" data-expose-modal="true" title="Close"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/x.svg" alt="Close" class="img-fluid"></a>
+              <div class="grid grid--md mx-auto">
+                <div class="grid_1-1 is-middle jsExposeClickOut">
+                  <div class="modal_box bg-white border-radius px-3 jsExposeModalBox jsExposeSetFocus">
+                    <div class="wp-content wp-content--gallery jsLazyLoadImgContainer">
+                                                                        <p class="txt-center txt-sm txt-muted">Listen to an audio version (English), produced by the team at Radio Active Productions Publishing Media 7, for The Wireless.</p>
+                                                <audio controls src="https://bibliocloudimages.s3.eu-west-1.amazonaws.com/production_files/68682/A_beautiful_day_en_wireless_original.mp3?response-content-disposition=inline%3B%20filename%3D%22A_beautiful_day_en_wireless.mp3%22&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2KBEQCKSTZS5ZVO6%2F20261127%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Date=20261127T000126Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=c6b9459001d81a3d217b8669ab3e527e5f3f913f444d8a07ab33320e3f150c20" class="grid" onplay="pushAudioEvent('player')"></audio>
+                        <p class="txt-center jsAudioDownloadCont">
+                          <a href="https://bibliocloudimages.s3.eu-west-1.amazonaws.com/production_files/68682/A_beautiful_day_en_wireless_original.mp3?response-content-disposition=inline%3B%20filename%3D%22A_beautiful_day_en_wireless.mp3%22&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2KBEQCKSTZS5ZVO6%2F20261127%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Date=20261127T000126Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=c6b9459001d81a3d217b8669ab3e527e5f3f913f444d8a07ab33320e3f150c20" target="_blank" rel="noopener noreferrer" class="btn btn--primary txt-md py-2">Download audio version</a>
+                        </p>
+                        <script>
+                          const pushAudioEvent = (typeOfAudioUI) => {
+                            gtag('event', 'audio_book_click', {
+                              'type': typeOfAudioUI,
+                              'title': 'a-beautiful-day'
+                            });
+                          }
+                          document.querySelector('.jsAudioDownloadCont')?.addEventListener('click', () => {
+                            pushAudioEvent('download')
+                          })
+                        </script>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104.jpg" target="_blank" rel="noopener" title="a-beautiful-day_cover_20160104"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-428x425.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-428x425.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-150x150.jpg 150w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-300x298.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-768x763.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-600x596.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-105x105.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-71x70.jpg 71w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_cover_20160104-200x199.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_201601044"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601044-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_201601045"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601045-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_201601046"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601046-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_201601047"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601047-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_201601048"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601048-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_201601049"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_201601049-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010410"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010410-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010411"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010411-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010412"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010412-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010413"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010413-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010414"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010414-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010415"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-428x214.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-428x214.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-300x150.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-768x384.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-600x300.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-105x53.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-140x70.jpg 140w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010415-200x100.jpg 200w" alt=""></a>
+                                                <a href="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417.jpg" target="_blank" rel="noopener" title="a-beautiful-day_interior_spreads_2016010417"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-16x9.svg" data-src="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-428x428.jpg" data-srcset="https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-428x428.jpg 428w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-150x150.jpg 150w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-300x300.jpg 300w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-768x768.jpg 768w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-600x600.jpg 600w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-105x105.jpg 105w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-70x70.jpg 70w, https://bookdash.org/wp-content/uploads/2016/01/a-beautiful-day_interior_spreads_2016010417-200x200.jpg 200w" alt=""></a>
+                                          </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </main>
+
+<footer class="grid grid--fluid bg-blue txt-white txt-center py-4 py-5-md bg-pattern footer">
+  <div class="grid">
+    <div class="grid">
+      <div class="grid_1-3-xl">
+        <div class="txt-left-xl">
+            <p class="mt-0 mb-2"><span class="display-ib display-mid mr-2"><svg width="15" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 3.75A3.754 3.754 0 003.75 7.5a3.754 3.754 0 003.75 3.75 3.754 3.754 0 003.75-3.75A3.754 3.754 0 007.5 3.75zm0 6.25A2.503 2.503 0 015 7.5C5 6.121 6.121 5 7.5 5S10 6.121 10 7.5 8.879 10 7.5 10zm0-10A7.5 7.5 0 000 7.5c0 3.024 1.054 3.868 6.73 12.096a.938.938 0 001.54 0C13.947 11.368 15 10.524 15 7.5A7.5 7.5 0 007.5 0zm0 18.513C2.059 10.644 1.25 10.019 1.25 7.5c0-1.67.65-3.239 1.83-4.42A6.21 6.21 0 017.5 1.25c1.67 0 3.239.65 4.42 1.83a6.21 6.21 0 011.83 4.42c0 2.52-.808 3.143-6.25 11.013z" fill="currentColor"/></svg></span> Bertha House 67-69 Main Rd, Mowbray, Cape Town, 7700</p>
+        <p class="my-2"><span class="display-ib display-mid mr-2"><svg width="18" height="14" xmlns="http://www.w3.org/2000/svg"><path d="M16.313 0H1.688C.755 0 0 .756 0 1.688v10.124c0 .932.756 1.688 1.688 1.688h14.624c.932 0 1.688-.756 1.688-1.688V1.688C18 .755 17.244 0 16.312 0zM1.688 1.125h14.624c.31 0 .563.253.563.563v1.455c-.77.65-1.87 1.547-5.295 4.264C10.986 7.88 9.816 9.014 9 9c-.816.014-1.99-1.121-2.58-1.593C2.995 4.69 1.895 3.793 1.125 3.143V1.688c0-.31.253-.563.563-.563zm14.624 11.25H1.688a.564.564 0 01-.562-.563V4.606a405.38 405.38 0 004.595 3.681c.72.577 1.993 1.846 3.28 1.839 1.28.01 2.542-1.248 3.28-1.839a416.352 416.352 0 004.595-3.68v7.207a.564.564 0 01-.563.562z" fill="currentColor"/></svg></span> <a href="mailto:team@bookdash.org">team@bookdash.org</a></p>
+      <p class="my-2"><span class="display-ib display-mid mr-2"><svg width="19" height="19" xmlns="http://www.w3.org/2000/svg"><path d="M17.188.886L13.644.067a1.102 1.102 0 00-1.258.636L10.75 4.518c-.193.446-.063.974.313 1.283l1.895 1.55a12.304 12.304 0 01-5.611 5.611l-1.55-1.895a1.102 1.102 0 00-1.284-.313L.704 12.39c-.49.211-.756.738-.637 1.255l.816 3.54c.116.503.559.855 1.072.855 8.866 0 16.084-7.18 16.084-16.084 0-.513-.352-.956-.851-1.069zM1.976 16.914l-.809-3.502 3.776-1.617 2.092 2.56c3.642-1.71 5.614-3.688 7.316-7.317l-2.56-2.091L13.41 1.17l3.501.809c-.007 8.244-6.69 14.923-14.934 14.934z" fill="currentColor"/></svg></span> <a href="tel:021 206 7868 (during office hours)" class="txt-nowrap">021 206 7868 (during office hours)</a></p>
+  </div>
+<p class="mt-4 mt-5-md mb-3 contact_social">
+  <a href="https://www.linkedin.com/company/book-dash/" class="display-mid display-ib mr-3 mr-4-sm"><span class="display-ib display-mid mr-2"><svg width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 0a4 4 0 014 4v28a4 4 0 01-4 4H4a4 4 0 01-4-4V4a4 4 0 014-4h28zM5.517 31h5.368V13.667H5.517V31zM24.69 13.137c-3.678 0-5.226 2.865-5.226 2.865v-2.335h-5.149V31h5.149v-9.099c0-2.438 1.122-3.888 3.27-3.888 1.975 0 2.923 1.394 2.923 3.888V31H31V20.025c0-4.643-2.632-6.888-6.309-6.888zM8.175 5C6.42 5 5 6.432 5 8.198c0 1.767 1.421 3.2 3.175 3.2 1.753 0 3.174-1.433 3.174-3.2C11.349 6.432 9.929 5 8.175 5z" fill="currentColor"/></svg></span></a>
+  <a href="http://instagram.com/bookdash" class="display-mid display-ib mr-3 mr-4-sm"><span class="display-ib display-mid mr-2"><svg width="37" height="36" xmlns="http://www.w3.org/2000/svg"><path d="M18.048 8.82a9.198 9.198 0 00-9.212 9.212c0 5.1 4.113 9.213 9.212 9.213 5.1 0 9.213-4.114 9.213-9.213 0-5.1-4.114-9.212-9.213-9.212zm0 15.201c-3.295 0-5.99-2.686-5.99-5.989a5.995 5.995 0 015.99-5.99 5.995 5.995 0 015.99 5.99c0 3.303-2.695 5.99-5.99 5.99zM29.786 8.443a2.144 2.144 0 01-2.149 2.149 2.149 2.149 0 112.149-2.149zm6.102 2.18c-.137-2.878-.794-5.427-2.903-7.528-2.1-2.1-4.65-2.758-7.528-2.903-2.967-.168-11.859-.168-14.825 0-2.87.137-5.42.794-7.53 2.895C.995 5.187.346 7.737.2 10.616.032 13.582.032 22.474.2 25.44c.137 2.878.794 5.428 2.903 7.528 2.109 2.1 4.65 2.758 7.529 2.903 2.966.168 11.858.168 14.825 0 2.878-.137 5.428-.794 7.528-2.903 2.101-2.1 2.758-4.65 2.903-7.528.168-2.967.168-11.85 0-14.817zm-3.833 18a6.064 6.064 0 01-3.415 3.416c-2.366.938-7.978.722-10.592.722-2.614 0-8.234.208-10.591-.722a6.064 6.064 0 01-3.416-3.415c-.938-2.366-.722-7.978-.722-10.592 0-2.614-.208-8.234.722-10.591a6.064 6.064 0 013.416-3.416c2.365-.938 7.977-.722 10.591-.722 2.614 0 8.234-.208 10.592.722a6.064 6.064 0 013.415 3.416c.938 2.365.722 7.977.722 10.591 0 2.614.216 8.234-.722 10.592z" fill="currentColor"/></svg></span></a>
+  <a href="http://x.com/bookdash" class="display-mid display-ib mr-3 mr-4-sm"><span class="display-ib display-mid mr-2"><svg width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_203_170)"><path fill="currentColor" d="M18 0c9.941 0 18 8.059 18 18s-8.059 18-18 18S0 27.941 0 18 8.059 0 18 0zM8 7.78l7.808 11.364L8 28.22h1.765l6.827-7.936 5.453 7.936H28l-8.098-11.784L27.35 7.78h-1.765l-6.465 7.515-5.164-7.515H8zm5.11 1.328l12.475 17.844h-2.71L10.4 9.108h2.71z"/></g><defs><clipPath id="clip0_203_170"><path d="M0 0h36v36H0z"/></clipPath></defs></svg></span></a>
+  <a href="http://facebook.com/bookdash" class="display-mid display-ib mr-3 mr-4-sm"><span class="display-ib display-mid mr-2"><svg width="36" height="36" xmlns="http://www.w3.org/2000/svg"><path d="M32.143 0H3.857A3.857 3.857 0 000 3.857v28.286A3.857 3.857 0 003.857 36h11.03V23.76H9.823V18h5.062v-4.39c0-4.995 2.973-7.754 7.527-7.754 2.181 0 4.462.39 4.462.39v4.901h-2.513c-2.476 0-3.248 1.537-3.248 3.112V18h5.527l-.884 5.76h-4.643V36h11.029A3.857 3.857 0 0036 32.143V3.857A3.857 3.857 0 0032.143 0z" fill="currentColor"/></svg></span></a>
+  <a href="https://www.youtube.com/channel/UC9YLGDf2hyHR3V2DUGaTwPA" class="display-mid display-ib"><span class="display-ib display-mid mr-2"><svg class="svg-yt" width="37" height="26" xmlns="http://www.w3.org/2000/svg"><path d="M36.18 3.96A4.523 4.523 0 0032.999.758C30.191 0 18.933 0 18.933 0S7.676 0 4.868.757a4.524 4.524 0 00-3.183 3.204C.933 6.786.933 12.68.933 12.68s0 5.896.752 8.722c.414 1.559 1.634 2.736 3.183 3.152 2.808.757 14.065.757 14.065.757s11.257 0 14.065-.757c1.549-.416 2.769-1.593 3.183-3.152.752-2.826.752-8.721.752-8.721s0-5.896-.752-8.721zM15.252 18.036V7.329l9.41 5.353-9.41 5.353z" fill="currentColor"/></svg></span></a>
+</p>      </div>
+      <div class="hidden-lg-down grid_2-3-xl txt-left pl-5">
+        <div class="grid pl-5">
+          <div class="grid_1-3 txt-lg txt-bold">
+            <a href="/" class="txt-white display-b">Home</a>
+            <a href="/books" class="txt-white display-b mt-2">Books</a>
+            <a href="/book-dash-events" class="txt-white display-b mt-2">Events</a>
+            <a href="/contact" class="txt-white display-b mt-2">Contact us</a>
+          </div>
+          <div class="grid_1-3">
+            <h3 class="txt-h3 mb-1">What we do</h3>
+            <div class="menu-what-we-do-container"><ul id="menu-what-we-do-2" class="list--silent header_wp-menu jsExposeSetFocus"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9520"><a href="https://bookdash.org/what-we-do/">Vision, mission and theory of change</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9527"><a href="https://bookdash.org/what-we-do/how-we-do-it/">The Book Dash model</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31571"><a href="https://bookdash.org/research-and-evidence-base/">Research and evidence base</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9526"><a href="https://bookdash.org/what-we-do/our-history/">Origins and recognition</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9522"><a href="https://bookdash.org/what-we-do/reports-financials-compliance/">Reports, financials &amp; compliance</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-25499"><a href="https://bookdash.org/newsletters-and-blog-posts/">Newsletters and blog posts</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9523"><a href="https://bookdash.org/what-we-do/get-involved/">Get involved</a></li>
+</ul></div>          </div>
+          <div class="grid_1-3 pl-5">
+            <h3 class="txt-h3 mb-1">Who we are</h3>
+            <div class="menu-who-we-are-container"><ul id="menu-who-we-are-2" class="list--silent header_wp-menu jsExposeSetFocus"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9528"><a href="https://bookdash.org/who-we-are/book-dash-team/">Book Dash team</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11027"><a href="https://bookdash.org/creative-volunteers/">Creative volunteers</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9529"><a href="https://bookdash.org/who-we-are/distribution-partners/">Distribution partners</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28100"><a href="https://bookdash.org/who-we-are/open-content-partners/">Open content partners</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9530"><a href="https://bookdash.org/who-we-are/funding-partners/">Funding partners and networks</a></li>
+</ul></div>          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid--md py-4 py-5-md">
+      <div class="grid_1-2-sm px-5-md mt-3 mt-0-md"><a href="/contact" class="btn btn--white btn--block"><img src="https://bookdash.org/wp-content/themes/bd/assets/images/preload-1x1.svg" data-src="https://bookdash.org/wp-content/themes/bd/assets/images//email-dark.svg" class="display-ib display-mid mr-2 jsLazyLoadImg"> Connect with us</a></div>
+      <div class="grid_1-2-sm px-5-md mt-3 mt-0-md"><a href="/what-we-do/donate-to-book-dash/" class="btn btn--white btn--block btn--check-badge">Donate</a></div>
+    </div>
+    <div class="grid grid--center">
+      <div class="grid_3-4-lg">
+        Book Dash is a registered non-profit organisation (NPO), voluntary association and section 18a public benefit organisation (PBO).<br/>
+        NPO number: 145-694 NPO<br/>
+        PBO number: 930047958
+      </div>
+    </div>
+  </div>
+</footer>  <script src="https://bookdash.org/wp-content/themes/bd/assets/js/bd.min.1795070991605.js" async></script>
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/bd/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<!-- Instagram Feed JS -->
+<script type="text/javascript">
+var sbiajaxurl = "https://bookdash.org/wp-admin/admin-ajax.php";
+</script>
+<script id="newsletter-js-extra">
+var newsletter_data = {"action_url":"https://bookdash.org/wp-admin/admin-ajax.php"};
+//# sourceURL=newsletter-js-extra
+</script>
+<script id="newsletter-js" src="https://bookdash.org/wp-content/plugins/newsletter/main.js?ver=9.5.7"></script>
+<script id="jetpack-stats-js-before">
+_stq = window._stq || [];
+_stq.push([ "view", {"v":"ext","blog":"74622085","post":"1631","tz":"2","srv":"bookdash.org","j":"1:16.4"} ]);
+_stq.push([ "clickTrackerInit", "74622085", "1631" ]);
+//# sourceURL=jetpack-stats-js-before
+</script>
+<script data-wp-strategy="defer" defer fetchpriority="low" id="jetpack-stats-js" src="https://stats.wp.com/e-202648.js"></script>
+
+</body>
+</html>
+
+<!-- Dynamic page generated in 0.704 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2026-11-28 01:05:08 -->
+
+<!-- super cache -->

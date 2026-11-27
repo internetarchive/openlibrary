@@ -227,6 +227,9 @@ repos:
       description: This hook checks .html files for i18n strings that might be missing.
       entry: python ./scripts/detect_missing_i18n.py
       types: [html]
+      # Captured HTML fixtures (e.g. the Book Dash scraper's upstream-shape
+      # samples) are third-party pages under test, not OL templates to translate.
+      exclude: ^openlibrary/.*/tests/samples/
       language: python
       require_serial: true
 
