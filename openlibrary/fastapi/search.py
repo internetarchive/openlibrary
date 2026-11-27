@@ -497,8 +497,10 @@ class EditionSearchRequestParams(Pagination):
     @field_validator("language")
     @classmethod
     def drop_blank_languages(cls, v: list[str]) -> list[str]:
-        # An empty value would compile to language:("") and match nothing; ignore it.
-        return [x for x in v if x.strip()]
+        # Strip each value and drop blanks: an empty value would compile to
+        # language:("") and a padded one (" eng ") to language:(" eng "), both of
+        # which match nothing against the exact-match string field.
+        return [s for x in v if (s := x.strip())]
 
     @field_validator("ebook_access")
     @classmethod

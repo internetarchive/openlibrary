@@ -720,6 +720,12 @@ class TestEditionSearchEndpoint:
         assert response.status_code == 200
         assert self._extra_fqs(mock_edition_solr_query) == []
 
+    def test_padded_language_value_is_stripped(self, fastapi_client, mock_edition_solr_query):
+        """A padded code (' eng ') is trimmed, not passed through as a zero-result filter."""
+        response = fastapi_client.get("/search/editions.json?language=+eng+")
+        assert response.status_code == 200
+        assert 'language:("eng")' in self._extra_fqs(mock_edition_solr_query)
+
     def test_filter_params_in_openapi_spec(self, fastapi_client):
         response = fastapi_client.get("/openapi.json")
         assert response.status_code == 200
