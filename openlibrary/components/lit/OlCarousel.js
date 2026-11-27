@@ -414,7 +414,6 @@ export class OlCarousel extends LitElement {
         this.peek = 0.03;
         this.gap = 8;
         this.breakpoints = OlCarousel._breakpoints;
-        // Translatable label defaults (English). Consumers pass $_() values in.
         this.label = _('Carousel');
         this.labelPrevious = _('Previous page');
         this.labelNext = _('Next page');
