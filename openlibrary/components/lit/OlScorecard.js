@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import './OlIcon.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 let _idCounter = 0;
 
@@ -414,14 +415,14 @@ export class OlScorecard extends LitElement {
         super();
         this.results = null;
         this.expanded = false;
-        this.labelTotal = 'Total';
-        this.labelFailingChecks = 'Failing Checks ({count})';
-        this.labelPassingChecks = 'Passing Checks ({count})';
-        this.labelPoints = '{score} points';
-        this.labelExpand = '{name}: {percentage}%. Click to expand.';
-        this.labelCollapse = 'Collapse';
+        this.labelTotal = _('Total');
+        this.labelFailingChecks = _('Failing Checks ({count})');
+        this.labelPassingChecks = _('Passing Checks ({count})');
+        this.labelPoints = _('{score} points');
+        this.labelExpand = _('{name}: {percentage}%. Click to expand.');
+        this.labelCollapse = _('Collapse');
         this.outdated = false;
-        this.labelOutdated = 'This record has been edited and is not yet reflected in Solr. It should update in a minute or so.';
+        this.labelOutdated = _('This record has been edited and is not yet reflected in Solr. It should update in a minute or so.');
         this._activeSection = 0;
         this._panelIdPrefix = `ol-scorecard-${++_idCounter}`;
     }
@@ -432,7 +433,7 @@ export class OlScorecard extends LitElement {
      * @returns {String}
      */
     _interpolateLabel(template, values) {
-        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? '');
+        return template.replace(/\{(\w+)\}/g, (_match, key) => values[key] ?? '');
     }
 
     /**

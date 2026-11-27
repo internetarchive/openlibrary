@@ -6,6 +6,7 @@ import './OlIcon.js';
 import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 /**
  * A modal dialog built on the native `<dialog>` element. Provides focus trap,
@@ -342,7 +343,7 @@ export class OlDialog extends LitElement {
         this.icon = '';
         this.withoutHeader = false;
         this.alert = false;
-        this.labelClose = 'Close dialog';
+        this.labelClose = _('Close dialog');
         this.returnValue = '';
         this.width = 'medium';
         this.closeOnBackdropClick = true;

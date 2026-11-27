@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import './OlIcon.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 /**
  * A pagination component that displays page numbers with navigation controls.
@@ -199,11 +200,11 @@ export class OlPagination extends LitElement {
         this._focusedIndex = -1;
 
         // Translatable label defaults (English)
-        this.labelPreviousPage = 'Go to previous page';
-        this.labelNextPage = 'Go to next page';
-        this.labelGoToPage = 'Go to page {page}';
-        this.labelCurrentPage = 'Page {page}, current page';
-        this.labelPagination = 'Pagination';
+        this.labelPreviousPage = _('Go to previous page');
+        this.labelNextPage = _('Go to next page');
+        this.labelGoToPage = _('Go to page {page}');
+        this.labelCurrentPage = _('Page {page}, current page');
+        this.labelPagination = _('Pagination');
     }
 
     /**
@@ -213,7 +214,7 @@ export class OlPagination extends LitElement {
      * @returns {String} The interpolated string
      */
     _interpolateLabel(template, values) {
-        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? '');
+        return template.replace(/\{(\w+)\}/g, (_match, key) => values[key] ?? '');
     }
 
     /**
@@ -250,7 +251,7 @@ export class OlPagination extends LitElement {
         const total = this.totalPages;
         const current = this.currentPage;
 
-        if (total <= 5) return [...Array(total)].map((_, i) => i + 1);
+        if (total <= 5) return [...Array(total)].map((_unused, i) => i + 1);
         if (current <= 3) return [1, 2, 3, 4, 'ellipsis-right', total];
         if (current >= total - 2) return [1, 'ellipsis-left', total - 3, total - 2, total - 1, total];
 

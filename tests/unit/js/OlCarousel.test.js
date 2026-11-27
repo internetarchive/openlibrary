@@ -999,6 +999,17 @@ describe('translatable labels', () => {
         expect(el.shadowRoot.querySelectorAll('.indicator')[1].getAttribute('aria-label')).toBe('Go to page 2 of 3');
     });
 
+    it('translates the defaults from the page catalog', async () => {
+        window.OL_I18N = { 'Carousel pages': 'Pages du carrousel', 'Go to page {page} of {total}': 'Aller à la page {page} sur {total}' };
+        try {
+            const { el } = await mountCarousel(18, { showIndicators: true });
+            expect(el.shadowRoot.querySelector('.indicators').getAttribute('aria-label')).toBe('Pages du carrousel');
+            expect(el.shadowRoot.querySelectorAll('.indicator')[1].getAttribute('aria-label')).toBe('Aller à la page 2 sur 3');
+        } finally {
+            delete window.OL_I18N;
+        }
+    });
+
     it('takes translated labels from attributes', async () => {
         const { el } = await mountCarousel(18, { showIndicators: true });
         el.setAttribute('label-pages', 'Pages du carrousel');
