@@ -11123,6 +11123,10 @@ msgstr ""
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
 msgstr ""
 
+#: openlibrary/fastapi/barcodescanner.py openlibrary/plugins/worksearch/code.py
+msgid "Barcode Scanner (Beta)"
+msgstr ""
+
 #: openlibrary/fastapi/merge_stats.py
 msgid "Merged %"
 msgstr ""
@@ -12221,10 +12225,6 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Barcode Scanner (Beta)"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/facets.py

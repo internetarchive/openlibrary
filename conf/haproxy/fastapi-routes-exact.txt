@@ -10,6 +10,7 @@ GET /api/books.json
 GET /api/monthly_logins.json
 GET /availability/v2
 GET /awards/count.json
+GET /barcodescanner
 GET /browse.json
 GET /docs
 GET /docs/oauth2-redirect
