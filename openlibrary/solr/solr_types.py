@@ -147,6 +147,8 @@ class SolrDocument(TypedDict):
     alternate_names: Optional[list[str]]
     birth_date: Optional[str]
     death_date: Optional[str]
+    birth_timestamp: Optional[str]
+    death_timestamp: Optional[str]
     date: Optional[str]
     work_count: Optional[int]
     top_work: Optional[str]

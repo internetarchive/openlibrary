@@ -93,12 +93,12 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
     @property
     def birth_timestamp(self) -> str | None:
         """Normalized birth date as ISO timestamp for Solr sorting."""
-        return self._parse_date_to_iso(self._author.get('birth_date'))
+        return self._parse_date_to_iso(self._author.get("birth_date"))
 
     @property
     def death_timestamp(self) -> str | None:
         """Normalized death date as ISO timestamp for Solr sorting."""
-        return self._parse_date_to_iso(self._author.get('death_date'))
+        return self._parse_date_to_iso(self._author.get("death_date"))
 
     def _parse_date_to_iso(self, date_string: str | None) -> str | None:
         """Parse a date string to ISO format for Solr.
@@ -110,7 +110,7 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
             return None
 
         # Check for year-only pattern first (avoids dateutil using current day)
-        if re.fullmatch(r'\d{4}', date_string.strip()):
+        if re.fullmatch(r"\d{4}", date_string.strip()):
             return f"{date_string.strip()}-01-01T00:00:00Z"
 
         # Try full date parsing with dateutil
@@ -118,11 +118,11 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
             parsed = dateparser.parse(date_string, default=None)
             if parsed:
                 return parsed.strftime("%Y-%m-%dT00:00:00Z")
-        except (ValueError, OverflowError, TypeError):
+        except ValueError, OverflowError, TypeError:
             pass
 
         # Fall back to year extraction via regex for approximate dates
-        if year_match := re.search(r'\b(\d{4})\b', date_string):
+        if year_match := re.search(r"\b(\d{4})\b", date_string):
             year = year_match.group(1)
             return f"{year}-01-01T00:00:00Z"
 
