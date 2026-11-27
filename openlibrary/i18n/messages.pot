@@ -529,7 +529,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html lit/alert-dialog.js merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html lit/alert-dialog.js merge/authors.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html modals/index.js native_dialog.html.jinja shell/edit_saved.html.jinja type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -1489,7 +1489,7 @@ msgstr ""
 msgid "in %(language)s"
 msgstr ""
 
-#: NotesModalDialog.html account/notes.html type/edition/notes_modal_i18n.html
+#: NotesModalDialog.html account/notes.html modals/index.js
 msgid "Delete Note"
 msgstr ""
 
@@ -5624,7 +5624,7 @@ msgstr ""
 msgid "Delete list"
 msgstr ""
 
-#: lists/lists.html type/edition/notes_modal_i18n.html
+#: lists/lists.html modals/index.js
 msgid "This cannot be undone."
 msgstr ""
 
@@ -7187,18 +7187,6 @@ msgstr ""
 
 #: type/edition/modal_links.html
 msgid "adding notes to"
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
-msgid "Could not save your note. Please try again."
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
-msgid "Could not delete your note. Please try again."
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
-msgid "Delete this note?"
 msgstr ""
 
 #: type/edition/title_and_author.html
@@ -9923,6 +9911,18 @@ msgstr ""
 
 #: ile/utils/SelectionManager/SelectionManager.js
 msgid "Merge Authors..."
+msgstr ""
+
+#: modals/index.js
+msgid "Could not save your note. Please try again."
+msgstr ""
+
+#: modals/index.js
+msgid "Could not delete your note. Please try again."
+msgstr ""
+
+#: modals/index.js
+msgid "Delete this note?"
 msgstr ""
 
 #: modals/index.js
