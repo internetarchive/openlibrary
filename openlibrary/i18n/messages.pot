@@ -6304,7 +6304,7 @@ msgid_plural "%(start)s - %(end)s of about %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/inside.html.jinja
+#: search-modal/constants.js search/inside.html.jinja
 #, python-format
 msgid "No exact matches for \"%(query)s\". Showing books containing all of these words."
 msgstr ""
@@ -7967,7 +7967,7 @@ msgstr ""
 msgid "Search inside books"
 msgstr ""
 
-#: FulltextSearchSuggestion.html.jinja
+#: FulltextSearchSuggestion.html.jinja search-modal/constants.js
 #, python-format
 msgid "Search Inside %(count)s book"
 msgid_plural "Search Inside %(count)s books"
@@ -9983,23 +9983,24 @@ msgstr ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "See %s book"
-msgstr ""
+msgid "See %(count)s book"
+msgid_plural "See %(count)s books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "See %s books"
-msgstr ""
+msgid "See all %(count)s book"
+msgid_plural "See all %(count)s books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "See all %s books"
-msgstr ""
-
-#: search-modal/constants.js
-#, python-format
-msgid "All %s books"
-msgstr ""
+msgid "All %(count)s book"
+msgid_plural "All %(count)s books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: search-modal/constants.js
 msgid "Clear all"
@@ -10044,7 +10045,7 @@ msgstr ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "Readable in %s"
+msgid "Readable in %(language)s"
 msgstr ""
 
 #: search-modal/constants.js
@@ -10053,17 +10054,7 @@ msgstr ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "Remove \"%s\" from recent searches"
-msgstr ""
-
-#: search-modal/constants.js
-#, python-format
-msgid "Search Inside %s book"
-msgstr ""
-
-#: search-modal/constants.js
-#, python-format
-msgid "Search Inside %s books"
+msgid "Remove \"%(query)s\" from recent searches"
 msgstr ""
 
 #: search-modal/constants.js
@@ -10084,7 +10075,7 @@ msgstr ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "Showing exact matches for \"%s\"."
+msgid "Showing exact matches for \"%(query)s\"."
 msgstr ""
 
 #: search-modal/constants.js
@@ -10101,18 +10092,10 @@ msgstr ""
 
 #: search-modal/constants.js
 #, python-format
-msgid "No exact matches for \"%s\". Showing books containing all of these words."
-msgstr ""
-
-#: search-modal/constants.js
-#, python-format
-msgid "%s match found inside books"
-msgstr ""
-
-#: search-modal/constants.js
-#, python-format
-msgid "%s matches found inside books"
-msgstr ""
+msgid "%(count)s match found inside books"
+msgid_plural "%(count)s matches found inside books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/contribute/feed.py
 msgid "Edited this book"
