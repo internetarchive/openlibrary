@@ -126,7 +126,8 @@ MONTH_NAMES: dict[str, int] = {
     )
     for name in names
 }
-_BC_RE = re.compile(r"\bb\.?\s?c\.?(?:e\.?)?(?!\w)", re.IGNORECASE)
+# "B.C."/"BCE", French "av. J.-C.", Spanish/Italian "a.C."
+_BC_RE = re.compile(r"\bb\.?\s?c\.?(?:e\.?)?(?!\w)|\bav\.?\s*j\b|(?<!\w)a\.\s?c\.?(?!\w)", re.IGNORECASE)
 _ISO_RE = re.compile(r"(?<!\d)(\d{4})-(\d{2})(?:-(\d{2}))?(?!\d)")
 _YEAR_RE = re.compile(r"(?<!\d)\d{4}(?!\d)")
 _DAY_RE = re.compile(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)")
@@ -147,7 +148,8 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
     Missing month/day default to January 1st. BC years use ISO 8601's
     astronomical numbering (1 BC = ``0000``, 2 BC = ``-0001``). Returns None
     when no year can be identified unambiguously (e.g. "19th cent.", "19..",
-    "12/24"), so the record sorts with the undated ones.
+    "12/24") or the year is in the future, so the record sorts with the
+    undated ones.
 
     >>> parse_user_entered_date("10 Jan 2000")
     '2000-01-10T00:00:00Z'
@@ -174,15 +176,22 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
                 day = int(days[0])
     elif m := _SHORT_YEAR_RE.fullmatch(text.strip()):
         year = int(m.group(1))
-        # A bare 1-2 digit number is more likely a truncated year ("95") or a
-        # day than an ancient year, unless it's marked as such
-        if year < 100 and not is_bc and not re.search(r"[a-z]", text, re.IGNORECASE):
-            return None
+        if not is_bc:
+            # A bare 1-2 digit number is more likely a truncated year ("95") or
+            # a day than an ancient year, unless it's marked as such; and
+            # 10-20 even when marked is usually a truncated century ("ca 18")
+            if year < 100 and (10 <= year <= 20 or not re.search(r"[a-z]", text, re.IGNORECASE)):
+                return None
+            # "198?" is far more often an uncertain decade (1980s) than 198 AD
+            if 100 <= year <= 202 and re.search(r"(?<!\d)\d{3}\?", text):
+                year *= 10
     else:
         return None
 
     if is_bc:
         year = 1 - year
+    elif year == 0 or year > current_year():
+        return None
     try:
         dt.date(2000, month or 1, day or 1)  # validate month/day; 2000 is a leap year
     except ValueError:
