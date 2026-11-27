@@ -3734,6 +3734,14 @@ msgstr ""
 msgid "Not sure"
 msgstr ""
 
+#: books/edit/about.html openlibrary/contribute/field_guides.py
+msgid "Genres"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Pick any that fit. Genres are only specified for fiction books at this time."
+msgstr ""
+
 #: books/edit/about.html
 msgid "Subject keywords?"
 msgstr ""
@@ -5133,6 +5141,14 @@ msgstr ""
 
 #: follow/follow.html
 msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+
+#: forms/tag_chips.html.jinja
+msgid "Other genres"
+msgstr ""
+
+#: forms/tag_chips.html.jinja
+msgid "Suggested by the subjects"
 msgstr ""
 
 #: history/sources.html
@@ -8513,14 +8529,6 @@ msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Suggested by the subjects"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Other genres"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "Click again to save and continue"
 msgstr ""
 
@@ -10282,10 +10290,6 @@ msgid "Anthologies and collections take the form of what's inside. A book of ess
 msgstr ""
 
 #: openlibrary/contribute/field_guides.py
-msgid "Genres"
-msgstr ""
-
-#: openlibrary/contribute/field_guides.py
 msgid "Pick genres"
 msgstr ""
 
@@ -10817,6 +10821,11 @@ msgstr ""
 
 #: openlibrary/core/tags.py
 msgid "Hard to call, like a book based on a true story or a collection that mixes fiction and nonfiction."
+msgstr ""
+
+#: openlibrary/core/tags.py
+#, python-format
+msgid "Subjects mention %(subjects)s"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -11534,11 +11543,6 @@ msgid "Editions"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "Subjects mention %(subjects)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Your answer applies to every edition of this book, not just this one."
 msgstr ""
 
@@ -12110,6 +12114,10 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/addbook.py
 msgid "You are not allowed to add a Book URL."
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Choose genres from the list."
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py

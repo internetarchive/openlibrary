@@ -17,6 +17,7 @@
 @import "components/language.css";
 @import "components/ol-message.css";
 @import "components/choice-list.css";
+@import "components/tag-chips.css";
 @import "fonts/literata.css";
 @import "fonts/schibsted-grotesk.css";
 @import "components/skeleton.css";

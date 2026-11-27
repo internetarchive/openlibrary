@@ -120,10 +120,43 @@ def tag_choices(fld: str, unsure_label: str, unsure_description: str | None = No
     return [*tag_options(fld), web.storage(value=unsure_value, label=unsure_label, description=unsure_description)]
 
 
+# How many of a work's subjects a picker reads for suggestions: the first few, which is where the catalog's own go.
+SUGGESTION_SUBJECTS = 8
+
+
+def suggestion_subjects(work) -> list[str]:
+    return [str(s) for s in (work.get("subjects") or [])[:SUGGESTION_SUBJECTS]] if work else []
+
+
+def build_suggestions(hints: dict[str, list[str]] | None) -> dict[str, dict]:
+    """A suggested chip's reasons, by tag key: the subjects behind it, and the line the chip shows on hover."""
+    return {
+        key: {"subjects": subjects, "why": _("Subjects mention %(subjects)s", subjects=", ".join(f"“{s}”" for s in subjects))}
+        for key, subjects in (hints or {}).items()
+    }
+
+
+@public
+def tag_picker(work, fld: str, selected: list[str] | None = None, suggested: dict[str, list[str]] | None = None) -> dict:
+    """A many-tags field as chips (``forms/tag_chips.html.jinja``), for any page that edits the work: every tag of the
+    field, the ones picked and the ones its subjects suggest. ``selected`` and ``suggested`` override what the work says."""
+    if selected is None:
+        selected = work_tag_keys(work, fld) if work else []
+    if suggested is None:
+        suggested = subject_matches(fld, suggestion_subjects(work))
+    options = tag_options(fld)
+    # A picked key the vocabulary lacks (retired, renamed away, or mistyped) still gets a chip, so it can be seen and removed.
+    if strays := [k for k in dict.fromkeys(selected) if k not in {o["value"] for o in options}]:
+        names = {t.key: t.get("name") for t in site.get().get_many(strays)}
+        options += [web.storage(value=k, label=names.get(k) or k, description="") for k in strays]
+    return {"options": options, "selected": list(selected), "suggested": build_suggestions(suggested)}
+
+
 def find_tag(fld: str, key: str):
     return next((t for t in get_tags_of_type(fld) if t.key == key), None)
 
 
+@public
 def tag_key_named(fld: str, name: str) -> str | None:
     """The key of the field's tag called ``name``, whatever its case; None when the vocabulary has none."""
     return next((t.key for t in get_tags_of_type(fld) if t.name.casefold() == name.casefold()), None)
@@ -140,6 +173,7 @@ def literary_form_of(work) -> str:
     return names[0].casefold() if names else ""
 
 
+@public
 def is_nonfiction(work) -> bool:
     return literary_form_of(work) == "nonfiction"
 

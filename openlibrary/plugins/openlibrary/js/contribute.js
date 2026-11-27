@@ -302,46 +302,18 @@ function initQuickNext(form) {
 }
 
 /**
- * A many-tags answer: chips that toggle, with a hidden input per picked key so
- * the form posts the picks under the group's name. A chip the subjects suggested
- * carries them in ``data-subjects``: hovering or focusing it lights those subjects
- * in the record, and picking it reports as ``PickSuggestion``, like a sibling chip
- * on a text field.
- * @param {HTMLElement} group - a ``[data-many-choice]`` holding ``ol-chip[data-value]`` elements
+ * Reports a pick of a chip the subjects suggested as ``PickSuggestion``, like a
+ * sibling chip on a text field. The chips themselves are tag-chips.js.
+ * @param {HTMLElement} group - a ``[data-many-choice]`` on a task form
  * @returns {void}
  */
-function initManyChoice(group) {
-    const name = group.dataset.manyChoice;
-    const form = group.closest('form');
-    const field = form?.dataset.taskField;
-    const light = (chip, on) => {
-        const subjects = JSON.parse(chip.dataset.subjects);
-        form?.querySelectorAll('[data-subject]').forEach(el => el.toggleAttribute('data-lit', on && subjects.includes(el.dataset.subject)));
-    };
-    for (const chip of group.querySelectorAll('ol-chip[data-subjects]')) {
-        chip.addEventListener('mouseenter', () => light(chip, true));
-        chip.addEventListener('mouseleave', () => light(chip, false));
-        chip.addEventListener('focusin', () => light(chip, true));
-        chip.addEventListener('focusout', () => light(chip, false));
-    }
-    const sync = () => {
-        group.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
-        // By property: the chip reflects ``selected`` to its attribute only on its next render.
-        for (const chip of [...group.querySelectorAll('ol-chip')].filter(candidate => candidate.selected)) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = name;
-            input.value = chip.dataset.value;
-            group.append(input);
-        }
-    };
+function initManyChoiceTracking(group) {
+    const field = group.closest('form')?.dataset.taskField;
+    if (!field) return;
     group.addEventListener('ol-chip-select', event => {
         const chip = event.target.closest('ol-chip');
-        chip.selected = event.detail.selected;
-        sync();
-        if (event.detail.selected && chip.dataset.subjects && field) trackEvent('TaskForm', 'PickSuggestion', `${field}:${name}`);
+        if (event.detail.selected && chip.dataset.subjects) trackEvent('TaskForm', 'PickSuggestion', `${field}:${group.dataset.manyChoice}`);
     });
-    sync();
 }
 
 /**
@@ -690,7 +662,7 @@ export function init() {
         initQuickNext(form);
         initCompanion(form);
     });
-    document.querySelectorAll('[data-many-choice]').forEach(initManyChoice);
+    document.querySelectorAll('[data-many-choice]').forEach(initManyChoiceTracking);
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
     document.querySelectorAll('form[data-cover-form]').forEach(initCoverForm);

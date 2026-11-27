@@ -19,7 +19,17 @@ from openlibrary.contribute import feed, initiatives, pitch, save, supply, tasks
 from openlibrary.contribute.field_guides import AMAZON_COVER, build_link_outs, get_field_guides, is_speculative, scan_tip
 from openlibrary.contribute.tasks import field_values, work_of
 from openlibrary.core import admin, helpers
-from openlibrary.core.tags import GENRES, LITERARY_FORMS, find_tag, subject_matches, tag_choices, tag_key_named, tag_options, work_tag_names
+from openlibrary.core.tags import (
+    GENRES,
+    LITERARY_FORMS,
+    find_tag,
+    subject_matches,
+    suggestion_subjects,
+    tag_choices,
+    tag_key_named,
+    tag_picker,
+    work_tag_names,
+)
 from openlibrary.i18n import gettext as _
 from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream import spamcheck
@@ -258,12 +268,6 @@ def text_of(block) -> str:
     return str(getattr(block, "value", block) or "")
 
 
-def work_subjects(edition) -> list[str]:
-    """The work's free-text subjects as the task page shows them: the first few, which is where the catalog's own go."""
-    work = work_of(edition)
-    return [str(s) for s in (work.get("subjects") or [])[:8]] if work else []
-
-
 def genre_labels(edition) -> list[str]:
     """What the work says about its genre in words: its genre tags' names, then all of its subjects."""
     if not (work := work_of(edition)):
@@ -274,7 +278,7 @@ def genre_labels(edition) -> list[str]:
 def genre_hints(edition) -> dict[str, list[str]]:
     """Genre tag key to the work's subjects that name it. The subjects are the record's strongest clue to its genres,
     so the page sets those chips in a row of their own and, on hover, points back at the subjects; it never picks for the reader."""
-    return subject_matches(GENRES, work_subjects(edition))
+    return subject_matches(GENRES, suggestion_subjects(work_of(edition)))
 
 
 def build_work_field_rows(edition, fld: str, hits: Sequence[str] = ()) -> list[dict]:
@@ -284,7 +288,7 @@ def build_work_field_rows(edition, fld: str, hits: Sequence[str] = ()) -> list[d
     ``hits`` are the subjects behind a suggested genre; the Subjects row carries them as ``parts`` so a hovered chip can light its own.
     """
     work = work_of(edition)
-    subjects = work_subjects(edition)
+    subjects = suggestion_subjects(work_of(edition))
     field_guides = get_field_guides()
     rows = [
         (_("First published"), work.get("first_publish_date") if work else ""),
@@ -322,21 +326,13 @@ def build_choices(field_guide, reveals: str = "") -> list:
     return rows
 
 
-def build_suggestions(hints: dict[str, list[str]] | None) -> dict[str, dict]:
-    """A suggested chip's reasons, by tag key: the subjects behind it, and the line the chip shows on hover."""
-    return {
-        key: {"subjects": subjects, "why": _("Subjects mention %(subjects)s", subjects=", ".join(f"“{s}”" for s in subjects))}
-        for key, subjects in (hints or {}).items()
-    }
-
-
 def build_many(field_guide, selected: Sequence[str], suggested: dict[str, list[str]] | None = None) -> dict | None:
     """A many-tags field's chips: every tag of the field, with the ones already picked marked.
 
     ``suggested`` maps a tag key to the subjects that name it; those chips sit in a row of their own above the rest."""
     if not field_guide.many:
         return None
-    return {"options": tag_options(field_guide.choices), "selected": list(selected), "suggested": build_suggestions(suggested)}
+    return tag_picker(None, field_guide.choices, selected=list(selected), suggested=suggested or {})
 
 
 def build_companion(edition, fld: str, selected: Sequence[str], suggested: dict[str, list[str]] | None = None) -> dict | None:
@@ -348,9 +344,7 @@ def build_companion(edition, fld: str, selected: Sequence[str], suggested: dict[
         "field": other,
         "label": guide.label,
         "hint": guide.check,
-        "options": tag_options(other),
-        "selected": list(selected),
-        "suggested": build_suggestions(suggested),
+        **tag_picker(None, other, selected=list(selected), suggested=suggested or {}),
     }
 
 

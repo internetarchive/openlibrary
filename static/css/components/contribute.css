@@ -431,27 +431,6 @@
   line-height: inherit;
 }
 
-/* The chips, in two groups when the subjects suggest some: the suggested row over the rest, each under an overline. */
-.contrib-chips {
-  justify-self: stretch;
-  display: grid;
-  gap: var(--spacing-stack-md);
-}
-
-.contrib-chips__group {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.contrib-chips__group + .contrib-chips__group {
-  padding-block-start: var(--spacing-stack-md);
-  border-block-start: var(--border-width) solid var(--color-border-extra-subtle);
-}
-
-.contrib-chips .contrib-h {
-  margin: 0;
-}
-
 /* A subject behind a suggested genre, lit while its chip is hovered or focused: the chip's evidence, in the record. */
 .contrib-record__subject {
   border-radius: var(--border-radius-sm);

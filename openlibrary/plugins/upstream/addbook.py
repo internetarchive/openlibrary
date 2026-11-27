@@ -18,6 +18,7 @@ from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.contribute import pitch
 from openlibrary.core.helpers import uniq
+from openlibrary.core.tags import GENRES, get_tags_of_type, work_tag_keys
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
@@ -582,6 +583,19 @@ def trim_doc(doc):
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
 
 
+# Work fields the edit form posts as one input per value; web.input() would keep only the last.
+MULTI_VALUE_WORK_FIELDS = ("genres",)
+
+
+def edit_form_input() -> web.Storage:
+    """The edit form's data, with the multi-value fields it posted as lists. A field it didn't post stays absent, so the save leaves it alone."""
+    i = web.input()
+    for name in (f"work--{f}" for f in MULTI_VALUE_WORK_FIELDS):
+        if name in i:
+            i[name] = web.input(**{name: []})[name]
+    return i
+
+
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
 
@@ -781,6 +795,14 @@ class SaveBookHelper:
         # The form posts the chosen tag's key; "" clears it (trim_doc makes that None, which the save drops).
         if "literary_forms" in work:
             work.literary_forms = [{"key": work.literary_forms}] if work.literary_forms else None
+        # The chips post one key each, plus an empty value so picking none clears the field.
+        if "genres" in work:
+            keys = [k for k in uniq(work.genres) if k]
+            # Only the vocabulary's genres, or ones the work already had (a retired tag stays until someone removes it).
+            allowed = {t.key for t in get_tags_of_type(GENRES)} | set(work_tag_keys(self.work, GENRES) if self.work else [])
+            if any(k not in allowed for k in keys):
+                raise ValidationException(_("Choose genres from the list."))
+            work.genres = [{"key": k} for k in keys] or None
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -890,7 +912,7 @@ class book_edit(delegate.page):
 
         try:
             helper = SaveBookHelper(work, edition)
-            helper.save(web.input())
+            helper.save(edit_form_input())
 
             add_edit_saved_flash(edition.key)
 
@@ -952,7 +974,7 @@ class work_edit(delegate.page):
 
         try:
             helper = SaveBookHelper(work, None)
-            helper.save(web.input())
+            helper.save(edit_form_input())
             add_edit_saved_flash()
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:

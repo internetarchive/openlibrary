@@ -1,0 +1,43 @@
+{#- Any number of a field's tags, as chips: a tap toggles one. tag-chips.js keeps a hidden input per pick, so the form
+    posts the picked keys under ``name``; the ones rendered here carry the picks over when JS hasn't run yet.
+    name: the posted field; picker: core.tags.tag_picker(); labelled_by: the id of the field's label, unique on the page
+    (required: the headings' ids build on it).
+    others_label: the heading over the unsuggested chips, shown only when some are suggested.
+    clearable: also post an empty value, so picking none clears the field (the edit form saves only what it's sent).
+    The tags the work's subjects name come first, in a row of their own, never picked in advance. Each says why on hover,
+    and lights the subjects behind it on pages that show them (``[data-subject]``).
+    Rendered from Jinja ({% include %} inside a {% with %}) and from Templetor (render_jinja_template). -#}
+{% if name is defined and picker is defined and labelled_by is defined %}
+    {% set others_label = others_label if others_label is defined else _("Other genres") %}
+    <div class="ol-tag-chips" data-many-choice="{{ name }}">
+        {% if picker.suggested %}
+            <div class="ol-tag-chips__group">
+                <span class="ol-tag-chips__heading" id="{{ labelled_by }}-suggested">{{ _("Suggested by the subjects") }}</span>
+                <ol-chip-group aria-labelledby="{{ labelled_by }} {{ labelled_by }}-suggested">
+                    {% for opt in picker.options if opt.value in picker.suggested %}
+                        <ol-tooltip content="{{ picker.suggested[opt.value].why }}">
+                            <ol-chip data-value="{{ opt.value }}" data-subjects='{{ picker.suggested[opt.value].subjects | tojson }}' {% if opt.value in picker.selected %}selected{% endif %}>
+                                {{ opt.label }}
+                            </ol-chip>
+                        </ol-tooltip>
+                    {% endfor %}
+                </ol-chip-group>
+            </div>
+        {% endif %}
+        <div class="ol-tag-chips__group">
+            {% set others_labels = labelled_by ~ " " ~ labelled_by ~ "-others" if picker.suggested else labelled_by %}
+            {% if picker.suggested %}<span class="ol-tag-chips__heading" id="{{ labelled_by }}-others">{{ others_label }}</span>{% endif %}
+            <ol-chip-group aria-labelledby="{{ others_labels }}">
+                {% for opt in picker.options if opt.value not in picker.suggested %}
+                    <ol-chip data-value="{{ opt.value }}" {% if opt.value in picker.selected %}selected{% endif %}>
+                        {{ opt.label }}
+                    </ol-chip>
+                {% endfor %}
+            </ol-chip-group>
+        </div>
+        {% if clearable is defined and clearable %}<input type="hidden" name="{{ name }}" value="" />{% endif %}
+        {% for picked in picker.selected %}
+            <input type="hidden" name="{{ name }}" value="{{ picked }}" data-pick />
+        {% endfor %}
+    </div>
+{% endif %}
