@@ -19,6 +19,7 @@ from pydantic import (
     model_validator,
 )
 
+from openlibrary.book_providers import EbookAccess
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async, resolve_language
 from openlibrary.core.helpers import commify, urlsafe
@@ -177,6 +178,30 @@ def create_sort_option_type(sorts_map: Mapping):
 
 
 EditionSortOption = create_sort_option_type(EditionSearchScheme.sorts)
+
+# Valid ebook_access filter values, kept in sync with EbookAccess (and
+# solr/conf/enumsConfig.xml) via the enum itself rather than a hand-written list.
+EBOOK_ACCESS_VALUES: tuple[str, ...] = tuple(e.to_solr_str() for e in EbookAccess)
+
+
+def _escape_solr_value(value: str) -> str:
+    """Escape a value for safe interpolation inside a quoted Solr term.
+
+    Mirrors the quote/escape approach used for ``work_key`` so caller-supplied
+    filter values cannot break out of the quoted phrase and inject raw Solr.
+    """
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def _or_fq(field: str, values: list[str]) -> tuple[str, str]:
+    """Build an additive ``fq`` that ORs ``values`` within a single ``field``.
+
+    Each value is quoted and escaped, so multiple values OR within the field
+    while separate fields AND across (Solr applies multiple ``fq`` params as a
+    conjunction).
+    """
+    inner = " OR ".join(f'"{_escape_solr_value(v)}"' for v in values)
+    return ("fq", f"{field}:({inner})")
 
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
@@ -459,11 +484,44 @@ class EditionSearchRequestParams(Pagination):
         description="Filter results to editions of a specific work.",
         examples=["/works/OL82536W"],
     )
+    language: list[str] = Field(
+        [],
+        description=(
+            "Filter by language using lowercase three-letter MARC language codes (case-sensitive, e.g. 'eng'). "
+            "Multiple values OR within the field; blank values are ignored."
+        ),
+        examples=[["eng"], ["spa"], ["eng", "spa"]],
+    )
+    ebook_access: list[str] = Field(
+        [],
+        description=(f"Filter by ebook access level. Multiple values OR within the field. Valid values: {', '.join(EBOOK_ACCESS_VALUES)}."),
+        examples=[["public"], ["public", "borrowable"]],
+    )
+    has_fulltext: Literal["true", "false"] | None = Field(
+        None,
+        description="Filter to editions that do (true) or do not (false) have fulltext available.",
+    )
     fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
         sorted(EditionSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
     sort: EditionSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+
+    @field_validator("language")
+    @classmethod
+    def drop_blank_languages(cls, v: list[str]) -> list[str]:
+        # Strip each value and drop blanks: an empty value would compile to
+        # language:("") and a padded one (" eng ") to language:(" eng "), both of
+        # which match nothing against the exact-match string field.
+        return [s for x in v if (s := x.strip())]
+
+    @field_validator("ebook_access")
+    @classmethod
+    def validate_ebook_access(cls, v: list[str]) -> list[str]:
+        if invalid := [x for x in v if x not in EBOOK_ACCESS_VALUES]:
+            valid = ", ".join(EBOOK_ACCESS_VALUES)
+            raise ValueError(f"Invalid ebook_access value(s): {', '.join(invalid)}. Valid values are: {valid}")
+        return v
 
 
 @nonblocking
@@ -480,8 +538,13 @@ async def search_editions_json(
     extra_params: list[tuple[str, Any]] = []
     if params.work_key:
         work_key = params.work_key.strip().rstrip("/").split("/")[-1]
-        safe_key = work_key.replace("\\", "\\\\").replace('"', '\\"')
-        extra_params.append(("fq", f'work_key:"{safe_key}"'))
+        extra_params.append(("fq", f'work_key:"{_escape_solr_value(work_key)}"'))
+    if params.language:
+        extra_params.append(_or_fq("language", params.language))
+    if params.ebook_access:
+        extra_params.append(_or_fq("ebook_access", params.ebook_access))
+    if params.has_fulltext is not None:
+        extra_params.append(("fq", f"has_fulltext:{params.has_fulltext}"))
 
     response = await run_solr_query_async(
         EditionSearchScheme(),
