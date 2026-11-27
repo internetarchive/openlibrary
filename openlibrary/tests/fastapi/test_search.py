@@ -640,6 +640,72 @@ class TestEditionSearchEndpoint:
         call_kwargs = mock_edition_solr_query.call_args[1]
         assert call_kwargs.get("fields") == ["key", "title", "isbn"]
 
+    @staticmethod
+    def _extra_fqs(mock) -> list[str]:
+        """The fq values passed to run_solr_query_async for the last call."""
+        return [v for k, v in (mock.call_args[1].get("extra_params") or []) if k == "fq"]
+
+    def test_single_language_filter_compiles_to_fq(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?language=eng")
+        assert response.status_code == 200
+        assert 'language:("eng")' in self._extra_fqs(mock_edition_solr_query)
+
+    def test_multiple_languages_or_within_field(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?language=eng&language=spa")
+        assert response.status_code == 200
+        assert 'language:("eng" OR "spa")' in self._extra_fqs(mock_edition_solr_query)
+
+    def test_ebook_access_filter_compiles_to_fq(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?ebook_access=public&ebook_access=borrowable")
+        assert response.status_code == 200
+        assert 'ebook_access:("public" OR "borrowable")' in self._extra_fqs(mock_edition_solr_query)
+
+    def test_invalid_ebook_access_is_422(self, fastapi_client, mock_edition_solr_query):
+        """An ebook_access value outside the EbookAccess enum is rejected — the red-first control."""
+        response = fastapi_client.get("/search/editions.json?ebook_access=bogus")
+        assert response.status_code == 422
+
+    def test_has_fulltext_true_compiles_to_fq(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?has_fulltext=true")
+        assert response.status_code == 200
+        assert "has_fulltext:true" in self._extra_fqs(mock_edition_solr_query)
+
+    def test_has_fulltext_false_compiles_to_fq(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?has_fulltext=false")
+        assert response.status_code == 200
+        assert "has_fulltext:false" in self._extra_fqs(mock_edition_solr_query)
+
+    def test_invalid_has_fulltext_is_422(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?has_fulltext=maybe")
+        assert response.status_code == 422
+
+    def test_filters_compose_as_separate_fqs(self, fastapi_client, mock_edition_solr_query):
+        """work_key + language + ebook_access + has_fulltext each land as their own fq (AND across fields)."""
+        response = fastapi_client.get("/search/editions.json?work_key=/works/OL82536W&language=eng&ebook_access=public&has_fulltext=true")
+        assert response.status_code == 200
+        fqs = self._extra_fqs(mock_edition_solr_query)
+        assert 'work_key:"OL82536W"' in fqs
+        assert 'language:("eng")' in fqs
+        assert 'ebook_access:("public")' in fqs
+        assert "has_fulltext:true" in fqs
+
+    def test_no_filters_means_no_fq(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?q=test")
+        assert response.status_code == 200
+        assert self._extra_fqs(mock_edition_solr_query) == []
+
+    def test_language_value_is_escaped(self, fastapi_client, mock_edition_solr_query):
+        """A quote in a language value is escaped, not injected raw into Solr."""
+        response = fastapi_client.get('/search/editions.json?language=en"g')
+        assert response.status_code == 200
+        assert 'language:("en\\"g")' in self._extra_fqs(mock_edition_solr_query)
+
+    def test_filter_params_in_openapi_spec(self, fastapi_client):
+        response = fastapi_client.get("/openapi.json")
+        assert response.status_code == 200
+        params = {p["name"] for p in response.json()["paths"]["/search/editions.json"]["get"]["parameters"]}
+        assert {"language", "ebook_access", "has_fulltext"} <= params
+
 
 class TestSearchListsEndpoint:
     """Tests for /search/lists.json.
