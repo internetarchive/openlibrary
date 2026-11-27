@@ -33,10 +33,14 @@
                     {{ identifierConfigsByKey[name]?.label ?? name }}
                 </div>
                 <div class="identifier-value" role="cell">
-                    <a v-if="identifierConfigsByKey[name]?.url" :href="createIdentifierURL(identifierConfigsByKey[name]?.url, item)" target="_blank">{{
-                        item
-                    }}</a>
-                    <a v-else>{{ item }}</a>
+                    <a
+                        v-if="identifierConfigsByKey[name]?.url"
+                        :href="createIdentifierURL(identifierConfigsByKey[name]?.url, item)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >{{ item }}</a
+                    >
+                    <span v-else>{{ item }}</span>
                 </div>
                 <div class="remove-button" role="cell">
                     <button
@@ -281,7 +285,7 @@ export default {
             }
         },
         createIdentifierURL: function (identifier, urlParam) {
-            return identifier.replace('@@@', urlParam);
+            return identifier.replace('@@@', urlParam.replace(/\s/g, ''));
         }
     }
 };
