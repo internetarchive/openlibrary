@@ -249,7 +249,6 @@ class CarouselCardData(TypedDict):
     lazy: bool
     layout: str | None
     loan_status_html: Markup
-    return_confirm_i18n: str
     request_fullpath: str
     shelf_button_html: Markup
     book_cover: bool
@@ -304,7 +303,6 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "lazy": lazy,
         "layout": layout,
         "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, key=key, layout=layout),
-        "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
         # No reader or state in the HTML: book-state.js fills both in.
         "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True, slot="overlay" if book_cover else None)),

@@ -1,12 +1,6 @@
 $def with (work, prefix="")
 
-$ i18n_strings = {
-    $ "empty_label": _("Please provide a label."),
-    $ "empty_url": _("Please provide a URL."),
-    $ "invalid_url": _("Please enter a valid URL.")
-    $ }
-
-<div id="link-errors" class="note hidden" data-i18n="$json_encode(i18n_strings)">
+<div id="link-errors" class="note hidden">
 </div>
 
 <fieldset class="major" id="links" data-prefix="$prefix">

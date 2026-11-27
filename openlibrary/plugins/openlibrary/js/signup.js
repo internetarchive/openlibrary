@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import { debounce } from './nonjquery_utils.js';
+import { _ } from './i18n.js';
 
 export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
@@ -7,7 +8,6 @@ export function initSignupForm() {
     const rpdCheckbox = document.querySelector('#pd-request');
     const pdaSelectorContainer = document.querySelector('#pda-selector');
     const pdaSelector = document.querySelector('#pd_program');
-    const i18nStrings = JSON.parse(signupForm.dataset.i18n);
     const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
     const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
     const emailSuccessIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--success');
@@ -35,7 +35,7 @@ export function initSignupForm() {
         const numInvalidInputs = signupForm.querySelectorAll('.invalid').length;
         const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity();
         if (numInvalidInputs === 0 && isFormattingValid && window.grecaptcha) {
-            $(submitBtn).prop('disabled', true).text(i18nStrings['loading_text']);
+            $(submitBtn).prop('disabled', true).text(_('Loading...'));
             window.grecaptcha.execute();
         }
     });
@@ -81,12 +81,12 @@ export function initSignupForm() {
         }
 
         if (value_username.length < USERNAME_MINLENGTH || value_username.length > USERNAME_MAXLENGTH) {
-            renderError('#username', '#usernameMessage', i18nStrings['username_length_err']);
+            renderError('#username', '#usernameMessage', _('Must be between 3 and 20 characters'));
             return;
         }
 
         if (!VALID_USERNAME_RE.test(value_username)) {
-            renderError('#username', '#usernameMessage', i18nStrings['username_char_err']);
+            renderError('#username', '#usernameMessage', _('Username may only contain numbers, letters, - or _'));
             return;
         }
 
@@ -120,7 +120,7 @@ export function initSignupForm() {
         }
 
         if (!VALID_EMAIL_RE.test(value_email)) {
-            renderError('#emailAddr', '#emailAddrMessage', i18nStrings['invalid_email_format']);
+            renderError('#emailAddr', '#emailAddrMessage', _('Must be a valid email address'));
             return;
         }
 
@@ -152,7 +152,7 @@ export function initSignupForm() {
         }
 
         if (value_password.length < PASSWORD_MINLENGTH || value_password.length > PASSWORD_MAXLENGTH) {
-            renderError('#password', '#passwordMessage', i18nStrings['password_length_err']);
+            renderError('#password', '#passwordMessage', _('Must be between 3 and 20 characters'));
             return;
         }
 
@@ -166,7 +166,7 @@ export function initSignupForm() {
             return;
         }
         if (pdaSelector.value === '') {
-            renderError('#pd_program', '#pd_programMessage', i18nStrings['missing_pda_err']);
+            renderError('#pd_program', '#pd_programMessage', _('A qualifying program must be selected'));
             pdaSelector.setAttribute('aria-invalid', 'true');
             return;
         }
@@ -236,9 +236,8 @@ export function initSignupForm() {
 
 export function initLoginForm() {
     const loginForm = $('form[name=login]');
-    const loadingText = loginForm.data('i18n')['loading_text'];
 
     loginForm.on('submit', () => {
-        $('button[type=submit]').prop('disabled', true).text(loadingText);
+        $('button[type=submit]').prop('disabled', true).text(_('Loading...'));
     });
 }
