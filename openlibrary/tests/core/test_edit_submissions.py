@@ -2,6 +2,7 @@ import pytest
 
 from openlibrary.core.edit_submissions import (
     EditOutcome,
+    _parse_version,
     apply_edit_submission,
     apply_patch,
     extract_patch,
@@ -54,6 +55,52 @@ class TestValidateEditSubmission:
         errors = validate_edit_submission({"key": "/books/OL1M", "v": "3"})
         assert any("change at least one field" in e for e in errors)
 
+    @pytest.mark.parametrize("key", ["/books/OL1M", "/works/OL1W", "/authors/OL1A"])
+    def test_editable_key_prefixes_are_accepted(self, key):
+        assert validate_edit_submission({"key": key, "v": "1", "title": "x"}) == []
+
+    @pytest.mark.parametrize("key", ["/people/foo", "/type/edition", "/templates/x", "/languages/eng"])
+    def test_non_catalog_key_is_rejected(self, key):
+        errors = validate_edit_submission({"key": key, "v": "1", "title": "x"})
+        assert any("book, work, or author" in e for e in errors)
+
+    def test_boolean_version_is_rejected(self):
+        # bool is an int subclass; True must not coerce to version 1.
+        errors = validate_edit_submission({"key": "/books/OL1M", "v": True, "title": "x"})
+        assert any("version" in e for e in errors)
+
+
+class TestParseVersion:
+    @pytest.mark.parametrize(
+        ("v", "expected"),
+        [
+            pytest.param(3, 3, id="int-3"),
+            pytest.param("3", 3, id="str-3"),
+            pytest.param(0, 0, id="int-0"),
+            pytest.param("0", 0, id="str-0"),
+        ],
+    )
+    def test_accepts_ints_and_digit_strings(self, v, expected):
+        assert _parse_version(v) == expected
+
+    @pytest.mark.parametrize(
+        "v",
+        [
+            pytest.param(True, id="bool-true"),
+            pytest.param(False, id="bool-false"),
+            pytest.param(3.0, id="float"),
+            pytest.param("3.0", id="float-str"),
+            pytest.param("latest", id="word"),
+            pytest.param(None, id="none"),
+            pytest.param(-1, id="neg-int"),
+            pytest.param("-1", id="neg-str"),
+            pytest.param("", id="empty"),
+            pytest.param("  3", id="padded"),
+        ],
+    )
+    def test_rejects_non_integers(self, v):
+        assert _parse_version(v) is None
+
 
 class TestExtractPatch:
     def test_strips_control_and_structural_fields(self):
@@ -101,6 +148,13 @@ class TestApplyPatch:
         doc = {"key": "/books/OL1M", "title": "T"}
         assert apply_patch(doc, {"subtitle": "S"})["subtitle"] == "S"
 
+    def test_reference_is_not_duplicated_when_surrounding_fields_differ(self):
+        # Live author carries extra fields; patch supplies the bare reference.
+        # They denote the same author (same key) and must not duplicate.
+        doc = {"key": "/works/OL1W", "authors": [{"type": "/type/author_role", "author": {"key": "/authors/OL1A"}, "key": "/authors/OL1A"}]}
+        merged = apply_patch(doc, {"authors": [{"key": "/authors/OL1A"}]})
+        assert len(merged["authors"]) == 1
+
 
 @pytest.mark.usefixtures("mock_site")
 class TestApplyEditSubmission:
@@ -134,6 +188,19 @@ class TestApplyEditSubmission:
     def test_missing_target_is_reported(self, mock_site):
         result = apply_edit_submission({"key": "/books/OL404M", "v": "1", "title": "x"})
         assert result.outcome == EditOutcome.MISSING
+
+    def test_redirect_target_is_not_editable(self, mock_site):
+        # A redirect can share a /books/ key; patching it would corrupt it.
+        mock_site.save({"key": "/books/OL1M", "type": {"key": "/type/redirect"}, "location": "/books/OL2M"})
+        result = apply_edit_submission({"key": "/books/OL1M", "v": "1", "title": "x"})
+        assert result.outcome == EditOutcome.INVALID
+        assert mock_site.get("/books/OL1M").type.key == "/type/redirect"  # untouched
+        assert mock_site.get("/books/OL1M").revision == 1
+
+    def test_deleted_target_is_not_editable(self, mock_site):
+        mock_site.save({"key": "/books/OL1M", "type": {"key": "/type/delete"}})
+        result = apply_edit_submission({"key": "/books/OL1M", "v": "1", "title": "x"})
+        assert result.outcome == EditOutcome.INVALID
 
     def test_invalid_submission_is_reported_and_not_saved(self, mock_site):
         self._save(mock_site, "/books/OL1M", title="Old")

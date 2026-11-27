@@ -204,7 +204,12 @@ class importapi:
                 return self.error("edit-invalid", "; ".join(errors))
             return json.dumps({"success": True, "edit": {"key": record["key"], "status": "preview"}})
 
-        result = apply_edit_submission(record)
+        try:
+            result = apply_edit_submission(record)
+        except ClientException as e:
+            return self.error("bad-request", **json.loads(e.json))
+        except Exception as e:
+            return self.error("edit-apply-error", repr(e))
         if result.outcome == EditOutcome.APPLIED:
             return json.dumps({"success": True, "edition": {"key": result.key, "status": "modified"}})
         if result.outcome == EditOutcome.CONFLICT:

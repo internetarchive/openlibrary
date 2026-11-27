@@ -60,6 +60,15 @@ RESERVED_FIELDS: frozenset[str] = frozenset(
 )
 
 
+# This prototype only accepts edits to catalog records (books, works, authors).
+# Everything else -- accounts (/people/), types, templates, redirects, deleted
+# docs -- is out of scope and must not be patchable just because a revision
+# number happens to match. The per-field / per-type trust model is a follow-up
+# (see the issue's "Trust model"); this is the coarse safety floor.
+EDITABLE_KEY_PREFIXES: tuple[str, ...] = ("/books/", "/works/", "/authors/")
+EDITABLE_TYPES: frozenset[str] = frozenset({"/type/edition", "/type/work", "/type/author"})
+
+
 class EditOutcome(StrEnum):
     """The result of trying to apply an edit submission to the live catalog."""
 
@@ -91,6 +100,22 @@ def extract_patch(record: dict) -> dict:
     return {field: value for field, value in record.items() if field not in RESERVED_FIELDS}
 
 
+def _parse_version(v: object) -> int | None:
+    """Coerce a base version ``v`` to a non-negative int, or None if it is not one.
+
+    Accepts an int or an all-digits string (``3`` or ``"3"``). Rejects booleans,
+    floats, and non-integer strings (``"3.0"``, ``"latest"``) so a malformed
+    version cannot silently coerce to the wrong revision.
+    """
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return v if v >= 0 else None
+    if isinstance(v, str) and v.isdigit():
+        return int(v)
+    return None
+
+
 def validate_edit_submission(record: dict) -> list[str]:
     """Return a list of human-readable validation errors (empty list = valid).
 
@@ -102,20 +127,42 @@ def validate_edit_submission(record: dict) -> list[str]:
     key = record.get("key")
     if not isinstance(key, str) or not key.startswith("/"):
         errors.append("edit submission must have a valid `key` (e.g. /books/OL123M)")
+    elif not key.startswith(EDITABLE_KEY_PREFIXES):
+        errors.append(f"edit submission target must be a book, work, or author (one of {', '.join(EDITABLE_KEY_PREFIXES)})")
 
-    v = record.get("v")
-    if v is None:
-        errors.append("edit submission must specify the base version `v` it was authored against")
-    else:
-        try:
-            int(v)
-        except TypeError, ValueError:
-            errors.append("edit submission `v` must be an integer version number")
+    if _parse_version(record.get("v")) is None:
+        errors.append("edit submission must specify an integer base version `v`")
 
     if not extract_patch(record):
         errors.append("edit submission must change at least one field")
 
     return errors
+
+
+def _type_key(doc: dict) -> str | None:
+    """The ``/type/...`` key from a doc's serialised dict (``doc.dict()``).
+
+    In that form ``type`` is ``{"key": "/type/edition"}`` or a bare string --
+    not a lazy Thing -- so reading it never triggers a fetch.
+    """
+    doc_type = doc.get("type")
+    if isinstance(doc_type, str):
+        return doc_type
+    if isinstance(doc_type, dict):
+        return doc_type.get("key")
+    return None
+
+
+def _same_entry(a: object, b: object) -> bool:
+    """Whether two list members denote the same thing.
+
+    Reference dicts (``{"key": "/authors/OL1A"}``) are compared by their ``key``
+    so a reference is not duplicated when the live value and the patch value
+    carry different surrounding fields; everything else by equality.
+    """
+    if isinstance(a, dict) and isinstance(b, dict) and "key" in a and "key" in b:
+        return a["key"] == b["key"]
+    return a == b
 
 
 def apply_patch(doc: dict, patch: dict) -> dict:
@@ -140,7 +187,7 @@ def apply_patch(doc: dict, patch: dict) -> dict:
         if isinstance(value, list) and isinstance(existing, list):
             combined = list(existing)
             for entry in value:
-                if entry not in combined:
+                if not any(_same_entry(entry, present) for present in combined):
                     combined.append(entry)
             merged[field] = combined
         else:
@@ -173,7 +220,15 @@ def apply_edit_submission(record: dict, comment: str | None = None) -> EditResul
     if doc is None:
         return EditResult(EditOutcome.MISSING, key=key, message=f"no document at {key}")
 
-    if (live_version := doc.revision) != base_version:
+    doc_dict = doc.dict()
+
+    # Guard the document type too, not just the key prefix: a redirect or a
+    # deleted record can live under /books/ or /works/, and patching one would
+    # corrupt it. Only genuine editions/works/authors are editable here.
+    if (doc_type := _type_key(doc_dict)) not in EDITABLE_TYPES:
+        return EditResult(EditOutcome.INVALID, key=key, message=f"{key} is not an editable record (type {doc_type})")
+
+    if (live_version := doc_dict.get("revision")) != base_version:
         return EditResult(
             EditOutcome.CONFLICT,
             key=key,
@@ -181,7 +236,7 @@ def apply_edit_submission(record: dict, comment: str | None = None) -> EditResul
         )
 
     patch = extract_patch(record)
-    merged = apply_patch(doc.dict(), patch)
+    merged = apply_patch(doc_dict, patch)
 
     comment = comment or f"BookWorm edit submission (base v{base_version})"
     web.ctx.site.save(merged, comment=comment, action="edit-book")

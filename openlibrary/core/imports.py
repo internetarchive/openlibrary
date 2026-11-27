@@ -367,7 +367,15 @@ class ImportItem(web.storage):
         )
 
         comment = f"BookWorm edit submission (batch {self.batch_id}, base v{record.get('v')})"
-        result = apply_edit_submission(record, comment=comment)
+        try:
+            result = apply_edit_submission(record, comment=comment)
+        except Exception:
+            # A save can raise (permission denied, infogami ClientException,
+            # network). Mark the row failed rather than letting it propagate and
+            # strand the row at `pending`, re-attempted every drain.
+            logger.exception("edit submission apply raised for %s", record.get("key"))
+            self.set_status("failed", error="edit-apply-error")
+            return None
 
         if result.outcome == EditOutcome.APPLIED:
             self.set_status("modified", ol_key=result.key)
