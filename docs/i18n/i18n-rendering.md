@@ -60,8 +60,7 @@ file consumes the strings and which JS constant holds the English defaults
 },
 ```
 
-(Templetor templates do the same with a `_i18n.html` partial that builds the
-dict and emits it with `$json_encode` — see `type/edition/notes_modal_i18n.html`.)
+(Templetor templates do the same: build the dict with `_()` and emit it with `$json_encode`.)
 
 **2. Drop the JSON into a `data-*` attribute** on the element your JS already targets:
 
@@ -173,7 +172,6 @@ for readability, with multiple HTML elements.
 |------|---------|
 | `openlibrary/core/jinja.py` | Jinja environment setup; `install_gettext_callables` |
 | `openlibrary/i18n/` | `messages.pot` + per-locale `<lang>/` directories |
-| `openlibrary/templates/type/edition/notes_modal_i18n.html` | Reference Templetor `_i18n.html` partial |
 | `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using all i18n patterns |
 | `openlibrary/tests/core/test_jinja.py` | `test_translations_via_gettext_callables` — all four paths |
 
