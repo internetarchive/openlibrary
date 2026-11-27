@@ -93,8 +93,7 @@
             <div class="ol-return-wrapper cta-button-group">
                 <form action="/borrow/ia/{{ loan.get('ocaid') }}"
                       method="post"
-                      class="return-form"
-                      data-i18n="{{ return_confirm_i18n }}">
+                      class="return-form">
                     <input type="hidden" name="action" value="return" />
                     <input type="hidden" name="redirect" value="{{ request_fullpath }}" />
                     <button type="submit"

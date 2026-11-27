@@ -1,9 +1,5 @@
 $def with (form)
 
-$ i18n_strings = {
-    $ "loading_text": _("Loading...")
-    $ }
-
 $putctx("cssfile", "signup")
 
 $var title: $_("Log In")
@@ -44,7 +40,7 @@ $if get_ol_env().LOCAL_DEV and not ctx.user:
     $else:
         <ol-otp-login redirect="$(form.redirect.value or '/account/books')"></ol-otp-login>
         <div class="ol-signup-form__big-or">$_('OR')</div>
-        <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
+        <form id="register" class="login olform" name="login" method="post">
             $if form.note:
                 <div class="flash-messages">
                     <div class="error ol-signup-form__info-box">

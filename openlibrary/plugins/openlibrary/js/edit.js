@@ -438,13 +438,11 @@ export function initEditExcerpts() {
             prefix: 'work--excerpts'
         },
         validate: function (data) {
-            const i18nStrings = JSON.parse(document.querySelector('#excerpts-errors').dataset.i18n);
-
             if (!data.excerpt) {
-                return error('#excerpts-errors', '#excerpts-excerpt', i18nStrings['empty_excerpt']);
+                return error('#excerpts-errors', '#excerpts-excerpt', _('Please provide an excerpt.'));
             }
             if (data.excerpt.length > 2000) {
-                return error('#excerpts-errors', '#excerpts-excerpt', i18nStrings['over_wordcount']);
+                return error('#excerpts-errors', '#excerpts-excerpt', _('That excerpt is too long.'));
             }
             $('#excerpts-errors').hide();
             $('#excerpts-excerpt').val('');
@@ -482,23 +480,22 @@ export function initEditLinks() {
             prefix: $('#links').data('prefix')
         },
         validate: function (data) {
-            const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
             const url = data.url.trim();
 
             if (data.title.trim() === '') {
-                $('#link-errors').html(i18nStrings['empty_label']);
+                $('#link-errors').html(_('Please provide a label.'));
                 $('#link-errors').removeClass('hidden');
                 $('#link-label').trigger('focus');
                 return false;
             }
             if (url === '') {
-                $('#link-errors').html(i18nStrings['empty_url']);
+                $('#link-errors').html(_('Please provide a URL.'));
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').trigger('focus');
                 return false;
             }
             if (!isValidURL(url)) {
-                $('#link-errors').html(i18nStrings['invalid_url']);
+                $('#link-errors').html(_('Please enter a valid URL.'));
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').trigger('focus');
                 return false;
