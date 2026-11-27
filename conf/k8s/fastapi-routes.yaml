@@ -16,6 +16,7 @@ fastapiRoutes:
     - GET /search/subjects
     - GET /stats/merges
     - GET /status
+    - GET /tag/add
     - GET /tags
     - GET /tasks/admin
     - GET POST /tasks/admin/new

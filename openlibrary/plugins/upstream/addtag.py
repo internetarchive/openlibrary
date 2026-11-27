@@ -6,6 +6,7 @@ from markupsafe import escape
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
+from infogami.utils.context import context
 from infogami.utils.view import add_flash_message, public, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.core.jinja import render_jinja_template
@@ -92,6 +93,11 @@ def find_match(name_or_slug: str, tag_type: str) -> str:
     return matches[0] if matches else ""
 
 
+def can_create_tag(user) -> bool:
+    """Whether the given user can create a new tag."""
+    return bool(user and (user.is_admin() or user.is_curator()))
+
+
 def render_tags_index(*, tags, page: int, has_next: bool, tag_type: str | None) -> str:
     """The body of /tags, rendered by both servers."""
     return render_jinja_template(
@@ -103,6 +109,61 @@ def render_tags_index(*, tags, page: int, has_next: bool, tag_type: str | None) 
         tag_types=TAG_TYPES,
         subject_tag_types=SUBJECT_SUB_TYPES,
     )
+
+
+def render_tag_form(
+    *,
+    name: str = "",
+    slugs: str = "",
+    tag_description: str = "",
+    body: str = "",
+    tag_type: str = "",
+    deputy: str = "",
+    is_editing: bool = False,
+    key: str = "",
+    redirect: str | None = None,
+    can_delete: bool = False,
+    comment: str | None = None,
+) -> str:
+    """The body of /tag/add and /tags/OLnT/edit, rendered by both servers."""
+    return render_jinja_template(
+        "type/tag/form.html.jinja",
+        name=name,
+        slugs=slugs,
+        tag_description=tag_description,
+        body=body,
+        tag_type=tag_type,
+        deputy=deputy,
+        is_editing=is_editing,
+        key=key,
+        redirect=redirect,
+        can_delete=can_delete,
+        comment=comment,
+        tag_types=TAG_TYPES,
+    )
+
+
+def _render_tag_form(i, *, is_editing: bool = False, key: str = "", redirect: str | None = None, can_delete: bool = False, comment: str | None = None):
+    """Render the tag form for a web.py handler, whose layout reads the title off the result."""
+    slugs = i.get("slugs") or ""
+    if isinstance(slugs, (list, tuple)):
+        slugs = ", ".join(slugs)
+    body = render_tag_form(
+        name=i.get("name") or "",
+        slugs=slugs,
+        tag_description=i.get("tag_description") or "",
+        body=i.get("body") or "",
+        tag_type=i.get("tag_type") or "",
+        deputy=i.get("deputy") or "",
+        is_editing=is_editing,
+        key=key,
+        redirect=redirect,
+        can_delete=can_delete,
+        comment=comment,
+    )
+    context["robots"] = "noindex,nofollow"
+    title = _("Edit tag") if is_editing else _("Add a tag")
+    return web.template.TemplateResult(__body__=body, title=escape(title))
 
 
 class addtag(delegate.page):
@@ -117,15 +178,15 @@ class addtag(delegate.page):
         if not self.has_permission(patron):
             raise web.unauthorized(message="Permission denied to add tags")
 
-        i = web.input(name=None, type=None, sub_type=None)
+        i = web.input(name=None)
 
-        return render_template("type/tag/form", i)
+        return _render_tag_form(i)
 
     def has_permission(self, user) -> bool:
         """
         Returns True if the given user can create a new Tag
         """
-        return user and (user.is_admin() or user.is_curator())
+        return can_create_tag(user)
 
     def POST(self):
         i = web.input(
@@ -155,7 +216,7 @@ class addtag(delegate.page):
                     "error",
                     f'A tag with slug "{slug}" and the same type already exists: <a href="{match}">{match}</a>',
                 )
-                return render_template("type/tag/form", i)
+                return _render_tag_form(i)
 
         tag = create_tag(i)
         raise safe_seeother(tag.key)
@@ -182,7 +243,15 @@ class tag_edit(delegate.page):
             )
 
         i = web.input(redir=None)
-        return render_template("type/tag/form", tag, redirect=i.redir)
+        user = get_current_user()
+        return _render_tag_form(
+            tag,
+            is_editing=True,
+            key=tag.key,
+            redirect=i.redir,
+            can_delete=bool(user and user.is_super_librarian_or_higher()),
+            comment=getattr(tag, "comment_", None),
+        )
 
     def POST(self, key):
         tag = site.get().get(key)
@@ -204,7 +273,7 @@ class tag_edit(delegate.page):
                 raise safe_seeother(key)
             except (ClientException, ValidationException) as e:
                 add_flash_message("error", str(e))
-                return render_template("type/tag/form", tag, redirect=i.redir)
+                return _render_tag_form(tag, is_editing=True, key=key, redirect=i.redir)
 
         formdata = trim_doc(i)
         if formdata:
@@ -219,7 +288,7 @@ class tag_edit(delegate.page):
                         "error",
                         f'A tag with slug "{slug}" and the same type already exists: <a href="{match}">{match}</a>',
                     )
-                    return render_template("type/tag/form", formdata, redirect=i.redir)
+                    return _render_tag_form(formdata, is_editing=True, key=key, redirect=i.redir)
 
         try:
             tag.update(formdata)
@@ -227,7 +296,7 @@ class tag_edit(delegate.page):
             raise safe_seeother(i.redir or key)
         except (ClientException, ValidationException) as e:
             add_flash_message("error", str(e))
-            return render_template("type/tag/form", tag, redirect=i.redir)
+            return _render_tag_form(tag, is_editing=True, key=key, redirect=i.redir)
 
     def validate(self, data, tag_type):
         if tag_type in SUBJECT_SUB_TYPES:

@@ -1,11 +1,13 @@
-"""`/tags`, the list of curated tags."""
+"""`/tags` and `/tag/add`, the list of curated tags and the form that adds one."""
 
 from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi.responses import RedirectResponse
 
+from openlibrary.accounts import get_current_user
 from openlibrary.core.helpers import safeint
 from openlibrary.core.shell.request import PageMeta
 from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
@@ -40,4 +42,20 @@ def tags_index(
     return SitePage(
         addtag.render_tags_index(tags=tags, page=page_num, has_next=has_next, tag_type=tag_type),
         page=PageMeta(title=_("Tags")),
+    )
+
+
+@pages.get("/tag/add")
+def add_tag(name: str = "") -> Response:
+    # TODO: Retire the web.py `addtag.GET` handler (it still serves /tag/add in
+    # production) once production routes it here. The POST stays on web.py.
+    if not (patron := get_current_user()):
+        return RedirectResponse("/account/login?redirect=/tag/add", status_code=status.HTTP_303_SEE_OTHER)
+
+    if not addtag.can_create_tag(patron):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Permission denied to add tags")
+
+    return SitePage(
+        addtag.render_tag_form(name=name),
+        page=PageMeta(title=_("Add a tag"), robots="noindex,nofollow"),
     )

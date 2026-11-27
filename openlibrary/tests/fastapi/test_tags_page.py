@@ -1,4 +1,4 @@
-"""`/tags` on FastAPI, and its web.py handler.
+"""`/tags` and `/tag/add` on FastAPI, and their web.py handlers.
 
 Both servers render the same Jinja templates until ops routes these paths to
 FastAPI in production. The shell around the pages is tested in
@@ -6,6 +6,7 @@ FastAPI in production. The shell around the pages is tested in
 """
 
 import re
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -100,6 +101,58 @@ def test_tags_index_offers_the_next_page(client):
     response = client.get("/tags")
 
     assert 'href="/tags?page=2">Next »</a>' in response.text
+
+
+def test_add_tag_sends_a_visitor_to_login(client):
+    response = client.get("/tag/add", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/account/login?redirect=/tag/add"
+
+
+def test_add_tag_page_requires_a_curator(client, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: False))
+
+    response = client.get("/tag/add")
+
+    assert response.status_code == 401
+
+
+def test_add_tag_page_prefills_the_name(client, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: True))
+
+    response = client.get("/tag/add?name=Cooking")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "<title>Add a tag | Open Library</title>" in html
+    assert 'content="noindex,nofollow"' in html
+    assert 'value="Cooking"' in html
+    assert '<option value="">Select</option>' in html
+    # Nothing is being edited, so no databar and no delete button
+    assert "Delete Record" not in html
+
+
+def test_edit_form_fills_in_the_tag_and_its_delete_button(request_context_fixture):
+    request_context_fixture(lang="en")
+    body = addtag.render_tag_form(
+        name="Horror",
+        slugs="horror, scary",
+        tag_description="Scary stories.",
+        body="A scary story.",
+        tag_type="genre",
+        is_editing=True,
+        key="/tags/OL1T",
+        can_delete=True,
+        comment="Adding a slug",
+    )
+
+    assert "<title>" not in body  # the layout adds it, from the handler's title
+    assert 'value="horror, scary"' in body
+    assert 'href="/tags/OL1T?m=history"' in body
+    assert "Delete Record" in body
+    assert 'value="Adding a slug"' in body
+    assert "By saving a change to this wiki" in body
 
 
 def test_webpy_tags_index_renders_the_same_body(monkeypatch, request_context_fixture):

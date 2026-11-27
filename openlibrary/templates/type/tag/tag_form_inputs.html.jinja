@@ -1,0 +1,71 @@
+{# Takes `name`, `slugs` (comma-separated), `tag_description`, `body`, `tag_type`, `deputy` and `tag_types`. #}
+<div class="formElement">
+    <div class="label">
+        <label for="tag_name">{{ _("Tag Name") }}</label>
+        *<span class="tip">{{ _("Required field") }}</span>
+    </div>
+    <div class="input">
+        <input type="text" name="name" id="tag_name" value="{{ name }}" required />
+        <span class="tip">{{ _("Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\") ") }}</span>
+    </div>
+</div>
+<div class="formElement">
+    <div class="label">
+        <label for="tag_slugs">{{ _("Tag Slugs") }}</label>
+        *<span class="tip">{{ _("Required field") }}</span>
+    </div>
+    <div class="input">
+        <input type="text" name="slugs" id="tag_slugs" value="{{ slugs }}" />
+        <span class="tip">{{ _("Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\"") }}</span>
+    </div>
+</div>
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="tag_description">{{ _("Tag Description") }}</label>
+            *<span class="tip">{{ _("Required field") }}</span>
+        </div>
+        <div class="input">
+            <textarea id="tag_description"
+                      name="tag_description"
+                      rows="5"
+                      cols="80"
+                      required>{{ tag_description }}</textarea>
+        </div>
+    </div>
+</fieldset>
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="page_body">{{ _("Page Body") }}</label>
+            *<span class="tip">{{ _("Required field") }}</span>
+        </div>
+        <div class="input">
+            <textarea id="page_body" name="body">{{ body }}</textarea>
+            <ol-markdown-editor target-id="page_body">
+            </ol-markdown-editor>
+        </div>
+    </div>
+</fieldset>
+<div class="formElement">
+    <div class="label">
+        <label for="tag_type">{{ _("Tag type") }}</label>
+        *<span class="tip">{{ _("Required field") }}</span>
+    </div>
+    <div class="input">
+        <select name="tag_type" required aria-label="Select a tag type">
+            <option value="">{{ _("Select") }}</option>
+            {% for t_type in tag_types %}
+                <option value="{{ t_type }}"{{ ' selected' if t_type == tag_type else '' }}>{{ t_type }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<div class="formElement">
+    <div class="label">
+        <label for="deputy">{{ _("Tag Deputy") }}</label>
+    </div>
+    <div class="input">
+        <input type="text" name="deputy" id="deputy" value="{{ deputy }}">
+    </div>
+</div>
