@@ -126,8 +126,10 @@ MONTH_NAMES: dict[str, int] = {
     )
     for name in names
 }
-# "B.C."/"BCE", French "av. J.-C.", Spanish/Italian "a.C."
-_BC_RE = re.compile(r"\bb\.?\s?c\.?(?:e\.?)?(?!\w)|\bav\.?\s*j\b|(?<!\w)a\.\s?c\.?(?!\w)", re.IGNORECASE)
+# Era markers, allowed to touch the number ("77BC"). BC: "B.C."/"BCE", French
+# "av. J.-C.", Spanish/Italian "a.C.", Russian "до н. э.". AD: "A.D."/"CE", Spanish "d.C."
+_BC_RE = re.compile(r"(?<![^\W\d_])(?:b\.?\s?c\.?(?:e\.?)?|av\.?\s*j|a\.\s?c\.?|до\s*н\.?\s*э\.?)(?![^\W\d_])", re.IGNORECASE)
+_AD_RE = re.compile(r"(?<![^\W\d_])(?:a\.?\s?d|c\.?\s?e|d\.?\s?c)\.?(?![^\W\d_])", re.IGNORECASE)
 
 
 def format_solr_date(year: int, month: int = 1, day: int = 1) -> str:
@@ -141,11 +143,10 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
     """Best-effort parse of a free-text, user-entered date (e.g. an author's
     birth date) into a Solr date string (e.g. ``1842-03-01T00:00:00Z``), for sorting.
 
-    Missing month/day default to January 1st; see format_solr_date for BC
-    years. Returns None
-    when no year can be identified unambiguously (e.g. "19th cent.", "19..",
-    "12/24") or the year is in the future, so the record sorts with the
-    undated ones.
+    Missing month/day default to January 1st, and partial years to the start
+    of their range ("19xx" and "20th century" -> 1900). See format_solr_date
+    for BC years. Returns None when no year can be identified unambiguously
+    (e.g. "12/24", "ca 18"), so the record sorts with the undated ones.
 
     >>> parse_user_entered_date("10 Jan 2000")
     '2000-01-10T00:00:00Z'
@@ -155,52 +156,84 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
     if not date_str:
         return None
     is_bc = bool(_BC_RE.search(date_str))
-    text = _BC_RE.sub(" ", date_str)
+    is_ad = bool(_AD_RE.search(date_str))
+    text = _AD_RE.sub(" ", _BC_RE.sub(" ", date_str))
     month = day = None
 
-    if m := re.search(r"(?<!\d)(\d{4})-(\d{2})(?:-(\d{2}))?(?!\d)", text):
-        year = int(m.group(1))
-        month = int(m.group(2))
-        day = int(m.group(3)) if m.group(3) else None
-    elif m := re.search(r"(?<!\d)\d{4}(?!\d)", text):
-        year = int(m.group())
-        rest = text[: m.start()] + " " + text[m.end() :]
+    iso_match = re.search(r"(?<!\d)(\d{4})-(\d{2})(?:-(\d{2}))?(?!\d)", text)
+    year_match = re.search(r"(?<!\d)\d{4}(?!\d)", text)
+    if not (iso_match or year_match):
+        if (partial_year := _parse_partial_year(text, is_bc)) is not None:
+            return format_solr_date(partial_year)
+        year_match = re.search(r"(?<!\w)[1-9]\d{2}(?!\w)", text)
+
+    if iso_match:
+        year = int(iso_match.group(1))
+        month = int(iso_match.group(2))
+        day = int(iso_match.group(3)) if iso_match.group(3) else None
+    elif year_match:
+        year = int(year_match.group())
+        rest = text[: year_match.start()] + " " + text[year_match.end() :]
         months = {MONTH_NAMES[w] for w in re.findall(r"[^\W\d_]+", rest.lower()) if w in MONTH_NAMES}
         if len(months) == 1:
             month = months.pop()
             if (days := re.findall(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)", rest)) and len(days) == 1:
                 day = int(days[0])
     elif m := re.fullmatch(
-        # A bare 1-3 digit year with qualifiers/punctuation, e.g. "ca. 673?", "(584)", "65 A.D."
-        r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died|a\.?d|c\.?e|d\.?c)\b|[\s?.,;:()\[\]])*"
-        r"(\d{1,3})"
-        r"(?:\b(?:a\.?d|c\.?e|d\.?c)\b|\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
+        # A bare 1-2 digit year with qualifiers/punctuation, e.g. "ca. 67?" or "(58)"
+        r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died)\b|[\s?.,;:()\[\]])*"
+        r"(\d{1,2})"
+        r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
         text.strip(),
         re.IGNORECASE,
     ):
         year = int(m.group(1))
-        if not is_bc:
-            # A bare 1-2 digit number is more likely a truncated year ("95") or
-            # a day than an ancient year, unless it's marked as such; and
-            # 10-20 is usually a truncated century ("ca 18") unless marked AD
-            is_ad = re.search(r"\b(?:a\.?d|c\.?e|d\.?c)\b", text, re.IGNORECASE)
-            if year < 100 and not is_ad and (10 <= year <= 20 or not re.search(r"[a-z]", text, re.IGNORECASE)):
-                return None
-            # "198?" is far more often an uncertain decade (1980s) than 198 AD
-            if 100 <= year <= 202 and re.search(r"(?<!\d)\d{3}\?", text):
-                year *= 10
+        # Without an era, a bare 1-2 digit number is more likely a truncated
+        # year ("95") or a day than an ancient year, unless it's marked as
+        # such; and 10-20 is usually a truncated century ("ca 18")
+        if not (is_bc or is_ad) and (10 <= year <= 20 or not re.search(r"[a-z]", text, re.IGNORECASE)):
+            return None
     else:
         return None
 
     if is_bc:
         year = 1 - year
-    elif year == 0 or year > current_year():
+    elif year == 0:
         return None
     try:
         dt.date(2000, month or 1, day or 1)  # validate month/day; 2000 is a leap year
     except ValueError:
         month = day = None
     return format_solr_date(year, month or 1, day or 1)
+
+
+def _parse_partial_year(text: str, is_bc: bool) -> int | None:
+    """The first year of a century ("18th cent.", "4th cent. B.C.") or of a
+    year with unknown digits ("19xx", "19..", "197-", "198?"), in astronomical
+    numbering."""
+    ordinal = r"(\d{1,2})(?:st|nd|rd|th|d)\.?"
+    has_month = any(w in MONTH_NAMES for w in re.findall(r"[^\W\d_]+", text.lower()))
+    if (
+        (
+            # Takes the first of e.g. "16th/17th cent." or "4th or 3rd cent. B.C."
+            m := re.search(rf"(?<!\d){ordinal}(?:\s*(?:/|-|or)\s*{ordinal})?\s*(?:cent|c\b)", text, re.IGNORECASE)
+        )
+        or (
+            # A lone ordinal ("active 17th"), unless it's a day ("July 4th")
+            not has_month and (m := re.search(rf"(?<!\d){ordinal}\s*$", text.strip(), re.IGNORECASE))
+        )
+        or (m := re.search(r"(?<!\d)(\d{1,2})\.?\s*cent", text, re.IGNORECASE))
+    ):
+        century = int(m.group(1))
+        return 1 - century * 100 if is_bc else max((century - 1) * 100, 1)
+    if not is_bc and (m := re.search(r"(?<!\d)(\d{1,3})([xX?._\-]+)(?!\d)", text)):
+        digits, placeholders = m.groups()
+        # "983?" is an uncertain year 983 rather than 9830-9839
+        if placeholders.strip("?") == "" and len(digits) == 3 and not digits.startswith(("1", "20")):
+            return None
+        if len(digits) + len(placeholders) >= 4:
+            return int(digits.ljust(4, "0"))
+    return None
 
 
 @public
