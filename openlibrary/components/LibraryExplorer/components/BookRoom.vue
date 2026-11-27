@@ -55,12 +55,12 @@
                         </main>
                         <div class="sign-toolbar">
                             <button v-if="breadcrumbs.length" @click="goUpTo(breadcrumbs.length - 1)">
-                                <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
+                                <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">{{ strings.upLevel }}</span>
                             </button>
                             <!-- Gap -->
                             <div style="flex: 1" />
-                            <button v-if="bookshelf.children && bookshelf.children[0].children" title="Expand" @click="expandBookshelf(bookshelf)">
-                                <ExpandIcon /> <span class="label">See more</span>
+                            <button v-if="bookshelf.children && bookshelf.children[0].children" :title="strings.expand" @click="expandBookshelf(bookshelf)">
+                                <ExpandIcon /> <span class="label">{{ strings.seeMore }}</span>
                             </button>
                         </div>
                     </div>
@@ -94,6 +94,7 @@ import { debounce } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
 import { nextTick } from 'vue';
 import { decrementStringSolr, hierarchyFind, testLuceneSyntax, pollUntilTruthy } from '../utils.js';
 import CONFIGS from '../../configs';
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
 
 /**
@@ -166,6 +167,11 @@ export default {
         const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
 
         return {
+            strings: {
+                upLevel: _('Go up'),
+                expand: _('Expand'),
+                seeMore: _('See more')
+            },
             activeRoom: jumpToData?.room || this.classification.root,
             breadcrumbs: jumpToData?.breadcrumbs || [],
             jumpToData,

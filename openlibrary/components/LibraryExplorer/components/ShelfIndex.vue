@@ -2,7 +2,7 @@
     <ol class="shelf-label--subclasses">
         <li>
             <a :class="{ selected: index === 'root' }" href="#" @click.prevent="index = 'root'">
-                All {{ node.short }}
+                {{ allLabel }}
                 <span class="shelf-label--subclasses--count">{{ node.count }}</span>
             </a>
         </li>
@@ -16,6 +16,8 @@
 </template>
 
 <script>
+import { _, fmt } from '../../../plugins/openlibrary/js/i18n.js';
+
 export default {
     props: {
         node: {
@@ -25,6 +27,11 @@ export default {
     },
 
     computed: {
+        allLabel() {
+            // NOTE: Shows all books in a classification range; %(short)s is its number, e.g. 100.
+            return fmt(_('All %(short)s'), { short: this.node.short });
+        },
+
         index: {
             get() {
                 return typeof this.node.position === 'undefined' || !this.node.children ? 'root' : this.node.position;

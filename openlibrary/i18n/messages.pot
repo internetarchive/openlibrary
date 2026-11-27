@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: account.html account/notifications.html account/privacy.html shell/header.html.jinja type/user/view.html
+#: LibraryExplorer/components/LibraryToolbar.vue account.html account/notifications.html account/privacy.html shell/header.html.jinja type/user/view.html
 msgid "Settings"
 msgstr ""
 
@@ -537,7 +537,7 @@ msgstr ""
 msgid "Continue without waiting"
 msgstr ""
 
-#: BulkSearch/components/BulkSearchControls.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
+#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -947,7 +947,7 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search-modal/constants.js search/inside.html.jinja type/edition/view.html type/work/view.html work_search.html
+#: LibraryExplorer/components/LibraryToolbar.vue openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search-modal/constants.js search/inside.html.jinja type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
@@ -1561,11 +1561,11 @@ msgstr ""
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
 msgstr ""
 
-#: account/privacy.html admin/people/view.html edit.js
+#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html edit.js
 msgid "Yes"
 msgstr ""
 
-#: account/privacy.html admin/people/view.html books/edit/edition.html edit.js
+#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html books/edit/edition.html edit.js
 msgid "No"
 msgstr ""
 
@@ -1766,7 +1766,7 @@ msgstr ""
 msgid "Set %(year_span)s reading goal"
 msgstr ""
 
-#: account/sidebar.html openlibrary/plugins/worksearch/sort_menu.py type/user/view.html
+#: LibraryExplorer/components/LibraryToolbar.vue account/sidebar.html openlibrary/plugins/worksearch/sort_menu.py type/user/view.html
 msgid "Reading Log"
 msgstr ""
 
@@ -3397,7 +3397,7 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
-#: BulkSearch/components/BookCard.vue MergeUI/MergeRowEditionField.vue SearchResultsWork.html books/check.html ile/utils/SelectionManager/SelectionManager.js merge/authors.html openlibrary/contribute/manage.py
+#: BulkSearch/components/BookCard.vue LibraryExplorer/components/Shelf.vue MergeUI/MergeRowEditionField.vue SearchResultsWork.html books/check.html ile/utils/SelectionManager/SelectionManager.js merge/authors.html openlibrary/contribute/manage.py
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -4049,7 +4049,7 @@ msgstr ""
 msgid "You need to give a value to CLASS."
 msgstr ""
 
-#: books/edit/edition.html type/edition/view.html type/work/view.html
+#: LibraryExplorer/components/LibraryToolbar.vue books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Classifications"
 msgstr ""
 
@@ -5181,7 +5181,7 @@ msgstr ""
 msgid "%(genre)s subgenres"
 msgstr ""
 
-#: home/genre_shelf.html.jinja merge_request_table/table_header.html
+#: LibraryExplorer/components/LibraryToolbar.vue home/genre_shelf.html.jinja merge_request_table/table_header.html
 msgid "Newest"
 msgstr ""
 
@@ -5949,11 +5949,12 @@ msgstr ""
 msgid "Sort ▾"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#. A tab that opens the options for ordering the books shown.
+#: LibraryExplorer/components/LibraryToolbar.vue merge_request_table/table_header.html
 msgid "Sort"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#: LibraryExplorer/components/LibraryToolbar.vue merge_request_table/table_header.html
 msgid "Oldest"
 msgstr ""
 
@@ -6399,7 +6400,7 @@ msgstr ""
 msgid "Sort results"
 msgstr ""
 
-#: search/sort_options.html.jinja
+#: LibraryExplorer/components/LibraryToolbar.vue search/sort_options.html.jinja
 msgid "Shuffle"
 msgstr ""
 
@@ -8112,7 +8113,7 @@ msgstr ""
 msgid "Something went wrong."
 msgstr ""
 
-#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html.jinja
+#: LibraryExplorer/components/OLCarousel.vue PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html.jinja
 msgid "Retry"
 msgstr ""
 
@@ -8661,6 +8662,14 @@ msgstr ""
 msgid "An identifier for %(name)s already exists."
 msgstr ""
 
+#: LibraryExplorer.vue
+msgid "Dewey Decimal Classification"
+msgstr ""
+
+#: LibraryExplorer.vue
+msgid "Library of Congress Classification"
+msgstr ""
+
 #: MergeUI.vue
 msgid "Do Merge"
 msgstr ""
@@ -8845,6 +8854,228 @@ msgstr ""
 
 #: IdentifiersInput/utils/utils.js
 msgid "That ID already exists for an identifier."
+msgstr ""
+
+#: LibraryExplorer/components/BookRoom.vue
+msgid "Go up"
+msgstr ""
+
+#: LibraryExplorer/components/BookRoom.vue
+msgid "Expand"
+msgstr ""
+
+#: LibraryExplorer/components/BookRoom.vue
+msgid "See more"
+msgstr ""
+
+#. A tab that opens the options for filtering the books shown.
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Filter"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Feedback"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Custom filter..."
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "First Published Year"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue openlibrary/plugins/worksearch/sort_menu.py
+msgid "Any"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "New (2010+)"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Modern (1985+)"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Public Domain (<1924)"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Has ebook/preview?"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Age Range"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Juvenile"
+msgstr ""
+
+#. Placeholder of the box for choosing languages other than the common ones listed beside it.
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Other..."
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Sort Order"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue openlibrary/plugins/worksearch/sort_menu.py
+msgid "Most Editions"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue openlibrary/plugins/worksearch/sort_menu.py
+msgid "Top Rated"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Trending Score"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it."
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Shelf Order"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue openlibrary/plugins/worksearch/sort_menu.py
+msgid "Random"
+msgstr ""
+
+#. A library classification system, such as Dewey Decimal.
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Classification"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "book style"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "cover style"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "scrollbar style"
+msgstr ""
+
+#. An option for the book style and for the scrollbar style: the standard look.
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "default"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "3d"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "spines"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "3d-spines"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "3d-flat"
+msgstr ""
+
+#. An option for the cover style: show the book's cover image.
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "image"
+msgstr ""
+
+#. An option for the cover style: show the title and author as text.
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "text"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "thin"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "hidden"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Label Fields"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "First Publish Year"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Number of Editions"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+#, python-format
+msgid "Welcome to Library Explorer! Library Explorer is currently in %(beta)s, so you might hit some bugs while you're browsing."
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "beta"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+#, python-format
+msgid "If you have any feedback you'd like to give, please fill out our %(form)s. If you like what you see, and want to share it with others, why not %(share)s?"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Feedback Form"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Share on Twitter"
+msgstr ""
+
+#: LibraryExplorer/components/LibraryToolbar.vue
+msgid "Browse millions of books in the @openlibrary Explorer"
+msgstr ""
+
+#: LibraryExplorer/components/OLCarousel.vue
+msgid "Load previous"
+msgstr ""
+
+#: LibraryExplorer/components/OLCarousel.vue
+msgid "Load next"
+msgstr ""
+
+#: LibraryExplorer/components/OLCarousel.vue search-modal/constants.js
+msgid "View all"
+msgstr ""
+
+#: LibraryExplorer/components/OLCarousel.vue
+msgid "Something went wrong..."
+msgstr ""
+
+#. Which results are shown, e.g. "0-20 of 45".
+#: LibraryExplorer/components/OLCarousel.vue
+#, python-format
+msgid "%(start)s-%(end)s of %(total)s"
+msgstr ""
+
+#: LibraryExplorer/components/Shelf.vue
+#, python-format
+msgid "See a list of the subsections of %(short)s: %(name)s"
+msgstr ""
+
+#: LibraryExplorer/components/Shelf.vue
+#, python-format
+msgid "See more books in %(short)s: %(name)s"
+msgstr ""
+
+#. Shows all books in a classification range; %(short)s is its number, e.g. 100.
+#: LibraryExplorer/components/ShelfIndex.vue
+#, python-format
+msgid "All %(short)s"
 msgstr ""
 
 #: MergeUI/EditionSnippet.vue
@@ -9833,10 +10064,6 @@ msgstr ""
 #: search-modal/constants.js
 #, python-format
 msgid "Search Inside %s books"
-msgstr ""
-
-#: search-modal/constants.js
-msgid "View all"
 msgstr ""
 
 #: search-modal/constants.js
@@ -12031,10 +12258,6 @@ msgid "Work Count"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/sort_menu.py
-msgid "Random"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/sort_menu.py
 msgid "Birth Date (oldest) (beta: Librarian only)"
 msgstr ""
 
@@ -12083,19 +12306,7 @@ msgid "Most Wanted"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/sort_menu.py
-msgid "Most Editions"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/sort_menu.py
 msgid "Most Recent"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/sort_menu.py
-msgid "Top Rated"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/sort_menu.py
-msgid "Any"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/sort_menu.py
