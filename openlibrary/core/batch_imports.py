@@ -14,6 +14,10 @@ from openlibrary.catalog.add_book import (
     SourceNeedsISBN,
     validate_record,
 )
+from openlibrary.core.edit_submissions import (
+    is_edit_submission,
+    validate_edit_submission,
+)
 from openlibrary.core.imports import Batch
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
@@ -71,6 +75,17 @@ class BatchResult:
     errors: list[BatchImportError] | None = None
 
 
+def _edit_ia_id(record: dict) -> str:
+    """Synthetic import_item identifier for an edit submission.
+
+    Edit submissions have no ``source_records``, so they cannot reuse the
+    import keying. ``edit:{key}:{hash}`` keeps the row recognisable as an edit
+    and unique per distinct patch within a batch.
+    """
+    patch_hash = generate_hash(json.dumps(record, sort_keys=True).encode("utf-8"), length=12)
+    return f"edit:{record['key']}:{patch_hash}"
+
+
 def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     """
     This processes raw byte data from a JSONL POST to the batch import endpoint.
@@ -98,6 +113,19 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
 
         try:
             raw_record = json.loads(line)
+
+            # An edit submission targets an existing record (it carries a `key`
+            # + base version `v`). It is a patch to be played on a specific
+            # version of the live document, not a new-record import, so it is
+            # validated for edit shape rather than run through the import
+            # edition builder. See openlibrary.core.edit_submissions (#14750).
+            if is_edit_submission(raw_record):
+                if edit_errors := validate_edit_submission(raw_record):
+                    errors.extend(BatchImportError(line_number=index + 1, error_message=msg) for msg in edit_errors)
+                else:
+                    raw_import_records.append(raw_record)
+                continue
+
             # Validate the JSON + convert to import rec format and use validation from load().
             edition_builder = import_edition_builder(init_dict=raw_record)
             validate_record(edition_builder.get_dict())
@@ -119,10 +147,14 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     if errors:
         return BatchResult(errors=errors)
 
-    # Format data for queueing via batch import.
+    # Format data for queueing via batch import. New-record imports are keyed
+    # by their first source record; edit submissions have no source record, so
+    # they are keyed by a synthetic `edit:{key}:{hash}` ia_id (the hash of the
+    # patch keeps two distinct edits to the same record from colliding on the
+    # unique (batch_id, ia_id) key).
     batch_data = [
         {
-            "ia_id": item["source_records"][0],
+            "ia_id": _edit_ia_id(item) if is_edit_submission(item) else item["source_records"][0],
             "data": item,
             "submitter": username,
             "status": import_status,
