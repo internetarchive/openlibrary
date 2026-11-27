@@ -89,9 +89,8 @@ $if provider_unauthorized:
     $if len(waitinglist) == 0:
         <div><em>$_('You are not waiting for any books at this moment.')</em></div>
     $else:
-        $# Confirmation strings for waitlist.js, which fills in the title; see confirm-template.js
-        <template id="leave-waitinglist-dialog"
-                  data-i18n="$json_encode({'title': _('Leave the waiting list?'), 'confirm': _('Leave waiting list'), 'cancel': _('Cancel'), 'close': _('Close')})">
+        $# Confirmation message for waitlist.js, which fills in the title; see confirm-template.js
+        <template id="leave-waitinglist-dialog">
             $:_('You will lose your place in line for <strong>%(title)s</strong>.', title='')
         </template>
         <div class="borrow borrow-table collapse waitinglist">

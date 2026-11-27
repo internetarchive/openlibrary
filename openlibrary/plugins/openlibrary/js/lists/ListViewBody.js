@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import { confirmFromTemplate } from '../confirm-template';
+import { _ } from '../i18n.js';
 /**
  * Defines functions used in the 'lists' and 'view_body' templates for Lists.
  * @module lists/ListViewBody
@@ -76,7 +77,7 @@ $('#listResults').on('click', '.listDelete a', async function () {
     if (get_seed_count() > 1 && !$(this).parent().hasClass('listDelete--myLists')) {
         const seedKey = $(this).closest('[data-seed-key]').data('seed-key');
         const template = document.getElementById('remove-seed-dialog');
-        if (template && (await confirmFromTemplate(template))) {
+        if (template && (await confirmFromTemplate(template, { title: _('Remove from this list?'), confirmLabel: _('Remove') }))) {
             remove_seed(listKey, seedKey, function () {
                 $(`[data-seed-key='${seedKey}']`).remove();
                 // update seed count
@@ -87,7 +88,7 @@ $('#listResults').on('click', '.listDelete a', async function () {
         }
     } else {
         const template = document.getElementById('delete-list-dialog');
-        if (template && (await confirmFromTemplate(template))) {
+        if (template && (await confirmFromTemplate(template, { title: _('Delete this list?'), confirmLabel: _('Delete list') }))) {
             $.post(`${listKey}/delete.json`, function () {
                 window.location.reload();
             });

@@ -8,6 +8,7 @@
 import { setBannerCookie } from './banner';
 import { confirmFromTemplate } from './confirm-template';
 import { initFeed } from './contribute-feed';
+import { _, fmt, ngettext } from './i18n.js';
 import {
     parseIsbn,
     isFormatValidIsbn10,
@@ -551,7 +552,19 @@ function initNavLoading(rail) {
 }
 
 /**
- * Ask before a form on the project admin page posts, with the dialog text from the ``<template>`` it names.
+ * Title and confirm label for each ``<template>`` a ``form[data-confirm]`` can name.
+ * @returns {Object<string, {title: string, confirmLabel: string}>}
+ */
+function confirmStrings() {
+    return {
+        'contrib-admin-stop': { title: _('Stop this project now?'), confirmLabel: _('Stop project') },
+        'contrib-admin-delete': { title: _('Delete this project?'), confirmLabel: _('Delete project') },
+        'contrib-admin-headline': { title: _('Feature this project?'), confirmLabel: _('Feature project') }
+    };
+}
+
+/**
+ * Ask before a form on the project admin page posts, with the message from the ``<template>`` it names.
  * Without the script the form posts straight away, which the server allows.
  * @param {HTMLFormElement} form - a ``form[data-confirm]``
  * @returns {void}
@@ -563,7 +576,8 @@ function initConfirmForm(form) {
     form.addEventListener('submit', async e => {
         if (confirmed) return;
         e.preventDefault();
-        if (await confirmFromTemplate(template, { destructive: template.dataset.destructive !== 'false' })) {
+        const { title, confirmLabel } = confirmStrings()[template.id];
+        if (await confirmFromTemplate(template, { title, confirmLabel, destructive: template.dataset.destructive !== 'false' })) {
             confirmed = true;
             form.submit();
         }
@@ -638,30 +652,29 @@ function initGoalSuggestion(input) {
  */
 function initCreateSummary(root) {
     const form = root.closest('form');
-    const i18n = JSON.parse(root.dataset.i18n);
     const books = root.querySelector('[data-summary-books]');
     const fields = root.querySelector('[data-summary-fields]');
     const submit = root.querySelector('[data-create-submit]');
-    // The server sends a string per plural category of the page's language.
-    const rules = new Intl.PluralRules(document.documentElement.lang || undefined);
-    const plural = (key, count) => (i18n[key][rules.select(count)] ?? i18n[key].other).replace('{count}', count.toLocaleString());
+    const countText = (singular, pluralForm, count) => fmt(ngettext(singular, pluralForm, count), { count: count.toLocaleString() });
     const describeBooks = () => {
         const source = form.querySelector('input[name="source"]:checked')?.value;
         if (source === 'pasted') {
             // Split as the server splits it (booklist.split_entries).
             const count = form.elements.books.value.split(/[\s,;]+/).filter(Boolean).length;
-            return count ? plural('books', count) : '';
+            return count ? countText('%(count)s book', '%(count)s books', count) : '';
         }
-        if (source === 'list') return form.elements.list_url.value.trim() ? i18n.list : '';
+        if (source === 'list') return form.elements.list_url.value.trim() ? _('Every book on the list') : '';
         const size = Number(form.elements.size.value.trim());
-        return Number.isInteger(size) && size > 0 ? plural('shelved', size) : '';
+        return Number.isInteger(size) && size > 0
+            ? countText('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', size)
+            : '';
     };
     const sync = () => {
         const bookText = describeBooks();
         const chosen = [...form.querySelectorAll('input[name="fields"]:checked')].map(box => box.closest('label').textContent.trim());
-        books.textContent = bookText || i18n.none;
+        books.textContent = bookText || _('None yet');
         books.classList.toggle('is-missing', !bookText);
-        fields.textContent = chosen.join(', ') || i18n.none;
+        fields.textContent = chosen.join(', ') || _('None yet');
         fields.classList.toggle('is-missing', !chosen.length);
         submit.disabled = !bookText || !chosen.length;
     };

@@ -529,7 +529,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html lit/alert-dialog.js merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lit/alert-dialog.js merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html confirm-template.js lit/OlBanner.js lit/OlToast.js native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html
 msgid "Close"
 msgstr ""
 
@@ -1349,14 +1349,6 @@ msgid "You are not waiting for any books at this moment."
 msgstr ""
 
 #: account/loans.html
-msgid "Leave the waiting list?"
-msgstr ""
-
-#: LoanStatus.html account/loans.html
-msgid "Leave waiting list"
-msgstr ""
-
-#: account/loans.html
 #, python-format
 msgid "You will lose your place in line for <strong>%(title)s</strong>."
 msgstr ""
@@ -1403,6 +1395,10 @@ msgstr[1] ""
 
 #: account/loans.html
 msgid "Borrow Now"
+msgstr ""
+
+#: account/loans.html waitlist.js
+msgid "Leave the waiting list?"
 msgstr ""
 
 #: account/loans.html
@@ -4750,35 +4746,11 @@ msgid "Stop early"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Stop this project now?"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
-msgid "Stop project"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
 msgid "It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date."
 msgstr ""
 
 #: contribute/admin/project.html.jinja
-msgid "Delete this project?"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
-msgid "Delete project"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
 msgid "The project and its book list are removed. This can't be undone."
-msgstr ""
-
-#: contribute/admin/project.html.jinja
-msgid "Feature this project?"
-msgstr ""
-
-#: contribute/admin/project.html.jinja
-msgid "Feature project"
 msgstr ""
 
 #: contribute/admin/project.html.jinja
@@ -5616,28 +5588,12 @@ msgstr ""
 msgid "Delete this list"
 msgstr ""
 
-#: lists/lists.html type/list/view_body.html
-msgid "Delete this list?"
-msgstr ""
-
-#: lists/lists.html type/list/view_body.html
-msgid "Delete list"
-msgstr ""
-
 #: lists/lists.html type/edition/notes_modal_i18n.html
 msgid "This cannot be undone."
 msgstr ""
 
 #: lists/lists.html
 msgid "Remove this seed?"
-msgstr ""
-
-#: lists/lists.html type/list/view_body.html
-msgid "Remove from this list?"
-msgstr ""
-
-#: IdentifiersInput.vue TestingEnvironment/utils.js lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
-msgid "Remove"
 msgstr ""
 
 #: lists/lists.html
@@ -5698,7 +5654,7 @@ msgstr ""
 msgid "Merge Authors"
 msgstr ""
 
-#: merge/authors.html
+#: merge.js merge/authors.html
 msgid "No authors selected."
 msgstr ""
 
@@ -5723,37 +5679,7 @@ msgid "Press MERGE AUTHORS."
 msgstr ""
 
 #: merge/authors.html
-msgid "No primary record"
-msgstr ""
-
-#: TestingEnvironment/utils.js lit/alert-dialog.js merge/authors.html
-msgid "OK"
-msgstr ""
-
-#: merge/authors.html
 msgid "You must select a primary record to point the duplicates toward."
-msgstr ""
-
-#: merge/authors.html
-#, python-format
-msgid "Merge %(count)s author into %(name)s?"
-msgid_plural "Merge %(count)s authors into %(name)s?"
-msgstr[0] ""
-msgstr[1] ""
-
-#: merge/authors.html
-#, python-format
-msgid "Merge %(count)s author"
-msgid_plural "Merge %(count)s authors"
-msgstr[0] ""
-msgstr[1] ""
-
-#: merge/authors.html
-msgid "Keep"
-msgstr ""
-
-#: merge/authors.html
-msgid "Merge in and redirect"
 msgstr ""
 
 #: merge/authors.html recentchanges/merge/view.html
@@ -7411,6 +7337,10 @@ msgstr ""
 msgid "Move..."
 msgstr ""
 
+#: IdentifiersInput.vue TestingEnvironment/utils.js lists/ListViewBody.js type/list/edit.html type/series/edit.html
+msgid "Remove"
+msgstr ""
+
 #: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
 msgstr ""
@@ -8057,6 +7987,10 @@ msgstr ""
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
+msgstr ""
+
+#: LoanStatus.html waitlist.js
+msgid "Leave waiting list"
 msgstr ""
 
 #: LoanStatus.html
@@ -9247,6 +9181,10 @@ msgstr ""
 msgid "This PR is already closed."
 msgstr ""
 
+#: TestingEnvironment/utils.js lit/alert-dialog.js
+msgid "OK"
+msgstr ""
+
 #: TestingEnvironment/utils.js
 #, python-format
 msgid "PR %(num)s on testing"
@@ -9709,6 +9647,38 @@ msgstr ""
 msgid "Moved to %(shelf)s"
 msgstr ""
 
+#: contribute.js
+msgid "Stop this project now?"
+msgstr ""
+
+#: contribute.js
+msgid "Stop project"
+msgstr ""
+
+#: contribute.js
+msgid "Delete this project?"
+msgstr ""
+
+#: contribute.js
+msgid "Delete project"
+msgstr ""
+
+#: contribute.js
+msgid "Feature this project?"
+msgstr ""
+
+#: contribute.js
+msgid "Feature project"
+msgstr ""
+
+#: contribute.js
+msgid "Every book on the list"
+msgstr ""
+
+#: contribute.js
+msgid "None yet"
+msgstr ""
+
 #: covers.js
 msgid "Searching for covers"
 msgstr ""
@@ -9764,6 +9734,32 @@ msgstr ""
 #: goodreads_import.js
 msgid "Book not in collection"
 msgstr ""
+
+#: merge.js
+msgid "Keep"
+msgstr ""
+
+#: merge.js
+msgid "Merge in and redirect"
+msgstr ""
+
+#: merge.js
+msgid "No primary record"
+msgstr ""
+
+#: merge.js
+#, python-format
+msgid "Merge %(count)s author into %(name)s?"
+msgid_plural "Merge %(count)s authors into %(name)s?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: merge.js
+#, python-format
+msgid "Merge %(count)s author"
+msgid_plural "Merge %(count)s authors"
+msgstr[0] ""
+msgstr[1] ""
 
 #: publishing_history.js
 #, python-format
@@ -9923,6 +9919,18 @@ msgstr ""
 
 #: ile/utils/SelectionManager/SelectionManager.js
 msgid "Merge Authors..."
+msgstr ""
+
+#: lists/ListViewBody.js
+msgid "Remove from this list?"
+msgstr ""
+
+#: lists/ListViewBody.js
+msgid "Delete this list?"
+msgstr ""
+
+#: lists/ListViewBody.js
+msgid "Delete list"
 msgstr ""
 
 #: modals/index.js
@@ -10667,14 +10675,6 @@ msgstr ""
 #: openlibrary/contribute/manage.py
 #, python-format
 msgid "Past the limit of %(count)s books"
-msgstr ""
-
-#: openlibrary/contribute/manage.py
-msgid "None yet"
-msgstr ""
-
-#: openlibrary/contribute/manage.py
-msgid "Every book on the list"
 msgstr ""
 
 #: openlibrary/contribute/manage.py

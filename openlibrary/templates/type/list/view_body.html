@@ -66,13 +66,11 @@ $def seed_attrs(seed):
     data-list-key="$list.key"
 
 <div id="contentBody">
-    $# Confirmation strings for ListViewBody.js; see confirm-template.js
-    <template id="remove-seed-dialog"
-              data-i18n="$json_encode({'title': _('Remove from this list?'), 'confirm': _('Remove'), 'cancel': _('Cancel'), 'close': _('Close')})">
+    $# Confirmation message for ListViewBody.js; see confirm-template.js
+    <template id="remove-seed-dialog">
         $_('This item will be removed from the list.')
     </template>
-    <template id="delete-list-dialog"
-              data-i18n="$json_encode({'title': _('Delete this list?'), 'confirm': _('Delete list'), 'cancel': _('Cancel'), 'close': _('Close')})">
+    <template id="delete-list-dialog">
         $_('This is the last item in the list. Removing it will delete the whole list.')
     </template>
 

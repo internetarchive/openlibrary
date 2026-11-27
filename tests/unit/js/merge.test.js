@@ -10,8 +10,6 @@ vi.mock('../../../openlibrary/plugins/openlibrary/js/confirm-template', () => ({
     confirmFromTemplate: vi.fn(() => Promise.resolve(true))
 }));
 
-const plurals = { one: 'x', two: 'x', few: 'x', many: 'x', other: 'x' };
-
 function row(key, name) {
     return `
         <div class="entry author">
@@ -22,10 +20,9 @@ function row(key, name) {
 }
 
 function mount({ canMerge = true, mrid = '' } = {}) {
-    const i18n = JSON.stringify({ titleForCount: plurals, confirmForCount: plurals, keep: 'Keep', redirect: 'Redirect' });
     document.body.innerHTML = `
-        <template id="noMaster" data-i18n="{}"></template>
-        ${canMerge ? `<template id="noDuplicates" data-i18n="{}"></template><template id="confirmMerge" data-i18n='${i18n}'></template>` : ''}
+        <template id="noMaster"></template>
+        ${canMerge ? `<template id="noDuplicates"></template><template id="confirmMerge"></template>` : ''}
         <form id="mergeForm" method="POST" action="/authors/merge">
             ${mrid ? `<input type="hidden" id="mrid-input" name="mrid" value="${mrid}">` : ''}
             <input type="hidden" id="hidden-comment-input" name="comment" value="">
