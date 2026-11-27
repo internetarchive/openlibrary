@@ -5608,24 +5608,6 @@ msgstr ""
 msgid "You have no lists."
 msgstr ""
 
-#: lists/widget.html lit/OlBookLists.js
-msgid "On your lists"
-msgstr ""
-
-#: lists/widget.html lit/OlBookLists.js
-#, python-format
-msgid "Remove from %(name)s"
-msgstr ""
-
-#: lists/widget.html lit/OlBookLists.js lit/OlShelfActions.js
-#, python-format
-msgid "Removed from %(name)s"
-msgstr ""
-
-#: book-state.js lists/widget.html lit/OlBookLists.js lit/OlShelfActions.js
-msgid "Something went wrong. Please try again."
-msgstr ""
-
 #: merge/authors.html
 msgid "Merge Authors"
 msgstr ""
@@ -9384,6 +9366,24 @@ msgstr ""
 
 #: lit/OLMarkdownEditor.js
 msgid "View formatted"
+msgstr ""
+
+#: lit/OlBookLists.js
+msgid "On your lists"
+msgstr ""
+
+#: lit/OlBookLists.js
+#, python-format
+msgid "Remove from %(name)s"
+msgstr ""
+
+#: lit/OlBookLists.js lit/OlShelfActions.js
+#, python-format
+msgid "Removed from %(name)s"
+msgstr ""
+
+#: book-state.js lit/OlBookLists.js lit/OlShelfActions.js
+msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: lit/OlCarousel.js
