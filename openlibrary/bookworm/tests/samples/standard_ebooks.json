@@ -1,0 +1,119 @@
+[
+  {
+    "metadata": {
+      "@type": "http://schema.org/EBook",
+      "identifier": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice",
+      "title": "Pride and Prejudice",
+      "author": [
+        {
+          "name": "Jane Austen",
+          "sortAs": "Austen, Jane",
+          "links": [
+            {
+              "href": "https://standardebooks.org/ebooks/jane-austen",
+              "rel": ["alternate"],
+              "type": "text/html"
+            }
+          ]
+        }
+      ],
+      "language": "en-GB",
+      "publisher": "Standard Ebooks",
+      "description": "<p>Elizabeth Bennet navigates manners, marriage, and misjudgement in Regency England.</p>",
+      "belongsTo": {
+        "subjects": [
+          {"name": "Courtship -- Fiction", "scheme": "http://purl.org/dc/terms/LCSH"},
+          {"name": "England -- Fiction", "scheme": "http://purl.org/dc/terms/LCSH"}
+        ]
+      },
+      "published": "2015-05-24T00:00:00Z",
+      "modified": "2024-01-15T12:00:00Z"
+    },
+    "images": [
+      {
+        "href": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover.jpg",
+        "rel": ["http://opds-spec.org/image"],
+        "type": "image/jpeg"
+      },
+      {
+        "href": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover-thumbnail.jpg",
+        "rel": ["http://opds-spec.org/image/thumbnail"],
+        "type": "image/jpeg"
+      }
+    ],
+    "links": [
+      {
+        "href": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice",
+        "rel": ["alternate"],
+        "type": "text/html",
+        "title": "This ebook’s page at Standard Ebooks"
+      },
+      {
+        "href": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/jane-austen_pride-and-prejudice.epub",
+        "rel": ["http://opds-spec.org/acquisition/open-access"],
+        "type": "application/epub+zip",
+        "title": "Recommended compatible epub",
+        "size": 1510225
+      },
+      {
+        "href": "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/jane-austen_pride-and-prejudice.kepub.epub",
+        "rel": ["http://opds-spec.org/acquisition/open-access"],
+        "type": "application/kepub+zip",
+        "title": "Kobo Kepub epub",
+        "size": 1601234
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "@type": "http://schema.org/EBook",
+      "identifier": "https://standardebooks.org/ebooks/leo-tolstoy/what-is-art/aylmer-maude",
+      "title": "What Is Art?",
+      "author": [
+        {
+          "name": "Leo Tolstoy",
+          "sortAs": "Tolstoy, Leo",
+          "links": [
+            {
+              "href": "https://standardebooks.org/ebooks/leo-tolstoy",
+              "rel": ["alternate"],
+              "type": "text/html"
+            }
+          ]
+        }
+      ],
+      "language": "en-US",
+      "publisher": "Standard Ebooks",
+      "description": "<p>Tolstoy’s treatise on the nature and purpose of art, translated by Aylmer Maude.</p>",
+      "belongsTo": {
+        "subjects": [
+          {"name": "Aesthetics", "scheme": "http://purl.org/dc/terms/LCSH"}
+        ]
+      },
+      "published": "2021-03-10T00:00:00Z",
+      "modified": "2024-06-02T09:30:00Z"
+    },
+    "images": [
+      {
+        "href": "https://standardebooks.org/ebooks/leo-tolstoy/what-is-art/aylmer-maude/downloads/cover.jpg",
+        "rel": ["http://opds-spec.org/image"],
+        "type": "image/jpeg"
+      }
+    ],
+    "links": [
+      {
+        "href": "https://standardebooks.org/ebooks/leo-tolstoy/what-is-art/aylmer-maude",
+        "rel": ["alternate"],
+        "type": "text/html",
+        "title": "This ebook’s page at Standard Ebooks"
+      },
+      {
+        "href": "https://standardebooks.org/ebooks/leo-tolstoy/what-is-art/aylmer-maude/downloads/leo-tolstoy_what-is-art_aylmer-maude.epub",
+        "rel": ["http://opds-spec.org/acquisition/open-access"],
+        "type": "application/epub+zip",
+        "title": "Recommended compatible epub",
+        "size": 410992
+      }
+    ]
+  }
+]

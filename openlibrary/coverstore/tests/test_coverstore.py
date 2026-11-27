@@ -168,6 +168,9 @@ def test_image_path(image_dir):
         "https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg?w=1920&q=75&auto=format",
         "https://cdn.sanity.io/images/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.jpg",
         "https://cdn.sanity.io/images/otherproj/production/e7ffe418212f76c942fe906ae66cff17867bd602-190x300.png",
+        # Standard Ebooks feed covers (#14748)
+        "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover.jpg",
+        "https://standardebooks.org/ebooks/leo-tolstoy/what-is-art/aylmer-maude/downloads/cover-thumbnail.jpg",
     ],
 )
 def test_is_allowed_cover_url_allowed(url):
@@ -201,6 +204,10 @@ def test_is_allowed_cover_url_allowed(url):
         # cdn.sanity.io outside /images/
         "https://cdn.sanity.io/files/3lm68n5v/production/e7ffe418212f76c942fe906ae66cff17867bd602.pdf",
         "https://cdn.sanity.io/",
+        # standardebooks.org outside the /ebooks/.../downloads/cover path
+        "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice",
+        "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover.jpg?evil=1",
+        "https://standardebooks.org.evil.com/ebooks/x/downloads/cover.jpg",
         # empty string and bare domain
         "",
         "https://archive.org",

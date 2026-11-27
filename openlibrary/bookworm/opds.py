@@ -23,7 +23,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from openlibrary.coverstore.utils import is_allowed_cover_url
 from openlibrary.plugins.upstream.utils import get_marc21_language
@@ -46,6 +46,38 @@ def _as_list(value: Any) -> list:
     if value is None:
         return []
     return value if isinstance(value, list) else [value]
+
+
+def first_rel(rel: Any) -> str:
+    """Normalize an OPDS 2.0 ``rel`` (a string OR an array of strings) to one.
+
+    The spec permits a link to carry several relations as a list; Standard
+    Ebooks emits every ``rel`` as a single-element array (``["self"]``,
+    ``["http://opds-spec.org/acquisition/open-access"]``), whereas the other
+    feeds use a bare string. Our model and link-relation checks assume one
+    relation per link, which holds for every feed we harvest, so collapse a list
+    to its first entry (and an absent/empty rel to ``""``).
+
+    Without this, a list-valued ``rel`` fails ``Link`` validation and the whole
+    publication is skipped -- which would silently drop the entire Standard
+    Ebooks catalogue on a green run.
+    """
+    if isinstance(rel, list):
+        return rel[0] if rel else ""
+    return rel or ""
+
+
+def link_has_rel(link: dict, rel: str) -> bool:
+    """Whether a RAW OPDS link dict (not a :class:`Link`) carries ``rel``.
+
+    Used for feed-level links (``next`` pagination) that are read straight from
+    the JSON rather than through the pydantic model, so they must tolerate the
+    same string-or-array ``rel`` the publications do.
+    """
+    value = link.get("rel")
+    if isinstance(value, list):
+        return rel in value
+    return value == rel
 
 
 def _localized(value: Any) -> str | None:
@@ -110,6 +142,13 @@ class Link(BaseModel):
     length: int | None = None
     properties: LinkProperties | None = None
 
+    @field_validator("rel", mode="before")
+    @classmethod
+    def _normalize_rel(cls, value: Any) -> str:
+        # OPDS 2.0 allows rel to be a string or an array of strings; Standard
+        # Ebooks uses arrays. Collapse to one so the link-relation checks work.
+        return first_rel(value)
+
 
 class Publication(BaseModel):
     """One OPDS 2.0 publication, with normalized accessors."""
@@ -169,7 +208,11 @@ class Publication(BaseModel):
 
     @property
     def languages(self) -> list[str]:
-        return [lang for lang in _as_list(self.metadata.get("language")) if lang]
+        # OPDS carries BCP-47 tags, which may include a region/script subtag
+        # (Standard Ebooks uses "en-GB"/"en-US"). get_marc21_language only knows
+        # the primary subtag, so strip the rest -- otherwise an English-only feed
+        # like Standard Ebooks would import every edition with no language at all.
+        return [lang.split("-")[0] for lang in _as_list(self.metadata.get("language")) if lang]
 
     @property
     def modified(self) -> str | None:
@@ -196,8 +239,10 @@ class Feed(BaseModel):
 
     ``id_strategy`` selects how a publication's stable local id is derived:
     ``isbn`` (from ``urn:isbn:`` in ``metadata.identifier``), ``gutenberg`` (the
-    numeric id in the ``gutenberg.org/ebooks/<id>`` identifier URL), or
-    ``self_link`` (the last path segment of the ``self`` link — Lenny).
+    numeric id in the ``gutenberg.org/ebooks/<id>`` identifier URL),
+    ``self_link`` (the last path segment of the ``self`` link — Lenny), or
+    ``standard_ebooks`` (the ``<author>/<title>`` path in the
+    ``standardebooks.org/ebooks/<...>`` ``metadata.identifier`` URL).
 
     ``local_id_is_ol_edition`` says the extracted id is itself an Open Library
     edition number, so a record can name its edition outright instead of leaving
@@ -206,12 +251,13 @@ class Feed(BaseModel):
     """
 
     provider_name: str
-    id_strategy: str  # "isbn" | "gutenberg" | "self_link"
+    id_strategy: str  # "isbn" | "gutenberg" | "self_link" | "standard_ebooks"
     local_id_is_ol_edition: bool = False
 
 
 ISBN_URN_PREFIX = "urn:isbn:"
 _GUTENBERG_ID_RE = re.compile(r"/ebooks/(\d+)")
+STANDARD_EBOOKS_PREFIX = "https://standardebooks.org/ebooks/"
 
 
 def extract_local_id(pub: Publication, feed: Feed) -> str | None:
@@ -227,6 +273,17 @@ def extract_local_id(pub: Publication, feed: Feed) -> str | None:
         # Drop any query/fragment so ".../pub/123?x=y" yields "123", not "123?x=y".
         href = href.split("?", 1)[0].split("#", 1)[0]
         return href.rstrip("/").rsplit("/", 1)[-1] or None
+    if feed.id_strategy == "standard_ebooks":
+        # The identifier is the canonical ebook URL; the id is the whole
+        # <author>/<title> path after /ebooks/ -- kept intact, because a
+        # translated work's path has a third (translator) segment and only the
+        # full path is unique. Matches scripts/import_standard_ebooks.py's
+        # entry["id"].replace(prefix, ""). rstrip the trailing slash (as the
+        # self_link strategy does) so a stray ".../title/" can't mint a second
+        # local_id for the same book and re-queue/duplicate its acquisitions.
+        if not identifier.startswith(STANDARD_EBOOKS_PREFIX):
+            return None
+        return identifier[len(STANDARD_EBOOKS_PREFIX) :].rstrip("/") or None
     return None
 
 
@@ -307,7 +364,10 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         record["isbn_13"] = [local_id]
     elif feed.id_strategy == "gutenberg":
         record["identifiers"] = {"project_gutenberg": [local_id]}
-    elif feed.id_strategy == "self_link":
+    elif feed.id_strategy in ("self_link", "standard_ebooks"):
+        # The identifiers KEY must equal provider_name (and the source_records
+        # prefix) for the import validator's feed-source exemption to accept the
+        # record -- so standard_ebooks must be registered as "standard_ebooks".
         record["identifiers"] = {feed.provider_name: [local_id]}
     if feed.local_id_is_ol_edition and local_id.isdigit():
         # This feed's local id IS an OL edition number, so say which edition the
