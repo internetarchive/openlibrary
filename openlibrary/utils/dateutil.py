@@ -140,18 +140,18 @@ _SHORT_YEAR_RE = re.compile(
 )
 
 
-def parse_author_date(date_str: str | None) -> str | None:
-    """Best-effort parse of a free-text author birth/death date into a Solr date
-    string (e.g. ``1842-03-01T00:00:00Z``), for sorting.
+def parse_user_entered_date(date_str: str | None) -> str | None:
+    """Best-effort parse of a free-text, user-entered date (e.g. an author's
+    birth date) into a Solr date string (e.g. ``1842-03-01T00:00:00Z``), for sorting.
 
     Missing month/day default to January 1st. BC years use ISO 8601's
     astronomical numbering (1 BC = ``0000``, 2 BC = ``-0001``). Returns None
     when no year can be identified unambiguously (e.g. "19th cent.", "19..",
-    "12/24"), so the author sorts with the undated ones.
+    "12/24"), so the record sorts with the undated ones.
 
-    >>> parse_author_date("10 Jan 2000")
+    >>> parse_user_entered_date("10 Jan 2000")
     '2000-01-10T00:00:00Z'
-    >>> parse_author_date("ca. 264 B.C.")
+    >>> parse_user_entered_date("ca. 264 B.C.")
     '-0263-01-01T00:00:00Z'
     """
     if not date_str:

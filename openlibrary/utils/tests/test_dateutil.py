@@ -97,5 +97,5 @@ def test_parse_daterange():
         ("19 Mar 007", None),
     ],
 )
-def test_parse_author_date(date_str, expected):
-    assert dateutil.parse_author_date(date_str) == expected
+def test_parse_user_entered_date(date_str, expected):
+    assert dateutil.parse_user_entered_date(date_str) == expected

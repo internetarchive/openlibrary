@@ -35,8 +35,11 @@ class AuthorSearchScheme(SearchScheme):
             "work_count desc": "work_count desc",
             "name": "name_sort asc",
             # Birth Date
-            "birth_date asc": "birth_timestamp asc",
-            "birth_date desc": "birth_timestamp desc",
+            # TODO: Switch these to birth_timestamp once a full reindex has populated it
+            "birth_date asc": "birth_date asc",
+            "birth_date desc": "birth_date desc",
+            "birth_timestamp asc": "birth_timestamp asc",
+            "birth_timestamp desc": "birth_timestamp desc",
             # Random
             "random": "random_1 asc",
             "random asc": "random_1 asc",
