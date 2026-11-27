@@ -6,13 +6,13 @@ import { getLists, subscribeToLists, loadLists, removeListSeeds } from './utils/
 import { redirectToLogin } from './utils/books-api.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, translate } from '../../plugins/openlibrary/js/i18n.js';
 
 export const DEFAULT_LABELS = {
-    onYourLists: 'On your lists',
-    removeFromList: 'Remove from %(name)s',
-    removedFromList: 'Removed from %(name)s',
-    errorGeneric: 'Something went wrong. Please try again.'
+    onYourLists: _('On your lists'),
+    removeFromList: _('Remove from %(name)s'),
+    removedFromList: _('Removed from %(name)s'),
+    errorGeneric: _('Something went wrong. Please try again.')
 };
 
 /**

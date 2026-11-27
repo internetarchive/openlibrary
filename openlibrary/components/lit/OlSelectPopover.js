@@ -7,6 +7,7 @@ import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlPopover.js';
 import './OLButton.js';
 import { menuRow } from './control-styles.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 let _idCounter = 0;
 
@@ -370,13 +371,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.selected = [];
         this.label = '';
         this.searchThreshold = FILTER_THRESHOLD;
-        this.placeholder = 'Filter…';
+        this.placeholder = _('Filter…');
         this.unselectedHeading = '';
         this.selectedHeading = 'SELECTED';
         this.suggestionsHeading = 'SUGGESTIONS';
-        this.clearLabel = 'Clear selections';
-        this.noMatchesLabel = 'No matches';
-        this.loadingLabel = 'Loading…';
+        this.clearLabel = _('Clear selections');
+        this.noMatchesLabel = _('No matches');
+        this.loadingLabel = _('Loading…');
         this._query = '';
         this._panelId = `ol-select-popover-${++_idCounter}`;
         // Mirrors the inner ol-popover's open state via its open/close events.

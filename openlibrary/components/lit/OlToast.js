@@ -3,6 +3,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import './OLButton.js';
 import './OlIcon.js';
 import { slotHasContent } from './utils/slot-utils.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 /**
  * A transient notification message ("toast").
@@ -314,7 +315,7 @@ export class OlToast extends LitElement {
         this.description = '';
         this.persistent = false;
         this.timeout = 4000;
-        this.labelClose = 'Close';
+        this.labelClose = _('Close');
         this._announce = false;
         this._timerId = null;
         this._remainingMs = 0;

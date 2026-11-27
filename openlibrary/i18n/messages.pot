@@ -529,7 +529,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html contribute/admin/project.html.jinja databarEdit.html interstitial.html.jinja lists/lists.html lit/alert-dialog.js merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -959,7 +959,7 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
-#: search-modal/constants.js search/inside.html.jinja work_search.html
+#: lit/OlSelectPopover.js search-modal/constants.js search/inside.html.jinja work_search.html
 msgid "Loading…"
 msgstr ""
 
@@ -2040,7 +2040,7 @@ msgstr ""
 msgid "Imported Time"
 msgstr ""
 
-#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html lit/OlScorecard.js
 msgid "Total"
 msgstr ""
 
@@ -3426,24 +3426,24 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html
+#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
 msgid "Previous page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html
+#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
 msgid "Next page"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html
+#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
 msgid "Carousel pages"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html
+#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
 #, python-brace-format
 msgid "Go to page {page} of {total}"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html
+#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
 #, python-brace-format
 msgid "Page {page} of {total}"
 msgstr ""
@@ -3790,17 +3790,17 @@ msgstr ""
 msgid "This Edition"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html lit/OlScorecard.js
 #, python-brace-format
 msgid "Failing Checks ({count})"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html lit/OlScorecard.js
 #, python-brace-format
 msgid "Passing Checks ({count})"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html lit/OlScorecard.js
 #, python-brace-format
 msgid "{score} points"
 msgstr ""
@@ -5147,7 +5147,7 @@ msgstr ""
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
 msgstr ""
 
-#: home/about.html search/work_search_facets.html.jinja
+#: home/about.html lit/OLMarkdownEditor.js search/work_search_facets.html.jinja
 msgid "More"
 msgstr ""
 
@@ -5676,21 +5676,21 @@ msgstr ""
 msgid "You have no lists."
 msgstr ""
 
-#: lists/widget.html
+#: lists/widget.html lit/OlBookLists.js
 msgid "On your lists"
 msgstr ""
 
-#: lists/widget.html
+#: lists/widget.html lit/OlBookLists.js
 #, python-format
 msgid "Remove from %(name)s"
 msgstr ""
 
-#: lists/widget.html lit/OlShelfActions.js
+#: lists/widget.html lit/OlBookLists.js lit/OlShelfActions.js
 #, python-format
 msgid "Removed from %(name)s"
 msgstr ""
 
-#: book-state.js lists/widget.html lit/OlShelfActions.js
+#: book-state.js lists/widget.html lit/OlBookLists.js lit/OlShelfActions.js
 msgid "Something went wrong. Please try again."
 msgstr ""
 
@@ -5726,7 +5726,7 @@ msgstr ""
 msgid "No primary record"
 msgstr ""
 
-#: TestingEnvironment/utils.js merge/authors.html
+#: TestingEnvironment/utils.js lit/alert-dialog.js merge/authors.html
 msgid "OK"
 msgstr ""
 
@@ -7229,11 +7229,11 @@ msgstr ""
 msgid "Edition published by %(publishers)s"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: lit/OLReadMore.js type/edition/view.html type/work/view.html
 msgid "Read More"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: lit/OLReadMore.js type/edition/view.html type/work/view.html
 msgid "Read Less"
 msgstr ""
 
@@ -7308,7 +7308,7 @@ msgstr ""
 msgid "External Links"
 msgstr ""
 
-#: OlPagination.html.jinja OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
+#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/edition/view.html type/work/editions_datatable.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
@@ -7845,20 +7845,20 @@ msgstr ""
 msgid "Availability"
 msgstr ""
 
-#: OlPagination.html.jinja OlPaginationArrows.html type/work/editions_datatable.html
+#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/work/editions_datatable.html
 msgid "Go to previous page"
 msgstr ""
 
-#: OlPagination.html.jinja OlPaginationArrows.html type/work/editions_datatable.html
+#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/work/editions_datatable.html
 msgid "Go to next page"
 msgstr ""
 
-#: OlPagination.html.jinja type/work/editions_datatable.html
+#: OlPagination.html.jinja lit/OlPagination.js type/work/editions_datatable.html
 #, python-brace-format
 msgid "Go to page {page}"
 msgstr ""
 
-#: OlPagination.html.jinja type/work/editions_datatable.html
+#: OlPagination.html.jinja lit/OlPagination.js type/work/editions_datatable.html
 #, python-brace-format
 msgid "Page {page}, current page"
 msgstr ""
@@ -9155,6 +9155,123 @@ msgid_plural "%(num)s commits behind %(sha)s"
 msgstr[0] ""
 msgstr[1] ""
 
+#: lit/OLMarkdownEditor.js
+msgid "Write something..."
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Heading 1"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Heading 2"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Image"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Blockquote"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Divider"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Inline Code"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Code Block"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "HTML Block"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "View source"
+msgstr ""
+
+#: book-state.js lit/OLMarkdownEditor.js
+msgid "Undo"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Redo"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Bold"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Italic"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Link"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Save Link"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Remove Link"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Insert Image"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Bullet List"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "Numbered List"
+msgstr ""
+
+#: lit/OLMarkdownEditor.js
+msgid "View formatted"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Carousel"
+msgstr ""
+
+#: lit/OlDialog.js
+msgid "Close dialog"
+msgstr ""
+
+#: lit/OlOptionsPopover.js lit/OlSelectPopover.js
+msgid "Filter…"
+msgstr ""
+
+#: lit/OlOptionsPopover.js lit/OlSelectPopover.js
+msgid "No matches"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "{name}: {percentage}%. Click to expand."
+msgstr ""
+
+#: lit/OlScorecard.js
+msgid "Collapse"
+msgstr ""
+
+#: lit/OlScorecard.js
+msgid "This record has been edited and is not yet reflected in Solr. It should update in a minute or so."
+msgstr ""
+
+#: lit/OlSelectPopover.js
+msgid "Clear selections"
+msgstr ""
+
 #: lit/OlShelfActions.js
 #, python-format
 msgid "Actions for %(title)s"
@@ -9321,6 +9438,10 @@ msgstr ""
 msgid "Add %(title)s to a list"
 msgstr ""
 
+#: lit/alert-dialog.js
+msgid "Confirm"
+msgstr ""
+
 #: admin.js
 #, python-format
 msgid "Really anonymize %(name)s's account? This will delete %(name)s's profile page and booknotes, and anonymize %(name)s's reading log, reviews, star ratings, and merge request submissions."
@@ -9347,10 +9468,6 @@ msgstr ""
 #: book-state.js
 #, python-format
 msgid "Moved to %(shelf)s"
-msgstr ""
-
-#: book-state.js
-msgid "Undo"
 msgstr ""
 
 #: covers.js

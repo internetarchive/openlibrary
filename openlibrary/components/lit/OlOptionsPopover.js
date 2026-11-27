@@ -6,6 +6,7 @@ import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlIcon.js';
 import './OlPopover.js';
 import { menuRow } from './control-styles.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 let _idCounter = 0;
 
@@ -289,8 +290,8 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         this.label = '';
         this.heading = '';
         this.searchThreshold = FILTER_THRESHOLD;
-        this.placeholder = 'Filter…';
-        this.noMatchesLabel = 'No matches';
+        this.placeholder = _('Filter…');
+        this.noMatchesLabel = _('No matches');
         this.showSelection = false;
         this._query = '';
         this._panelId = `ol-options-popover-${++_idCounter}`;

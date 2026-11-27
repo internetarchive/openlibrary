@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 /**
  * A WYSIWYG markdown editor built on Tiptap.
@@ -500,7 +501,7 @@ export class OLMarkdownEditor extends LitElement {
         this.editor = createEditor({
             element: editorRoot,
             content: initialContent,
-            placeholder: this.placeholder || 'Write something...',
+            placeholder: this.placeholder || _('Write something...'),
             enableCode: this.enableCode,
             onUpdate: ({ editor }) => {
                 let markdownOutput = editor.storage.markdown.getMarkdown();
@@ -752,10 +753,10 @@ export class OLMarkdownEditor extends LitElement {
         }
 
         const secondaryButtons = html`
-            ${this._renderButton({ title: 'Heading 1', icon: ICONS.h1, action: () => this.formatHeading(1), isActive: this._isActive('heading', { level: 1 }) })}
-            ${this._renderButton({ title: 'Heading 2', icon: ICONS.h2, action: () => this.formatHeading(2), isActive: this._isActive('heading', { level: 2 }) })}
+            ${this._renderButton({ title: _('Heading 1'), icon: ICONS.h1, action: () => this.formatHeading(1), isActive: this._isActive('heading', { level: 1 }) })}
+            ${this._renderButton({ title: _('Heading 2'), icon: ICONS.h2, action: () => this.formatHeading(2), isActive: this._isActive('heading', { level: 2 }) })}
             ${this._renderButton({
-                title: 'Image',
+                title: _('Image'),
                 icon: ICONS.image,
                 action: () => {
                     this.showOverflowMenu = false;
@@ -763,15 +764,15 @@ export class OLMarkdownEditor extends LitElement {
                 },
                 isActive: this.showImagePopover
             })}
-            ${this._renderButton({ title: 'Blockquote', icon: ICONS.quote, action: this.formatQuote.bind(this), isActive: this._isActive('blockquote') })}
-            ${this._renderButton({ title: 'Divider', icon: ICONS.hr, action: this.insertRule.bind(this) })}
-            ${this.enableCode ? this._renderButton({ title: 'Inline Code', icon: ICONS.codeInline, action: this.formatInlineCode.bind(this), isActive: this._isActive('code') }) : ''}
-            ${this.enableCode ? this._renderButton({ title: 'Code Block', icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
-            ${this.enableHtmlBlock ? this._renderButton({ title: 'HTML Block', icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
+            ${this._renderButton({ title: _('Blockquote'), icon: ICONS.quote, action: this.formatQuote.bind(this), isActive: this._isActive('blockquote') })}
+            ${this._renderButton({ title: _('Divider'), icon: ICONS.hr, action: this.insertRule.bind(this) })}
+            ${this.enableCode ? this._renderButton({ title: _('Inline Code'), icon: ICONS.codeInline, action: this.formatInlineCode.bind(this), isActive: this._isActive('code') }) : ''}
+            ${this.enableCode ? this._renderButton({ title: _('Code Block'), icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
+            ${this.enableHtmlBlock ? this._renderButton({ title: _('HTML Block'), icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
             ${
                 !this.showSource
                     ? this._renderButton({
-                          title: 'View source',
+                          title: _('View source'),
                           icon: ICONS.source,
                           action: () => {
                               this.showOverflowMenu = false;
@@ -786,18 +787,18 @@ export class OLMarkdownEditor extends LitElement {
             <div class="editor-wrapper">
                 <div class="toolbar" @mousedown="${this._handleToolbarMouseDown}">
                     <div class="toolbar-formatting" ?inert="${this.showSource}">
-                        ${this._renderButton({ title: 'Undo', icon: ICONS.undo, action: () => this.editor.chain().focus().undo().run(), isDisabled: !this.editor || !this.editor.can().undo() })}
-                        ${this._renderButton({ title: 'Redo', icon: ICONS.redo, action: () => this.editor.chain().focus().redo().run(), isDisabled: !this.editor || !this.editor.can().redo() })}
+                        ${this._renderButton({ title: _('Undo'), icon: ICONS.undo, action: () => this.editor.chain().focus().undo().run(), isDisabled: !this.editor || !this.editor.can().undo() })}
+                        ${this._renderButton({ title: _('Redo'), icon: ICONS.redo, action: () => this.editor.chain().focus().redo().run(), isDisabled: !this.editor || !this.editor.can().redo() })}
                         <div class="toolbar-divider overflow-secondary"></div>
                         <span class="overflow-secondary">
-                            ${this._renderButton({ title: 'Heading 1', icon: ICONS.h1, action: () => this.formatHeading(1), isActive: this._isActive('heading', { level: 1 }) })}
-                            ${this._renderButton({ title: 'Heading 2', icon: ICONS.h2, action: () => this.formatHeading(2), isActive: this._isActive('heading', { level: 2 }) })}
+                            ${this._renderButton({ title: _('Heading 1'), icon: ICONS.h1, action: () => this.formatHeading(1), isActive: this._isActive('heading', { level: 1 }) })}
+                            ${this._renderButton({ title: _('Heading 2'), icon: ICONS.h2, action: () => this.formatHeading(2), isActive: this._isActive('heading', { level: 2 }) })}
                         </span>
                         <div class="toolbar-divider"></div>
-                        ${this._renderButton({ title: 'Bold', icon: ICONS.bold, action: () => this.formatText('bold'), isActive: this._isActive('bold') })}
-                        ${this._renderButton({ title: 'Italic', icon: ICONS.italic, action: () => this.formatText('italic'), isActive: this._isActive('italic') })}
+                        ${this._renderButton({ title: _('Bold'), icon: ICONS.bold, action: () => this.formatText('bold'), isActive: this._isActive('bold') })}
+                        ${this._renderButton({ title: _('Italic'), icon: ICONS.italic, action: () => this.formatText('italic'), isActive: this._isActive('italic') })}
                         <div class="link-popover-wrapper">
-                            ${this._renderButton({ title: 'Link', icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover, isPressed: this._isActive('link'), isExpanded: this.showLinkPopover })}
+                            ${this._renderButton({ title: _('Link'), icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover, isPressed: this._isActive('link'), isExpanded: this.showLinkPopover })}
                             ${
                                 this.showLinkPopover
                                     ? html`
@@ -810,8 +811,8 @@ export class OLMarkdownEditor extends LitElement {
                                                   @input="${this.handleLinkInput}"
                                                   @keydown="${this.handleLinkKeydown}"
                                               />
-                                              ${this._renderButton({ title: 'Save Link', icon: ICONS.save, action: this.applyLink.bind(this) })}
-                                              ${this._isActive('link') ? this._renderButton({ title: 'Remove Link', icon: ICONS.remove, action: this.removeLink.bind(this), customColor: 'var(--color-destructive)' }) : ''}
+                                              ${this._renderButton({ title: _('Save Link'), icon: ICONS.save, action: this.applyLink.bind(this) })}
+                                              ${this._isActive('link') ? this._renderButton({ title: _('Remove Link'), icon: ICONS.remove, action: this.removeLink.bind(this), customColor: 'var(--color-destructive)' }) : ''}
                                           </div>
                                       `
                                     : ''
@@ -819,7 +820,7 @@ export class OLMarkdownEditor extends LitElement {
                         </div>
                         <div class="link-popover-wrapper">
                             <span class="overflow-secondary">
-                                ${this._renderButton({ title: 'Image', icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover, isPressed: null, isExpanded: this.showImagePopover })}
+                                ${this._renderButton({ title: _('Image'), icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover, isPressed: null, isExpanded: this.showImagePopover })}
                             </span>
                             ${
                                 this.showImagePopover
@@ -833,26 +834,26 @@ export class OLMarkdownEditor extends LitElement {
                                                   @input="${this.handleImageInput}"
                                                   @keydown="${this.handleImageKeydown}"
                                               />
-                                              ${this._renderButton({ title: 'Insert Image', icon: ICONS.save, action: this.applyImage.bind(this) })}
+                                              ${this._renderButton({ title: _('Insert Image'), icon: ICONS.save, action: this.applyImage.bind(this) })}
                                           </div>
                                       `
                                     : ''
                             }
                         </div>
                         <div class="toolbar-divider"></div>
-                        ${this._renderButton({ title: 'Bullet List', icon: ICONS.ul, action: () => this.formatList('bullet'), isActive: this._isActive('bulletList') })}
-                        ${this._renderButton({ title: 'Numbered List', icon: ICONS.ol, action: () => this.formatList('number'), isActive: this._isActive('orderedList') })}
+                        ${this._renderButton({ title: _('Bullet List'), icon: ICONS.ul, action: () => this.formatList('bullet'), isActive: this._isActive('bulletList') })}
+                        ${this._renderButton({ title: _('Numbered List'), icon: ICONS.ol, action: () => this.formatList('number'), isActive: this._isActive('orderedList') })}
                         <div class="toolbar-divider"></div>
                         <span class="overflow-secondary">
-                            ${this._renderButton({ title: 'Blockquote', icon: ICONS.quote, action: this.formatQuote.bind(this), isActive: this._isActive('blockquote') })}
-                            ${this._renderButton({ title: 'Divider', icon: ICONS.hr, action: this.insertRule.bind(this) })}
-                            ${this.enableCode ? this._renderButton({ title: 'Inline Code', icon: ICONS.codeInline, action: this.formatInlineCode.bind(this), isActive: this._isActive('code') }) : ''}
-                            ${this.enableCode ? this._renderButton({ title: 'Code Block', icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
-                            ${this.enableHtmlBlock ? this._renderButton({ title: 'HTML Block', icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
+                            ${this._renderButton({ title: _('Blockquote'), icon: ICONS.quote, action: this.formatQuote.bind(this), isActive: this._isActive('blockquote') })}
+                            ${this._renderButton({ title: _('Divider'), icon: ICONS.hr, action: this.insertRule.bind(this) })}
+                            ${this.enableCode ? this._renderButton({ title: _('Inline Code'), icon: ICONS.codeInline, action: this.formatInlineCode.bind(this), isActive: this._isActive('code') }) : ''}
+                            ${this.enableCode ? this._renderButton({ title: _('Code Block'), icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
+                            ${this.enableHtmlBlock ? this._renderButton({ title: _('HTML Block'), icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
                         </span>
                         <div class="overflow-menu-wrapper overflow-toggle" @keydown="${this._handleOverflowKeydown}">
                             ${this._renderButton({
-                                title: 'More',
+                                title: _('More'),
                                 icon: ICONS.more,
                                 action: () => {
                                     this.showOverflowMenu = !this.showOverflowMenu;
@@ -872,7 +873,7 @@ export class OLMarkdownEditor extends LitElement {
                     <span class="${this.showSource ? 'toolbar-right-slot' : 'overflow-secondary'}">
                         <div class="toolbar-spacer"></div>
                         <div class="toolbar-divider"></div>
-                        ${this._renderButton({ title: this.showSource ? 'View formatted' : 'View source', icon: ICONS.source, action: this._toggleSource.bind(this), isActive: this.showSource })}
+                        ${this._renderButton({ title: this.showSource ? _('View formatted') : _('View source'), icon: ICONS.source, action: this._toggleSource.bind(this), isActive: this.showSource })}
                     </span>
                 </div>
 
@@ -882,7 +883,7 @@ export class OLMarkdownEditor extends LitElement {
                     style="${this.height ? `min-height:${this.height}` : ''}"
                     @click="${this._focusEditor}"
                 >
-                    ${!this.editor ? html`<span class="loading-placeholder">${this.placeholder || 'Write something...'}</span>` : ''}
+                    ${!this.editor ? html`<span class="loading-placeholder">${this.placeholder || _('Write something...')}</span>` : ''}
                 </div>
                 ${
                     this.showSource

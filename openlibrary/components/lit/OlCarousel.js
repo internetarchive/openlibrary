@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import './OlIcon.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 /**
  * A Netflix-style carousel component with page-based navigation.
@@ -414,12 +415,12 @@ export class OlCarousel extends LitElement {
         this.gap = 8;
         this.breakpoints = OlCarousel._breakpoints;
         // Translatable label defaults (English). Consumers pass $_() values in.
-        this.label = 'Carousel';
-        this.labelPrevious = 'Previous page';
-        this.labelNext = 'Next page';
-        this.labelPages = 'Carousel pages';
-        this.labelGoToPage = 'Go to page {page} of {total}';
-        this.labelPageAnnouncement = 'Page {page} of {total}';
+        this.label = _('Carousel');
+        this.labelPrevious = _('Previous page');
+        this.labelNext = _('Next page');
+        this.labelPages = _('Carousel pages');
+        this.labelGoToPage = _('Go to page {page} of {total}');
+        this.labelPageAnnouncement = _('Page {page} of {total}');
         this.showIndicators = false;
         this._page = 0;
         this._totalPages = 1;
@@ -1160,7 +1161,7 @@ export class OlCarousel extends LitElement {
     /** Replace {key} placeholders in a translatable label template. Matches
      *  the same helper in <ol-pagination>. */
     _interpolateLabel(template, values) {
-        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? '');
+        return template.replace(/\{(\w+)\}/g, (_match, key) => values[key] ?? '');
     }
 
     _renderIndicators() {
@@ -1169,7 +1170,7 @@ export class OlCarousel extends LitElement {
             <div class="indicators" role="tablist" aria-label=${this.labelPages} @keydown=${this._onIndicatorKeydown}>
                 ${Array.from(
                     { length: this._totalPages },
-                    (_, i) => html`
+                    (_unused, i) => html`
                         <button
                             class="indicator"
                             role="tab"

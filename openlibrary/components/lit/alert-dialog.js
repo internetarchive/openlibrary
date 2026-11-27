@@ -9,6 +9,8 @@
  * bundle a second copy; ol-components.js registers <ol-dialog> on every page.
  */
 
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
+
 /**
  * Strings become text nodes and <template>s are cloned, as in showToast(), so
  * no runtime string is ever parsed as HTML.
@@ -83,7 +85,7 @@ async function showAlertDialog({ title, message, actions, focusValue, labelClose
  *     and puts initial focus on Cancel so a stray Enter doesn't destroy anything.
  * @returns {Promise<Boolean>} true only when the confirm button was pressed.
  */
-export async function olConfirm({ title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', labelClose, destructive = false }) {
+export async function olConfirm({ title, message, confirmLabel = _('Confirm'), cancelLabel = _('Cancel'), labelClose, destructive = false }) {
     const value = await showAlertDialog({
         title,
         message,
@@ -108,7 +110,7 @@ export async function olConfirm({ title, message, confirmLabel = 'Confirm', canc
  * @param {String} [options.labelClose] - Translated name for the close button.
  * @returns {Promise<void>} Resolves once the dialog has closed.
  */
-export async function olAlert({ title, message, okLabel = 'OK', labelClose }) {
+export async function olAlert({ title, message, okLabel = _('OK'), labelClose }) {
     await showAlertDialog({
         title,
         message,

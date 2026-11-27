@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import './OlIcon.js';
+import { _ } from '../../plugins/openlibrary/js/i18n.js';
 
 /**
  * OLReadMore - A web component for expandable/collapsible content
@@ -137,8 +138,8 @@ export class OLReadMore extends LitElement {
     constructor() {
         super();
         this.maxHeight = '80px';
-        this.moreText = 'Read More';
-        this.lessText = 'Read Less';
+        this.moreText = _('Read More');
+        this.lessText = _('Read Less');
         this.backgroundColor = null;
         this.labelSize = 'medium';
         this._expanded = false;
