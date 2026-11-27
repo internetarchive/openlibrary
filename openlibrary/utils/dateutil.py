@@ -171,10 +171,10 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
             if (days := re.findall(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)", rest)) and len(days) == 1:
                 day = int(days[0])
     elif m := re.fullmatch(
-        # A bare 1-3 digit year with qualifiers/punctuation, e.g. "ca. 673?" or "(584)"
-        r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died|a\.?d)\b|[\s?.,;:()\[\]])*"
+        # A bare 1-3 digit year with qualifiers/punctuation, e.g. "ca. 673?", "(584)", "65 A.D."
+        r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died|a\.?d|c\.?e|d\.?c)\b|[\s?.,;:()\[\]])*"
         r"(\d{1,3})"
-        r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
+        r"(?:\b(?:a\.?d|c\.?e|d\.?c)\b|\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
         text.strip(),
         re.IGNORECASE,
     ):
@@ -182,8 +182,9 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
         if not is_bc:
             # A bare 1-2 digit number is more likely a truncated year ("95") or
             # a day than an ancient year, unless it's marked as such; and
-            # 10-20 even when marked is usually a truncated century ("ca 18")
-            if year < 100 and (10 <= year <= 20 or not re.search(r"[a-z]", text, re.IGNORECASE)):
+            # 10-20 is usually a truncated century ("ca 18") unless marked AD
+            is_ad = re.search(r"\b(?:a\.?d|c\.?e|d\.?c)\b", text, re.IGNORECASE)
+            if year < 100 and not is_ad and (10 <= year <= 20 or not re.search(r"[a-z]", text, re.IGNORECASE)):
                 return None
             # "198?" is far more often an uncertain decade (1980s) than 198 AD
             if 100 <= year <= 202 and re.search(r"(?<!\d)\d{3}\?", text):
