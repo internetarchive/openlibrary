@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Final
 
 import pytest
+import requests
 import web
 
 from openlibrary.bookworm import harvest, opds
@@ -897,3 +898,28 @@ def test_harvest_bookdash_advances_cursor_so_second_pass_is_idle(bookworm_db, mo
 
     # Only the book that carries no <lastmod> (modified=None) is reconsidered.
     assert second["records"] == 1
+
+
+def test_harvest_bookdash_transient_failure_holds_the_cursor(bookworm_db, monkeypatch):
+    """A transient page failure must leave the cursor un-advanced so nothing is lost."""
+    monkeypatch.setattr(bookdash_adapter, "REQUEST_DELAY", 0)
+    feed = _register_active("bookdash", BOOKDASH_SITEMAP, feed_type="bookdash", id_strategy="slug", cursor_style="client")
+
+    class FailingSession(_BookdashSession):
+        def get(self, url, **kwargs):
+            if url == "https://bookdash.org/books/no-cover-book/":
+                resp = _BytesResponse()
+                resp.status_code = 503
+                resp.raise_for_status = lambda: (_ for _ in ()).throw(requests.HTTPError("503", response=resp))
+                self.calls.append(url)
+                return resp
+            return super().get(url, **kwargs)
+
+    # harvest_all isolates a failing feed: it reports error rather than raising.
+    results = {r["feed"]: r for r in harvest.harvest_all(session=FailingSession())}
+    assert results["bookdash"].get("error") is True
+
+    # The cursor must NOT have advanced, so the next run retries the whole window.
+    after = FeedRegistry.get_by_id(feed.id)
+    assert after is not None
+    assert after.last_updated is None

@@ -39,6 +39,7 @@ import time
 from typing import TYPE_CHECKING, Any, NamedTuple
 from xml.etree import ElementTree as ET
 
+import requests
 from bs4 import BeautifulSoup
 
 from openlibrary.coverstore.utils import is_allowed_cover_url
@@ -46,14 +47,31 @@ from openlibrary.coverstore.utils import is_allowed_cover_url
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    import requests
-
     from openlibrary.bookworm.registry import FeedRegistry
 
 logger = logging.getLogger("openlibrary.bookworm.adapters.bookdash")
 
 PROVIDER_NAME = "bookdash"
 SITEMAP_URL = "https://bookdash.org/books-sitemap.xml"
+
+# A fetch that is NOT worth retrying: the page is gone, so skipping it (rather than
+# holding the whole feed's cursor) is correct. Anything else is treated as
+# transient — see BookdashFetchError.
+GONE_STATUSES = (404, 410)
+
+
+class BookdashFetchError(Exception):
+    """A book page failed to fetch for a non-permanent reason.
+
+    Raised at the end of a crawl so the harvester reports the feed as failed and,
+    critically, does NOT advance the cursor — the next run then retries the whole
+    window. This mirrors how the OPDS path treats a bad page fetch
+    (:class:`~openlibrary.bookworm.harvest.SuspectFeedPage` / a raised
+    ``raise_for_status``): a transient blip must hold the cursor, never silently
+    skip a record. A genuinely-removed page (``GONE_STATUSES``) is skipped instead,
+    so one deleted book cannot wedge the feed forever.
+    """
+
 
 _SITEMAP_NS = {
     "sm": "http://www.sitemaps.org/schemas/sitemap/0.9",
@@ -150,7 +168,10 @@ def parse_book_page(html: str, url: str, sitemap_cover: str | None = None) -> di
     title = title_tag.get_text(strip=True)
 
     description_tag = soup.find("meta", attrs={"property": "og:description"})
-    description = description_tag["content"] if description_tag else ""
+    # .get, not [...]: a meta tag present but missing its content attribute would
+    # otherwise raise and (via iter_records' guard) drop the whole book over an
+    # optional field.
+    description = (description_tag.get("content") or "") if description_tag else ""
 
     languages = [a["href"].removeprefix("/languages/") for a in soup.find_all("a", href=True) if a["href"].startswith("/languages/")]
     subjects = [a.get_text(strip=True) for a in soup.find_all("a", href=True) if a["href"].startswith("/themes/")]
@@ -181,10 +202,18 @@ def parse_book_page(html: str, url: str, sitemap_cover: str | None = None) -> di
 def to_import_record(scraped: dict[str, Any]) -> dict[str, Any] | None:
     """Map one scraped Book Dash book to an Open Library import record.
 
-    Returns None if the book has no title (nothing importable). The record always
-    carries ``identifiers.bookdash`` (the page slug) so a registered Book Dash
-    feed validates it on the provider identifier even without an ISBN; a book that
-    does have an ISBN additionally carries the strong ``isbn_13``.
+    Returns None for a record that cannot be imported — no title, no slug, or **no
+    authors**. The author guard matters: ``FeedSourcedBook`` (and the OPDS path's
+    ``to_import_record``) both require at least one author, so an authorless record
+    would stage as a "success" and then fail validation at import time, silently.
+    If the ``/team-members/`` selector drifts the way the cover selector already
+    did, every record goes authorless at once — returning None makes that show up
+    as the record count collapsing on the next harvest, instead of a queue full of
+    records that never import.
+
+    The record always carries ``identifiers.bookdash`` (the page slug) so a
+    registered Book Dash feed validates it on the provider identifier even without
+    an ISBN; a book that has one additionally carries the strong ISBN.
     """
     if not scraped.get("title"):
         return None
@@ -193,11 +222,16 @@ def to_import_record(scraped: dict[str, Any]) -> dict[str, Any] | None:
     if not slug:
         return None
 
+    authors = [{"name": name} for raw in scraped.get("authors", []) if (name := strip_author_role(raw))]
+    if not authors:
+        logger.warning("bookdash: %s has no authors; skipping (would fail import validation)", scraped["url"])
+        return None
+
     record: dict[str, Any] = {
         "title": scraped["title"],
         "source_records": [f"{PROVIDER_NAME}:{slug}"],
         "publishers": ["Book Dash"],
-        "authors": [{"name": name} for raw in scraped.get("authors", []) if (name := strip_author_role(raw))],
+        "authors": authors,
         # Book Dash publishes MARC-style three-letter codes ("eng", "afr",
         # "zul"), already in the shape OL editions want, so they pass through
         # unmapped — unlike OPDS feeds' two-letter ISO codes. Mapping them
@@ -212,9 +246,16 @@ def to_import_record(scraped: dict[str, Any]) -> dict[str, Any] | None:
     }
 
     if isbn := scraped.get("isbn"):
-        # Top-level isbn_13 (not under identifiers) so add_book treats it as a
-        # strong identifier for matching, matching the OPDS ISBN path.
-        record["isbn_13"] = [isbn]
+        # Top-level (not under identifiers) so add_book treats it as a strong
+        # identifier for matching, matching the OPDS ISBN path. Route by digit
+        # count so an ISBN-10 is not mis-filed as an ISBN-13.
+        digits = isbn.replace("-", "").replace(" ", "")
+        if len(digits) == 13:
+            record["isbn_13"] = [isbn]
+        elif len(digits) == 10:
+            record["isbn_10"] = [isbn]
+        else:
+            logger.warning("bookdash: %s has an unrecognised ISBN %r; dropping it", scraped["url"], isbn)
 
     # Gate the cover on the coverstore allow-list: an un-allowed URL is rejected
     # on upload anyway, and on the match/merge path add_cover retries a rejected
@@ -236,6 +277,22 @@ class BookdashAdapter:
     Fetches only what it has to. The sitemap is cheap (one request) and carries
     ``lastmod``, so a book already at or below the cursor is skipped WITHOUT
     fetching its page — a steady-state run makes one request total.
+
+    Failure handling mirrors the OPDS path, because the cursor is a single
+    watermark (not per-record):
+
+    - **Transient fetch failure** (network error, or a non-gone HTTP status after
+      the session's retries): counted, and :class:`BookdashFetchError` is raised at
+      the end of the crawl, so the harvester reports the feed failed and holds the
+      cursor. The next run then retries the whole window. Swallowing it instead
+      would let a *newer* book advance the cursor past the failed one, which is
+      then never revisited — silent, permanent loss.
+    - **Gone** (HTTP 404/410): skipped, no raise — a deleted book must not wedge
+      the feed forever.
+    - **Unparsable page** (shape drift): skipped this run and ``state`` is flagged
+      truncated so the operator is warned. This is deterministic, so raising would
+      wedge the feed; it is the same bounded stranding the OPDS full-crawl path has,
+      now at least surfaced.
     """
 
     def iter_records(
@@ -252,6 +309,7 @@ class BookdashAdapter:
         entries = parse_sitemap(resp.content)
 
         fetched = 0
+        transient_failures = 0
         for entry in entries:
             # Skip unchanged books cheaply, before fetching the page. (The
             # harvester also filters on modified, but filtering here means a
@@ -266,17 +324,34 @@ class BookdashAdapter:
                 if state is not None:
                     state["truncated"] = True
                 logger.info("bookdash: stopping at max_pages=%d (cursor would skip the rest)", max_pages)
-                return
+                break
 
             try:
                 page = session.get(entry.url, timeout=REQUEST_TIMEOUT)
                 page.raise_for_status()
+            except requests.HTTPError as exc:
+                status = getattr(exc.response, "status_code", None)
+                if status in GONE_STATUSES:
+                    logger.warning("bookdash: %s is gone (HTTP %s); skipping", entry.url, status)
+                    continue
+                logger.warning("bookdash: transient HTTP %s fetching %s; will retry next run", status, entry.url)
+                transient_failures += 1
+                continue
+            except requests.RequestException:
+                logger.warning("bookdash: network error fetching %s; will retry next run", entry.url)
+                transient_failures += 1
+                continue
+
+            try:
                 scraped = parse_book_page(page.text, entry.url, sitemap_cover=entry.cover)
                 record = to_import_record(scraped)
             except Exception:
-                # One malformed/renamed page must not abort the crawl and strand
-                # the cursor; skip it (so it is retried next run) and continue.
-                logger.exception("bookdash: skipping %s", entry.url)
+                # A deterministic parse failure (shape drift) would re-fail every
+                # run, so raising would wedge the feed; skip it and flag the run so
+                # the operator is warned rather than losing it silently.
+                logger.exception("bookdash: could not parse %s; skipping this run", entry.url)
+                if state is not None:
+                    state["truncated"] = True
                 continue
 
             fetched += 1
@@ -285,3 +360,6 @@ class BookdashAdapter:
 
             if REQUEST_DELAY:
                 time.sleep(REQUEST_DELAY)
+
+        if transient_failures:
+            raise BookdashFetchError(f"{transient_failures} Book Dash page(s) failed to fetch; holding the cursor so the next run retries them")

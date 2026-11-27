@@ -11,11 +11,13 @@ import datetime as dt
 from pathlib import Path
 
 import pytest
+import requests
 import web
 
 from openlibrary.bookworm.adapters import bookdash
 from openlibrary.bookworm.adapters.bookdash import (
     BookdashAdapter,
+    BookdashFetchError,
     parse_book_page,
     parse_sitemap,
     strip_author_role,
@@ -41,7 +43,7 @@ class FakeResponse:
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            raise RuntimeError(f"HTTP {self.status_code}")
+            raise requests.HTTPError(f"HTTP {self.status_code}", response=self)
 
 
 class FakeSession:
@@ -181,7 +183,7 @@ def test_to_import_record_drops_disallowed_cover():
         {
             "url": "https://bookdash.org/books/x/",
             "title": "X",
-            "authors": [],
+            "authors": ["An Author"],
             "languages": [],
             "subjects": [],
             "description": "",
@@ -195,6 +197,54 @@ def test_to_import_record_drops_disallowed_cover():
 
 def test_to_import_record_without_title_returns_none():
     assert to_import_record({"url": "https://bookdash.org/books/x/", "title": ""}) is None
+
+
+def test_to_import_record_without_authors_returns_none():
+    # An authorless record would stage then fail FeedSourcedBook validation
+    # silently; dropping it here makes a selector drift show up as a record-count
+    # collapse instead. (FeedSourcedBook and the OPDS path both require authors.)
+    record = to_import_record(
+        {
+            "url": "https://bookdash.org/books/x/",
+            "title": "X",
+            "authors": [],
+            "languages": ["eng"],
+            "subjects": [],
+            "description": "",
+            "isbn": "978-1-928318-15-6",
+            "cover_url": None,
+        }
+    )
+    assert record is None
+
+
+def test_to_import_record_routes_isbn_by_length():
+    base = {
+        "url": "https://bookdash.org/books/x/",
+        "title": "X",
+        "authors": ["An Author"],
+        "languages": [],
+        "subjects": [],
+        "description": "",
+        "cover_url": None,
+    }
+    isbn13 = to_import_record({**base, "isbn": "978-1-928318-15-6"})
+    assert isbn13 is not None
+    assert isbn13["isbn_13"] == ["978-1-928318-15-6"]
+    assert "isbn_10" not in isbn13
+
+    isbn10 = to_import_record({**base, "isbn": "1-928318-15-9"})
+    assert isbn10 is not None
+    assert isbn10["isbn_10"] == ["1-928318-15-9"]
+    assert "isbn_13" not in isbn10
+
+
+def test_parse_book_page_tolerates_og_description_without_content(monkeypatch):
+    # A meta tag present but missing its content attribute must not crash the
+    # parse (and so drop the whole book) over an optional field.
+    html = '<html><body><h1>T</h1><meta property="og:description"></body></html>'
+    scraped = parse_book_page(html, "https://bookdash.org/books/t/")
+    assert scraped["description"] == ""
 
 
 # --- the adapter end to end (fake transport) -------------------------------
@@ -267,24 +317,73 @@ def test_iter_records_max_pages_truncates_and_flags_state():
     assert state["truncated"] is True
 
 
-def test_iter_records_skips_a_page_that_errors_without_aborting_the_crawl():
-    # One book page 404s; the rest must still harvest.
+def _responses_with(status_or_text: dict[str, object]) -> dict[str, FakeResponse]:
+    """Sitemap + real page for every book, overriding named URLs with a status/text."""
     responses = {"https://bookdash.org/books-sitemap.xml": FakeResponse(content=(SAMPLES / "sitemap.xml").read_bytes())}
     real = (SAMPLES / "a-beautiful-day.html").read_text()
     for url in (
+        "https://bookdash.org/books/a-beautiful-day/",
         "https://bookdash.org/books/usuku-oluhle/",
         "https://bookdash.org/books/no-cover-book/",
         "https://bookdash.org/books/no-lastmod-book/",
     ):
-        responses[url] = FakeResponse(text=real)
-    responses["https://bookdash.org/books/a-beautiful-day/"] = FakeResponse(status=404)
-    session = FakeSession(responses)
+        override = status_or_text.get(url)
+        if isinstance(override, int):
+            responses[url] = FakeResponse(status=override)
+        elif isinstance(override, str):
+            responses[url] = FakeResponse(text=override)
+        else:
+            responses[url] = FakeResponse(text=real)
+    return responses
+
+
+def test_iter_records_skips_a_gone_page_without_aborting_the_crawl():
+    # A 404/410 book is permanently gone: skip it, keep harvesting, do NOT raise
+    # (one deleted book must not wedge the whole feed).
+    session = FakeSession(_responses_with({"https://bookdash.org/books/a-beautiful-day/": 410}))
 
     pairs = list(BookdashAdapter().iter_records(_feed(), since=EPOCH, session=session))
 
     staged = {rec["source_records"][0] for rec, _mod in pairs}
-    assert "bookdash:a-beautiful-day" not in staged  # the 404 was skipped
+    assert "bookdash:a-beautiful-day" not in staged  # the gone book was skipped
     assert len(staged) == 3  # the other three still harvested
+
+
+def test_iter_records_raises_on_a_transient_fetch_failure_to_hold_the_cursor():
+    # A non-gone HTTP error (after the session's own retries) is transient: the
+    # whole run must fail so the harvester holds the cursor and retries next run,
+    # rather than letting a newer book advance the cursor past the failed one.
+    session = FakeSession(_responses_with({"https://bookdash.org/books/no-cover-book/": 503}))
+
+    with pytest.raises(BookdashFetchError):
+        list(BookdashAdapter().iter_records(_feed(), since=EPOCH, session=session))
+
+
+def test_iter_records_raises_on_a_network_error():
+    class FlakySession(FakeSession):
+        def get(self, url, **kwargs):
+            if url == "https://bookdash.org/books/usuku-oluhle/":
+                raise requests.ConnectionError("boom")
+            return super().get(url, **kwargs)
+
+    session = FlakySession(_responses_with({}))
+    with pytest.raises(BookdashFetchError):
+        list(BookdashAdapter().iter_records(_feed(), since=EPOCH, session=session))
+
+
+def test_iter_records_skips_an_unparseable_page_and_flags_truncated():
+    # A deterministic parse failure (shape drift) is skipped this run and the run
+    # is flagged truncated (operator-visible) rather than raising and wedging the
+    # feed. The other books still harvest.
+    session = FakeSession(_responses_with({"https://bookdash.org/books/a-beautiful-day/": "<html><body>no h1</body></html>"}))
+    state: dict = {}
+
+    pairs = list(BookdashAdapter().iter_records(_feed(), since=EPOCH, session=session, state=state))
+
+    staged = {rec["source_records"][0] for rec, _mod in pairs}
+    assert "bookdash:a-beautiful-day" not in staged
+    assert len(staged) == 3
+    assert state["truncated"] is True
 
 
 def test_web_storage_feed_exposes_fields():
