@@ -473,7 +473,10 @@ class EditionSearchRequestParams(Pagination):
     )
     language: list[str] = Field(
         [],
-        description="Filter by language using three-letter MARC language codes. Multiple values OR within the field.",
+        description=(
+            "Filter by language using lowercase three-letter MARC language codes (case-sensitive, e.g. 'eng'). "
+            "Multiple values OR within the field; blank values are ignored."
+        ),
         examples=[["eng"], ["spa"], ["eng", "spa"]],
     )
     ebook_access: list[str] = Field(
@@ -490,6 +493,12 @@ class EditionSearchRequestParams(Pagination):
         description="The fields to return.",
     )
     sort: EditionSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+
+    @field_validator("language")
+    @classmethod
+    def drop_blank_languages(cls, v: list[str]) -> list[str]:
+        # An empty value would compile to language:("") and match nothing; ignore it.
+        return [x for x in v if x.strip()]
 
     @field_validator("ebook_access")
     @classmethod

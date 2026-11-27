@@ -700,6 +700,26 @@ class TestEditionSearchEndpoint:
         assert response.status_code == 200
         assert 'language:("en\\"g")' in self._extra_fqs(mock_edition_solr_query)
 
+    def test_backslash_in_language_is_escaped(self, fastapi_client, mock_edition_solr_query):
+        """A backslash in a language value is doubled so it can't escape the quote."""
+        response = fastapi_client.get("/search/editions.json?language=a\\b")
+        assert response.status_code == 200
+        assert 'language:("a\\\\b")' in self._extra_fqs(mock_edition_solr_query)
+
+    def test_blank_language_values_are_ignored(self, fastapi_client, mock_edition_solr_query):
+        """Empty/whitespace language values must not become language:("") (which matches nothing)."""
+        response = fastapi_client.get("/search/editions.json?language=&language=+&language=eng")
+        assert response.status_code == 200
+        fqs = self._extra_fqs(mock_edition_solr_query)
+        assert 'language:("eng")' in fqs
+        assert not any('""' in fq for fq in fqs)
+
+    def test_only_blank_language_means_no_fq(self, fastapi_client, mock_edition_solr_query):
+        """A lone empty language param is ignored, not turned into a zero-result filter."""
+        response = fastapi_client.get("/search/editions.json?language=")
+        assert response.status_code == 200
+        assert self._extra_fqs(mock_edition_solr_query) == []
+
     def test_filter_params_in_openapi_spec(self, fastapi_client):
         response = fastapi_client.get("/openapi.json")
         assert response.status_code == 200
