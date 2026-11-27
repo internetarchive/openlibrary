@@ -43,6 +43,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from openlibrary.coverstore.utils import is_allowed_cover_url
+from openlibrary.plugins.upstream.utils import get_marc21_language
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -232,12 +233,13 @@ def to_import_record(scraped: dict[str, Any]) -> dict[str, Any] | None:
         "source_records": [f"{PROVIDER_NAME}:{slug}"],
         "publishers": ["Book Dash"],
         "authors": authors,
-        # Book Dash publishes MARC-style three-letter codes ("eng", "afr",
-        # "zul"), already in the shape OL editions want, so they pass through
-        # unmapped — unlike OPDS feeds' two-letter ISO codes. Mapping them
-        # through get_marc21_language would drop the many African languages that
-        # table does not list.
-        "languages": list(scraped.get("languages", [])),
+        # Normalise language codes to MARC21. Book Dash codes are mostly clean
+        # three-letter codes ("eng", "xho", "zul") but some are region-qualified
+        # ("sot-ls" = Sesotho/Lesotho) -- and format_languages() at import time
+        # RAISES on an unresolvable code, failing the whole book. So strip the
+        # region suffix and map through get_marc21_language, dropping anything it
+        # can't resolve: a missing language is far better than a failed import.
+        "languages": [marc for raw in scraped.get("languages", []) if (marc := get_marc21_language(raw.split("-")[0].strip().lower()))],
         "subjects": list(scraped.get("subjects", [])),
         "description": scraped.get("description", ""),
         # The provider identifier is what the registered-feed validation

@@ -239,6 +239,27 @@ def test_to_import_record_routes_isbn_by_length():
     assert "isbn_13" not in isbn10
 
 
+def test_to_import_record_normalises_languages_to_marc21():
+    # Real Book Dash data: region-qualified codes like "sot-ls" would make
+    # format_languages() raise and fail the whole import; strip the region and map
+    # to MARC21, dropping codes that cannot resolve (never fail a book over a lang).
+    record = to_import_record(
+        {
+            "url": "https://bookdash.org/books/x/",
+            "title": "X",
+            "authors": ["An Author"],
+            "languages": ["sot-ls", "eng", "xho", "zz-nonsense"],
+            "subjects": [],
+            "description": "",
+            "isbn": None,
+            "cover_url": None,
+        }
+    )
+    assert record is not None
+    # sot-ls -> sot (region stripped), eng -> eng, xho -> xho; zz-nonsense dropped.
+    assert record["languages"] == ["sot", "eng", "xho"]
+
+
 def test_parse_book_page_tolerates_og_description_without_content(monkeypatch):
     # A meta tag present but missing its content attribute must not crash the
     # parse (and so drop the whole book) over an optional field.
