@@ -278,8 +278,12 @@ def extract_local_id(pub: Publication, feed: Feed) -> str | None:
         # <author>/<title> path after /ebooks/ -- kept intact, because a
         # translated work's path has a third (translator) segment and only the
         # full path is unique. Matches scripts/import_standard_ebooks.py's
-        # entry["id"].replace(prefix, "").
-        return identifier[len(STANDARD_EBOOKS_PREFIX) :] if identifier.startswith(STANDARD_EBOOKS_PREFIX) else None
+        # entry["id"].replace(prefix, ""). rstrip the trailing slash (as the
+        # self_link strategy does) so a stray ".../title/" can't mint a second
+        # local_id for the same book and re-queue/duplicate its acquisitions.
+        if not identifier.startswith(STANDARD_EBOOKS_PREFIX):
+            return None
+        return identifier[len(STANDARD_EBOOKS_PREFIX) :].rstrip("/") or None
     return None
 
 

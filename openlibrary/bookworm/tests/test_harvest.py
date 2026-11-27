@@ -909,3 +909,32 @@ def test_next_link_detected_when_rel_is_an_array():
     pages = list(harvest.iter_pages("https://se/all", session))
     assert session.calls == ["https://se/all", "https://se/all?page=2"]
     assert len(pages) == 2
+
+
+def test_a_shared_session_never_carries_one_feeds_key_to_another(bookworm_db, monkeypatch):
+    """`harvest_all(session=...)` hands ONE session to every feed in turn. If the
+    authenticated feed's `session.auth` were left set, the next feed's request
+    would send Standard Ebooks' API key to a THIRD-PARTY host (gutenberg.org,
+    archive.org, betterworldbooks). The session's auth must be scoped per feed.
+    """
+    monkeypatch.setattr(harvest, "config", _config(standard_ebooks_key="SECRET-KEY"))
+    _se_feed(bookworm_db)  # id 1: authenticated, harvested first
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    bwb = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    FeedRegistry.set_status(bwb.id, "active")
+
+    class RecordingSession(FakeSession):
+        def __init__(self, pages):
+            super().__init__(pages)
+            self.auth = None
+            self.auth_by_url: dict[str, object] = {}
+
+        def get(self, url, **kwargs):
+            self.auth_by_url[url] = self.auth
+            return super().get(url, **kwargs)
+
+    shared = RecordingSession({SE_URL: feed_page("standard_ebooks"), "https://bwb/opds": feed_page("bwb")})
+    harvest.harvest_all(session=shared)
+
+    assert shared.auth_by_url[SE_URL] == ("SECRET-KEY", "")  # SE got its key
+    assert shared.auth_by_url["https://bwb/opds"] is None  # BWB did NOT inherit it

@@ -155,6 +155,23 @@ def test_standard_ebooks_cover_is_emitted():
     assert rec["cover"] == "https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/cover.jpg"
 
 
+@pytest.mark.parametrize(
+    ("identifier", "expected"),
+    [
+        ("https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice", "jane-austen/pride-and-prejudice"),
+        # A stray trailing slash must not mint a second id for the same book.
+        ("https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/", "jane-austen/pride-and-prejudice"),
+        # Not an SE identifier, or the bare prefix -> no id, record dropped.
+        ("https://example.org/book/1", None),
+        ("https://standardebooks.org/ebooks/", None),
+        ("", None),
+    ],
+)
+def test_standard_ebooks_id_edge_cases(identifier, expected):
+    pub = Publication(metadata={"identifier": identifier})
+    assert extract_local_id(pub, STANDARD_EBOOKS) == expected
+
+
 def test_skips_publication_without_title_or_authors():
     pub = Publication(metadata={"identifier": "urn:isbn:9781737408802"}, links=[])
     assert to_import_record(pub, BWB) is None

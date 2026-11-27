@@ -155,16 +155,16 @@ def _resolve_auth(feed: FeedRegistry) -> tuple[str, str] | None:
 
 
 def _session_for(feed: FeedRegistry, session: requests.Session | None) -> requests.Session:
-    """Build or reuse a session and apply the feed's auth to it.
+    """Build or reuse a session, scoping its auth to THIS feed.
 
-    ``harvest_all`` passes ``session=None``, so each feed gets its own session
-    and one feed's credentials never leak onto the next. Auth is only ever set,
-    never cleared, so a caller that deliberately shares a session across an
-    authed and an unauthed feed is its own concern.
+    ``harvest_all`` hands one session to every feed in turn, so the auth is set
+    for an authenticated feed and explicitly CLEARED (``None``) for every other
+    feed -- otherwise a prior feed's API key would ride along on the next feed's
+    request to a different, third-party host. Always assigning (rather than only
+    setting when present) is what makes the shared-session path safe.
     """
     session = session or build_session()
-    if auth := _resolve_auth(feed):
-        session.auth = auth
+    session.auth = _resolve_auth(feed)  # (secret, "") for an authed feed, else None
     return session
 
 
