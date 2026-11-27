@@ -449,8 +449,76 @@ class ImportItem(web.storage):
 
         return None
 
+    def _load_record(self) -> dict | None:
+        """Parse this item's queued ``data`` JSON, or None if absent/unparsable."""
+        if not self.data:
+            return None
+        try:
+            record = json.loads(self.data)
+        except TypeError, ValueError:
+            return None
+        return record if isinstance(record, dict) else None
+
+    def apply_edit(self, record: dict) -> Edition | None:
+        """Apply a queued edit submission to the live catalog.
+
+        An edit submission is a patch on a specific base version of an existing
+        record (``openlibrary.core.edit_submissions``, #14750). On a clean apply
+        the row is marked ``modified``; a version conflict is routed back to
+        ``needs_review`` (keeping its data so it can be rebased) rather than
+        silently overwriting newer data; a missing target or malformed patch is
+        marked ``failed``.
+        """
+        from openlibrary.core.edit_submissions import (
+            EditOutcome,
+            apply_edit_submission,
+        )
+
+        comment = f"BookWorm edit submission (batch {self.batch_id}, base v{record.get('v')})"
+        try:
+            result = apply_edit_submission(record, comment=comment)
+        except Exception:
+            # A save can raise (permission denied, infogami ClientException,
+            # network). Mark the row failed rather than letting it propagate and
+            # strand the row at `pending`, re-attempted every drain.
+            logger.exception("edit submission apply raised for %s", record.get("key"))
+            self.set_status("failed", error="edit-apply-error")
+            return None
+
+        if result.outcome == EditOutcome.APPLIED:
+            self.set_status("modified", ol_key=result.key)
+            return web.ctx.site.get(result.key)
+        if result.outcome == EditOutcome.CONFLICT:
+            # Keep data (do not call set_status, which NULLs it) so the
+            # submission can be rebased against the newer version on re-review.
+            self._route_to_needs_review(error="version-conflict")
+        elif result.outcome == EditOutcome.MISSING:
+            self.set_status("failed", error="edit-target-missing")
+        else:  # INVALID
+            self.set_status("failed", error="edit-invalid")
+        return None
+
+    def _route_to_needs_review(self, error: str | None = None) -> None:
+        """Send a claimed row back to ``needs_review`` without clearing its data."""
+        logger.info("route-to-needs-review %s:%s - %s", self.batch_id, self.id, error)
+        d = {
+            "status": "needs_review",
+            "error": error,
+            "import_time": dt.datetime.now(dt.UTC).replace(tzinfo=None),
+        }
+        db.update("import_item", where="id=$id", vars=self, **d)
+        self.update(d)
+
     def single_import(self) -> Edition | None:
         """Import the item using load(), swallow errors, update status, and return the Edition if any."""
+        # An edit submission (a patch on an existing versioned record) follows a
+        # different apply path than a new-record import. See #14750.
+        if (record := self._load_record()) is not None:
+            from openlibrary.core.edit_submissions import is_edit_submission
+
+            if is_edit_submission(record):
+                return self.apply_edit(record)
+
         try:
             # Avoids a circular import issue.
             from openlibrary.plugins.importapi.code import parse_data
