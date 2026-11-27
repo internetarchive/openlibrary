@@ -1,6 +1,6 @@
 import pytest
 
-from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme, partial_date_bounds
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme, expand_partial_date_to_solr_range
 
 
 @pytest.mark.parametrize(
@@ -25,8 +25,8 @@ from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme, p
         ("Twain", None),
     ],
 )
-def test_partial_date_bounds(value, expected):
-    assert partial_date_bounds(value) == expected
+def test_expand_partial_date_to_solr_range(value, expected):
+    assert expand_partial_date_to_solr_range(value) == expected
 
 
 @pytest.mark.parametrize(

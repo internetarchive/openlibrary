@@ -128,25 +128,21 @@ MONTH_NAMES: dict[str, int] = {
 }
 # "B.C."/"BCE", French "av. J.-C.", Spanish/Italian "a.C."
 _BC_RE = re.compile(r"\bb\.?\s?c\.?(?:e\.?)?(?!\w)|\bav\.?\s*j\b|(?<!\w)a\.\s?c\.?(?!\w)", re.IGNORECASE)
-_ISO_RE = re.compile(r"(?<!\d)(\d{4})-(\d{2})(?:-(\d{2}))?(?!\d)")
-_YEAR_RE = re.compile(r"(?<!\d)\d{4}(?!\d)")
-_DAY_RE = re.compile(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)")
-_WORD_RE = re.compile(r"[^\W\d_]+")
-# Words/punctuation allowed around a bare 1-3 digit year, e.g. "ca. 673?" or "(584)"
-_SHORT_YEAR_RE = re.compile(
-    r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died|a\.?d)\b|[\s?.,;:()\[\]])*"
-    r"(\d{1,3})"
-    r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
-    re.IGNORECASE,
-)
+
+
+def format_solr_date(year: int, month: int = 1, day: int = 1) -> str:
+    """Format as a Solr date. BC years use ISO 8601's astronomical numbering
+    (1 BC = ``0000``, 2 BC = ``-0001``)."""
+    sign = "-" if year < 0 else ""
+    return f"{sign}{abs(year):04d}-{month:02d}-{day:02d}T00:00:00Z"
 
 
 def parse_user_entered_date(date_str: str | None) -> str | None:
     """Best-effort parse of a free-text, user-entered date (e.g. an author's
     birth date) into a Solr date string (e.g. ``1842-03-01T00:00:00Z``), for sorting.
 
-    Missing month/day default to January 1st. BC years use ISO 8601's
-    astronomical numbering (1 BC = ``0000``, 2 BC = ``-0001``). Returns None
+    Missing month/day default to January 1st; see format_solr_date for BC
+    years. Returns None
     when no year can be identified unambiguously (e.g. "19th cent.", "19..",
     "12/24") or the year is in the future, so the record sorts with the
     undated ones.
@@ -162,19 +158,26 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
     text = _BC_RE.sub(" ", date_str)
     month = day = None
 
-    if m := _ISO_RE.search(text):
+    if m := re.search(r"(?<!\d)(\d{4})-(\d{2})(?:-(\d{2}))?(?!\d)", text):
         year = int(m.group(1))
         month = int(m.group(2))
         day = int(m.group(3)) if m.group(3) else None
-    elif m := _YEAR_RE.search(text):
+    elif m := re.search(r"(?<!\d)\d{4}(?!\d)", text):
         year = int(m.group())
         rest = text[: m.start()] + " " + text[m.end() :]
-        months = {MONTH_NAMES[w] for w in _WORD_RE.findall(rest.lower()) if w in MONTH_NAMES}
+        months = {MONTH_NAMES[w] for w in re.findall(r"[^\W\d_]+", rest.lower()) if w in MONTH_NAMES}
         if len(months) == 1:
             month = months.pop()
-            if (days := _DAY_RE.findall(rest)) and len(days) == 1:
+            if (days := re.findall(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)", rest)) and len(days) == 1:
                 day = int(days[0])
-    elif m := _SHORT_YEAR_RE.fullmatch(text.strip()):
+    elif m := re.fullmatch(
+        # A bare 1-3 digit year with qualifiers/punctuation, e.g. "ca. 673?" or "(584)"
+        r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died|a\.?d)\b|[\s?.,;:()\[\]])*"
+        r"(\d{1,3})"
+        r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
+        text.strip(),
+        re.IGNORECASE,
+    ):
         year = int(m.group(1))
         if not is_bc:
             # A bare 1-2 digit number is more likely a truncated year ("95") or
@@ -196,8 +199,7 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
         dt.date(2000, month or 1, day or 1)  # validate month/day; 2000 is a leap year
     except ValueError:
         month = day = None
-    year_str = f"-{-year:04d}" if year < 0 else f"{year:04d}"
-    return f"{year_str}-{month or 1:02d}-{day or 1:02d}T00:00:00Z"
+    return format_solr_date(year, month or 1, day or 1)
 
 
 @public
