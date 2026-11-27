@@ -9269,6 +9269,14 @@ msgid "This record has been edited and is not yet reflected in Solr. It should u
 msgstr ""
 
 #: lit/OlSelectPopover.js
+msgid "SELECTED"
+msgstr ""
+
+#: lit/OlSelectPopover.js
+msgid "SUGGESTIONS"
+msgstr ""
+
+#: lit/OlSelectPopover.js
 msgid "Clear selections"
 msgstr ""
 

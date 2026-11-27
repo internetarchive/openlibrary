@@ -373,8 +373,8 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.searchThreshold = FILTER_THRESHOLD;
         this.placeholder = _('Filter…');
         this.unselectedHeading = '';
-        this.selectedHeading = 'SELECTED';
-        this.suggestionsHeading = 'SUGGESTIONS';
+        this.selectedHeading = _('SELECTED');
+        this.suggestionsHeading = _('SUGGESTIONS');
         this.clearLabel = _('Clear selections');
         this.noMatchesLabel = _('No matches');
         this.loadingLabel = _('Loading…');
