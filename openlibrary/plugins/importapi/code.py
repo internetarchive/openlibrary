@@ -19,6 +19,7 @@ from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.utils import get_non_isbn_asin
 from openlibrary.core import ia
+from openlibrary.core.edit_submissions import is_edit_submission
 from openlibrary.plugins.importapi import (
     import_edition_builder,
     import_opds,
@@ -61,6 +62,23 @@ def parse_meta_headers(edition_builder):
         if m:
             meta_key = m.group(1).lower()
             edition_builder.add(meta_key, v, restrict_keys=False)
+
+
+def _try_json_object(data: bytes) -> dict | None:
+    """Parse ``data`` as a JSON object, or return None if it is not one.
+
+    Used to peek at a POST body cheaply enough to tell an edit submission from
+    the XML/MARC/JSON import formats ``parse_data`` handles, without committing
+    to parsing.
+    """
+    data = data.strip()
+    if not (data.startswith(b"{") and data.endswith(b"}")):
+        return None
+    try:
+        obj = json.loads(data)
+    except json.JSONDecodeError, ValueError:
+        return None
+    return obj if isinstance(obj, dict) else None
 
 
 def parse_data(data: bytes) -> tuple[dict | None, str | None]:
@@ -165,6 +183,36 @@ class importapi:
         content.update(kwargs)
         raise web.HTTPError("400 Bad Request", data=json.dumps(content))
 
+    def _apply_edit_submission(self, record: dict, preview: bool) -> str:
+        """Apply a BookWorm edit submission (a patch on a versioned record).
+
+        An edit submission (#14750) carries an existing ``key`` + base version
+        ``v``; it is applied against the live document rather than parsed as a
+        new-record import. This is the server-side apply step the batch-review
+        drain (manage-imports -> /api/import) reaches for queued edits.
+        """
+        from openlibrary.core.edit_submissions import (
+            EditOutcome,
+            apply_edit_submission,
+            validate_edit_submission,
+        )
+
+        if preview:
+            # A preview must not mutate the catalog: report the shape only.
+            errors = validate_edit_submission(record)
+            if errors:
+                return self.error("edit-invalid", "; ".join(errors))
+            return json.dumps({"success": True, "edit": {"key": record["key"], "status": "preview"}})
+
+        result = apply_edit_submission(record)
+        if result.outcome == EditOutcome.APPLIED:
+            return json.dumps({"success": True, "edition": {"key": result.key, "status": "modified"}})
+        if result.outcome == EditOutcome.CONFLICT:
+            return self.error("version-conflict", result.message or "base version has drifted")
+        if result.outcome == EditOutcome.MISSING:
+            return self.error("edit-target-missing", result.message or "no such record")
+        return self.error("edit-invalid", result.message or "invalid edit submission")
+
     def POST(self):
         web.header("Content-Type", "application/json")
         if not can_write():
@@ -173,6 +221,14 @@ class importapi:
         i = web.input()
         preview = i.get("preview") == "true"
         data = web.data()
+
+        # BookWorm edit submissions (#14750) ride the same endpoint as imports
+        # but are a patch on an existing versioned record (top-level `key` + base
+        # version `v`), not a new-record import. Route them to the apply step
+        # before the import parser, which would otherwise mis-read them as an
+        # incomplete new edition.
+        if (record := _try_json_object(data)) is not None and is_edit_submission(record):
+            return self._apply_edit_submission(record, preview)
 
         try:
             edition, _ = parse_data(data)
