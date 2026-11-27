@@ -219,8 +219,8 @@ CREATE TABLE provider_tokens (
 -- keys: this file is applied at database INIT before `import_batch`/`import_item`
 -- exist (they arrive with dev_db.pg_dump), and Open Library app tables do not
 -- hard-FK the infobase tables (cf. `acquisitions.edition_id`). Model-level
--- deletes (`ImportLabels.delete_for_batch`/`delete_for_item`) keep labels from
--- outliving their target.
+-- deletes (`ImportLabels.delete_for_target`) keep labels from outliving their
+-- target.
 --
 -- The two partial-unique indexes make (target, key, value) unique per target so
 -- re-applying a label is idempotent (the writes are `ON CONFLICT DO NOTHING`); a

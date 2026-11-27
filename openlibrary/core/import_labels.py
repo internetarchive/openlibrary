@@ -36,7 +36,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-from openlibrary.core.async_db import class_row, execute, fetch_all
+from openlibrary.core.async_db import class_row, connection, execute, fetch_all
 from openlibrary.utils.async_utils import async_bridge
 
 
@@ -115,15 +115,30 @@ class ImportLabels:
         Some keys are naturally single-valued -- ``type`` is exactly one of
         ``import``/``edit``, a submission has one ``source_app``. The schema does
         not constrain this (a key may hold several values in general; see the
-        class docstring), so single-valuedness is an app-level invariant enforced
-        here: drop the key's existing rows for this target, then add the new one.
+        class docstring), so single-valuedness is an app-level convention, applied
+        here by dropping the key's existing rows for this target and adding the
+        new one in **one transaction** -- no window where the key is missing, and
+        no mid-failure state that keeps the old value dropped without the new one.
+
+        Scope of the guarantee: this is last-write-wins for *serial* callers. It
+        does **not** serialize two writers racing on the same ``(target, key)``;
+        because the unique index is on ``(target, key, value)``, two concurrent
+        ``set_single`` of different values can both survive, leaving the key
+        multi-valued. No caller in this change does that (a submission sets its
+        own item's ``type`` once); a future caller that needs a hard guarantee
+        should add a partial unique index on ``(target, label_key)`` for the
+        single-valued keys rather than rely on this method.
         """
         column, target_id = _one_target(batch_id, import_item_id)
-        await execute(
-            f"DELETE FROM {cls.TABLENAME} WHERE {column} = %(target_id)s AND label_key = %(label_key)s",
-            {"target_id": target_id, "label_key": label_key},
-        )
-        await cls.add(label_key, label_value, batch_id=batch_id, import_item_id=import_item_id)
+        async with connection() as conn:
+            await conn.execute(
+                f"DELETE FROM {cls.TABLENAME} WHERE {column} = %(target_id)s AND label_key = %(label_key)s",
+                {"target_id": target_id, "label_key": label_key},
+            )
+            await conn.execute(
+                f"INSERT INTO {cls.TABLENAME} ({column}, label_key, label_value) VALUES (%(target_id)s, %(label_key)s, %(label_value)s) ON CONFLICT DO NOTHING",
+                {"target_id": target_id, "label_key": label_key, "label_value": label_value},
+            )
 
     # --- Read ----------------------------------------------------------------
 

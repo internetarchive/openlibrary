@@ -10,6 +10,7 @@ pins the shipped DDL. See ``docs/core/database.md`` for the pattern.
 
 import os
 import re
+from contextlib import asynccontextmanager
 from types import SimpleNamespace
 from typing import Final
 from unittest.mock import AsyncMock, patch
@@ -20,6 +21,7 @@ from psycopg.errors import CheckViolation
 import openlibrary.core.import_labels as il
 from openlibrary.core.async_db import execute
 from openlibrary.core.import_labels import ImportLabel, ImportLabels
+from openlibrary.tests.core.async_db_fakes import FakeConnection
 
 # The DDL that has actually been executed against production/staging by an
 # operator (Open Library has no DDL-migration mechanism). ``schema.sql`` is where
@@ -92,15 +94,25 @@ async def test_add_rejects_both_targets(helpers):
 
 
 @pytest.mark.asyncio
-async def test_set_single_deletes_then_inserts(helpers):
-    await ImportLabels.set_single("type", "edit", import_item_id=42)
+async def test_set_single_deletes_then_inserts_on_one_connection():
+    # set_single runs its DELETE + INSERT on a single `connection()` (one
+    # transaction), not two autocommit `execute()` calls -- so a mid-failure
+    # cannot drop the old value without writing the new one.
+    fake = FakeConnection()
 
-    delete_call, insert_call = helpers.execute.await_args_list
-    (delete_query, delete_params), _ = delete_call
+    @asynccontextmanager
+    async def fake_connection():
+        yield fake
+
+    with patch("openlibrary.core.import_labels.connection", fake_connection):
+        await ImportLabels.set_single("type", "edit", import_item_id=42)
+
+    (delete_query, delete_params), (insert_query, insert_params) = fake.executions
     assert delete_query.startswith("DELETE FROM import_label WHERE import_item_id = %(target_id)s AND label_key")
     assert delete_params == {"target_id": 42, "label_key": "type"}
-    (insert_query, _insert_params), _ = insert_call
-    assert insert_query.startswith("INSERT INTO import_label")
+    assert insert_query.startswith("INSERT INTO import_label (import_item_id, label_key, label_value)")
+    assert "ON CONFLICT DO NOTHING" in insert_query
+    assert insert_params == {"target_id": 42, "label_key": "type", "label_value": "edit"}
 
 
 @pytest.mark.asyncio
@@ -240,9 +252,20 @@ class TestTheShippedSchemaHasTheTable:
             return handle.read()
 
     @staticmethod
-    def _create_table(text: str) -> str:
-        match = re.search(r"^CREATE TABLE import_label \(.*?^\);", text, re.DOTALL | re.MULTILINE)
-        assert match, f"no `CREATE TABLE import_label` in {SCHEMA_SQL}"
+    def _full_ddl(text: str) -> str:
+        """The whole block: CREATE TABLE through the last CREATE INDEX.
+
+        Comparing the table body alone would let an *index* drift silently --
+        e.g. dropping a partial ``WHERE batch_id IS NOT NULL`` (which is what
+        makes idempotency and batch/item coexistence work) -- so the comparison
+        spans the indexes too.
+        """
+        match = re.search(
+            r"CREATE TABLE import_label \(.*?CREATE INDEX import_label_lookup [^;]*;",
+            text,
+            re.DOTALL,
+        )
+        assert match, f"no `import_label` table+index block in {SCHEMA_SQL}"
         return match.group(0)
 
     @staticmethod
@@ -252,9 +275,9 @@ class TestTheShippedSchemaHasTheTable:
     def test_schema_sql_declares_the_table(self):
         assert "import_label" in self._schema_text()
 
-    def test_it_is_the_same_table_the_tests_execute(self):
-        shipped = self._create_table(self._schema_text())
-        expected = self._create_table(POSTGRES_DDL)
+    def test_it_is_the_same_ddl_the_tests_execute(self):
+        shipped = self._full_ddl(self._schema_text())
+        expected = self._full_ddl(POSTGRES_DDL)
         assert self._normalised(shipped) == self._normalised(expected)
 
     def test_the_one_target_check_is_declared(self):

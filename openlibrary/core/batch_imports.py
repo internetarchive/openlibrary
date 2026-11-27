@@ -142,6 +142,11 @@ def batch_import(raw_data: bytes, import_status: str, labels: Mapping[str, str] 
     batch = Batch.find(batch_name) or Batch.new(name=batch_name, submitter=username)
     batch.add_items(batch_data)
 
+    # Labels are written after the items are committed, so a failure here leaves
+    # the batch and items persisted with only some (or none) of their labels.
+    # That is acceptable: labels are additive metadata and every write is
+    # idempotent (ON CONFLICT DO NOTHING), so simply resubmitting reconciles
+    # them -- no partial-label state needs cleaning up first.
     if labels:
         ImportLabels.add_many_sync(labels, batch_id=batch.id)
 
