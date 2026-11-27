@@ -1,12 +1,15 @@
 """Handlers for adding and editing tags."""
 
 import web
+from markupsafe import escape
 
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, public, safeint
 from openlibrary.accounts import get_current_user
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.addbook import safe_seeother, trim_doc
 from openlibrary.plugins.upstream.models import Tag
@@ -87,6 +90,19 @@ def find_match(name_or_slug: str, tag_type: str) -> str:
     """
     matches = Tag.find(name_or_slug, tag_type=tag_type)
     return matches[0] if matches else ""
+
+
+def render_tags_index(*, tags, page: int, has_next: bool, tag_type: str | None) -> str:
+    """The body of /tags, rendered by both servers."""
+    return render_jinja_template(
+        "type/tag/index.html.jinja",
+        tags=tags,
+        page=page,
+        has_next=has_next,
+        tag_type=tag_type,
+        tag_types=TAG_TYPES,
+        subject_tag_types=SUBJECT_SUB_TYPES,
+    )
 
 
 class addtag(delegate.page):
@@ -268,13 +284,9 @@ class tags_index(delegate.page):
         has_next = len(tag_keys) > limit
         tags = site.get().get_many(tag_keys[:limit]) if tag_keys else []
 
-        return render_template(
-            "type/tag/index",
-            tags=tags,
-            page=page_num,
-            has_next=has_next,
-            tag_type=tag_type,
-        )
+        body = render_tags_index(tags=tags, page=page_num, has_next=has_next, tag_type=tag_type)
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("Tags")))
 
 
 def setup():

@@ -55,6 +55,7 @@ GET /search/subjects.json
 GET /stats/merges
 GET /stats/tasks.json
 GET /status
+GET /tags
 GET /tasks/admin
 GET /tasks/admin/new
 GET /tasks/faq
