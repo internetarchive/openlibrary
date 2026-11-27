@@ -622,7 +622,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja shell/edit_saved.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html account/loans.html contribute/admin/project.html.jinja lists/lists.html lit/OlBanner.js lit/OlToast.js merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -957,10 +957,6 @@ msgstr ""
 
 #: books/edit/edition.html contribute/parts.html.jinja languages/index.html search-modal/constants.js work_search.html
 msgid "Languages"
-msgstr ""
-
-#: lit/OlSelectPopover.js search-modal/constants.js search/inside.html.jinja work_search.html
-msgid "Loading…"
 msgstr ""
 
 #: search/inside.html.jinja work_search.html
@@ -3426,28 +3422,6 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-msgid "Previous page"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-msgid "Next page"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-msgid "Carousel pages"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-#, python-brace-format
-msgid "Go to page {page} of {total}"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-#, python-brace-format
-msgid "Page {page} of {total}"
-msgstr ""
-
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -3788,21 +3762,6 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "This Edition"
-msgstr ""
-
-#: books/edit/edition.html lit/OlScorecard.js
-#, python-brace-format
-msgid "Failing Checks ({count})"
-msgstr ""
-
-#: books/edit/edition.html lit/OlScorecard.js
-#, python-brace-format
-msgid "Passing Checks ({count})"
-msgstr ""
-
-#: books/edit/edition.html lit/OlScorecard.js
-#, python-brace-format
-msgid "{score} points"
 msgstr ""
 
 #: books/edit/edition.html
@@ -7230,14 +7189,6 @@ msgstr ""
 msgid "Edition published by %(publishers)s"
 msgstr ""
 
-#: lit/OLReadMore.js type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: lit/OLReadMore.js type/edition/view.html type/work/view.html
-msgid "Read Less"
-msgstr ""
-
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
@@ -7309,7 +7260,7 @@ msgstr ""
 msgid "External Links"
 msgstr ""
 
-#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/edition/view.html type/work/editions_datatable.html type/work/view.html
+#: lit/OlPagination.js type/edition/view.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
@@ -7844,24 +7795,6 @@ msgstr ""
 
 #: search-modal/constants.js type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
-
-#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/work/editions_datatable.html
-msgid "Go to previous page"
-msgstr ""
-
-#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/work/editions_datatable.html
-msgid "Go to next page"
-msgstr ""
-
-#: OlPagination.html.jinja lit/OlPagination.js type/work/editions_datatable.html
-#, python-brace-format
-msgid "Go to page {page}"
-msgstr ""
-
-#: OlPagination.html.jinja lit/OlPagination.js type/work/editions_datatable.html
-#, python-brace-format
-msgid "Page {page}, current page"
 msgstr ""
 
 #: type/work/editions_datatable.html
@@ -9470,8 +9403,38 @@ msgstr ""
 msgid "View formatted"
 msgstr ""
 
+#: lit/OLReadMore.js
+msgid "Read More"
+msgstr ""
+
+#: lit/OLReadMore.js
+msgid "Read Less"
+msgstr ""
+
 #: lit/OlCarousel.js
 msgid "Carousel"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Previous page"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Next page"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Carousel pages"
+msgstr ""
+
+#: lit/OlCarousel.js
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: lit/OlCarousel.js
+#, python-brace-format
+msgid "Page {page} of {total}"
 msgstr ""
 
 #: lit/OlDialog.js
@@ -9484,6 +9447,39 @@ msgstr ""
 
 #: lit/OlOptionsPopover.js lit/OlSelectPopover.js
 msgid "No matches"
+msgstr ""
+
+#: lit/OlPagination.js
+msgid "Go to previous page"
+msgstr ""
+
+#: lit/OlPagination.js
+msgid "Go to next page"
+msgstr ""
+
+#: lit/OlPagination.js
+#, python-brace-format
+msgid "Go to page {page}"
+msgstr ""
+
+#: lit/OlPagination.js
+#, python-brace-format
+msgid "Page {page}, current page"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "Failing Checks ({count})"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "Passing Checks ({count})"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "{score} points"
 msgstr ""
 
 #: lit/OlScorecard.js
@@ -9509,6 +9505,10 @@ msgstr ""
 
 #: lit/OlSelectPopover.js
 msgid "Clear selections"
+msgstr ""
+
+#: lit/OlSelectPopover.js
+msgid "Loading…"
 msgstr ""
 
 #: lit/OlShelfActions.js

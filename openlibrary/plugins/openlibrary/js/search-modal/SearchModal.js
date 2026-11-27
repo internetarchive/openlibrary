@@ -1616,7 +1616,6 @@ export class SearchModal extends LitElement {
                     label=${this._i18n.languageLabel}
                     placeholder=${this._i18n.languagePlaceholder}
                     unselected-heading=${this._i18n.languageHeading}
-                    loading-label=${this._i18n.languagesLoading}
                     ?loading=${this._langsLoading}
                     .items=${this._languageItems}
                     .selected=${this._languages}
