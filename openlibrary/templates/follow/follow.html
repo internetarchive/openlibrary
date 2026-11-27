@@ -1,11 +1,5 @@
 $def with (publisher, fid='', following=False, request_path='', link_track='')
 
-$ i18n_strings = {
-$   'follow': _('Follow'),
-$   'unfollow': _('Unfollow'),
-$   'errorMsg': _('Failed to update followers. Please try again in a few moments.')
-$ }
-
 $ user = get_current_user()
 $ subscriber = user and user.key
 $ custom_request_path = request_path if request_path != '' else request.fullpath
@@ -19,7 +13,7 @@ $ data_attr = get_preserve_intent_attrs(_("Follow"), publisher, "patron", custom
       <input type="hidden" value="$publisher" name="publisher"/>
       <input type="hidden" value="$custom_request_path" name="redir_url"/>
       $ css_treatment = 'delete' if following else 'primary'
-      <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)"
+      <button type="submit" class="cta-btn cta-btn--$(css_treatment)"
         $if link_track:
           data-ol-link-track="$link_track"
         $:data_attr>$(_("Unfollow") if following else _("Follow"))</button>
