@@ -239,16 +239,18 @@ def test_to_import_record_routes_isbn_by_length():
     assert "isbn_13" not in isbn10
 
 
-def test_to_import_record_normalises_languages_to_marc21():
+def test_to_import_record_strips_language_region_without_collapsing_distinct_languages():
     # Real Book Dash data: region-qualified codes like "sot-ls" would make
-    # format_languages() raise and fail the whole import; strip the region and map
-    # to MARC21, dropping codes that cannot resolve (never fail a book over a lang).
+    # format_languages() raise; strip the region to the base 3-letter code. Crucially
+    # we must NOT collapse distinct languages: get_marc21_language maps both tso and
+    # nso to sot, which would mislabel Tsonga and Sepedi books as Sesotho. These
+    # codes pass straight through to format_languages (OL's language table) at import.
     record = to_import_record(
         {
             "url": "https://bookdash.org/books/x/",
             "title": "X",
             "authors": ["An Author"],
-            "languages": ["sot-ls", "eng", "xho", "zz-nonsense"],
+            "languages": ["sot-ls", "eng", "tso", "nso", "nbl"],
             "subjects": [],
             "description": "",
             "isbn": None,
@@ -256,8 +258,8 @@ def test_to_import_record_normalises_languages_to_marc21():
         }
     )
     assert record is not None
-    # sot-ls -> sot (region stripped), eng -> eng, xho -> xho; zz-nonsense dropped.
-    assert record["languages"] == ["sot", "eng", "xho"]
+    # Region stripped (sot-ls -> sot); tso/nso/nbl preserved, NOT collapsed to sot.
+    assert record["languages"] == ["sot", "eng", "tso", "nso", "nbl"]
 
 
 def test_parse_book_page_tolerates_og_description_without_content(monkeypatch):
@@ -392,10 +394,11 @@ def test_iter_records_raises_on_a_network_error():
         list(BookdashAdapter().iter_records(_feed(), since=EPOCH, session=session))
 
 
-def test_iter_records_skips_an_unparseable_page_and_flags_truncated():
-    # A deterministic parse failure (shape drift) is skipped this run and the run
-    # is flagged truncated (operator-visible) rather than raising and wedging the
-    # feed. The other books still harvest.
+def test_iter_records_skips_an_unparseable_page_without_aborting_or_flagging_truncated():
+    # A deterministic parse failure (shape drift) is logged and skipped, like the
+    # OPDS path skips a malformed publication -- it does NOT raise (which would
+    # wedge the feed) and does NOT set `truncated` (that flag means "stopped early,
+    # cursor advanced past unfetched records", whose remediation doesn't fit here).
     session = FakeSession(_responses_with({"https://bookdash.org/books/a-beautiful-day/": "<html><body>no h1</body></html>"}))
     state: dict = {}
 
@@ -404,7 +407,7 @@ def test_iter_records_skips_an_unparseable_page_and_flags_truncated():
     staged = {rec["source_records"][0] for rec, _mod in pairs}
     assert "bookdash:a-beautiful-day" not in staged
     assert len(staged) == 3
-    assert state["truncated"] is True
+    assert "truncated" not in state
 
 
 def test_web_storage_feed_exposes_fields():

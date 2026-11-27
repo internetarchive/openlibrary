@@ -43,7 +43,6 @@ import requests
 from bs4 import BeautifulSoup
 
 from openlibrary.coverstore.utils import is_allowed_cover_url
-from openlibrary.plugins.upstream.utils import get_marc21_language
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -233,13 +232,17 @@ def to_import_record(scraped: dict[str, Any]) -> dict[str, Any] | None:
         "source_records": [f"{PROVIDER_NAME}:{slug}"],
         "publishers": ["Book Dash"],
         "authors": authors,
-        # Normalise language codes to MARC21. Book Dash codes are mostly clean
-        # three-letter codes ("eng", "xho", "zul") but some are region-qualified
-        # ("sot-ls" = Sesotho/Lesotho) -- and format_languages() at import time
-        # RAISES on an unresolvable code, failing the whole book. So strip the
-        # region suffix and map through get_marc21_language, dropping anything it
-        # can't resolve: a missing language is far better than a failed import.
-        "languages": [marc for raw in scraped.get("languages", []) if (marc := get_marc21_language(raw.split("-")[0].strip().lower()))],
+        # Strip the region suffix from language codes. Book Dash codes are mostly
+        # clean three-letter MARC21 ("eng", "xho", "tso", "nso") but some are
+        # region-qualified ("sot-ls" = Sesotho/Lesotho), and format_languages()
+        # RAISES on a code it can't resolve, failing the whole book. OL language
+        # keys are always exactly three letters (`^/languages/[a-z]{3}$`), so the
+        # base segment is the right code to hand it. We deliberately do NOT route
+        # through get_marc21_language here: its map collapses distinct languages
+        # (tso -> sot, nso -> sot), which would silently mislabel Tsonga and Sepedi
+        # books as Sesotho. format_languages (OL's own language table) is the
+        # authority and validates these at import time.
+        "languages": [base for raw in scraped.get("languages", []) if (base := raw.split("-")[0].strip())],
         "subjects": list(scraped.get("subjects", [])),
         "description": scraped.get("description", ""),
         # The provider identifier is what the registered-feed validation
@@ -291,10 +294,9 @@ class BookdashAdapter:
       then never revisited — silent, permanent loss.
     - **Gone** (HTTP 404/410): skipped, no raise — a deleted book must not wedge
       the feed forever.
-    - **Unparsable page** (shape drift): skipped this run and ``state`` is flagged
-      truncated so the operator is warned. This is deterministic, so raising would
-      wedge the feed; it is the same bounded stranding the OPDS full-crawl path has,
-      now at least surfaced.
+    - **Unparsable page** (shape drift): logged and skipped, like the OPDS path
+      skips a malformed publication. Deterministic, so raising would wedge the
+      feed; a widespread drift surfaces as the run's record count collapsing.
     """
 
     def iter_records(
@@ -349,11 +351,14 @@ class BookdashAdapter:
                 record = to_import_record(scraped)
             except Exception:
                 # A deterministic parse failure (shape drift) would re-fail every
-                # run, so raising would wedge the feed; skip it and flag the run so
-                # the operator is warned rather than losing it silently.
+                # run, so raising would wedge the feed; skip it and keep going,
+                # exactly as the OPDS path skips a malformed publication. Not
+                # flagged as `truncated` -- that flag means "stopped early, cursor
+                # advanced past unfetched records", whose "reset last_updated"
+                # remediation does not fit a page that was fetched and could not be
+                # parsed. A widespread drift instead shows up as the run's record
+                # count collapsing (and here, in the logs).
                 logger.exception("bookdash: could not parse %s; skipping this run", entry.url)
-                if state is not None:
-                    state["truncated"] = True
                 continue
 
             fetched += 1
