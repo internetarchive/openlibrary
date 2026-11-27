@@ -1,14 +1,16 @@
 """Handlers for adding and editing tags."""
 
 import web
-from markupsafe import escape
+from markupsafe import Markup, escape
 
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.context import context
 from infogami.utils.view import add_flash_message, public, safeint
+from infogami.utils.view import format as format_text
 from openlibrary.accounts import get_current_user
+from openlibrary.core.helpers import datestr, parse_datetime, sanitize
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import spamcheck
@@ -98,6 +100,14 @@ def can_create_tag(user) -> bool:
     return bool(user and (user.is_admin() or user.is_curator()))
 
 
+def derive_subject_key(tag) -> str:
+    """The subject page the tag maps to."""
+    key = "/subjects/"
+    if tag.tag_type != "subject":
+        key += f"{tag.tag_type}:"
+    return (key + tag.name.replace(" ", "_")).lower()
+
+
 def render_tags_index(*, tags, page: int, has_next: bool, tag_type: str | None) -> str:
     """The body of /tags, rendered by both servers."""
     return render_jinja_template(
@@ -108,6 +118,26 @@ def render_tags_index(*, tags, page: int, has_next: bool, tag_type: str | None) 
         tag_type=tag_type,
         tag_types=TAG_TYPES,
         subject_tag_types=SUBJECT_SUB_TYPES,
+    )
+
+
+def render_tag_view(tag) -> str:
+    """The body of a tag's page, rendered by both servers."""
+    author = tag.get_most_recent_change().author
+    is_subject_tag = tag.tag_type in SUBJECT_SUB_TYPES
+    return render_jinja_template(
+        "type/tag/view.html.jinja",
+        tag=tag,
+        title=tag.name,
+        description_html=Markup(sanitize(format_text(tag.get("tag_description") or ""))),
+        body_html=Markup(sanitize(format_text(tag.get("body") or ""))),
+        subject_key=derive_subject_key(tag) if is_subject_tag else None,
+        is_subject_tag=is_subject_tag,
+        edit_url=tag.key + "?m=edit",
+        history_url=tag.url(m="history"),
+        show_edit=not tag.is_fake_record(),
+        date=datestr(parse_datetime(last_modified)) if (last_modified := tag.get("last_modified")) else "",
+        author_link=author.render_link() if author else None,
     )
 
 
@@ -333,6 +363,16 @@ class tag_search(delegate.page):
         if matches:
             return web.seeother(matches[0])
         return render_template("notfound", f"/tags/-/{type}:{name}", create=False)
+
+
+class tag_view(delegate.page):
+    path = r"(/tags/OL\d+T)"
+
+    def GET(self, key):
+        tag = site.get().get(key)
+        if tag is None or tag.type.key != "/type/tag":
+            return render_template("notfound", key)
+        return web.template.TemplateResult(__body__=render_tag_view(tag), title=escape(tag.name))
 
 
 class tags_index(delegate.page):

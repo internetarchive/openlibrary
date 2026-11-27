@@ -1,4 +1,4 @@
-"""`/tags` and `/tag/add` on FastAPI, and their web.py handlers.
+"""`/tags`, `/tag/add` and `/tags/OLnT` pages on FastAPI, and their web.py handlers.
 
 Both servers render the same Jinja templates until ops routes these paths to
 FastAPI in production. The shell around the pages is tested in
@@ -14,6 +14,7 @@ import web
 from fastapi.testclient import TestClient
 
 from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.models import Tag
 from openlibrary.fastapi.tags import pages
 from openlibrary.plugins.upstream import addtag
 
@@ -103,6 +104,85 @@ def test_tags_index_offers_the_next_page(client):
     assert 'href="/tags?page=2">Next »</a>' in response.text
 
 
+def test_tag_page_redirects_to_the_url_with_the_name(client):
+    mock_site(get=tag_doc())
+
+    response = client.get("/tags/OL1T", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/tags/OL1T/Horror"
+
+
+def test_tag_page_renders_the_tag(client):
+    current_site = mock_site(get=tag_doc())
+
+    response = client.get("/tags/OL1T/Horror")
+
+    assert response.status_code == 200
+    html = response.text
+    current_site.get.assert_called_once_with("/tags/OL1T")
+    assert "<title>Horror | Open Library</title>" in html
+    assert '<h1 itemprop="name">' in html
+    assert "<strong>Type:</strong> genre" in html
+    # The description and body are markdown, sanitized to HTML
+    assert "Scary stories." in html
+    assert "<em>scary</em>" in html
+    assert "<strong>URL Slugs</strong>" in html
+    assert "horror, scary" in html
+    assert 'href="/subjects/genre:horror"' in html
+    assert "View subject page for Horror." in html
+    # The databar's edit link and history link
+    assert 'href="/tags/OL1T?m=edit"' in html
+    assert 'href="/tags/OL1T/Horror?m=history"' in html
+
+
+def test_tag_page_redirects_a_wrong_name_to_the_canonical_one(client):
+    mock_site(get=tag_doc())
+
+    response = client.get("/tags/OL1T/nope?x=1", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/tags/OL1T/Horror?x=1"
+
+
+def test_subject_tags_link_to_the_bare_subject_page(client):
+    mock_site(get=tag_doc(tag_type="subject", name="Horror Fiction"))
+
+    html = client.get("/tags/OL1T/Horror_Fiction").text
+
+    assert 'href="/subjects/horror_fiction"' in html
+
+
+def test_unknown_tag_is_404(client):
+    mock_site(get=None)
+
+    response = client.get("/tags/OL1T/Horror")
+
+    assert response.status_code == 404
+    assert "404 - Page Not Found" in response.text
+    assert "<title>/tags/OL1T is not found | Open Library</title>" in response.text
+
+
+def test_a_tag_search_redirects_to_the_match(client, monkeypatch):
+    found = MagicMock(return_value=["/tags/OL1T"])
+    monkeypatch.setattr(Tag, "find", found)
+
+    response = client.get("/tags/-/genre:Horror", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/tags/OL1T"
+    found.assert_called_once_with("Horror", tag_type="genre")
+
+
+def test_a_tag_search_without_a_match_is_404(client, monkeypatch):
+    monkeypatch.setattr(Tag, "find", MagicMock(return_value=[]))
+
+    response = client.get("/tags/-/genre:Nope")
+
+    assert response.status_code == 404
+    assert "/tags/-/genre:Nope does not exist." in response.text
+
+
 def test_add_tag_sends_a_visitor_to_login(client):
     response = client.get("/tag/add", follow_redirects=False)
 
@@ -176,3 +256,15 @@ def test_webpy_tags_index_renders_the_same_body(monkeypatch, request_context_fix
         subject_tag_types=addtag.SUBJECT_SUB_TYPES,
     )
     assert result.title == "Tags"
+
+
+def test_webpy_tag_view_renders_the_same_body(monkeypatch, request_context_fixture):
+    request_context_fixture(lang="en")
+    current_site = MagicMock()
+    current_site.get.return_value = tag_doc()
+    monkeypatch.setattr(addtag, "site", MagicMock(get=MagicMock(return_value=current_site)))
+
+    result = addtag.tag_view().GET("/tags/OL1T")
+
+    assert str(result) == addtag.render_tag_view(tag_doc())
+    assert result.title == "Horror"

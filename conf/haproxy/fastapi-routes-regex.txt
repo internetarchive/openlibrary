@@ -33,6 +33,8 @@
 ^GET /series/[^/]+\.json$
 ^GET /subjects/.+/lists\.json$
 ^GET /subjects/.+\.json$
+^GET /tags/[^/]+$
+^GET /tags/[^/]+/[^/]+$
 ^GET /tasks/admin/[^/]+$
 ^GET /trending/[^/]+\.json$
 ^GET /works/OL[^/]+W/bookshelves\.json$

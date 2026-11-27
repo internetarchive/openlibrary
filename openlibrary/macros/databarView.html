@@ -1,37 +1,14 @@
 $def with (page, edition=None, edit=True)
 
-$if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-    $if edition and page.type.key in ["/type/work"]:
-        $ edit_url = edition.url(suffix="/edit")
-        $ edit_url += '?work_key=%s' % page.key
-    $else:
-        $ edit_url = page.url(suffix="/edit")
-$else:
-    $ edit_url = page.key + "?m=edit"
-
-<div id="editTools" class="edit">
-    <div id="editInfo">
-        $ author = page.get_most_recent_change().author
-        $ date = page.last_modified and datestr(page.last_modified) or ''
-        $ history_url = page.url(m='history') if page.url else changequery(m='history')
-        <div class="brown smaller sansserif">
-            $if author:
-                $:_('Last edited by %(author_link)s', author_link=author.render_link())
-            $else:
-                $_("Last edited anonymously")
-        </div>
-        <div class="smallest gray sansserif">$date | <a href="$history_url" rel="nofollow" title="$_('View this template\'s edit history')">$_('History')</a></div>
-    </div>
-    $if edit and not page.is_fake_record():
-        <div class="editButton">
-          <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
-          <a
-            class="ol-button-static ol-button-static--small"
-            href="$edit_url"
-            title="$_('Edit this page')"
-            data-ol-link-track="CTAClick|Edit"
-            accesskey="e"
-            rel="nofollow"
-        >$_("Edit")</a>
-        </div>
-</div>
+$code:
+    if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+        if edition and page.type.key in ["/type/work"]:
+            edit_url = edition.url(suffix="/edit") + "?work_key=%s" % page.key
+        else:
+            edit_url = page.url(suffix="/edit")
+    else:
+        edit_url = page.key + "?m=edit"
+    author = page.get_most_recent_change().author
+    date = page.last_modified and datestr(page.last_modified) or ""
+    history_url = page.url(m="history") if page.url else changequery(m="history")
+$:render_jinja_template("databarView.html.jinja", edit_url=edit_url, history_url=history_url, show_edit=bool(edit and not page.is_fake_record()), date=date, author_link=author and author.render_link())
