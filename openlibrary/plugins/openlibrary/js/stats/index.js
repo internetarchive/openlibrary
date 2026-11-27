@@ -1,3 +1,5 @@
+import { _ } from '../i18n.js';
+
 /**
  * Fetches unique login counts and updates the view with the results.
  *
@@ -7,7 +9,6 @@
  */
 export async function initUniqueLoginCounts(containerElem) {
     const loadingIndicator = containerElem.querySelector('.loadingIndicator');
-    const i18nStrings = JSON.parse(containerElem.dataset.i18n);
 
     const counts = await fetchCounts().then(resp => {
         if (resp.status !== 200) {
@@ -17,7 +18,7 @@ export async function initUniqueLoginCounts(containerElem) {
     });
 
     const countDiv = document.createElement('DIV');
-    countDiv.innerHTML = i18nStrings.uniqueLoginsCopy;
+    countDiv.innerHTML = _('<span class="login-counts">0</span> patrons have logged in at least once over the past 30 days.');
     const countSpan = countDiv.querySelector('.login-counts');
     countSpan.textContent = counts.loginCount;
     loadingIndicator.replaceWith(countDiv);

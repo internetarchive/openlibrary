@@ -1,35 +1,8 @@
 // @ts-check
+import { _, fmt } from './i18n.js';
 import { BarController, BarElement, CategoryScale, Chart, Filler, LinearScale, LineController, LineElement, PointElement, Tooltip } from 'chart.js';
 
 Chart.register(BarController, BarElement, CategoryScale, Filler, LinearScale, LineController, LineElement, PointElement, Tooltip);
-
-/** English fallbacks; the page's `data-i18n` overrides them. Keys match build_tasks_stats_i18n in openlibrary/views/loanstats.py. */
-export const DEFAULT_STRINGS = {
-    perDay: 'Per day',
-    perWeek: 'Per week',
-    perMonth: 'Per 4 weeks',
-    split: '%(returning)s returning · %(first_time)s first-time',
-    perEditor: '≈ %(count)s per editor',
-    ofEditorsDetail: '%(share)s of editors',
-    tasksShareDetail: 'of edits · %(share)s of editors',
-    shareOfEdits: '%(share)s of all edits',
-    shareOfEditors: '%(share)s of all editors',
-    perEditorOverall: 'vs ≈ %(count)s edits per editor overall',
-    todaySoFar: 'Today so far, updated hourly',
-    periodSoFar: 'Still in progress',
-    openDetails: '%(count)s details still open',
-    tasksUndone: 'Tasks: %(share)s undone, %(undone)s of %(total)s saves',
-    otherUndone: 'Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills',
-    noData: 'No counts for this range yet.',
-    returning: 'Returning',
-    firstTime: 'First edit ever',
-    otherEdits: 'Outside Tasks',
-    tasks: 'Tasks',
-    total: 'Total: %(count)s',
-    ofEdits: 'Of edits',
-    ofEditors: 'Of editors',
-    loadFailed: "The charts couldn't load. Reload the page to try again."
-};
 
 // Enough for a 12-month range; matches MAX_DAYS in openlibrary/fastapi/stats.py.
 const FETCH_DAYS = 400;
@@ -48,23 +21,6 @@ const BUCKET_DAYS = { day: 1, week: 7, month: 28 };
  * @property {number} end index of the last day
  * @property {number | null} value
  */
-
-/**
- * @param {string} template
- * @param {Record<string, string>} values
- */
-function fill(template, values) {
-    return template.replace(/%\((\w+)\)s/g, (match, name) => values[name] ?? match);
-}
-
-/** @param {HTMLElement} root */
-function readStrings(root) {
-    try {
-        return { ...DEFAULT_STRINGS, ...JSON.parse(root.dataset.i18n || '{}') };
-    } catch {
-        return DEFAULT_STRINGS;
-    }
-}
 
 /**
  * Group days into periods of `size` days, counting back from the last day so the latest period ends today. Days left
@@ -145,7 +101,6 @@ export function pointRadii(values) {
  * @param {HTMLElement} root the page's `.tasks-stats` element
  */
 export async function init(root) {
-    const strings = readStrings(root);
     const style = getComputedStyle(root);
     const token = (/** @type {string} */ name) => style.getPropertyValue(name).trim();
     const bar = resolveColor(root, 'var(--color-stats-chart-bar)');
@@ -173,7 +128,7 @@ export async function init(root) {
     } catch {
         const error = document.createElement('p');
         error.className = 'tasks-stats__error';
-        error.textContent = strings.loadFailed;
+        error.textContent = _("The charts couldn't load. Reload the page to try again.");
         root.querySelector('.tasks-stats__main')?.before(error);
         return;
     }
@@ -234,8 +189,8 @@ export async function init(root) {
                 }));
                 return {
                     parts: [
-                        { label: strings.returning, color: colors.bar, buckets: returning },
-                        { label: strings.firstTime, color: colors.accent, buckets: firstTime }
+                        { label: _('Returning'), color: colors.bar, buckets: returning },
+                        { label: _('First edit ever'), color: colors.accent, buckets: firstTime }
                     ],
                     total: all,
                     format: 'count'
@@ -243,8 +198,8 @@ export async function init(root) {
             },
             edits: size => {
                 const parts = [
-                    { label: strings.otherEdits, color: colors.bar, buckets: sum(subtract(edits, tasksSaves), size) },
-                    { label: strings.tasks, color: colors.accent, buckets: sum(tasksSaves, size) }
+                    { label: _('Outside Tasks'), color: colors.bar, buckets: sum(subtract(edits, tasksSaves), size) },
+                    { label: _('Tasks'), color: colors.accent, buckets: sum(tasksSaves, size) }
                 ];
                 return { parts, total: stackTotal(parts), format: 'count', complete: [edits] };
             },
@@ -288,7 +243,7 @@ export async function init(root) {
             ? fullFormat.format(dates[bucket.end])
             : `${fullFormat.format(dates[bucket.start])} – ${fullFormat.format(dates[bucket.end])}`;
     /** @param {Bucket} bucket */
-    const inProgressNote = bucket => (bucket.end !== lastDay ? '' : bucket.start === bucket.end ? strings.todaySoFar : strings.periodSoFar);
+    const inProgressNote = bucket => (bucket.end !== lastDay ? '' : bucket.start === bucket.end ? _('Today so far, updated hourly') : _('Still in progress'));
     // Rounded down, so the chart never reaches back further than the chosen range.
     const bucketCount = () => Math.max(1, Math.floor(state.days / BUCKET_DAYS[state.granularity]));
 
@@ -311,7 +266,7 @@ export async function init(root) {
         if (!hasData && !empty) {
             empty = document.createElement('p');
             empty.className = 'tasks-stats__note tasks-stats__empty';
-            empty.textContent = strings.noData;
+            empty.textContent = _('No counts for this range yet.');
             canvas.parentElement?.append(empty);
         }
         if (hasData) empty?.remove();
@@ -386,7 +341,7 @@ export async function init(root) {
                         const index = items[0].dataIndex;
                         const total = current[index].value;
                         const lines = [];
-                        if (stacked && total !== null) lines.push(fill(strings.total, { count: format(total) }));
+                        if (stacked && total !== null) lines.push(fmt(_('Total: %(count)s'), { count: format(total) }));
                         lines.push(inProgressNote(current[index]));
                         return lines.filter(Boolean);
                     }
@@ -451,12 +406,12 @@ export async function init(root) {
         drawLines(
             'share',
             [
-                { values: perDay(tasksSaves, edits, 100), color: colors.accent, label: strings.ofEdits },
+                { values: perDay(tasksSaves, edits, 100), color: colors.accent, label: _('Of edits') },
                 {
                     values: perDay(series('tasks_editors_1d'), series('book_editors_1d'), 100),
                     color: colors.previous,
                     dashed: true,
-                    label: strings.ofEditors
+                    label: _('Of editors')
                 }
             ],
             'percent'
@@ -487,7 +442,7 @@ export async function init(root) {
                         pointBackgroundColor: colors.bar,
                         fill: true,
                         borderWidth: 2,
-                        pointRadius: values.map((_, i) => (i === values.length - 1 ? 3 : 0)),
+                        pointRadius: values.map((_value, i) => (i === values.length - 1 ? 3 : 0)),
                         // A missed nightly count shouldn't break the line
                         spanGaps: true,
                         tension: 0.2
@@ -499,7 +454,7 @@ export async function init(root) {
                 xTickOptions: {
                     autoSkip: false,
                     align: 'inner',
-                    callback: (/** @type {number} */ _, /** @type {number} */ i) => (i === 0 || i === days.length - 1 ? labels[i] : '')
+                    callback: (/** @type {number} */ _tick, /** @type {number} */ i) => (i === 0 || i === days.length - 1 ? labels[i] : '')
                 },
                 y: {
                     min: 0,
@@ -511,7 +466,7 @@ export async function init(root) {
                 },
                 tooltip: {
                     title: items => fullLabel(days[items[0].dataIndex]),
-                    label: item => fill(strings.openDetails, { count: numberFormat.format(item.raw) })
+                    label: item => fmt(_('%(count)s details still open'), { count: numberFormat.format(item.raw) })
                 }
             })
         });
@@ -523,8 +478,12 @@ export async function init(root) {
         // Each line is a share of the 28 days to that day, left out where fewer than `minSample` saves stand behind it.
         const minSample = Number(root.dataset.minSample) || 0;
         const rates = [
-            { undone: series('tasks_saves_undone_28d'), total: series('tasks_saves_28d'), label: strings.tasksUndone },
-            { undone: series('other_fills_undone_28d'), total: series('other_fills_28d'), label: strings.otherUndone }
+            { undone: series('tasks_saves_undone_28d'), total: series('tasks_saves_28d'), label: _('Tasks: %(share)s undone, %(undone)s of %(total)s saves') },
+            {
+                undone: series('other_fills_undone_28d'),
+                total: series('other_fills_28d'),
+                label: _('Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills')
+            }
         ];
         const undoneDays = bucketize(rates[0].undone, 1).slice(-state.days);
         const shares = rates.map(({ undone, total }) =>
@@ -565,7 +524,7 @@ export async function init(root) {
                     label: item => {
                         const { undone, total, label } = rates[item.datasetIndex];
                         const day = undoneDays[item.dataIndex].end;
-                        return fill(label, {
+                        return fmt(label, {
                             share: percentFormat.format(item.raw / 100),
                             undone: numberFormat.format(/** @type {number} */ (undone[day])),
                             total: numberFormat.format(/** @type {number} */ (total[day]))
@@ -583,7 +542,7 @@ export async function init(root) {
     const parts = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__parts'));
     const note = /** @type {HTMLElement} */ (root.querySelector('.tasks-stats__chart-note'));
     const cards = /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.tasks-stats__card[data-metric]'));
-    const units = { day: strings.perDay, week: strings.perWeek, month: strings.perMonth };
+    const units = { day: _('Per day'), week: _('Per week'), month: _('Per 4 weeks') };
 
     /** @param {HTMLButtonElement} card */
     function choose(card) {
@@ -657,12 +616,15 @@ export async function init(root) {
         const perEditor = value.edits !== null && value.editors ? numberFormat.format(value.edits / value.editors) : null;
         /** @type {Record<string, string | null | undefined>} */
         const details = {
-            edits: perEditor && fill(strings.perEditor, { count: perEditor }),
-            new_editors: (s => s && fill(strings.ofEditorsDetail, { share: s }))(share(value.new_editors, value.editors)),
-            tasks_share: value.tasks_share !== null ? (s => s && fill(strings.tasksShareDetail, { share: s }))(share(value.tasks_editors, value.editors)) : '',
-            saves: (s => s && fill(strings.shareOfEdits, { share: s }))(share(value.saves, value.edits)),
-            tasks_editors: (s => s && fill(strings.shareOfEditors, { share: s }))(share(value.tasks_editors, value.editors)),
-            saves_per_editor: perEditor && fill(strings.perEditorOverall, { count: perEditor })
+            edits: perEditor && fmt(_('≈ %(count)s per editor'), { count: perEditor }),
+            new_editors: (s => s && fmt(_('%(share)s of editors'), { share: s }))(share(value.new_editors, value.editors)),
+            tasks_share:
+                value.tasks_share !== null
+                    ? (s => s && fmt(_('of edits · %(share)s of editors'), { share: s }))(share(value.tasks_editors, value.editors))
+                    : '',
+            saves: (s => s && fmt(_('%(share)s of all edits'), { share: s }))(share(value.saves, value.edits)),
+            tasks_editors: (s => s && fmt(_('%(share)s of all editors'), { share: s }))(share(value.tasks_editors, value.editors)),
+            saves_per_editor: perEditor && fmt(_('vs ≈ %(count)s edits per editor overall'), { count: perEditor })
         };
         cards.forEach(card => {
             const name = card.dataset.metric || '';
@@ -678,7 +640,10 @@ export async function init(root) {
                 if (detailEl) {
                     detailEl.textContent =
                         returning !== null && firstTime !== null
-                            ? fill(strings.split, { returning: numberFormat.format(returning), first_time: numberFormat.format(firstTime) })
+                            ? fmt(_('%(returning)s returning · %(first_time)s first-time'), {
+                                  returning: numberFormat.format(returning),
+                                  first_time: numberFormat.format(firstTime)
+                              })
                             : '';
                 }
             } else if (detailEl && details[name] !== undefined) {
