@@ -1,0 +1,423 @@
+/**
+ * Form primitives: the form, its groups, a labelled field, the text input and
+ * the autocomplete built on it. Worked examples are at
+ * /developers/design/cookbook.
+ */
+
+.ol-form {
+  display: grid;
+}
+
+/* A group is a section of the form: a legend in the section-title style and
+   the same bottom margin every page section takes. */
+.ol-form__group {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  min-width: 0;
+  margin: 0 0 var(--spacing-section-gap);
+  padding: 0;
+  border: 0;
+}
+
+.ol-form__legend {
+  float: inline-start;
+  width: 100%;
+  padding: 0;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-title);
+  color: var(--color-text-heading);
+}
+
+/* Page forms start their buttons at the left edge, primary first. */
+.ol-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+/* Field, stacked: label, then help, then the control, then its error. Help
+   sits above the control so it is read before typing and the error lands
+   beside the input. */
+.ol-field {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+.ol-field__label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  color: var(--color-text);
+}
+
+.ol-field__optional {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+}
+
+.ol-field__help,
+.ol-field__error {
+  margin: 0;
+  line-height: var(--line-height-meta);
+}
+
+.ol-field__help {
+  color: var(--color-text-secondary);
+}
+
+.ol-field__error {
+  color: var(--color-error-fg);
+}
+
+.ol-field__control {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+/* Field, on one line: the label and what it means on the left, the control on
+   the right. --inline holds that shape at every width, for a switch or a short
+   menu. --split does so from tablet up and stacks on phones, for a text input. */
+.ol-field--inline,
+.ol-field--split {
+  --ol-field-control-width: auto;
+
+  align-items: center;
+  gap: var(--spacing-3xs) var(--spacing-inline-xl);
+}
+
+.ol-field--inline {
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--ol-field-control-width));
+}
+
+.ol-field:is(.ol-field--inline, .ol-field--split) .ol-field__label {
+  font-weight: var(--font-weight-regular);
+}
+
+.ol-field--split > .ol-field__control {
+  margin-block-start: var(--spacing-stack-xs);
+}
+
+/* With help, the label and help meet in the middle of the row as one block
+   beside the control; without it the label centres on the control alone. */
+.ol-field--inline:has(> .ol-field__help) {
+  grid-template-rows: 1fr 1fr;
+}
+
+.ol-field--inline:has(> .ol-field__help) > .ol-field__label {
+  align-self: end;
+}
+
+.ol-field--inline > .ol-field__help {
+  grid-column: 1;
+  align-self: start;
+}
+
+.ol-field--inline > .ol-field__control {
+  grid-column: 2;
+  justify-items: end;
+}
+
+.ol-field--inline:has(> .ol-field__help) > .ol-field__control {
+  grid-row: 1 / span 2;
+}
+
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .ol-field--split {
+    --ol-field-control-width: 18rem;
+
+    grid-template-columns: minmax(0, 1fr) minmax(
+        0,
+        var(--ol-field-control-width)
+      );
+  }
+
+  .ol-field--split:has(> .ol-field__help) {
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .ol-field--split:has(> .ol-field__help) > .ol-field__label {
+    align-self: end;
+  }
+
+  .ol-field--split > .ol-field__help {
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .ol-field--split > .ol-field__control {
+    grid-column: 2;
+    margin-block-start: 0;
+  }
+
+  .ol-field--split:has(> .ol-field__help) > .ol-field__control {
+    grid-row: 1 / span 2;
+  }
+
+  /* A control taller than one line: the label and help stay at its top edge. */
+  .ol-field--top:has(> .ol-field__help) {
+    grid-template-rows: auto 1fr;
+  }
+
+  .ol-field--top:has(> .ol-field__help) > .ol-field__label {
+    align-self: start;
+    /* Sits the label's first line on the input's first line of text. */
+    padding-block-start: var(--spacing-xs);
+  }
+}
+
+/* Rows: a settings-style group. Each field is one line, label on the left and
+   control on the right, with a hairline between. The densest way to lay out
+   short answers; long or free-form answers read better stacked. */
+.ol-form__group--rows {
+  gap: 0;
+}
+
+.ol-form__group--rows > .ol-form__legend {
+  padding-block-end: var(--spacing-stack-xs);
+}
+
+.ol-form__group--rows > .ol-field {
+  padding-block: var(--spacing-md);
+  /* The separator repeats down the group, so it takes the lightest border. */
+  border-block-end: 1px solid var(--color-border-extra-subtle);
+}
+
+.ol-form__group--rows > .ol-field:last-child {
+  border-block-end: 0;
+}
+
+/* Split: the legend in a column of its own on the left and the fields on the
+   right, with a rule above. The form counterpart of .ol-section--split. */
+.ol-form__group--split {
+  margin-block-end: var(--spacing-xl);
+  padding-block-start: var(--spacing-xl);
+  border-block-start: var(--border-divider);
+}
+
+.ol-form__group--split:where(.ol-form__group--rows) > .ol-field:last-child {
+  padding-block-end: 0;
+}
+
+/* A stacked field stops at a readable width; it does not fill the column.
+   --wide lifts that for long text. */
+.ol-form__group--split > .ol-field:not(.ol-field--inline, .ol-field--wide) {
+  max-width: 30rem;
+}
+
+.ol-form__group--split ~ .ol-form__actions {
+  padding-block-start: var(--spacing-xl);
+  border-block-start: var(--border-divider);
+}
+
+/* Sticky actions, for a form longer than the window: the buttons hold to the
+   bottom edge until the end of the form scrolls into view. Phones keep them
+   in place, where a fixed bar would sit behind the keyboard. */
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .ol-form .ol-form__actions--sticky {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: var(--z-index-sticky);
+    padding-block: var(--spacing-md);
+    border-block-start: var(--border-divider);
+    background: var(--color-surface);
+  }
+}
+
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .ol-form__group--split {
+    grid-template-columns: var(--ol-section-label-width) minmax(0, 1fr);
+    column-gap: var(--spacing-2xl);
+    align-items: start;
+  }
+
+  /* Beside its rows the legend is a label, so it drops to their size. */
+  .ol-form__group--split > .ol-form__legend {
+    grid-column: 1;
+    grid-row: 1;
+    width: auto;
+    padding-block-end: 0;
+    font-size: var(--font-size-title-small);
+    line-height: var(--line-height-body);
+  }
+
+  .ol-form__group--split > :not(.ol-form__legend) {
+    grid-column: 2;
+  }
+
+  /* The buttons start where the inputs do, not under the group names. */
+  .ol-form__group--split ~ .ol-form__actions {
+    padding-inline-start: calc(
+      var(--ol-section-label-width) + var(--spacing-2xl)
+    );
+  }
+
+  .ol-form__group--split:where(.ol-form__group--rows)
+    > .ol-field:first-of-type {
+    padding-block-start: 0;
+  }
+
+  /* Sits the legend on the first row's label, which is centred on its control
+     unless help text makes the row two lines. */
+  .ol-form__group--split:where(
+      .ol-form__group--rows:not(
+        :has(> .ol-field:first-of-type > .ol-field__help)
+      )
+    )
+    > .ol-form__legend {
+    padding-block-start: calc((var(--control-height-medium) - 1lh) / 2);
+  }
+}
+
+.ol-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--control-height-medium);
+  margin: 0;
+  padding: var(--spacing-inset-xs) var(--spacing-md);
+  border: var(--border-input);
+  border-color: var(--color-input-border);
+  border-radius: var(--border-radius-input);
+  background: var(--color-surface);
+  font: inherit;
+  line-height: var(--line-height-snug);
+  color: var(--color-text);
+}
+
+/* Below 16px iOS zooms the page when the field takes focus. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .ol-input {
+    font-size: var(--font-size-body-large);
+  }
+}
+
+textarea.ol-input {
+  min-height: calc(3lh + 2 * var(--spacing-xs));
+  padding-block: var(--spacing-xs);
+  line-height: var(--line-height-body);
+  resize: vertical;
+}
+
+.ol-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ol-input:hover {
+    border-color: var(--color-border);
+  }
+}
+
+.ol-input:focus-visible {
+  border-color: var(--color-border-focused);
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.ol-input[aria-invalid="true"] {
+  border-color: var(--color-border-error);
+}
+
+/* Short answers get short fields: the width says how much is expected. */
+.ol-input--short {
+  max-width: 12rem;
+}
+
+/* Autocomplete: an input and the panel of suggestions it owns. The panel is a
+   floating surface and its rows are menu rows, like every other panel. */
+.ol-combobox {
+  position: relative;
+}
+
+.ol-combobox__icon {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  height: var(--control-height-medium);
+  color: var(--color-icon-muted);
+  pointer-events: none;
+}
+
+.ol-combobox__icon ~ .ol-input {
+  padding-inline-start: calc(
+    var(--spacing-sm) + var(--icon-size-sm) + var(--spacing-icon-gap)
+  );
+}
+
+.ol-combobox__panel {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(100% + var(--spacing-stack-xs));
+  z-index: var(--z-index-dropdown);
+  max-height: 320px;
+  margin: 0;
+  padding: var(--menu-row-inset);
+  overflow-y: auto;
+  border: var(--border-overlay);
+  border-radius: var(--border-radius-overlay);
+  background: var(--color-surface);
+  box-shadow: var(--box-shadow-overlay);
+  list-style: none;
+}
+
+.ol-combobox__option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-inset-xs) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-menu-row);
+  cursor: pointer;
+}
+
+.ol-combobox__option[aria-selected="true"] {
+  background: var(--color-hover-overlay);
+}
+
+.ol-combobox__thumb {
+  width: 28px;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  object-fit: cover;
+}
+
+.ol-combobox__text {
+  display: grid;
+  min-width: 0;
+}
+
+.ol-combobox__label {
+  overflow: hidden;
+  font-weight: var(--font-weight-button);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ol-combobox__meta {
+  overflow: hidden;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ol-combobox__none {
+  padding: var(--spacing-inset-sm) var(--menu-row-padding-inline);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text-secondary);
+}

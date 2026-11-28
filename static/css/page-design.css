@@ -1999,6 +1999,13 @@ fieldset.ds-demo-row {
   color: var(--color-text-heading);
 }
 
+/* The Cookbook's rules say the serif is for page and book titles only, so its
+   own rule names are set in the sans. */
+.ds-tensions--sans .ds-tensions__title {
+  font-family: var(--font-family-sans);
+  font-weight: var(--font-weight-medium);
+}
+
 .ds-tensions__body {
   margin: 0;
   font-size: var(--font-size-body-medium);
@@ -2894,4 +2901,19 @@ fieldset.ds-demo-row {
   .ds-state-grid--wide {
     grid-template-columns: repeat(4, minmax(0, 220px));
   }
+}
+
+/* ---------------------------------------------------------------- cookbook */
+
+.ds-recipes {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  margin: 0;
+  padding: 0 0 0 var(--spacing-inset-lg);
+  font-size: var(--font-size-body-large);
+}
+
+/* base/common.css strips every list marker site-wide. */
+.ds-recipes li {
+  list-style: disc;
 }

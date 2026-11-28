@@ -1,9 +1,11 @@
 """The Open Library design system docs at /developers/design.
 
-Five sections share one shell: Principles (the design philosophy), Components
-(the landing section), Foundations (design tokens), Icons, and Playground. Each section is one long browsable page
-— the goal is density, so an engineer can scan everything available before
-picking something.
+Six sections share one shell: Principles (the design philosophy), Components
+(the landing section), Foundations (design tokens), Icons, Playground, and
+Cookbook. Each section is one long browsable page — the goal is density, so an
+engineer can scan everything available before picking something. The Cookbook's
+recipes are the exception: each is a full page of its own, outside the shell,
+because a page layout can only be judged at page width.
 
 Three things here are derived rather than hand-maintained, which is what keeps
 the page from drifting as the system grows:
@@ -56,6 +58,7 @@ SECTIONS = (
     Section("foundations", "Foundations"),
     Section("icons", "Icons", has_code=True),
     Section("playground", "Playground"),
+    Section("cookbook", "Cookbook", has_nav=False),
 )
 
 
@@ -556,6 +559,154 @@ def _component_groups() -> tuple[tuple[str, list[Component]], ...]:
 COMPONENT_GROUPS = _component_groups()
 
 
+@dataclass(frozen=True)
+class PageRule:
+    """One rule every recipe follows, shown at the top of the Cookbook."""
+
+    id: str
+    title: str
+    body: str
+
+
+PAGE_RULES = (
+    PageRule(
+        "type",
+        "Two families, each with one job",
+        "Literata sets the page title, and a book's title where the book is the subject. Schibsted Grotesk sets everything else, section headings included.",
+    ),
+    PageRule(
+        "weight",
+        "Two weights",
+        "Regular for copy, medium for titles and labels. Controls bring their own label weight. To stand out more, change ink or position first.",
+    ),
+    PageRule(
+        "color",
+        "Three inks",
+        "Text for the subject, secondary for its description, muted for what could go. Blue is for links and the primary action. In a row, only the title links.",
+    ),
+    PageRule(
+        "sizes",
+        "Big steps at the top, one size below",
+        "32 or 24 for the title and 22 for the few sections a page is about. Everything else is 14: prose, labels, facts and controls. The details stay quiet.",
+    ),
+    PageRule(
+        "rhythm",
+        "One gap inside, one margin between",
+        "Sections are separated by the same 32px bottom margin, or by a rule with 20px either side. Inside a section, related items sit close: 4, 8 or 12.",
+    ),
+    PageRule(
+        "surface",
+        "One surface",
+        "The page is white. Forms and detail pages have no boxes: a rule between sections, a lighter one between rows. Cards are for grids, tint for an aside.",
+    ),
+    PageRule(
+        "density",
+        "Dense, then calm",
+        "Controls are 32px and group headings take a left column. In a form, label and help sit above the input. Calm is alignment, not empty space.",
+    ),
+    PageRule(
+        "action",
+        "One primary action per view",
+        "Everything else is secondary or a link. A page form puts it first on the left; a page header puts it on the right.",
+    ),
+)
+
+
+@dataclass(frozen=True)
+class Recipe:
+    """One full-page recipe in the Cookbook.
+
+    ``uses`` names the page primitives the recipe is built from, by class, so
+    the index doubles as a lookup from primitive to a page that shows it.
+    """
+
+    id: str
+    title: str
+    blurb: str
+    uses: tuple[str, ...]
+
+
+RECIPES = (
+    Recipe(
+        "form",
+        "Form page",
+        "Titled groups with the group name in a left column: label and help above each input, a validation error under it, and one primary action.",
+        uses=("ol-page", "ol-page-header", "ol-section", "ol-form", "ol-field", "ol-input"),
+    ),
+    Recipe(
+        "detail",
+        "Detail page",
+        "One thing and everything known about it: a cover, a title block, actions, prose, and facts in a list.",
+        uses=("ol-page", "ol-detail", "ol-section", "ol-meta-list", "ol-meta-line"),
+    ),
+    Recipe(
+        "cards",
+        "Card collection",
+        "A set of like things to scan and filter: a header with one action, a toolbar, a card grid and paging.",
+        uses=("ol-page", "ol-page-header", "ol-toolbar", "ol-card-grid", "ol-card"),
+    ),
+    Recipe(
+        "browse",
+        "Browse page",
+        "Carousels mixed with prose, links and an aside, held together by one section header and one margin.",
+        uses=("ol-page", "ol-page-header", "ol-section", "ol-aside", "ol-link-columns"),
+    ),
+    Recipe(
+        "builder",
+        "Builder flow",
+        "Search, pick, and watch a list grow: an autocomplete feeding rows that can be removed, with an empty state.",
+        uses=("ol-page", "ol-form", "ol-combobox", "ol-item-list", "ol-empty"),
+    ),
+    Recipe(
+        "lists",
+        "Lists landing",
+        "A worked example: the recipes above composed into one landing page for reader-made lists.",
+        uses=("ol-page", "ol-page-header", "ol-section", "ol-card", "ol-item-list"),
+    ),
+    Recipe(
+        "edit-book",
+        "Edit book",
+        "A worked example: the book edit page, with its Work and Edition tabs, rebuilt as a long form of titled groups.",
+        uses=("ol-page", "ol-page-header", "ol-form", "ol-field", "ol-input", "ol-item-list"),
+    ),
+)
+
+
+@dataclass(frozen=True)
+class SampleBook:
+    """Placeholder content for the recipes. Real works, so covers load."""
+
+    olid: str
+    cover_id: int
+    title: str
+    author: str
+    year: int
+
+    @property
+    def cover_url(self) -> str:
+        return f"https://covers.openlibrary.org/b/id/{self.cover_id}-M.jpg"
+
+
+SAMPLE_BOOKS = (
+    SampleBook("OL69612W", 12622062, "The Secret Garden", "Frances Hodgson Burnett", 1911),
+    SampleBook("OL55649W", 11248037, "Walden", "Henry David Thoreau", 1854),
+    SampleBook("OL14857905W", 3108342, "Pilgrim at Tinker Creek", "Annie Dillard", 1974),
+    SampleBook("OL1972840W", 652095, "Elizabeth and Her German Garden", "Elizabeth von Arnim", 1898),
+    SampleBook("OL62240W", 4151512, "Nature", "Ralph Waldo Emerson", 1836),
+    SampleBook("OL1973422W", 11304253, "Frog and Toad Together", "Arnold Lobel", 1971),
+    SampleBook("OL55721W", 10873097, "The Maine Woods", "Henry David Thoreau", 1864),
+    SampleBook("OL8202749W", 10118254, "The Solitary Summer", "Elizabeth von Arnim", 1899),
+    SampleBook("OL108735W", 289591, "The Tale of Peter Rabbit", "Beatrix Potter", 1902),
+    SampleBook("OL1176834W", 5785448, "The Life of the Fields", "Richard Jefferies", 1884),
+    SampleBook("OL1966488W", 133936, "The Selfish Gene", "Richard Dawkins", 1976),
+    SampleBook("OL62250W", 8235340, "Essays", "Ralph Waldo Emerson", 1841),
+    SampleBook("OL1176835W", 10873103, "The Open Air", "Richard Jefferies", 1885),
+    SampleBook("OL55670W", 8244612, "A Week on the Concord and Merrimack Rivers", "Henry David Thoreau", 1849),
+    SampleBook("OL55720W", 1754566, "Excursions", "Henry David Thoreau", 1863),
+    SampleBook("OL76350W", 6268135, "Orthodoxy", "G. K. Chesterton", 1908),
+)
+
+
 @dataclass
 class DesignContext:
     """Everything the shell and one section's body need to render."""
@@ -575,6 +726,27 @@ class DesignContext:
     # {"OL69612W": {"shelf": 3, "rating": 4, "read_date": "2026-08", "event_id": 7}}.
     reading_state: dict = field(default_factory=dict)
     icons: list[str] = field(default_factory=list)
+    page_rules: tuple[PageRule, ...] = PAGE_RULES
+    recipes: tuple[Recipe, ...] = RECIPES
+
+
+@dataclass
+class RecipeContext:
+    """Everything one full-page recipe needs to render."""
+
+    recipe: Recipe
+    recipes: tuple[Recipe, ...] = RECIPES
+    page_rules: tuple[PageRule, ...] = PAGE_RULES
+    books: tuple[SampleBook, ...] = SAMPLE_BOOKS
+
+    @property
+    def template(self) -> str:
+        return f"design/cookbook/{self.recipe.id}.html.jinja"
+
+    @property
+    def books_json(self) -> str:
+        """The sample books for the builder's autocomplete, which filters them client-side."""
+        return json.dumps([{"title": book.title, "author": book.author, "year": book.year, "cover": book.cover_url} for book in self.books])
 
 
 # The works the book demos read and write; must match the demo templates.
@@ -615,10 +787,18 @@ class design(delegate.page):
 
 
 class design_section(delegate.page):
-    path = r"/developers/design/(principles|components|foundations|icons|playground)"
+    path = r"/developers/design/(principles|components|foundations|icons|playground|cookbook)"
 
     def GET(self, section_id):
         return render_template("design", build_context(section_id))
+
+
+class design_recipe(delegate.page):
+    path = r"/developers/design/cookbook/(" + "|".join(recipe.id for recipe in RECIPES) + ")"
+
+    def GET(self, recipe_id):
+        recipe = next(candidate for candidate in RECIPES if candidate.id == recipe_id)
+        return render_template("design_recipe", RecipeContext(recipe=recipe))
 
 
 def setup():

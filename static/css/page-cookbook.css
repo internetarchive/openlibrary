@@ -1,0 +1,254 @@
+/**
+ * Stylesheet entry point for the full-page recipes at
+ * /developers/design/cookbook/<recipe>. A recipe is a page a reader could
+ * land on, so the bundle is what such a page would load: site chrome, the two
+ * webfonts and the page primitives. Only `.cookbook-*` is specific to the docs.
+ */
+@import "base/common.css";
+@import "base/headings.css";
+@import "base/helpers-common.css";
+@import "layout/index.css";
+@import "components/header-bar.css";
+@import "components/skip-link.css";
+@import "components/iaBar.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "fonts/literata.css";
+@import "fonts/schibsted-grotesk.css";
+
+/* ol-page first: the others refine its link colours at equal specificity. */
+@import "components/ol-page.css";
+@import "components/ol-card.css";
+@import "components/ol-list.css";
+@import "components/ol-field.css";
+@import "components/ol-message.css";
+@import "components/choice-list.css";
+@import "components/ol-tabs.css";
+
+/* The dock: a floating way back to the design system and across to the other
+   recipes. It is the only thing on a recipe page that isn't part of the recipe. */
+.cookbook-dock {
+  position: fixed;
+  inset-block-end: calc(var(--spacing-inset-md) + env(safe-area-inset-bottom));
+  inset-inline-start: 50%;
+  z-index: var(--z-index-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  max-width: calc(100vw - 2 * var(--spacing-inset-sm));
+  padding: var(--spacing-inset-xs);
+  border: var(--border-overlay);
+  border-radius: var(--border-radius-overlay);
+  background: var(--color-surface);
+  box-shadow: var(--box-shadow-overlay);
+  transform: translateX(-50%);
+}
+
+.cookbook-dock:dir(rtl) {
+  transform: translateX(50%);
+}
+
+.cookbook-dock__divider {
+  align-self: stretch;
+  width: 1px;
+  margin-block: var(--spacing-inset-xs);
+  background: var(--color-border-subtle);
+}
+
+.cookbook-dock__panel {
+  display: grid;
+  min-width: 240px;
+  padding: var(--menu-row-inset);
+}
+
+.cookbook-dock__row {
+  display: grid;
+  gap: var(--spacing-3xs);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-inset-xs) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-menu-row);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-button);
+  align-content: center;
+}
+
+a.cookbook-dock__row:any-link {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.cookbook-dock__row[aria-current="page"]:any-link {
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a.cookbook-dock__row:hover {
+    background: var(--color-hover-overlay);
+  }
+
+  a.cookbook-dock__row[aria-current="page"]:hover {
+    background: var(--color-control-selected-bg-hover);
+  }
+}
+
+.cookbook-notes {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  width: min(360px, calc(100vw - 2 * var(--spacing-inset-lg)));
+  padding: var(--spacing-inset-md);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+}
+
+.cookbook-notes p,
+.cookbook-notes ul {
+  margin: 0;
+}
+
+.cookbook-notes__heading {
+  margin: 0 0 var(--spacing-stack-xs);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+.cookbook-notes__uses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
+  padding: 0;
+  list-style: none;
+}
+
+.cookbook-notes code {
+  padding: var(--spacing-3xs) var(--spacing-2xs);
+  border-radius: var(--border-radius-badge);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-body-small);
+}
+
+/* Room for the dock under the last section, so it never covers the footer's first row. */
+.cookbook-page {
+  padding-block-end: var(--spacing-7xl);
+}
+
+/* Book tiles in the recipes' carousels: a cover with its title and author
+   under it. Recipe content, not a primitive; the site's own carousel cards
+   have their own partial. */
+.cookbook-book {
+  display: grid;
+  gap: var(--spacing-3xs);
+  align-content: start;
+  min-width: 0;
+}
+
+.cookbook-book ol-book-cover {
+  margin-block-end: var(--spacing-stack-xs);
+}
+
+.cookbook-book__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-title);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.cookbook-book__author {
+  overflow: hidden;
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cookbook-person {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--spacing-inline-xl);
+  align-items: start;
+}
+
+.cookbook-person__avatar {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  aspect-ratio: 1;
+  border-radius: var(--border-radius-avatar);
+  background: var(--color-surface-sunken);
+  color: var(--color-icon-muted);
+}
+
+.cookbook-person__text {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.cookbook-person__name {
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+/* The edit book recipe. Its tab row already draws a divider, so the first
+   group in each panel drops its own rule. */
+.cookbook-edit ol-tabs > div > .ol-form__group--split:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+/* A kind, a value and the button that adds the pair. Recipe content: the
+   primitives have no pattern for repeating facts yet. */
+.cookbook-adder {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+  max-width: 30rem;
+}
+
+.cookbook-added {
+  max-width: 30rem;
+}
+
+.cookbook-added .ol-item {
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr) auto;
+  padding-block: var(--spacing-3xs);
+}
+
+.cookbook-added__kind {
+  color: var(--color-text-secondary);
+}
+
+/* A number and its unit on one line. */
+.cookbook-measure {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+.cookbook-measure .ol-input {
+  flex: 1 1 4rem;
+  min-width: 0;
+  max-width: 6rem;
+}
+
+/* The dock rides above a form's sticky actions and does not cover them. */
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .cookbook-page:has(.ol-form__actions--sticky) ~ .cookbook-dock {
+    inset-block-end: calc(
+      var(--control-height-medium) + 2 * var(--spacing-md) +
+        var(--spacing-inset-md)
+    );
+  }
+}

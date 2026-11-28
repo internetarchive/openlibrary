@@ -167,6 +167,10 @@
      missing rung, and it's a mix like the selected-state tokens above. */
   --color-control-border: color-mix(in srgb, var(--neutral-200), var(--neutral-300));
 
+  /* Edge of a text input. An empty input has only its edge to say where it is,
+     so it meets the 3:1 non-text floor that a labelled button doesn't need. */
+  --color-input-border: color-mix(in srgb, var(--neutral-400) 60%, var(--neutral-500));
+
   /* Hover for raised controls. One step down the ramp from --color-control-bg,
      which is what makes the hover register now that the resting fill is already
      off white. Opaque — see --color-control-selected-surface. */

@@ -15,6 +15,20 @@
             {% include "forms/choice_list.html.jinja" %}
         {% endwith %}
     {% endcall %}
+    {% call ex.example("Plain", "The traditional look, with plain=true: no boxes and no selected fill, only the radio. Use it for a question inside a longer page form, where a stack of bordered rows would outweigh the fields around it. Keep the default where the choice is the whole task.", output_style="max-width: 28rem;") %}
+        {% with name="demo-visibility",
+            labelled_by="demo-plain-label",
+            plain=true,
+            value="public",
+            rows=[
+                {"value": "public", "label": "Everyone", "description": "Your reading log appears on your profile and in search."},
+                {"value": "followers", "label": "People you follow", "description": "Only readers you follow can open your shelves."},
+                {"value": "private", "label": "Only you", "description": "Your shelves stay private."},
+        ] %}
+            <span id="demo-plain-label" hidden>Who can see your shelves</span>
+            {% include "forms/choice_list.html.jinja" %}
+        {% endwith %}
+    {% endcall %}
     <div class="ds-notes">
         <p>
             <b>Source.</b> <code>static/css/components/choice-list.css</code>; import it on any page that renders the partial.

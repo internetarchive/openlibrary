@@ -1,0 +1,71 @@
+{#
+  Recipe: a browse page. Carousels, links and an aside all hang off the same
+  section header and the same bottom margin, so the mix reads as one page.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+{% set TOPICS = [('Gardens', '4,812'), ('Rivers', '2,950'), ('Walking', '1,733'), ('Birds', '6,204'), ('Weather', '1,118'), ('Seasons', '3,467'), ('Forests', '2,281'), ('Mountains', '3,905'), ('Farming', '5,640'), ('Islands', '1,402'), ('Insects', '2,076'), ('The sea', '7,318')] %}
+<div class="ol-page cookbook-page">
+    <header class="ol-page-header">
+        <a class="ol-page-header__back" href="#">{{ icon("arrow-left", size="sm") }} Subjects</a>
+        <div class="ol-page-header__text">
+            <h1 class="ol-page-header__title">Nature writing</h1>
+            <p class="ol-page-header__lede">
+                Essays, journals and field notes by people who went outside and paid attention. 38,214 books, 9,406 of them free to read.
+            </p>
+        </div>
+    </header>
+    <section class="ol-section" aria-labelledby="cb-popular">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-popular">Popular this month</h2>
+            <a class="ol-section__link" href="#">See all</a>
+        </div>
+        <ol-carousel label="Popular this month">
+            {% for book in books %}{{ parts.book_tile(book) }}{% endfor %}
+        </ol-carousel>
+    </section>
+    <section class="ol-section" aria-labelledby="cb-topics">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-topics">Narrow it down</h2>
+        </div>
+        <ul class="ol-link-columns">
+            {% for topic, count in TOPICS %}
+                <li>
+                    <a href="#">{{ topic }}</a>
+                    <span class="ol-link-columns__count">{{ count }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="ol-section" aria-labelledby="cb-classics">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-classics">Where to start</h2>
+            <a class="ol-section__link" href="#">See all</a>
+        </div>
+        <p class="ol-section__blurb">Twelve books that the rest of the shelf keeps answering.</p>
+        <ol-carousel label="Where to start">
+            {% for book in books | reverse %}{{ parts.book_tile(book) }}{% endfor %}
+        </ol-carousel>
+    </section>
+    <section class="ol-section ol-aside" aria-labelledby="cb-aside">
+        <h2 class="ol-aside__title" id="cb-aside">Know this shelf well?</h2>
+        <p class="ol-aside__body">
+            Subject pages are kept by readers. Add a missing book, fix a description, or suggest what belongs under “Where to start”.
+        </p>
+        <div class="ol-aside__actions">
+            <ol-button>
+                Help with this subject
+            </ol-button>
+        </div>
+    </section>
+    <section class="ol-section" aria-labelledby="cb-new">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-new">Recently added</h2>
+            <a class="ol-section__link" href="#">See all</a>
+        </div>
+        <ol-carousel label="Recently added">
+            {% for book in books[5:] %}{{ parts.book_tile(book) }}{% endfor %}
+            {% for book in books[:5] %}{{ parts.book_tile(book) }}{% endfor %}
+        </ol-carousel>
+    </section>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

@@ -1,0 +1,12 @@
+$def with (data)
+
+$# /developers/design/cookbook/<recipe> — a full-page recipe, outside the design
+$# system shell. `data` is the RecipeContext built in
+$# openlibrary/plugins/openlibrary/design.py. English-only, like the rest of
+$# the design docs — no i18n.
+$var title: $data.recipe.title — Cookbook
+$ _x = ctx.setdefault('cssfile', 'cookbook')
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('full-width')
+
+$:render_jinja_template(data.template, recipe=data.recipe, recipes=data.recipes, page_rules=data.page_rules, books=data.books, books_json=data.books_json)
