@@ -1,0 +1,84 @@
+{#
+  Cookbook — the index. The rules every page follows, then the recipes, each
+  of which opens as a full page outside this shell. Both are built from
+  PAGE_RULES and RECIPES in design.py.
+#}
+{% macro body() %}
+    <section class="ds-section">
+        <p class="ds-lead">
+            Components are the ingredients; these are the dishes. Each recipe is a whole page built from the design system, with placeholder content, so type, colour and spacing can be judged where they actually have to work. Starting a new page? Find the closest recipe, copy its structure, and keep the rules below.
+        </p>
+    </section>
+    <section class="ds-section" id="recipes">
+        <h2 class="ds-section__title">Recipes</h2>
+        <p class="ds-section__blurb">Each opens at full width, with a small dock for getting back here and moving between them.</p>
+        <ul class="ds-recipes">
+            {% for recipe in recipes %}
+                <li class="ds-recipe">
+                    <h3 class="ds-recipe__title">
+                        <a class="ds-recipe__link"
+                           href="/developers/design/cookbook/{{ recipe.id }}">{{ recipe.title }}</a>
+                    </h3>
+                    <p class="ds-recipe__blurb">{{ recipe.blurb }}</p>
+                    <p class="ds-recipe__uses">
+                        {% for name in recipe.uses %}<code>.{{ name }}</code>{% endfor %}
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="ds-section" id="page-rules">
+        <h2 class="ds-section__title">Page rules</h2>
+        <p class="ds-section__blurb">What keeps a page calm. Every recipe follows all of them.</p>
+        <dl class="ds-tensions">
+            {% for rule in page_rules %}
+                <div class="ds-tensions__row">
+                    <dt class="ds-tensions__title">{{ rule.title }}</dt>
+                    <dd class="ds-tensions__body">
+                        {{ rule.body }}
+                    </dd>
+                </div>
+            {% endfor %}
+        </dl>
+    </section>
+    <section class="ds-section" id="primitives">
+        <h2 class="ds-section__title">Page primitives</h2>
+        <p class="ds-section__blurb">
+            Plain CSS classes in <code>static/css/components/</code>. Import the files a page needs into its bundle, after the webfonts.
+        </p>
+        <dl class="ds-tensions">
+            <div class="ds-tensions__row">
+                <dt class="ds-tensions__title">
+                    <code>ol-page.css</code>
+                </dt>
+                <dd class="ds-tensions__body">
+                    The frame (<code>.ol-page</code>, <code>--narrow</code>, <code>--medium</code>), <code>.ol-page-header</code>, <code>.ol-section</code> (with <code>--ruled</code>, the label-left <code>--split</code> and the large-headed <code>--major</code>), <code>.ol-prose</code>, <code>.ol-meta-line</code>, <code>.ol-toolbar</code> and the two-column <code>.ol-detail</code> layout. Import it first.
+                </dd>
+            </div>
+            <div class="ds-tensions__row">
+                <dt class="ds-tensions__title">
+                    <code>ol-card.css</code>
+                </dt>
+                <dd class="ds-tensions__body">
+                    <code>.ol-card</code> in an <code>.ol-card-grid</code>, the tinted <code>.ol-aside</code>, and <code>.ol-empty</code> for an empty state.
+                </dd>
+            </div>
+            <div class="ds-tensions__row">
+                <dt class="ds-tensions__title">
+                    <code>ol-list.css</code>
+                </dt>
+                <dd class="ds-tensions__body">
+                    <code>.ol-meta-list</code> for label and value pairs, <code>.ol-item-list</code> for rows of things, <code>.ol-link-columns</code> for a long set of links.
+                </dd>
+            </div>
+            <div class="ds-tensions__row">
+                <dt class="ds-tensions__title">
+                    <code>ol-field.css</code>
+                </dt>
+                <dd class="ds-tensions__body">
+                    <code>.ol-form</code> and its groups, <code>.ol-field</code>, <code>.ol-input</code>, and <code>.ol-combobox</code> for an autocomplete.
+                </dd>
+            </div>
+        </dl>
+    </section>
+{% endmacro %}

@@ -1,0 +1,99 @@
+{#
+  Recipe: a worked example. The lists landing page, built from the same
+  header, sections, cards and rows as the generic recipes.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+{% set YOURS = [('Books to read outdoors', '12 books', 'Updated yesterday'), ('Gifts for the allotment', '7 books', 'Updated last week'), ('Read aloud, age five', '23 books', 'Updated in March')] %}
+{% set POPULAR = [('A year in the garden', 'One book for each month, from seed catalogues in January to bonfires in November.', 'Ada Marsh', '12 books', '1,840 followers'), ('Transcendentalism for beginners', 'Start with the short ones. Emerson’s Nature is forty pages.', 'concord_reader', '9 books', '1,206 followers'), ('Walks I will never take', 'The Maine woods, the Pennine Way and other people’s blisters.', 'Tom Hale', '31 books', '958 followers'), ('Small animals in waistcoats', 'A complete and serious survey.', 'Priya N.', '18 books', '2,412 followers'), ('Science that reads like a story', 'No equations before page fifty.', 'labnotes', '26 books', '771 followers'), ('Books under 150 pages', 'For the train, the queue and the last week of the month.', 'Ines Duarte', '64 books', '3,305 followers')] %}
+{% set ACTIVE = [('Victorian children’s books still in print', 'Ada Marsh', 'added The Secret Garden', '2 hours ago'), ('Essays worth rereading', 'concord_reader', 'added Essays', '5 hours ago'), ('Rivers', 'Tom Hale', 'added A Week on the Concord and Merrimack Rivers', 'Yesterday'), ('Field guides to nothing in particular', 'labnotes', 'added The Life of the Fields', 'Yesterday')] %}
+<div class="ol-page cookbook-page">
+    <header class="ol-page-header">
+        <div class="ol-page-header__row">
+            <div class="ol-page-header__text">
+                <h1 class="ol-page-header__title">Lists</h1>
+                <p class="ol-page-header__lede">Collections of books made by readers, for a mood, a subject or a person. Follow one or start your own.</p>
+            </div>
+            <div class="ol-page-header__actions">
+                <ol-button variant="primary" href="/developers/design/cookbook/builder">
+                    {{ icon("plus", slot="icon-start") }}
+                    New list
+                </ol-button>
+            </div>
+        </div>
+    </header>
+    <section class="ol-section" aria-labelledby="cb-yours">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-yours">Your lists</h2>
+            <span class="ol-section__count">3</span>
+            <a class="ol-section__link" href="#">Manage</a>
+        </div>
+        <ul class="ol-card-grid">
+            {% for name, count, updated in YOURS %}
+                <li class="ol-card">
+                    <div class="ol-card__media">
+                        {{ parts.cover(books[loop.index0 * 3], size="small") }}
+                        {{ parts.cover(books[loop.index0 * 3 + 1], size="small") }}
+                        {{ parts.cover(books[loop.index0 * 3 + 2], size="small") }}
+                    </div>
+                    <h3 class="ol-card__title">
+                        <a class="ol-card__link" href="#">{{ name }}</a>
+                    </h3>
+                    <p class="ol-card__meta">{{ count }} · {{ updated }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="ol-section" aria-labelledby="cb-popular-lists">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-popular-lists">Popular this week</h2>
+            <a class="ol-section__link" href="#">See all</a>
+        </div>
+        <ul class="ol-card-grid">
+            {% for name, blurb, owner, count, followers in POPULAR %}
+                <li class="ol-card">
+                    <div class="ol-card__media">
+                        {{ parts.cover(books[loop.index0 + 4], size="small") }}
+                        {{ parts.cover(books[loop.index0 + 7], size="small") }}
+                        {{ parts.cover(books[loop.index0 + 10], size="small") }}
+                    </div>
+                    <h3 class="ol-card__title">
+                        <a class="ol-card__link" href="#">{{ name }}</a>
+                    </h3>
+                    <p class="ol-card__body">{{ blurb }}</p>
+                    <p class="ol-card__meta">By {{ owner }} · {{ count }} · {{ followers }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="ol-section" aria-labelledby="cb-active">
+        <div class="ol-section__header">
+            <h2 class="ol-section__title" id="cb-active">Recently active</h2>
+        </div>
+        <ul class="ol-item-list">
+            {% for name, owner, action, when in ACTIVE %}
+                <li class="ol-item">
+                    <div class="ol-item__media">{{ parts.cover(books[loop.index0 * 4], size="small") }}</div>
+                    <div class="ol-item__text">
+                        <h3 class="ol-item__title">
+                            <a class="ol-item__link" href="#">{{ name }}</a>
+                        </h3>
+                        <p class="ol-meta-line">
+                            <span>{{ owner }} {{ action }}</span>
+                            <span>{{ when }}</span>
+                        </p>
+                    </div>
+                    <div class="ol-item__actions">
+                        <ol-button size="small">
+                            Follow
+                        </ol-button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="ol-section ol-aside" aria-labelledby="cb-lists-aside">
+        <h2 class="ol-aside__title" id="cb-lists-aside">What makes a good list</h2>
+        <p class="ol-aside__body">A point of view, a short description, and fewer books than you think. The lists people follow most have under thirty.</p>
+    </section>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

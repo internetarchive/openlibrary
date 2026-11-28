@@ -1,0 +1,147 @@
+/**
+ * Card, card grid, aside and empty state: the boxes a page puts things in.
+ * A card is a hairline border on the page surface, with no shadow and no tint.
+ * Worked examples are at /developers/design/cookbook.
+ */
+
+.ol-card-grid {
+  --ol-card-min: 240px;
+
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(var(--ol-card-min), 100%), 1fr)
+  );
+  gap: var(--spacing-inline-lg);
+  padding: 0;
+  list-style: none;
+}
+
+.ol-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+}
+
+.ol-card__media {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-inline-md);
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.ol-card__media > * {
+  flex: none;
+  width: 48px;
+}
+
+.ol-card__title {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-title);
+  color: var(--color-text);
+}
+
+.ol-card__body {
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+/* Pinned to the card's bottom edge, so a row of cards ends on one line. */
+.ol-card__meta {
+  margin-block-start: auto;
+  padding-block-start: var(--spacing-stack-sm);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+/* The title's link stretches over the whole card, so the card is one target
+   with one accessible name. */
+a.ol-card__link:any-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ol-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.ol-card__link:focus-visible {
+  outline: none;
+}
+
+.ol-card:has(.ol-card__link:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ol-card:has(.ol-card__link:hover) {
+    border-color: var(--color-border-muted);
+  }
+
+  a.ol-card__link:hover {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+}
+
+/* Aside: the one tinted panel a page gets, for something beside the main content. */
+.ol-aside {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  justify-items: start;
+  padding: var(--spacing-inset-md) var(--spacing-inset-lg);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
+}
+
+.ol-aside__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-title);
+}
+
+.ol-aside__body {
+  max-width: 60ch;
+  color: var(--color-text-secondary);
+}
+
+.ol-aside__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  margin-block-start: var(--spacing-stack-sm);
+}
+
+/* Empty state: says what goes here and how to put it there. */
+.ol-empty {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  justify-items: center;
+  padding: var(--spacing-inset-lg);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-sunken);
+  text-align: center;
+}
+
+.ol-empty__title {
+  font-weight: var(--font-weight-medium);
+}
+
+.ol-empty__body {
+  max-width: 44ch;
+  color: var(--color-text-secondary);
+}

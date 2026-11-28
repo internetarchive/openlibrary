@@ -1,0 +1,100 @@
+{#
+  Recipe: a builder flow. An autocomplete adds rows to a list; each row can be
+  removed; the list has an empty state. cookbook.js drives it from the sample
+  books in data-books, so nothing is saved.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+<div class="ol-page ol-page--narrow cookbook-page">
+    <header class="ol-page-header">
+        <a class="ol-page-header__back" href="/developers/design/cookbook/lists">{{ icon("arrow-left", size="sm") }} Lists</a>
+        <div class="ol-page-header__text">
+            <h1 class="ol-page-header__title">New list</h1>
+        </div>
+    </header>
+    <form class="ol-form"
+          action="#"
+          method="get"
+          data-cookbook-builder
+          data-books="{{ books_json }}">
+        <fieldset class="ol-form__group">
+            <legend class="ol-form__legend">Details</legend>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-list-name">Name</label>
+                <input class="ol-input"
+                       id="cb-list-name"
+                       name="name"
+                       type="text"
+                       value="Books to read outdoors"
+                       autocomplete="off">
+            </div>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-list-about">
+                    Description <span class="ol-field__optional">Optional</span>
+                </label>
+                <textarea class="ol-input" id="cb-list-about" name="description" rows="3"></textarea>
+            </div>
+        </fieldset>
+        <fieldset class="ol-form__group">
+            <legend class="ol-form__legend">Books</legend>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-list-search">Add a book</label>
+                <div class="ol-combobox">
+                    <span class="ol-combobox__icon">{{ icon("search", size="sm") }}</span>
+                    <input class="ol-input"
+                           id="cb-list-search"
+                           type="text"
+                           role="combobox"
+                           placeholder="Search by title or author"
+                           autocomplete="off"
+                           spellcheck="false"
+                           aria-expanded="false"
+                           aria-controls="cb-list-options"
+                           aria-autocomplete="list"
+                           data-builder-input>
+                    <ul class="ol-combobox__panel"
+                        id="cb-list-options"
+                        role="listbox"
+                        aria-label="Matching books"
+                        hidden
+                        data-builder-options>
+                    </ul>
+                </div>
+            </div>
+            <div>
+                <p class="ol-meta-line" aria-live="polite" data-builder-count></p>
+                <ol class="ol-item-list ol-item-list--numbered" data-builder-list>
+                    {% for book in books[:3] %}
+                        <li class="ol-item" data-title="{{ book.title }}">
+                            <div class="ol-item__media">{{ parts.cover(book, size="small") }}</div>
+                            <div class="ol-item__text">
+                                <div class="ol-item__title">{{ book.title }}</div>
+                                <p class="ol-meta-line">
+                                    <span>{{ book.author }}</span>
+                                    <span>{{ book.year }}</span>
+                                </p>
+                            </div>
+                            <div class="ol-item__actions">
+                                <ol-button variant="ghost" shape="icon" data-builder-remove aria-label="Remove {{ book.title }}">
+                                    {{ icon("x", label="Remove " ~ book.title) }}
+                                </ol-button>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+                <div class="ol-empty" hidden data-builder-empty>
+                    <p class="ol-empty__title">No books yet</p>
+                    <p class="ol-empty__body">Search above to add the first one. You can keep adding after you save.</p>
+                </div>
+            </div>
+        </fieldset>
+        <div class="ol-form__actions">
+            <ol-button type="submit" variant="primary">
+                Create list
+            </ol-button>
+            <ol-button href="/developers/design/cookbook/lists">
+                Cancel
+            </ol-button>
+        </div>
+    </form>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

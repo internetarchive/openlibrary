@@ -1,0 +1,156 @@
+{#
+  Recipe: a detail page. The thing and its actions hold a side column that
+  stays in view. The main column has three sizes of thing: a large title
+  block, major sections with large headings, and facts in quiet rows with
+  their headings in a left column.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+{% set book = books[0] %}
+<div class="ol-page cookbook-page">
+    <div class="ol-detail">
+        <div class="ol-detail__side">
+            <div class="ol-detail__media">{{ parts.cover(book) }}</div>
+            <div class="ol-detail__actions">
+                <ol-button variant="primary" full-width>
+                    Borrow
+                </ol-button>
+                <ol-button full-width>
+                    {{ icon("bookmark", slot="icon-start") }}
+                    Want to read
+                </ol-button>
+                <ol-button variant="ghost" full-width>
+                    {{ icon("list-plus", slot="icon-start") }}
+                    Add to list
+                </ol-button>
+            </div>
+        </div>
+        <div class="ol-detail__main">
+            <header class="ol-detail__title-block">
+                <h1 class="ol-page-header__title ol-detail__title">{{ book.title }}</h1>
+                <p class="ol-detail__byline">
+                    <a href="#">{{ book.author }}</a>
+                </p>
+                <div class="ol-detail__rating">
+                    <span class="ol-detail__rating-value">{{ icon("star", size="sm") }} 4.1</span>
+                    <p class="ol-meta-line">
+                        <span>2,869 ratings</span>
+                        <span>626 reviews</span>
+                        <span>First published {{ book.year }}</span>
+                    </p>
+                </div>
+            </header>
+            <section class="ol-section">
+                <ol-read-more max-height="168px">
+                    <div class="ol-prose">
+                        <p>
+                            When orphaned Mary Lennox comes to live at her uncle’s great house on the Yorkshire moors, she finds it full of secrets. The mansion has nearly a hundred rooms, and her uncle keeps himself locked up. At night she hears the sound of crying down one of the long corridors.
+                        </p>
+                        <p>
+                            The gardens surrounding the property are Mary’s only escape. Then she discovers a secret garden, surrounded by walls and locked with a missing key. With the help of two unexpected companions, she finds a way in, and into the lives of everyone at the manor.
+                        </p>
+                        <p>
+                            First serialised in 1910 and published in full the following year, it has not been out of print since. It is one of the most widely read children’s novels in English, and has been adapted for the stage and screen many times.
+                        </p>
+                    </div>
+                </ol-read-more>
+            </section>
+            <section class="ol-section ol-section--ruled ol-section--split"
+                     aria-labelledby="cb-subjects">
+                <div class="ol-section__header">
+                    <h2 class="ol-section__title" id="cb-subjects">Subjects</h2>
+                </div>
+                <ol-chip-group>
+                    <ol-chip href="#">
+                        Classics
+                    </ol-chip>
+                    <ol-chip href="#">
+                        Children’s fiction
+                    </ol-chip>
+                    <ol-chip href="#">
+                        Gardens
+                    </ol-chip>
+                    <ol-chip href="#">
+                        Orphans
+                    </ol-chip>
+                    <ol-chip href="#">
+                        Yorkshire
+                    </ol-chip>
+                    <ol-chip href="#">
+                        Friendship
+                    </ol-chip>
+                </ol-chip-group>
+            </section>
+            <section class="ol-section ol-section--ruled ol-section--split"
+                     aria-labelledby="cb-edition">
+                <div class="ol-section__header">
+                    <h2 class="ol-section__title" id="cb-edition">This edition</h2>
+                    <a class="ol-section__link" href="#">All 1,412 editions</a>
+                </div>
+                <dl class="ol-meta-list">
+                    <div class="ol-meta-list__row">
+                        <dt>Format</dt>
+                        <dd>
+                            Hardcover, 304 pages
+                        </dd>
+                    </div>
+                    <div class="ol-meta-list__row">
+                        <dt>Published</dt>
+                        <dd>
+                            August 1911 by Frederick A. Stokes
+                        </dd>
+                    </div>
+                    <div class="ol-meta-list__row">
+                        <dt>Language</dt>
+                        <dd>
+                            English
+                        </dd>
+                    </div>
+                    <div class="ol-meta-list__row">
+                        <dt>ISBN</dt>
+                        <dd>
+                            978-0-06-440188-0
+                        </dd>
+                    </div>
+                    <div class="ol-meta-list__row">
+                        <dt>Illustrator</dt>
+                        <dd>
+                            <a href="#">Charles Robinson</a>
+                        </dd>
+                    </div>
+                </dl>
+            </section>
+            <section class="ol-section ol-section--major" aria-labelledby="cb-author">
+                <div class="ol-section__header">
+                    <h2 class="ol-section__title" id="cb-author">About the author</h2>
+                </div>
+                <div class="cookbook-person">
+                    <div class="cookbook-person__avatar">{{ icon("user") }}</div>
+                    <div class="cookbook-person__text">
+                        <div>
+                            <div class="cookbook-person__name">
+                                <a href="#">{{ book.author }}</a>
+                            </div>
+                            <p class="ol-meta-line">
+                                <span>1849–1924</span>
+                                <span>212 works</span>
+                            </p>
+                        </div>
+                        <p class="ol-prose">
+                            A British-American novelist and playwright, best known for three children’s novels: Little Lord Fauntleroy, A Little Princess and The Secret Garden.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section class="ol-section ol-section--major" aria-labelledby="cb-more">
+                <div class="ol-section__header">
+                    <h2 class="ol-section__title" id="cb-more">Readers also enjoyed</h2>
+                    <a class="ol-section__link" href="#">See all</a>
+                </div>
+                <ol-carousel label="Readers also enjoyed">
+                    {% for other in books[1:13] %}{{ parts.book_tile(other) }}{% endfor %}
+                </ol-carousel>
+            </section>
+        </div>
+    </div>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

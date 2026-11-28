@@ -90,3 +90,33 @@
 .ol-choice__input:checked ~ .ol-choice__again {
   display: inline-flex;
 }
+
+/* Plain: a traditional radio list for a settings form, where the group is one question among many on the page.
+   No boxes and no fill; the radio alone shows what is picked. The label is still the whole click target. */
+.ol-choice-list--plain {
+  gap: var(--spacing-md);
+}
+
+.ol-choice--plain,
+.ol-choice--plain:has(.ol-choice__input:checked) {
+  padding: 0;
+  border: 0;
+  border-radius: var(--border-radius-sm);
+  background: none;
+  --_choice-title-color: var(--color-text);
+  --_choice-hover-bg: transparent;
+}
+
+.ol-choice--plain .ol-choice__text {
+  gap: var(--spacing-3xs);
+}
+
+.ol-choice--plain .ol-choice__title {
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-snug);
+}
+
+.ol-choice--plain .ol-choice__meta {
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+}

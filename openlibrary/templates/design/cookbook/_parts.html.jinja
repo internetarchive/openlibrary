@@ -1,0 +1,83 @@
+{#
+  Shared by every recipe: the floating dock, and the book tile the recipes
+  use as placeholder content.
+#}
+{#
+  The dock is the only docs chrome on a recipe page: back to the Cookbook,
+  across to the other recipes, and the notes on what this one shows.
+#}
+{% macro dock(recipe, recipes, page_rules) %}
+    {% set ns = namespace(index=0) %}
+    {% for candidate in recipes %}
+        {% if candidate.id == recipe.id %}
+            {% set ns.index = loop.index0 %}
+        {% endif %}
+    {% endfor %}
+    {% set previous = recipes[ns.index - 1] %}
+    {% set following = recipes[(ns.index + 1) % (recipes | length or 1)] %}
+    <nav class="cookbook-dock" aria-label="Cookbook">
+        <ol-button variant="ghost" href="/developers/design/cookbook">
+            {{ icon("arrow-left", slot="icon-start") }}
+            Cookbook
+        </ol-button>
+        <span class="cookbook-dock__divider" aria-hidden="true"></span>
+        <ol-button variant="ghost" shape="icon" href="/developers/design/cookbook/{{ previous.id }}">
+            {{ icon("chevron-left", label="Previous recipe: " ~ previous.title) }}
+        </ol-button>
+        <ol-popover placement="top-center" aria-label="Recipes">
+            <ol-button slot="trigger" variant="ghost">
+                {{ recipe.title }}
+            </ol-button>
+            <div class="cookbook-dock__panel">
+                {% for candidate in recipes %}
+                    <a class="cookbook-dock__row"
+                       href="/developers/design/cookbook/{{ candidate.id }}"
+                       {% if candidate.id == recipe.id %}aria-current="page"{% endif %}>{{ candidate.title }}</a>
+                {% endfor %}
+            </div>
+        </ol-popover>
+        <ol-button variant="ghost" shape="icon" href="/developers/design/cookbook/{{ following.id }}">
+            {{ icon("chevron-right", label="Next recipe: " ~ following.title) }}
+        </ol-button>
+        <span class="cookbook-dock__divider" aria-hidden="true"></span>
+        <ol-popover placement="top-end" aria-label="Notes on this recipe">
+            <ol-button slot="trigger" variant="ghost" no-chevron>
+                Notes
+            </ol-button>
+            <div class="cookbook-notes">
+                <p>{{ recipe.blurb }}</p>
+                <div>
+                    <h2 class="cookbook-notes__heading">Built from</h2>
+                    <ul class="cookbook-notes__uses">
+                        {% for name in recipe.uses %}
+                            <li>
+                                <code>.{{ name }}</code>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="cookbook-notes__heading">Page rules</h2>
+                    <p>
+                        {% for rule in page_rules %}
+                            {{ rule.title }}{{ "." if loop.last else " · " }}
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        </ol-popover>
+    </nav>
+{% endmacro %}
+{# A cover with its title and author under it. The cover is the link. #}
+{% macro book_tile(book) %}
+    <div class="cookbook-book">
+        <ol-book-cover src="{{ book.cover_url }}" book-title="{{ book.title }}" authors="{{ book.author }}" year="{{ book.year }}" href="/works/{{ book.olid }}" no-tip>
+        </ol-book-cover>
+        <div class="cookbook-book__title">{{ book.title }}</div>
+        <div class="cookbook-book__author">{{ book.author }}</div>
+    </div>
+{% endmacro %}
+{% macro cover(book, size="medium") %}
+    <ol-book-cover src="{{ book.cover_url }}" book-title="{{ book.title }}" authors="{{ book.author }}" {% if size == "small" %}size="small"{% endif %} no-tip>
+    </ol-book-cover>
+{% endmacro %}
