@@ -1,9 +1,11 @@
 import re
+from urllib.parse import unquote
 
 import pytest
 import web
 
 from infogami.infobase import client, common
+from infogami.utils.app import path_processor
 from openlibrary.core import helpers
 from openlibrary.core.processors import readableurls as processors
 from openlibrary.utils.request_context import site as site_context
@@ -212,6 +214,42 @@ def test_list_action_request_preserves_query(action, method):
 
     assert response.status == "200 OK"
     assert response.data.decode() == f"{key}/{action}?format=json"
+
+
+@pytest.mark.parametrize(
+    ("url", "redirect"),
+    [
+        ("/books/OL1M/foo", None),
+        ("/books/OL1M/foo/", "/books/OL1M/foo"),
+        ("/books/OL4210801M/Das_schwerho%CC%88rige_Kind", None),
+        ("/books/OL4210801M/Das_schwerho%CC%88rige_Kind/", "/books/OL4210801M/Das_schwerho%CC%88rige_Kind"),
+    ],
+)
+def test_readable_url_trailing_slash_request(url, redirect):
+    class BookHandler:
+        def GET(self):
+            return web.ctx.path
+
+    site = MockSite()
+    site.add({"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"})
+    site.add({"key": "/books/OL4210801M", "type": {"key": "/type/edition"}, "title": "Das schwerho\u0308rige Kind"})
+    token = site_context.set(site)
+    try:
+        app = web.application((r"/books/OL\d+M", BookHandler), {})
+        app.add_processor(path_processor)
+        app.add_processor(web.loadhook(lambda: setattr(web.ctx, "encoding", None)))
+        app.add_processor(processors.ReadableUrlProcessor())
+        # WSGI servers pass PATH_INFO percent-decoded, as latin-1 characters.
+        response = app.request(unquote(url, encoding="latin-1"))
+        if redirect:
+            assert response.status == "303 See Other"
+            assert response.headers["Location"] == f"http://0.0.0.0:8080{redirect}"
+            response = app.request(unquote(redirect, encoding="latin-1"))
+    finally:
+        site_context.reset(token)
+
+    assert response.status == "200 OK"
+    assert response.data.decode() == "/".join(url.split("/")[:3])
 
 
 # ---------------------------------------------------------------------------
