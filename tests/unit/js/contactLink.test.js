@@ -1,6 +1,6 @@
-import { buildContactBody, withBody, pageUrl, DEFAULT_NOTE, DEFAULT_PRIVACY } from '../../../openlibrary/plugins/openlibrary/js/contact-link.js';
+import { buildContactBody, withBody, pageUrl } from '../../../openlibrary/plugins/openlibrary/js/contact-link.js';
 
-const strings = { note: DEFAULT_NOTE, privacy: DEFAULT_PRIVACY };
+const strings = { note: 'Write above this line.', privacy: 'You can delete these details.' };
 const env = {
     url: 'https://openlibrary.org/search?q=dune',
     account: 'https://openlibrary.org/people/bob',
@@ -12,8 +12,8 @@ describe('buildContactBody', () => {
     test('leaves room for the message, then the notes and details', () => {
         const lines = buildContactBody(strings, env).split('\r\n');
         expect(lines.slice(0, 3)).toEqual(['', '', '']);
-        expect(lines[3]).toBe(`----- ${DEFAULT_NOTE} -----`);
-        expect(lines[4]).toBe(DEFAULT_PRIVACY);
+        expect(lines[3]).toBe(`----- ${strings.note} -----`);
+        expect(lines[4]).toBe(strings.privacy);
         expect(lines.slice(6)).toEqual([
             'Page: https://openlibrary.org/search?q=dune',
             'Account: https://openlibrary.org/people/bob',

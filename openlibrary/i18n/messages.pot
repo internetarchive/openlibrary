@@ -81,14 +81,6 @@ msgstr ""
 msgid "Deactivate Account"
 msgstr ""
 
-#: account.html shell/footer.html.jinja
-msgid "Please write your message above this line."
-msgstr ""
-
-#: account.html shell/footer.html.jinja
-msgid "The details below help us look into your message. You can delete anything you would rather not share."
-msgstr ""
-
 #: account.html
 msgid "Please contact us if you need help with anything else."
 msgstr ""
@@ -1532,11 +1524,11 @@ msgstr ""
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html edit.js
+#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html
 msgid "Yes"
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html books/edit/edition.html edit.js
+#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html books/edit/edition.html
 msgid "No"
 msgstr ""
 
@@ -1946,7 +1938,7 @@ msgstr ""
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html bulk-tagger/BulkTagger.js reading_goals/reading_goal_form.html.jinja
+#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html bulk-tagger/BulkTagger.js bulk-tagger/index.js reading_goals/reading_goal_form.html.jinja
 msgid "Submit"
 msgstr ""
 
@@ -3776,14 +3768,6 @@ msgid "Contributors"
 msgstr ""
 
 #: books/edit/edition.html
-msgid "Please select a role."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "You need to give this ROLE a name."
-msgstr ""
-
-#: books/edit/edition.html
 msgid "List the people involved"
 msgstr ""
 
@@ -3899,34 +3883,6 @@ msgstr ""
 msgid "Copy subjects to new work"
 msgstr ""
 
-#: books/edit/edition.html
-msgid "Please select an identifier."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "You need to give a value to ID."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "ID ids cannot contain whitespace."
-msgstr ""
-
-#: IdentifiersInput/utils/utils.js books/edit/edition.html
-msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "That ID already exists for this edition."
-msgstr ""
-
-#: IdentifiersInput/utils/utils.js books/edit/edition.html
-msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
-msgstr ""
-
-#: IdentifiersInput/utils/utils.js books/edit/edition.html
-msgid "Invalid ID format"
-msgstr ""
-
 #: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
 msgstr ""
@@ -3937,14 +3893,6 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Like, ISBN?"
-msgstr ""
-
-#: books/edit/edition.html
-msgid "Please select a classification."
-msgstr ""
-
-#: books/edit/edition.html
-msgid "You need to give a value to CLASS."
 msgstr ""
 
 #: LibraryExplorer/components/LibraryToolbar.vue books/edit/edition.html type/edition/view.html type/work/view.html
@@ -5429,7 +5377,7 @@ msgstr ""
 msgid "You"
 msgstr ""
 
-#: lists/list_follow.html.jinja
+#: lists/list_follow.html.jinja private-button.js
 msgid "This patron has not enabled following"
 msgstr ""
 
@@ -6170,15 +6118,15 @@ msgstr ""
 msgid "Shuffle"
 msgstr ""
 
-#: search/subjects.html.jinja
+#: bulk-tagger/index.js search/subjects.html.jinja
 msgid "time"
 msgstr ""
 
-#: search/subjects.html.jinja
+#: bulk-tagger/index.js search/subjects.html.jinja
 msgid "subject"
 msgstr ""
 
-#: search/subjects.html.jinja
+#: bulk-tagger/index.js search/subjects.html.jinja
 msgid "place"
 msgstr ""
 
@@ -6190,7 +6138,7 @@ msgstr ""
 msgid "event"
 msgstr ""
 
-#: search/subjects.html.jinja
+#: bulk-tagger/index.js search/subjects.html.jinja
 msgid "person"
 msgstr ""
 
@@ -7943,10 +7891,6 @@ msgid "Embed this book in your website"
 msgstr ""
 
 #: ShareModal.html
-msgid "Copy embed code to clipboard:"
-msgstr ""
-
-#: ShareModal.html
 msgid "Embed"
 msgstr ""
 
@@ -8040,7 +7984,7 @@ msgstr ""
 msgid "Search for a subject"
 msgstr ""
 
-#: SubjectTags.html
+#: SubjectTags.html bulk-tagger/index.js
 msgid "Manage Subjects"
 msgstr ""
 
@@ -8576,8 +8520,20 @@ msgid "Holocaust Wikipedia citations"
 msgstr ""
 
 #: IdentifiersInput/utils/utils.js
+msgid "ID must be exactly 10 characters [0-9] or X."
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
 #, python-format
 msgid "ISBN %(isbn)s may be invalid. Please confirm if you'd like to add it before saving all changes"
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
+msgstr ""
+
+#: IdentifiersInput/utils/utils.js
+msgid "Invalid ID format"
 msgstr ""
 
 #: IdentifiersInput/utils/utils.js
@@ -9566,6 +9522,14 @@ msgstr ""
 msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
+#: contact-link.js
+msgid "Please write your message above this line."
+msgstr ""
+
+#: contact-link.js
+msgid "The details below help us look into your message. You can delete anything you would rather not share."
+msgstr ""
+
 #: contribute.js
 msgid "Stop this project now?"
 msgstr ""
@@ -9611,8 +9575,21 @@ msgid "Change Image"
 msgstr ""
 
 #: edit.js
+msgid "Please select a role."
+msgstr ""
+
+#: edit.js
 #, python-format
-msgid "ISBN %(isbn)s may be invalid. Add it anyway?"
+msgid "You need to give this %(role)s a name."
+msgstr ""
+
+#: edit.js
+msgid "Please select a classification."
+msgstr ""
+
+#: edit.js
+#, python-format
+msgid "You need to give a value to %(name)s."
 msgstr ""
 
 #: edit.js
@@ -9850,6 +9827,19 @@ msgstr ""
 msgid "Subjects successfully updated."
 msgstr ""
 
+#: bulk-tagger/index.js
+msgid "Filter subjects e.g. Epic"
+msgstr ""
+
+#: bulk-tagger/index.js
+#, python-format
+msgid "Create new subject %(name)s with type:"
+msgstr ""
+
+#: bulk-tagger/index.js
+msgid "collection"
+msgstr ""
+
 #. %(menu)s is a dropdown of how many editions to show per page.
 #: editions-table/index.js
 #, python-format
@@ -9997,6 +9987,10 @@ msgstr ""
 
 #: merge-request-table/MergeRequestTable/TableRow.js
 msgid "Failed to submit comment. Please try again in a few moments."
+msgstr ""
+
+#: modals/index.js
+msgid "Copy embed code to clipboard:"
 msgstr ""
 
 #: modals/index.js

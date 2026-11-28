@@ -3,15 +3,12 @@
  * patron was on, a link to their account page and a little about their browser, so
  * support can tell what a report is about without a round trip.
  *
- * Links opt in with `data-contact-link`. The translated notes come from the
- * link's `data-contact-note` and `data-contact-privacy` attributes, and the
- * signed-in username from `data-contact-username`. The detail labels stay in
- * English because support reads them.
+ * Links opt in with `data-contact-link`, and the signed-in username comes from
+ * `data-contact-username`. The notes to the patron are translated; the detail
+ * labels stay in English because support reads them.
  */
 
-/** English fallbacks for the `data-contact-*` notes. */
-export const DEFAULT_NOTE = 'Please write your message above this line.';
-export const DEFAULT_PRIVACY = 'The details below help us look into your message. You can delete anything you would rather not share.';
+import { _ } from './i18n.js';
 
 /**
  * The page URL to report. The `#fragment` is dropped, and so is the query
@@ -68,8 +65,8 @@ export function withBody(href, body) {
 export function initContactLinks(links) {
     for (const link of links) {
         const strings = {
-            note: link.dataset.contactNote || DEFAULT_NOTE,
-            privacy: link.dataset.contactPrivacy || DEFAULT_PRIVACY
+            note: _('Please write your message above this line.'),
+            privacy: _('The details below help us look into your message. You can delete anything you would rather not share.')
         };
         const username = link.dataset.contactUsername;
         // Build on click so the URL and window size are current.

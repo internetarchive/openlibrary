@@ -29,7 +29,7 @@ $def embed_iframe(page_url):
           $ clean_url = page_url.replace("'", "\\'")
           $ iframe_html = str(embed_iframe(clean_url)).strip()
           <li>
-            <button type="button" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html" data-embed-prompt="$_('Copy embed code to clipboard:')">
+            <button type="button" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html">
               $:macros.icon('code', size='sm')
               $_("Embed")
             </button>

@@ -1,16 +1,5 @@
 import $ from 'jquery';
 import { _, fmt } from './i18n.js';
-import { isbnOverride } from './isbnOverride';
-import {
-    parseIsbn,
-    parseLccn,
-    isChecksumValidIsbn10,
-    isChecksumValidIsbn13,
-    isFormatValidIsbn10,
-    isFormatValidIsbn13,
-    isValidLccn,
-    isIdDupe
-} from './idValidation';
 import { init as initAutocomplete } from './autocomplete';
 import { init as initJqueryRepeat } from './jquery.repeat';
 import { trimInputValues } from './utils.js';
@@ -70,15 +59,14 @@ function getJqueryElements(selector) {
 
 export function initRoleValidation() {
     initJqueryRepeat();
-    const dataConfig = JSON.parse(document.querySelector('#roles').dataset.config);
     $('#roles').repeat({
         vars: { prefix: 'edition--' },
         validate: function (data) {
             if (data.role === '' || data.role === '---') {
-                return error('#role-errors', '#select-role', dataConfig['Please select a role.']);
+                return error('#role-errors', '#select-role', _('Please select a role.'));
             }
             if (data.name === '') {
-                return error('#role-errors', '#role-name', dataConfig['You need to give this ROLE a name.'].replace(/ROLE/, data.role));
+                return error('#role-errors', '#role-name', fmt(_('You need to give this %(role)s a name.'), { role: data.role }));
             }
             $('#role-errors').hide();
             $('#select-role, #role-name').val('');
@@ -87,153 +75,8 @@ export function initRoleValidation() {
     });
 }
 
-/**
- * Displays a confirmation box in the error div to confirm the addition of an
- * ISBN with a valid form but which fails the checksum.
- * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
- * @param {String} isbnConfirmString  a const with the HTML to create the confirmation message/buttons
- */
-export function isbnConfirmAdd(data) {
-    const message = fmt(_('ISBN %(isbn)s may be invalid. Add it anyway?'), { isbn: data.value });
-    const isbnConfirmString = `${message} <button class="repeat-add" id="yes-add-isbn" type="button">${_('Yes')}</button>&nbsp;<button id="do-not-add-isbn" type="button">${_('No')}</button>`;
-    // Display the error and option to add the ISBN anyway.
-    $('#id-errors').show().html(isbnConfirmString);
-
-    const yesButtonSelector = '#yes-add-isbn';
-    const noButtonSelector = '#do-not-add-isbn';
-    const onYes = () => {
-        $('#id-errors').hide();
-    };
-    const onNo = () => {
-        $('#id-errors').hide();
-        isbnOverride.clear();
-    };
-    $(document).on('click', yesButtonSelector, onYes);
-    $(document).on('click', noButtonSelector, onNo);
-
-    // Save the data to isbnOverride so it can be picked up via onAdd in
-    // js/jquery.repeat.js when the user confirms adding the invalid ISBN.
-    isbnOverride.set(data);
-    return false;
-}
-
-/**
- * Called by validateIdentifiers(), validates the addition of new
- * ISBN 10 to an edition.
- * @param {Object} data  data from the input form
- * @param {Object} dataConfig  object mapping error messages to their string values
- * @param {String} label  formatted value of the identifier type name (ISBN 10)
- * @returns {boolean}  true if ISBN passes validation, else returns false and displays appropriate error
- */
-function validateIsbn10(data, dataConfig, label) {
-    data.value = parseIsbn(data.value);
-
-    if (!isFormatValidIsbn10(data.value)) {
-        return error('#id-errors', '#id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
-    }
-    // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
-    // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
-    // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
-    else if (isFormatValidIsbn10(data.value) === true && isChecksumValidIsbn10(data.value) === false) {
-        isbnConfirmAdd(data);
-        return false;
-    }
-    return true;
-}
-
-/**
- * Called by validateIdentifiers(), validates the addition of new
- * ISBN 13 to an edition.
- * @param {Object} data  data from the input form
- * @param {Object} dataConfig  object mapping error messages to their string values
- * @param {String} label  formatted value of the identifier type name (ISBN 13)
- * @returns {boolean}  true if ISBN passes validation, else returns false and displays appropriate error
- */
-function validateIsbn13(data, dataConfig, label) {
-    data.value = parseIsbn(data.value);
-
-    if (isFormatValidIsbn13(data.value) === false) {
-        return error('#id-errors', '#id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
-    }
-    // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
-    // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
-    // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
-    else if (isFormatValidIsbn13(data.value) === true && isChecksumValidIsbn13(data.value) === false) {
-        isbnConfirmAdd(data);
-        return false;
-    }
-    return true;
-}
-
-/**
- * Called by validateIdentifiers(), validates the addition of new
- * LCCN to an edition.
- * @param {Object} data  data from the input form
- * @param {Object} dataConfig  object mapping error messages to their string values
- * @param {String} label  formatted value of the identifier type name (LCCN)
- * @returns {boolean}  true if LCCN passes validation, else returns false and displays appropriate error
- */
-function validateLccn(data, dataConfig, label) {
-    data.value = parseLccn(data.value);
-
-    if (isValidLccn(data.value) === false) {
-        $('#id-value').val(data.value);
-        return error('#id-errors', '#id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
-    }
-    return true;
-}
-
-/**
- * Called by initIdentifierValidation(), along with tests in
- * tests/unit/js/editEditionsPage.test.js, to validate the addition of new
- * identifiers (ISBN, LCCN) to an edition.
- * @param {Object} data  data from the input form
- * @returns {boolean}  true if identifier passes validation
- */
-export function validateIdentifiers(data) {
-    const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
-
-    if (data.name === '' || data.name === '---') {
-        $('#id-value').val(data.value);
-        return error('#id-errors', '#select-id', dataConfig['Please select an identifier.']);
-    }
-    const label = $('#select-id').find(`option[value='${data.name}']`).html();
-    if (data.value === '') {
-        return error('#id-errors', '#id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
-    }
-    if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
-        return error('#id-errors', '#id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
-    }
-
-    let validId = true;
-    if (data.name === 'isbn_10') {
-        validId = validateIsbn10(data, dataConfig, label);
-    } else if (data.name === 'isbn_13') {
-        validId = validateIsbn13(data, dataConfig, label);
-    } else if (data.name === 'lccn') {
-        validId = validateLccn(data, dataConfig, label);
-    }
-
-    // checking for duplicate identifier entry on all identifier types
-    // expects parsed ids so placed after validate
-    const entries = document.querySelectorAll(`.${data.name}`);
-    if (isIdDupe(entries, data.value) === true) {
-        // isbnOverride being set will override the dupe checker, so clear isbnOverride if there's a dupe.
-        if (isbnOverride.get()) {
-            isbnOverride.clear();
-        }
-        return error('#id-errors', '#id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
-    }
-
-    if (validId === false) return false;
-    $('#id-errors').hide();
-    return true;
-}
-
 export function initClassificationValidation() {
     initJqueryRepeat();
-    const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
-
     // Prevent form submission on Enter for classification fields
     $('#classification-value').on('keydown', function (e) {
         if (e.key === 'Enter') {
@@ -247,11 +90,11 @@ export function initClassificationValidation() {
         vars: { prefix: 'edition--' },
         validate: function (data) {
             if (data.name === '' || data.name === '---') {
-                return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
+                return error('#classification-errors', '#select-classification', _('Please select a classification.'));
             }
             if (data.value === '') {
                 const label = $('#select-classification').find(`option[value='${data.name}']`).html();
-                return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
+                return error('#classification-errors', '#classification-value', fmt(_('You need to give a value to %(name)s.'), { name: label }));
             }
             $('#classification-errors').hide();
             $('#select-classification, #classification-value').val('');
