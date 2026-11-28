@@ -59,22 +59,26 @@ export function initConfirmationButtons(buttons) {
 
 /**
  * /admin/new-accounts: tick rows (shift-click ticks a range), then act on all of them.
- * The bulk buttons wait for a selection and confirm with their `data-confirm` text.
+ * The bulk buttons wait for a selection and ask to confirm their action.
  * @param {HTMLFormElement} form
  */
 export function initNewAccountsReview(form) {
+    const confirmations = {
+        block_account: _('Block the selected accounts?'),
+        block_account_and_revert: _('Block the selected accounts and revert all their edits?'),
+        mark_trusted: _('Mark the selected accounts trusted? They leave this queue and skip the captcha when adding books.')
+    };
     const boxes = [...form.querySelectorAll('input[name="username"]')];
     const all = form.querySelector('.new-accounts__select-all');
     const status = form.querySelector('.new-accounts__selected');
     const actions = form.querySelectorAll('.new-accounts__bulk-action');
-    const { selectAll, selectedCount } = status.dataset;
     let last = null;
 
     const update = () => {
         const count = boxes.filter(box => box.checked).length;
         all.checked = count > 0 && count === boxes.length;
         all.indeterminate = count > 0 && count < boxes.length;
-        status.textContent = count ? selectedCount.replace('__COUNT__', count) : selectAll;
+        status.textContent = count ? fmt(_('%(count)s selected'), { count }) : _('Select all');
         for (const action of actions) action.disabled = !count;
         for (const box of boxes) box.closest('tr').classList.toggle('new-accounts__row--selected', box.checked);
     };
@@ -94,7 +98,7 @@ export function initNewAccountsReview(form) {
         update();
     });
     form.addEventListener('submit', event => {
-        const message = event.submitter?.closest('ol-button')?.dataset.confirm;
+        const message = confirmations[event.submitter?.closest('ol-button')?.getAttribute('value')];
         if (message && !confirm(message)) event.preventDefault();
     });
     update();

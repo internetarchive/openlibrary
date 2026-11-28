@@ -387,13 +387,12 @@ function initIdentifierForm(form) {
             return;
         }
         const parsed = rule.parse(raw);
-        const msg = input.dataset;
         if (rule.isValid(parsed)) {
             verdict.dataset.state = 'ok';
-            verdict.textContent = parsed === raw ? msg.msgOk : msg.msgTidied.replace('__VALUE__', parsed);
+            verdict.textContent = parsed === raw ? _('That looks like a valid number.') : fmt(_('Will be stored as %(value)s.'), { value: parsed });
         } else {
             verdict.dataset.state = 'bad';
-            verdict.textContent = /https?:|\//.test(raw) ? msg.msgUrl : msg.msgBad;
+            verdict.textContent = /https?:|\//.test(raw) ? _('Paste only the number, not the web address.') : _('That is not a valid number for this catalog.');
             if (!rejected) trackEvent('TaskForm', 'IdentifierRejected', input.dataset.idField);
             rejected = true;
         }

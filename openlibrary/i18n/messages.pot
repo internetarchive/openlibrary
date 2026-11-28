@@ -2371,17 +2371,8 @@ msgstr ""
 msgid "Select all accounts"
 msgstr ""
 
-#: admin/new_accounts.html.jinja
+#: admin.js admin/new_accounts.html.jinja
 msgid "Select all"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-#, python-format
-msgid "%(count)s selected"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "Block the selected accounts?"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -2389,15 +2380,7 @@ msgid "Block"
 msgstr ""
 
 #: admin/new_accounts.html.jinja
-msgid "Block the selected accounts and revert all their edits?"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
 msgid "Block and revert"
-msgstr ""
-
-#: admin/new_accounts.html.jinja
-msgid "Mark the selected accounts trusted? They leave this queue and skip the captcha when adding books."
 msgstr ""
 
 #: admin/new_accounts.html.jinja
@@ -4334,11 +4317,6 @@ msgstr ""
 
 #: contribute/landing.html.jinja
 msgid "Many books on Open Library are still missing a detail: a cover, a language, a publisher. You can help fill them in."
-msgstr ""
-
-#: FulltextResultIA.html.jinja contribute/landing.html.jinja contribute/parts.html.jinja
-#, python-format
-msgid "by %(authors)s"
 msgstr ""
 
 #: contribute/landing.html.jinja
@@ -7710,6 +7688,11 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
+#: FulltextResultIA.html.jinja contribute-feed.js contribute/parts.html.jinja
+#, python-format
+msgid "by %(authors)s"
+msgstr ""
+
 #: FulltextSearchSuggestion.html.jinja search-modal/constants.js
 msgid "Search inside books"
 msgstr ""
@@ -7988,11 +7971,6 @@ msgstr ""
 msgid "Manage Subjects"
 msgstr ""
 
-#: SubjectTags.html
-#, python-format
-msgid "Show %(count)s more"
-msgstr ""
-
 #: Subnavigation.html
 msgid "Developer Center (Home)"
 msgstr ""
@@ -8223,23 +8201,6 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "JPG, GIF, PNG or WebP, up to 10 MB."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "That looks like a valid number."
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Will be stored as %(value)s."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Paste only the number, not the web address."
-msgstr ""
-
-#: contribute/parts.html.jinja openlibrary/contribute/save.py
-msgid "That is not a valid number for this catalog."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -9499,6 +9460,23 @@ msgstr ""
 msgid "Are you sure?"
 msgstr ""
 
+#: admin.js
+msgid "Block the selected accounts?"
+msgstr ""
+
+#: admin.js
+msgid "Block the selected accounts and revert all their edits?"
+msgstr ""
+
+#: admin.js
+msgid "Mark the selected accounts trusted? They leave this queue and skip the captcha when adding books."
+msgstr ""
+
+#: admin.js
+#, python-format
+msgid "%(count)s selected"
+msgstr ""
+
 #: autocomplete.js
 #, python-format
 msgid "Enter the new position (1-%(total)s):"
@@ -9528,6 +9506,23 @@ msgstr ""
 
 #: contact-link.js
 msgid "The details below help us look into your message. You can delete anything you would rather not share."
+msgstr ""
+
+#: contribute.js
+msgid "That looks like a valid number."
+msgstr ""
+
+#: contribute.js
+#, python-format
+msgid "Will be stored as %(value)s."
+msgstr ""
+
+#: contribute.js
+msgid "Paste only the number, not the web address."
+msgstr ""
+
+#: contribute.js openlibrary/contribute/save.py
+msgid "That is not a valid number for this catalog."
 msgstr ""
 
 #: contribute.js
@@ -9710,6 +9705,11 @@ msgstr ""
 
 #: signup.js
 msgid "A qualifying program must be selected"
+msgstr ""
+
+#: subject-rows.js
+#, python-format
+msgid "Show %(count)s more"
 msgstr ""
 
 #: tasks_stats.js

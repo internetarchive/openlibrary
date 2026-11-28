@@ -1,3 +1,5 @@
+import { _, fmt } from './i18n.js';
+
 /**
  * Book page subject rows: show a few lines of chips (`--subject-row-lines`), then a "+N" chip that reveals the rest.
  * @param {NodeListOf<HTMLElement>} lists - `.subject-row__chips` elements
@@ -8,7 +10,6 @@ export async function initSubjectRows(lists) {
     for (const list of lists) {
         const more = list.querySelector('.subject-row__more');
         const chips = [...list.children].filter(el => el !== more);
-        const label = list.dataset.moreLabel;
         let lastWidth = 0;
 
         const fit = () => {
@@ -27,7 +28,7 @@ export async function initSubjectRows(lists) {
                 more.textContent = `+${chips.length - shown}`;
                 if (more.offsetTop <= lastLine) break;
             }
-            more.accessibleLabel = label.replace('{count}', chips.length - shown);
+            more.accessibleLabel = fmt(_('Show %(count)s more'), { count: chips.length - shown });
         };
 
         const observer = new ResizeObserver(([entry]) => {
