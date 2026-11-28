@@ -243,7 +243,6 @@ textarea {
     background-color: #c7e3fc;
     padding: 16px;
     width: min(450px, 66vw);
-    height: fit-content;
     border-radius: 30px;
     display: flex;
     column-gap: 16px;
