@@ -103,6 +103,33 @@ def test_tags_index_offers_the_next_page(client):
     assert 'href="/tags?page=2">Next »</a>' in response.text
 
 
+def test_concurrent_tags_index_requests_each_get_only_their_own_page(site_page_app, webpy_leftovers, fetch_concurrently):
+    """Pagination comes from this request: never another request's, or web.py's leftovers."""
+    mock_site(things=[f"/tags/OL{i}T" for i in range(21)], get_many=[tag_doc()])
+    n = 12
+    responses = fetch_concurrently(site_page_app(pages), [(f"/tags?page={i + 2}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        html = response.text
+        assert response.status_code == 200
+        assert webpy_leftovers not in html
+        assert f'href="/tags?page={i + 1}">« Previous</a>' in html
+        assert f'href="/tags?page={i + 3}">Next »</a>' in html
+        assert not any(f'href="/tags?page={j + 1}">«' in html for j in range(n) if j != i)
+
+
+def test_concurrent_add_tag_requests_each_get_only_their_own_page(site_page_app, webpy_leftovers, fetch_concurrently, monkeypatch):
+    """The prefilled name comes from this request: never another request's, or web.py's leftovers."""
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: True))
+    n = 12
+    responses = fetch_concurrently(site_page_app(pages), [(f"/tag/add?name=name-{i}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        html = response.text
+        assert response.status_code == 200
+        assert webpy_leftovers not in html
+        assert f'value="name-{i}"' in html
+        assert not any(f'value="name-{j}"' in html for j in range(n) if j != i)
+
+
 def test_add_tag_sends_a_visitor_to_login(client):
     response = client.get("/tag/add", follow_redirects=False)
 
