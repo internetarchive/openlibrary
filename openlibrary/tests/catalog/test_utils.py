@@ -76,8 +76,11 @@ def test_author_dates_match():
     # This method only compares dates and ignores names
     assert author_dates_match(no_dates, different_name)
     assert author_dates_match(basic, non_match) is False
-    # FIXME: the following should properly be False:
-    assert author_dates_match(full_different, full_dates)  # this shows matches are only occurring on year, full dates are ignored!
+    assert author_dates_match(full_different, full_dates) is False
+    assert author_dates_match(
+        {"birth_date": "September 14th, 1829", "death_date": "11/2/1910"},
+        {"birth_date": "1829-09-14", "death_date": "November 1910"},
+    )
 
 
 def test_flip_name():
@@ -94,6 +97,14 @@ def test_pick_first_date():
         "death_date": "1990",
     }
     assert pick_first_date(["4th/5th cent."]) == {"date": "4th/5th cent."}
+
+
+def test_pick_first_date_repeated_calls():
+    # Every call must try every date pattern, not only the first call in the process.
+    for _ in range(3):
+        assert pick_first_date(["b. 1900"]) == {"birth_date": "1900"}
+        assert pick_first_date(["d. 1950"]) == {"death_date": "1950"}
+        assert pick_first_date(["fl. 1650"]) == {"date": "fl. 1650"}
 
 
 def test_pick_best_name():
@@ -441,6 +452,10 @@ def test_format_languages(
 
 
 @pytest.mark.parametrize(("languages"), [(["wtf"]), (["eng", "wtf"])])
-def test_format_language_rasise_for_invalid_language(languages: list[str]) -> None:
-    with pytest.raises(InvalidLanguage):
+def test_format_language_rasise_for_invalid_language(
+    languages: list[str],
+    add_languages,  # noqa F811
+) -> None:
+    with pytest.raises(InvalidLanguage) as exc_info:
         format_languages(languages)
+    assert exc_info.value.code == "wtf"

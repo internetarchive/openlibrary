@@ -1,4 +1,32 @@
-import { more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
+import { initSearchFacets, more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
+
+function createAsyncSearchFacets() {
+    const facets = document.createElement('div');
+    facets.id = 'searchFacets';
+    facets.dataset.asyncLoad = 'true';
+    facets.dataset.param = '{}';
+    facets.innerHTML = `
+        <p class="search-facets-error ui-helper-hidden" role="status">Search filters are temporarily unavailable.</p>
+        <div class="facet"><span class="small">Loading...</span></div>
+    `;
+    return facets;
+}
+
+const originalIntersectionObserver = global.IntersectionObserver;
+const originalFetch = global.fetch;
+
+class ImmediatelyVisibleObserver {
+    constructor(callback) {
+        this.callback = callback;
+    }
+
+    observe(target) {
+        this.callback([{ isIntersecting: true, target }], this);
+    }
+
+    unobserve() {}
+    disconnect() {}
+}
 
 /** Creates a dummy search facets section with a list of 'facetEntry' element and a
  * 'facetMoreLess' section.
@@ -68,11 +96,11 @@ function checkFacetVisibility(totalFacet, expectedVisibleFacet) {
 
     for (let i = 0; i < totalFacet; i++) {
         if (i < expectedVisibleFacet) {
-            test(`element "facet_${i+1}" displayed`, () => {
+            test(`element "facet_${i + 1}" displayed`, () => {
                 expect(facetEntryList[i].classList.contains('ui-helper-hidden')).toBe(false);
             });
         } else {
-            test(`element "facet_${i+1}" hidden`, () => {
+            test(`element "facet_${i + 1}" hidden`, () => {
                 expect(facetEntryList[i].classList.contains('ui-helper-hidden')).toBe(true);
             });
         }
@@ -122,7 +150,7 @@ function checkFacetMoreLessVisibility(totalFacet, minVisibleFacet, expectedVisib
 const _originalGetClientRects = window.Element.prototype.getClientRects;
 
 // Stubbed getClientRects to enable jQuery ':hidden' selector used by 'more' and 'less' functions
-const _stubbedGetClientRects = function() {
+const _stubbedGetClientRects = function () {
     let node = this;
     while (node) {
         if (node === document) {
@@ -133,19 +161,56 @@ const _stubbedGetClientRects = function() {
         }
         node = node.parentNode;
     }
-    return [{width: 1, height: 1}];
+    return [{ width: 1, height: 1 }];
 };
+
+describe('initSearchFacets', () => {
+    beforeEach(() => {
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+        document.body.replaceChildren(createAsyncSearchFacets());
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        global.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    test('shows a fallback message when the partials request fails', async () => {
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+
+        await initSearchFacets(document.getElementById('searchFacets'));
+
+        expect(document.querySelector('.search-facets-error').classList.contains('ui-helper-hidden')).toBe(false);
+        expect(document.querySelector('.facet')).toBeNull();
+        expect(document.body.textContent).not.toContain('Loading...');
+    });
+
+    test('shows a fallback message instead of rendering a plain-text sidebar payload', async () => {
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            json: vi.fn().mockResolvedValue({
+                title: 'Search results',
+                sidebar: 'Unable to render this page.'
+            })
+        });
+
+        await initSearchFacets(document.getElementById('searchFacets'));
+
+        expect(document.querySelector('.search-facets-error').classList.contains('ui-helper-hidden')).toBe(false);
+        expect(document.body.textContent).not.toContain('undefined');
+        expect(document.body.textContent).not.toContain('Unable to render this page.');
+    });
+});
 
 describe('more', () => {
     [
         /*[ totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet ]*/
-        [ 7, 2, 3, 2, 5 ],
-        [ 9, 2, 3, 5, 8 ],
-        [ 7, 2, 3, 5, 7 ],
-        [ 7, 2, 3, 7, 7 ]
-    ].forEach((test) => {
-        const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
-        describe(label, () => {
+        [7, 2, 3, 2, 5],
+        [9, 2, 3, 5, 8],
+        [7, 2, 3, 5, 7],
+        [7, 2, 3, 7, 7]
+    ].forEach(test => {
+        describe(`Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`, () => {
             beforeAll(() => {
                 document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
                 window.Element.prototype.getClientRects = _stubbedGetClientRects;
@@ -165,13 +230,12 @@ describe('more', () => {
 describe('less', () => {
     [
         /*[ totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet ]*/
-        [ 5, 2, 3, 2, 2 ],
-        [ 7, 2, 3, 5, 2 ],
-        [ 9, 2, 3, 8, 5 ],
-        [ 7, 2, 3, 7, 5 ]
-    ].forEach((test) => {
-        const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
-        describe(label, () => {
+        [5, 2, 3, 2, 2],
+        [7, 2, 3, 5, 2],
+        [9, 2, 3, 8, 5],
+        [7, 2, 3, 7, 5]
+    ].forEach(test => {
+        describe(`Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`, () => {
             beforeAll(() => {
                 document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
                 window.Element.prototype.getClientRects = _stubbedGetClientRects;

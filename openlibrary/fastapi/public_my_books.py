@@ -71,7 +71,6 @@ async def get_public_my_books_json(
 
     Otherwise returns an error.
     """
-    key = key.lower()  # type: ignore[assignment]
 
     if len(q) < 3:
         q = ""
@@ -99,7 +98,7 @@ async def get_public_my_books_json(
 
     page = pagination.page or 1
     readlog = ReadingLog(user=user_obj)
-    books = readlog.get_works(key, page, pagination.limit, q=q, fq=fq).docs
+    logged_book_data = await readlog.get_works_async(key, page, pagination.limit, q=q, fq=fq)
 
     records_json = [
         ReadingLogEntry(
@@ -117,13 +116,13 @@ async def get_public_my_books_json(
             logged_edition=w.get("logged_edition") or None,
             logged_date=w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S") if w.get("logged_date") else None,
         )
-        for w in books
+        for w in logged_book_data.docs
     ]
 
     if page == 1 and len(records_json) < pagination.limit:
         num_found = len(records_json)
     else:
-        num_found = readlog.count_shelf(key)
+        num_found = await readlog.count_shelf(key)
 
     return ReadingLogResponse(
         page=page,

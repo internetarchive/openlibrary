@@ -7,12 +7,22 @@
 
 /* When a page has been starred, this allows you to clear your rating */
 .star-messaging {
-  color: var(--mid-grey);
+  color: var(--color-text-muted);
   background: none;
   display: block;
   border: 0;
   cursor: pointer;
   margin: 0 auto;
+}
+
+/* Space below the shelf button on the book page. */
+.lists-widget-container .star-rating-form {
+  margin-top: var(--spacing-stack-md);
+}
+
+/* Space below the shelf button in reading log list rows. */
+.searchResultItemCTA .star-rating-form {
+  margin-top: var(--spacing-stack-sm);
 }
 
 .review {
@@ -24,12 +34,6 @@
   -webkit-transition: all 1s linear;
   position: sticky;
   top: 0;
-}
-
-.review .review-btn {
-  border-left: 1px solid var(--lighter-grey);
-  width: 35px;
-  height: 35px;
 }
 
 /* highlighting settings */
@@ -58,6 +62,8 @@
   width: 150px;
   cursor: pointer;
   margin: 0 auto 10px;
+  /* Contain the star labels' layering over the fill bar. */
+  isolation: isolate;
 }
 
 .stars input[type="submit"] {
@@ -101,7 +107,7 @@
   text-indent: -999em;
   float: left;
   position: relative;
-  z-index: var(--z-index-level-3);
+  z-index: var(--z-index-local-1);
   background: transparent;
   cursor: pointer;
 }

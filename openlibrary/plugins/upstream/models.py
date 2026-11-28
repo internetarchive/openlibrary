@@ -2,6 +2,7 @@ import logging
 import re
 import sys
 from collections import defaultdict
+from datetime import datetime
 from functools import cached_property
 from typing import cast
 
@@ -10,15 +11,16 @@ from isbnlib import NotValidISBNError, canonical, mask
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
-from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
-from openlibrary.plugins.upstream import borrow
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import works_by_author, works_by_author_async
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
@@ -26,22 +28,107 @@ from openlibrary.utils.isbn import (
     normalize_isbn,
 )
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.request_context import site
 
 
 def follow_redirect(doc):
     if isinstance(doc, str) and doc.startswith("/a/"):
         # Some edition records have authors as ["/a/OL1A""] instead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
-        doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
+        doc = site.get().get(doc.replace("/a/", "/authors/"))
 
     if doc and doc.type.key == "/type/redirect":
         key = doc.location
-        return web.ctx.site.get(key)
+        return site.get().get(key)
     else:
         return doc
 
 
+def find_references(doc):
+    """Yields all references ({"key": ...} dicts) found in the given data.
+
+    Note: infogami's SaveProcessor (infogami/infobase/writequery.py) has a
+    similar method for the same purpose. It is instance-bound, so we keep this
+    small standalone copy; keep the two in sync when either changes.
+    """
+    if isinstance(doc, dict):
+        if len(doc) == 1 and "key" in doc:
+            yield doc["key"]
+        else:
+            for value in doc.values():
+                yield from find_references(value)
+    elif isinstance(doc, list):
+        for value in doc:
+            yield from find_references(value)
+
+
 class Edition(models.Edition):
+    CLASSIFICATION_FIELDS = ("dewey_decimal_class", "lc_classifications")
+
+    @cached_property
+    def solr_work_data(self) -> SolrDocument | None:
+        import openlibrary.book_providers as bp
+        from openlibrary.solr.updater.edition import EditionScorecardForSolr
+
+        work = cast(Work, self.works[0]) if self.works else None
+        if work:
+            return work._solr_data
+        else:
+            edition_olid = self.key.split("/")[-1]
+            return cast(
+                SolrDocument | None,
+                get_solr().get(
+                    f"/works/{edition_olid}",
+                    fields=[
+                        *list(WorkSearchScheme.default_fetched_fields),
+                        *bp.get_solr_keys(),
+                        *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
+                    ],
+                    request_label="GET_WORK_SOLR_DATA",
+                ),
+            )
+
+    @cached_property
+    def solr_last_modified(self) -> datetime | None:
+        work = cast(Work, self.works[0]) if self.works else None
+        if not work:
+            return None
+
+        return work.solr_last_modified
+
+    def is_solr_data_outdated(self) -> bool:
+        """
+        Returns True if the solr data is outdated compared to the database data.
+        """
+        if not self.solr_last_modified:
+            # Not in solr yet?
+            return True
+
+        work = cast(Work, self.works[0]) if self.works else None
+
+        # Stored as a plain int in solr, so need to drop ms
+        return self.solr_last_modified < self.last_modified.replace(microsecond=0) or (work.is_solr_data_outdated() if work else False)
+
+    @cached_property
+    def scorecard(self):
+        from openlibrary.solr.updater.edition import EditionSolrBuilder
+        from openlibrary.solr.updater.work import full_ia_metadata_to_lite_metadata
+
+        solr_work = self.solr_work_data
+
+        if not solr_work:
+            return None
+
+        edition_solr_builder = EditionSolrBuilder(
+            edition=self.dict(),
+            solr_work=solr_work,
+            db_work=self.works[0].dict() if self.works else None,
+            db_authors=[a.dict() for a in self.get_authors()] if self.get_authors() else [],
+            # TODO: Switch to using solr instead of IA for metadata
+            ia_metadata=full_ia_metadata_to_lite_metadata(self.get_ia_meta_fields()),
+        )
+        return edition_solr_builder.get_scorecard()
+
     def get_title(self):
         if self["title_prefix"]:
             return self["title_prefix"] + " " + self["title"]
@@ -149,17 +236,6 @@ class Edition(models.Edition):
         self._ia_meta_fields = meta
         return self._ia_meta_fields
 
-    def get_current_and_available_loans(self):
-        current_loans = borrow.get_edition_loans(self)
-        current_and_available_loans = (
-            current_loans,
-            self._get_available_loans(current_loans),
-        )
-        return current_and_available_loans
-
-    def get_current_loans(self):
-        return borrow.get_edition_loans(self)
-
     def get_available_loans(self):
         """
         Get the resource types currently available to be loaned out for this edition.  Does NOT
@@ -177,26 +253,10 @@ class Edition(models.Edition):
         if lending.is_loaned_out(self.ocaid):
             return []
 
-        # find available loans. there are no current loans
-        return self._get_available_loans([])
-
-    def _get_available_loans(self, current_loans):
-        if current_loans:
+        if lending.is_loaned_out_on_ia(self.ocaid):
             return []
 
-        if not self.ocaid:
-            return []
-
-        resource_id = f"bookreader:{self.ocaid}"
-        if borrow.is_loaned_out(resource_id):
-            return []
-
-        return [{"resource_id": resource_id, "resource_type": "bookreader", "size": None}]
-
-    def update_loan_status(self):
-        """Update the loan status"""
-        if self.ocaid:
-            lending.sync_loan(self.ocaid)
+        return [{"resource_id": f"bookreader:{self.ocaid}", "resource_type": "bookreader", "size": None}]
 
     def _process_identifiers(self, config_, names, values):
         id_map = {}
@@ -240,8 +300,6 @@ class Edition(models.Edition):
             "lccn",
             "oclc_numbers",
             "ocaid",
-            "dewey_decimal_class",
-            "lc_classifications",
         )
 
         d = {}
@@ -271,37 +329,36 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
-        if not d.items():
+        if not self.identifiers:
             self.identifiers = None
 
     def get_classifications(self):
-        names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
             get_identifier_config("edition").classifications,
-            names,
+            self.CLASSIFICATION_FIELDS,
             self.classifications,
         )
 
     def set_classifications(self, classifications):
-        names = ["dewey_decimal_class", "lc_classifications"]
         d = defaultdict(list)
         for c in classifications:
-            if "name" not in c or "value" not in c or not re.compile("[a-z0-9_]*").match(c["name"]):
+            if "name" not in c or "value" not in c:
                 continue
             d[c["name"]].append(c["value"])
 
-        for name in names:
+        # Clear standalone Edition.CLASSIFICATION_FIELDS
+        for name in self.CLASSIFICATION_FIELDS:
             self._getdata().pop(name, None)
         self.classifications = {}
 
         for name, value in d.items():
-            if name in names:
+            if name in self.CLASSIFICATION_FIELDS:
                 self[name] = value
             else:
                 self.classifications[name] = value
 
         if not self.classifications.items():
-            self.classifications = None
+            self._getdata().pop("classifications", None)
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -309,17 +366,23 @@ class Edition(models.Edition):
         return w and UnitParser(["value"]).parse(w)
 
     def set_weight(self, w):
-        self.weight = w and UnitParser(["value"]).format(w)
+        if w:
+            self.weight = UnitParser(["value"]).format(w)
+        elif (self.get_weight() or {}).get("value"):
+            # Only clear a weight the edit form displayed; one it can't parse renders as empty.
+            self.weight = None
 
     def get_physical_dimensions(self):
         d = self.physical_dimensions
         return d and UnitParser(["height", "width", "depth"]).parse(d)
 
     def set_physical_dimensions(self, d):
-        # don't overwrite physical dimensions if nothing was passed in - there
-        # may be dimensions in the database that don't conform to the d x d x d format
+        fields = ["height", "width", "depth"]
         if d:
-            self.physical_dimensions = UnitParser(["height", "width", "depth"]).format(d)
+            self.physical_dimensions = UnitParser(fields).format(d)
+        elif any((self.get_physical_dimensions() or {}).get(f) for f in fields):
+            # Only clear dimensions the edit form displayed; ones like "24 cm" render as empty.
+            self.physical_dimensions = None
 
     def get_toc_text(self) -> str:
         if toc := self.get_table_of_contents():
@@ -397,6 +460,17 @@ class Edition(models.Edition):
         self.providers.append(data)
 
     def set_providers(self, providers):
+        from openlibrary.book_providers import is_safe_provider_url
+
+        # Only guards the edit form; a raw `?m=edit` save bypasses this, so the
+        # parse-time check in Acquisition.from_json is what protects rendering.
+        for provider in providers or []:
+            url = provider.get("url")
+            if url and not is_safe_provider_url(url):
+                raise client.ClientException(
+                    "400 Bad Request",
+                    f"Invalid provider URL: {url!r}. Must start with http:// or https://.",
+                )
         self.providers = providers
 
 
@@ -420,28 +494,42 @@ class Author(models.Author):
     def get_olid(self):
         return self.key.split("/")[-1]
 
-    def get_books(self, q=""):
-        i = web.input(sort="editions", page=1, rows=20, mode="")
+    def get_books(self, q="", sort="editions", page=1, rows=20, mode=""):
         try:
             # safeguard from passing zero/negative offsets to solr
-            page = max(1, int(i.page))
-        except ValueError:
+            page = max(1, int(page))
+        except ValueError, TypeError:
             page = 1
         return works_by_author(
             self.get_olid(),
-            sort=i.sort,
+            sort=sort,
             page=page,
-            rows=i.rows,
-            has_fulltext=i.mode == "ebooks",
+            rows=rows,
+            has_fulltext=mode == "ebooks",
             query=q,
             facet=True,
             request_label="AUTHOR_BOOKS_PAGE",
         )
 
-    def get_work_count(self):
+    def get_readable_book_count(self, q="") -> int:
+        """Number of this author's works readable in-browser, for the sublabel on
+        the author page's "Readable Only" toggle. One rows=0 count query, scoped
+        to the same `q` as the results it labels — the same approach
+        _get_readable_count_async takes for /search.
+        """
+        return works_by_author(
+            self.get_olid(),
+            rows=0,
+            has_fulltext=True,
+            query=q,
+            facet=False,
+            request_label="AUTHOR_BOOKS_READABLE_COUNT",
+        ).num_found
+
+    async def get_work_count(self):
         """Returns the number of works by this author."""
         # TODO: avoid duplicate works_by_author calls
-        result = works_by_author(self.get_olid(), rows=0)
+        result = await works_by_author_async(self.get_olid(), rows=0)
         return result.num_found
 
     def as_fake_solr_record(self):
@@ -484,7 +572,7 @@ class Work(models.Work):
             if "cover_id" in w:
                 return [Image(self._site, "w", int(w["cover_id"]))]
             elif "cover_edition_key" in w:
-                cover_edition = cast(Edition, web.ctx.site.get("/books/" + w["cover_edition_key"]))
+                cover_edition = cast(Edition, site.get().get("/books/" + w["cover_edition_key"]))
                 cover = cover_edition and cover_edition.get_cover()
                 if cover:
                     return [cover]
@@ -492,28 +580,48 @@ class Work(models.Work):
 
     @cached_property
     def _solr_data(self):
-        from openlibrary.book_providers import get_solr_keys
+        import openlibrary.book_providers as bp
+        from openlibrary.solr.updater.edition import EditionScorecardForSolr
 
         fields = [
             "key",
             "cover_edition_key",
-            "cover_id",
             "edition_key",
             "first_publish_year",
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
-            "trending_z_score",  # Defined Solr field; in general, Solr ignores unknown fields
-        ] + get_solr_keys()
+            "last_modified_i",
+            *[f"trending_score_daily_{i}" for i in range(7)],
+            *bp.get_solr_keys(),
+            *list(WorkSearchScheme.default_fetched_fields),
+            *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
+        ]
         solr = get_solr()
-        stats.begin("solr", get=self.key, fields=fields)
-        try:
-            return solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA")
-        except Exception:
-            logging.getLogger("openlibrary").exception("Failed to get solr data")
+        return cast(SolrDocument | None, solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA"))
+
+    @cached_property
+    def solr_last_modified(self) -> datetime | None:
+        if not self._solr_data:
             return None
-        finally:
-            stats.end()
+        last_modified_i = self._solr_data["last_modified_i"]
+        if last_modified_i is None:
+            raise ValueError("Work missing last_modified_i solr field")
+        return datetime.fromtimestamp(last_modified_i)
+
+    def is_solr_data_outdated(self) -> bool:
+        """
+        Returns True if the solr data is outdated compared to the database data.
+
+        Note this only checks the current work; it might still be outdated because
+        one of the editions has been edited.
+        """
+        if not self.solr_last_modified:
+            # Not in solr yet?
+            return True
+
+        # Stored as a plain int in solr, so need to drop ms
+        return self.solr_last_modified < self.last_modified.replace(microsecond=0)
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
@@ -619,7 +727,7 @@ class Work(models.Work):
                 # trusted book provider identifier is present
                 for provider in get_book_providers(self._solr_data):
                     query = {**db_query, **provider.editions_query}
-                    edition_keys += web.ctx.site.things(query)
+                    edition_keys += site.get().things(query)
             else:
                 db_query["ocaid~"] = "*"
 
@@ -629,10 +737,10 @@ class Work(models.Work):
                 edition_keys += ["/books/" + olid for olid in self._solr_data.get("edition_key")]
             else:
                 # given librarians are probably doing this, show all editions
-                edition_keys += web.ctx.site.things(db_query)
+                edition_keys += site.get().things(db_query)
 
         edition_keys.extend(keys or [])
-        editions = web.ctx.site.get_many(list(set(edition_keys)))
+        editions = site.get().get_many(list(set(edition_keys)))
         editions.sort(key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True)
 
         # 2022-03 Once we know the availability-type of editions (e.g. open)
@@ -652,7 +760,7 @@ class Work(models.Work):
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
 
     def get_edition_covers(self):
-        editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
+        editions = site.get().get_many(site.get().things({"type": "/type/edition", "works": self.key, "limit": 1000}))
         existing = {int(c.id) for c in self.get_covers()}
         covers = [e.get_cover() for e in editions]
         return [c for c in covers if c and int(c.id) not in existing]
@@ -744,34 +852,27 @@ class User(models.User):
     name = property(get_name)
 
     def get_edit_history(self, limit: int = 10, offset: int = 0):
-        return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
+        return site.get().versions({"author": self.key, "limit": limit, "offset": offset})
 
     def get_users_settings(self):
         return self.preferences()
 
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):
-            d = web.ctx.site.versions({"key": self.key, "sort": "-created", "limit": 1})[0]
+            d = site.get().versions({"key": self.key, "sort": "-created", "limit": 1})[0]
             return web.storage({"ip": d.ip, "member_since": d.created})
 
     def get_edit_count(self) -> int:
         if web.ctx.path.startswith("/admin"):
-            return web.ctx.site._request("/count_edits_by_user", data={"key": self.key})
+            return site.get()._request("/count_edits_by_user", data={"key": self.key})
         else:
             return 0
 
     def get_loan_count(self) -> int:
-        return len(borrow.get_loans(self))
+        return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
-        self.update_loan_status()
         return lending.get_loans_of_user(self.key)
-
-    def update_loan_status(self):
-        """Update the status of this user's loans."""
-        loans = lending.get_loans_of_user(self.key)
-        for loan in loans:
-            lending.sync_loan(loan["ocaid"])
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()
@@ -812,7 +913,7 @@ class Changeset(client.Changeset):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
         else:
-            d = web.ctx.site.get(key, revision).dict()
+            d = site.get().get(key, revision).dict()
             return d
 
     def process_docs_before_undo(self, docs):
@@ -832,7 +933,41 @@ class Changeset(client.Changeset):
 
         data = {"parent_changeset": self.id}
         comment = "undo " + self.comment
-        return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+        return site.get().save_many(docs, action="undo", data=data, comment=comment)
+
+    def get_undo_error(self):
+        """Returns a user-facing message if this changeset cannot be undone, or None.
+
+        Undo saves every changed document at (revision - 1) in a single
+        save_many call, which infobase validates against the current state of
+        every reference. A reference to a record that no longer exists, or that
+        has since been merged into another record (a /type/redirect), makes the
+        whole save fail. That is what made undoing old author merges return 500
+        (see internetarchive/openlibrary#5664). This pre-check detects the
+        failure so the UI can explain it instead of showing an error page.
+        """
+        docs = [self._get_doc(c["key"], c["revision"] - 1) for c in self.changes]
+        in_batch = {doc["key"] for doc in docs}
+
+        refs = {ref for doc in docs for ref in find_references(doc) if ref not in in_batch}
+        things = {t.key: t for t in site.get().get_many(sorted(refs))}
+
+        for doc in docs:
+            for ref in find_references(doc):
+                if ref in in_batch:
+                    continue
+                thing = things.get(ref)
+                if thing is None:
+                    return _("This merge cannot be undone automatically because %(record)s references %(reference)s, which no longer exists.") % {
+                        "record": doc["key"],
+                        "reference": ref,
+                    }
+                thing_type = thing.type.key if hasattr(thing.type, "key") else thing.type
+                if thing_type == "/type/redirect":
+                    return _(
+                        "This merge cannot be undone automatically because %(record)s references %(reference)s, which has since been merged into another record."
+                    ) % {"record": doc["key"], "reference": ref}
+        return None
 
     def get_undo_changeset(self):
         """Returns the changeset that undone this transaction if one exists, None otherwise."""
@@ -841,7 +976,7 @@ class Changeset(client.Changeset):
         except AttributeError:
             pass
 
-        changesets = web.ctx.site.recentchanges({"kind": "undo", "data": {"parent_changeset": self.id}})
+        changesets = site.get().recentchanges({"kind": "undo", "data": {"parent_changeset": self.id}})
         # return the first undo changeset
         self._undo_changeset = (changesets and changesets[-1]) or None
         return self._undo_changeset
@@ -851,7 +986,7 @@ class NewAccountChangeset(Changeset):
     def get_user(self):
         keys = [c.key for c in self.get_changes()]
         user_key = "/people/" + keys[0].split("/")[2]
-        return web.ctx.site.get(user_key)
+        return site.get().get(user_key)
 
 
 class MergeAuthors(Changeset):
@@ -860,13 +995,13 @@ class MergeAuthors(Changeset):
 
     def get_master(self):
         master = self.data.get("master")
-        return master and web.ctx.site.get(master, lazy=True)
+        return master and site.get().get(master, lazy=True)
 
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
         changes = {c["key"]: c["revision"] for c in self.changes}
 
-        return duplicates and [web.ctx.site.get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
+        return duplicates and [site.get().get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
 
 
 class MergeWorks(Changeset):
@@ -875,13 +1010,13 @@ class MergeWorks(Changeset):
 
     def get_master(self):
         master = self.data.get("master")
-        return master and web.ctx.site.get(master, lazy=True)
+        return master and site.get().get(master, lazy=True)
 
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
         changes = {c["key"]: c["revision"] for c in self.changes}
 
-        return duplicates and [web.ctx.site.get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
+        return duplicates and [site.get().get(key, revision=changes[key] - 1, lazy=True) for key in duplicates if key in changes]
 
 
 class Undo(Changeset):
@@ -890,11 +1025,11 @@ class Undo(Changeset):
 
     def get_undo_of(self):
         undo_of = self.data["undo_of"]
-        return web.ctx.site.get_change(undo_of)
+        return site.get().get_change(undo_of)
 
     def get_parent_changeset(self):
         parent = self.data["parent_changeset"]
-        return web.ctx.site.get_change(parent)
+        return site.get().get_change(parent)
 
 
 class AddBookChangeset(Changeset):

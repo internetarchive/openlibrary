@@ -2,29 +2,31 @@
 Open Library Plugin.
 """
 
-import datetime
-import functools
+import datetime as dt
 import gzip
 import json
 import logging
 import math
 import os
 import random
-import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, quote, urlencode
+from urllib.parse import parse_qs, parse_qsl, quote, urlencode
 
-import requests
 import web
 import yaml
 
 import infogami
-from openlibrary.core import db
+from openlibrary.core import db  # noqa: TID251
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.core.env import get_deployment_name, get_ol_env
+from openlibrary.core.imports import BATCH_SORT_COLUMNS, IMPORT_ITEM_STATUSES, Batch
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.shell import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
     req_context,
@@ -54,7 +56,8 @@ from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10
+from openlibrary.utils.sentry import get_sentry
 
 
 def setup_contextvars(handler):
@@ -74,7 +77,9 @@ def setup_contextvars(handler):
     return handler()
 
 
-# Add processors in order - setup_contextvars must come BEFORE the handler
+# Infogami has already initialized web.ctx.site and language. Set ContextVars
+# before any OL processor can read them; leave them available for layout rendering.
+delegate.app.add_processor(setup_contextvars)
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(
@@ -84,11 +89,9 @@ delegate.app.add_processor(
     )
 )
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.ExperimentsProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
-# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
-# It's added here (not as a loadhook) so it runs in the same request context
-delegate.app.add_processor(setup_contextvars)
 
 try:
     from infogami.plugins.api import code as api
@@ -161,9 +164,9 @@ def sampledump():
     def expand_keys(keys):
         def f(k):
             if isinstance(k, dict):
-                return web.ctx.site.things(k)
+                return site.get().things(k)
             elif k.endswith("*"):
-                return web.ctx.site.things({"key~": k})
+                return site.get().things({"key~": k})
             else:
                 return [k]
 
@@ -199,7 +202,7 @@ def sampledump():
             visited.add(key)
             return
 
-        thing = web.ctx.site.get(key)
+        thing = site.get().get(key)
         if not thing:
             return
 
@@ -233,7 +236,7 @@ def sampleload(filename="sampledump.txt.gz"):
     with gzip.open(filename) if filename.endswith(".gz") else open(filename) as file:
         queries = [json.loads(line) for line in file]
 
-    print(web.ctx.site.save_many(queries, action="infogami-sampleload-action"))
+    print(site.get().save_many(queries, action="infogami-sampleload-action"))
 
 
 class routes(delegate.page):
@@ -260,27 +263,35 @@ class team(delegate.page):
     path = "/about/team"
 
     def GET(self):
-        return render_template("about/index.html")
+        # Local imports: this handler is temporary and goes with the Templetor template.
+        from markupsafe import escape
+
+        from infogami.utils.context import context
+
+        context.setdefault("cssfile", "team")
+        body = render_jinja_template("about/index.html.jinja")
+        # web.py's layout reads the title off the result, already escaped, as from Templetor's $var.
+        return web.template.TemplateResult(__body__=body, title=escape(_("The Open Library Team")))
 
 
 class addbook(delegate.page):
     path = "/addbook"
 
     def GET(self):
-        d = {"type": web.ctx.site.get("/type/edition")}
+        d = {"type": site.get().get("/type/edition")}
 
         i = web.input()
-        author = i.get("author") and web.ctx.site.get(i.author)
+        author = i.get("author") and site.get().get(i.author)
         if author:
             d["authors"] = [author]
 
-        page = web.ctx.site.new("", d)
+        page = site.get().new("", d)
         return render.edit(page, self.path, "Add Book")
 
     def POST(self):
         from infogami.core.code import edit
 
-        key = web.ctx.site.new_key("/type/edition")
+        key = site.get().new_key("/type/edition")
         web.ctx.path = key
         return edit().POST(key)
 
@@ -290,7 +301,7 @@ class widget(delegate.page):
 
     def GET(self, key: str):  # type: ignore[override]
         olid = key.rsplit("/", maxsplit=1)[-1]
-        item = web.ctx.site.get(key)
+        item = site.get().get(key)
         is_work = key.startswith("/works/")
         item["olid"] = olid
         item["availability"] = get_availability(
@@ -335,9 +346,9 @@ class addauthor(delegate.page):
         i = web.input("name")
         if len(i.name) < 2:
             return web.badrequest()
-        key = web.ctx.site.new_key("/type/author")
+        key = site.get().new_key("/type/author")
         web.ctx.path = key
-        web.ctx.site.save(
+        site.get().save(
             {"key": key, "name": i.name, "type": {"key": "/type/author"}},
             comment="New Author",
             action="create-author",
@@ -350,7 +361,7 @@ class clonebook(delegate.page):
         from infogami.core.code import edit  # noqa: F401 side effects may be needed
 
         i = web.input("key")
-        page = web.ctx.site.get(i.key)
+        page = site.get().get(i.key)
         if page is None:
             raise web.seeother(i.key)
         else:
@@ -365,23 +376,9 @@ class robotstxt(delegate.page):
 
     def GET(self):
         web.header("Content-Type", "text/plain")
-        is_dev = "dev" in infogami.config.features or web.ctx.host != "openlibrary.org"
+        is_dev = get_ol_env().LOCAL_DEV or web.ctx.host != "openlibrary.org"
         robots_file = "norobots.txt" if is_dev else "robots.txt"
         return web.ok(open(f"static/{robots_file}").read())
-
-
-@functools.cache
-def fetch_ia_js(filename: str) -> str:
-    return requests.get(f"https://archive.org/includes/{filename}").text
-
-
-class ia_js_cdn(delegate.page):
-    path = r"/cdn/archive.org/(donate\.js|athena\.js)"
-
-    def GET(self, filename):
-        web.header("Content-Type", "text/javascript")
-        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
-        return web.ok(fetch_ia_js(filename))
 
 
 class serviceworker(delegate.page):
@@ -410,6 +407,21 @@ class opensearchxml(delegate.page):
 
 class health(delegate.page):
     path = "/health"
+
+    def GET(self):
+        web.header("Content-Type", "text/plain")
+        return web.ok("OK")
+
+
+class health_webpy(delegate.page):
+    """Health check that always reaches web.py. On Kubernetes the gateway sends /health to FastAPI,
+    so HAProxy checks web.py with this path instead (olsystem: etc/haproxy/haproxy.cfg, backend ol-web-k8s).
+    FastAPI must never register it.
+
+    Keep it until web.py is retired: removing or porting it would fail that check and move all
+    Kubernetes traffic to the VMs."""
+
+    path = "/health/webpy"
 
     def GET(self):
         web.header("Content-Type", "text/plain")
@@ -468,14 +480,45 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=batch_result)
 
 
+def _require_admin():
+    """Raise 403 unless the current user is logged in and an admin."""
+    user_key = delegate.context.user and delegate.context.user.key
+    if not user_key or user_key not in _get_members_of_group("/usergroup/admin"):
+        raise Forbidden("Permission Denied.")
+
+
 class BatchImportView(delegate.page):
     path = r"/import/batch/(\d+)"
 
     def GET(self, batch_id):
-        i = web.input(page=1, limit=10, sort="added_time asc")
+        # A batch view exposes its import rows and the submitter's identity, so
+        # it is limited to the batch's submitter and to admins. The 403 is
+        # identical whether or not the batch exists, so a non-admin cannot use
+        # this endpoint to probe which batch ids exist.
+        user = delegate.context.user
+        user_key = user and user.key
+        if not user_key:
+            raise Forbidden("Permission Denied.")
+        is_admin = user_key in _get_members_of_group("/usergroup/admin")
+
+        batch_rows = db.select("import_batch", where="id=$batch_id", vars=locals())
+        batch = batch_rows[0] if batch_rows else None
+        if not is_admin and (batch is None or batch.submitter != user.get_username()):
+            raise Forbidden("Permission Denied.")
+        if batch is None:
+            raise web.notfound()
+
+        i = web.input(page=1, limit=10, sort="added_time asc", status="", error="")
         page = int(i.page)
         limit = int(i.limit)
         sort = i.sort
+        status = i.status if i.status in IMPORT_ITEM_STATUSES else None
+        error = i.error or None
+        items_where = "batch_id=$batch_id"
+        if status:
+            items_where += " AND status=$status"
+        if error:
+            items_where += " AND error=$error"
 
         valid_sort_fields = ["added_time", "import_time", "status"]
         sort_field, sort_order = sort.split()
@@ -484,25 +527,40 @@ class BatchImportView(delegate.page):
             sort_order = "asc"
 
         offset = (page - 1) * limit
-
-        batch = db.select("import_batch", where="id=$batch_id", vars=locals())[0]
         total_rows = db.query(
-            "SELECT COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id",
+            f"SELECT COUNT(*) AS count FROM import_item WHERE {items_where}",
             vars=locals(),
         )[0].count
 
         rows = db.select(
             "import_item",
-            where="batch_id=$batch_id",
+            where=items_where,
             order=f"{sort_field} {sort_order}",
             limit=limit,
             offset=offset,
             vars=locals(),
         )
 
-        status_counts = db.query(
-            "SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status",
-            vars=locals(),
+        status_counts = list(
+            db.query(
+                "SELECT status, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id GROUP BY status",
+                vars=locals(),
+            )
+        )
+        error_counts = list(
+            db.query(
+                "SELECT error, COUNT(*) AS count FROM import_item WHERE batch_id=$batch_id AND status='failed' GROUP BY error ORDER BY count DESC, error",
+                vars=locals(),
+            )
+        )
+
+        summary = web.storage(
+            batch_id=batch.id,
+            name=batch.name,
+            submitter=batch.submitter,
+            added_time=batch.submit_time,
+            comments=None,
+            status_counts={sc.status: sc.count for sc in status_counts},
         )
 
         return render_template(
@@ -514,6 +572,11 @@ class BatchImportView(delegate.page):
             limit=limit,
             sort=sort,
             status_counts=status_counts,
+            error_counts=error_counts,
+            status=status,
+            error=error,
+            summary=summary,
+            statuses=IMPORT_ITEM_STATUSES,
         )
 
 
@@ -521,14 +584,27 @@ class BatchImportApprove(delegate.page):
     """
     Approve `batch_id`, with a `status` of `needs_review`, for import.
 
-    Making a GET as an admin to this endpoint will change a batch's status from
-    `needs_review` to `pending`.
+    Approval changes state, so it is a POST, not a GET: a state-changing GET can
+    be fired by a crawler, a prefetch, or a link an admin is tricked into
+    following (CSRF). The GET is inert and redirects to the batch view, where
+    Approve is rendered as a POST form.
+
+    CSRF protection rests on the auth cookie (``config.login_cookie_name`` ->
+    ``session``) being ``SameSite=Lax``, so a forged cross-site POST arrives
+    without the admin's session and fails the admin check below.
+    ``test_session_cookie_is_samesite_lax`` is the tripwire that fails loudly if
+    that cookie attribute is ever weakened. (``s3`` carries archive.org API keys,
+    not the Open Library session, so it is not what protects this endpoint.)
     """
 
     path = r"/import/batch/approve/(\d+)"
 
     def GET(self, batch_id):
+        # Inert: never changes state. Send the admin to the batch view, where
+        # the Approve action is a POST form.
+        return web.seeother(f"/import/batch/{batch_id}")
 
+    def POST(self, batch_id):
         user_key = delegate.context.user and delegate.context.user.key
         if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden("Permission Denied.")
@@ -542,46 +618,97 @@ class BatchImportApprove(delegate.page):
             vars=locals(),
         )
 
-        return web.found(f"/import/batch/{batch_id}")
+        return web.seeother(f"/import/batch/{batch_id}")
+
+
+class BatchImportList(delegate.page):
+    """
+    Lists batch imports, optionally only those with items of a given `status`.
+    """
+
+    path = r"/import/batch"
+
+    DEFAULT_SORT = "added_time desc"
+    MAX_LIMIT = 100
+
+    def GET(self):
+        # Lists batches across all submitters, with their names -- admins only.
+        _require_admin()
+
+        i = web.input(page=1, limit=10, sort=self.DEFAULT_SORT, status="")
+        page = max(1, safeint(i.page, 1))
+        limit = min(max(1, safeint(i.limit, 10)), self.MAX_LIMIT)
+        status = i.status if i.status in IMPORT_ITEM_STATUSES else None
+
+        sort_field, sort_order = i.sort.partition(" ")[::2]
+        if sort_field not in BATCH_SORT_COLUMNS or sort_order not in ("asc", "desc"):
+            sort_field, sort_order = self.DEFAULT_SORT.split()
+
+        total, rows = Batch.list_summaries(
+            status=status,
+            sort=sort_field,
+            order=sort_order,
+            limit=limit,
+            offset=(page - 1) * limit,
+        )
+
+        return render_template(
+            "batch_import_list",
+            rows=rows,
+            page=page,
+            total_pages=math.ceil(total / limit),
+            status=status,
+            statuses=IMPORT_ITEM_STATUSES,
+            sort_field=sort_field,
+            sort_order=sort_order,
+            default_sort=self.DEFAULT_SORT,
+        )
+
+
+class BatchImportRetryFailed(delegate.page):
+    """Re-queue the failed items of `batch_id` as `pending`. Admins only."""
+
+    path = r"/import/batch/retry_failed/(\d+)"
+
+    def POST(self, batch_id):
+        _require_admin()
+
+        batch = db.select("import_batch", where="id=$batch_id", vars={"batch_id": int(batch_id)})
+        if not batch:
+            raise web.notfound()
+
+        count = Batch(batch[0]).retry_failed()
+        add_flash_message("success", ungettext("Re-queued %(count)d failed item.", "Re-queued %(count)d failed items.", count, count=count))
+        return web.seeother(f"/import/batch/{batch_id}")
+
+
+class BatchImportPause(delegate.page):
+    """Move the pending items of `batch_id` to `needs_review`; approving resumes them. Admins only."""
+
+    path = r"/import/batch/pause/(\d+)"
+
+    def POST(self, batch_id):
+        _require_admin()
+
+        batch = db.select("import_batch", where="id=$batch_id", vars={"batch_id": int(batch_id)})
+        if not batch:
+            raise web.notfound()
+
+        count = Batch(batch[0]).pause()
+        add_flash_message("success", ungettext("Paused %(count)d pending item.", "Paused %(count)d pending items.", count, count=count))
+        return web.seeother(f"/import/batch/{batch_id}")
 
 
 class BatchImportPendingView(delegate.page):
     """
-    Endpoint for viewing `needs_review` batch imports.
+    Old URL for the list of batches awaiting review.
     """
 
     path = r"/import/batch/pending"
 
     def GET(self):
-        i = web.input(page=1, limit=10, sort="added_time asc")
-        page = int(i.page)
-        limit = int(i.limit)
-        sort = i.sort
-
-        valid_sort_fields = ["added_time", "import_time", "status"]
-        sort_field, sort_order = sort.split()
-        if sort_field not in valid_sort_fields or sort_order not in ["asc", "desc"]:
-            sort_field = "added_time"
-            sort_order = "asc"
-
-        offset = (page - 1) * limit
-
-        rows = db.query(
-            """
-            SELECT batch_id, MIN(status) AS status, MIN(comments) AS comments, MIN(added_time) AS added_time, MAX(submitter) AS submitter
-            FROM import_item
-            WHERE status = 'needs_review'
-            GROUP BY batch_id;
-            """,
-            vars=locals(),
-        )
-
-        return render_template(
-            "batch_import_pending_view",
-            rows=rows,
-            page=page,
-            limit=limit,
-        )
+        query = [(k, v) for k, v in parse_qsl(web.ctx.query.lstrip("?"), keep_blank_values=True) if k != "status"]
+        raise web.redirect("/import/batch?" + urlencode([("status", "needs_review"), *query]))
 
 
 class isbn_lookup(delegate.page):
@@ -643,7 +770,7 @@ class bookpage(delegate.page):
 
         q = {"type": "/type/edition", key: value}
 
-        result = web.ctx.site.things(q)
+        result = site.get().things(q)
 
         if result:
             return web.found(result[0] + ext)
@@ -654,7 +781,7 @@ class bookpage(delegate.page):
                 {"type": "/type/volume", "ia_id": value},
             ]
             for q in ocaid_alternatives:
-                result = web.ctx.site.things(q)
+                result = site.get().things(q)
                 if result:
                     return web.found(result[0] + ext)
 
@@ -683,7 +810,7 @@ class rdf(delegate.mode):
     encoding = "rdf"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if not page:
             raise web.notfound("")
         else:
@@ -705,7 +832,7 @@ class opds(delegate.mode):
     encoding = "opds"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if not page:
             raise web.notfound("")
         else:
@@ -727,7 +854,7 @@ class marcxml(delegate.mode):
     encoding = "marcxml"
 
     def GET(self, key):
-        page = web.ctx.site.get(key)
+        page = site.get().get(key)
         if page is None or page.type.key != "/type/edition":
             raise web.notfound("")
         else:
@@ -788,7 +915,7 @@ class _yaml_edit(_yaml):
 
     def is_admin(self):
         u = delegate.context.user
-        return u and (u.is_admin() or u.is_super_librarian())
+        return u and u.is_super_librarian_or_higher()
 
     def GET(self, key):
         # only allow admin users to edit yaml
@@ -813,7 +940,7 @@ class _yaml_edit(_yaml):
 
         if "_save" in i:
             d = self.load(i.body)
-            p = web.ctx.site.new(key, d)
+            p = site.get().new(key, d)
             try:
                 p._save(i._comment, action="edit-yaml")
             except (client.ClientException, ValidationException) as e:
@@ -834,14 +961,14 @@ def _get_user_root():
 
 
 def _get_bots():
-    bots = web.ctx.site.store.values(type="account", name="bot", value="true")
+    bots = site.get().store.values(type="account", name="bot", value="true")
     user_root = _get_user_root()
     return [user_root + "/" + account["username"] for account in bots]
 
 
 def _get_members_of_group(group_key):
     """Returns keys of all members of the group identifier by group_key."""
-    usergroup = web.ctx.site.get(group_key) or {}
+    usergroup = site.get().get(group_key) or {}
     return [m.key for m in usergroup.get("members", [])]
 
 
@@ -883,7 +1010,7 @@ class new:
             type = query["type"]
             if isinstance(type, dict):
                 type = type["key"]
-            query["key"] = web.ctx.site.new_key(type)
+            query["key"] = site.get().new_key(type)
             return query["key"]
 
     def verify_types(self, query):
@@ -905,6 +1032,7 @@ class new:
                 "/type/work",
                 "/type/series",
                 "/type/publisher",
+                "/type/tag",
             ]:
                 raise BadRequest("Bad Type: " + json.dumps(type))
 
@@ -926,17 +1054,10 @@ class new:
         try:
             if not isinstance(query, list):
                 query = [query]
-            web.ctx.site.save_many(query, comment=comment, action=action)
+            site.get().save_many(query, comment=comment, action=action)
         except client.ClientException as e:
             raise BadRequest(str(e))
 
-        # graphite/statsd tracking of bot edits
-        user = delegate.context.user and delegate.context.user.key
-        if user.lower().endswith("bot"):
-            botname = user.replace("/people/", "", 1)
-            botname = botname.replace(".", "-")
-            key = "ol.edits.bots." + botname
-            openlibrary.core.stats.increment(key)
         return json.dumps(keys)
 
 
@@ -976,31 +1097,8 @@ def get_recent_changes(*a, **kw):
         return _get_recentchanges(*a, **kw)
 
 
-local_ip = None
-
-
-class invalidate(delegate.page):
-    path = "/system/invalidate"
-
-    def POST(self):
-        global local_ip
-        if local_ip is None:
-            local_ip = socket.gethostbyname(socket.gethostname())
-
-        if web.ctx.ip != "127.0.0.1" and web.ctx.ip.rsplit(".", 1)[0] != local_ip.rsplit(".", 1)[0]:
-            raise Forbidden("Allowed only in the local network.")
-
-        data = json.loads(web.data())
-        if not isinstance(data, list):
-            data = [data]
-        for d in data:
-            thing = client.Thing(web.ctx.site, d["key"], client.storify(d))
-            client._run_hooks("on_new_version", thing)
-        return delegate.RawText("ok")
-
-
 def save_error():
-    t = datetime.datetime.utcnow()
+    t = dt.datetime.now(dt.UTC).replace(tzinfo=None)
     name = "%04d-%02d-%02d/%02d%02d%02d%06d" % (
         t.year,
         t.month,
@@ -1041,7 +1139,7 @@ def internalerror():
     if sentry.enabled:
         sentry_event_id = sentry.capture_exception_webpy()
 
-    if features.is_enabled("debug"):
+    if get_ol_env().LOCAL_DEV or features.is_enabled("debug"):
         raise web.debugerror()
     else:
         msg = render.site(
@@ -1069,6 +1167,29 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 
+def get_supported_languages() -> dict[str, dict[str, str]]:
+    return {
+        "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
+        "az": {"code": "az", "localized": _("Azerbaijani"), "native": "Azərbaycanca"},
+        "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
+        "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
+        "en": {"code": "en", "localized": _("English"), "native": "English"},
+        "es": {"code": "es", "localized": _("Spanish"), "native": "Español"},
+        "fr": {"code": "fr", "localized": _("French"), "native": "Français"},
+        "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
+        "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
+        "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
+        "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
+        "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
+        "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
+        "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
+        "te": {"code": "te", "localized": _("Telugu"), "native": "తెలుగు"},
+        "uk": {"code": "uk", "localized": _("Ukrainian"), "native": "Українська"},
+        "zh": {"code": "zh", "localized": _("Chinese"), "native": "中文"},
+        "tl": {"code": "tl", "localized": _("Filipino"), "native": "Filipino"},
+    }
+
+
 def is_bot():
     """Check if the current request is from a bot."""
     return req_context.get().is_bot
@@ -1092,40 +1213,16 @@ def setup_template_globals():
         get_cover_url,
     )
 
-    def get_supported_languages():
-        return {
-            "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
-            "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
-            "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
-            "en": {"code": "en", "localized": _("English"), "native": "English"},
-            "es": {"code": "es", "localized": _("Spanish"), "native": "Español"},
-            "fr": {"code": "fr", "localized": _("French"), "native": "Français"},
-            "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
-            "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
-            "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
-            "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
-            "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
-            "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
-            "te": {"code": "te", "localized": _("Telugu"), "native": "తెలుగు"},
-            "uk": {"code": "uk", "localized": _("Ukrainian"), "native": "Українська"},
-            "zh": {"code": "zh", "localized": _("Chinese"), "native": "中文"},
-            "tl": {"code": "tl", "localized": _("Filipino"), "native": "Filipino"},
-        }
-
     web.template.Template.globals.update(
         {
             "cookies": web.cookies,
             "next": next,
             "sorted": sorted,
             "zip": zip,
-            "tuple": tuple,
             "hash": hash,
             "urlquote": quote,
             "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
-            "isbn_10_to_isbn_13": isbn_10_to_isbn_13,
-            "NEWLINE": "\n",
             "random": random.Random(),
-            "choose_random_from": random.choice,
             "get_lang": lambda: web.ctx.lang,
             "get_supported_languages": get_supported_languages,
             "ceil": math.ceil,
@@ -1133,11 +1230,14 @@ def setup_template_globals():
             "get_book_provider": get_book_provider,
             "get_book_provider_by_name": get_book_provider_by_name,
             "get_cover_url": get_cover_url,
+            "render_jinja_template": render_jinja_template,
+            "get_sentry": get_sentry,
+            "get_ol_env": get_ol_env,
+            "get_deployment_name": get_deployment_name,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
             "input": web.input,
-            "dumps": json.dumps,
         }
     )
 
@@ -1158,7 +1258,7 @@ def setup():
     from openlibrary.plugins.importapi import import_ui
     from openlibrary.plugins.openlibrary import (
         authors,
-        borrow_home,
+        contribute,
         design,
         events,
         home,
@@ -1166,22 +1266,24 @@ def setup():
         sentry,
         stats,
         status,
-        swagger,
     )
 
     template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
     macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
     i18n.load_strings("openlibrary/plugins/openlibrary")
 
+    # Infogami wraps every page in its Templetor ``site`` template; serve
+    # the site layout from Jinja instead.
+    template.render.add_source({"site": SiteLayoutTemplate()})
+
     sentry.setup()
     home.setup()
     design.setup()
-    borrow_home.setup()
+    contribute.setup()
     stats.setup()
     events.setup()
     status.setup()
     authors.setup()
-    swagger.setup()
     partials.setup()
     import_ui.setup()
 

@@ -1,0 +1,64 @@
+{#
+  Recipe: a card collection. A header with the one action, a toolbar over the
+  thing it changes, a grid of cards that end on one line, and paging.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+{% set SORTS = "[{\"value\":\"active\",\"label\":\"Recently active\"},{\"value\":\"members\",\"label\":\"Most members\"},{\"value\":\"new\",\"label\":\"Newest\"}]" %}
+{% set CLUBS = [('The Walled Garden', 'Slow reads of garden writing, one chapter a week, with a thread for whatever is in bloom.', '1,204 members', 'Reading Elizabeth and Her German Garden'), ('Concord Circle', 'Thoreau, Emerson, Fuller and the people who argued with them.', '862 members', 'Reading Walden'), ('Field Notes', 'Nature essays from Jefferies to Dillard. Bring your own notebook.', '640 members', 'Reading Pilgrim at Tinker Creek'), ('Small Hours', 'Short books for people who read after everyone else is asleep.', '2,311 members', 'Reading The Solitary Summer'), ('Read Aloud', 'Picture books and early readers, chosen by parents and librarians.', '3,087 members', 'Reading Frog and Toad Together'), ('The Long Walk', 'Travel and walking books, read at walking pace.', '418 members', 'Reading The Maine Woods'), ('Second Opinions', 'Books that changed someone’s mind, discussed by people who disagree.', '975 members', 'Reading The Selfish Gene'), ('First Editions', 'What a book looked like the day it came out, and what happened to it after.', '296 members', 'Reading Nature'), ('Paradox Club', 'Chesterton and other writers who are right for the wrong reasons.', '151 members', 'Reading Orthodoxy')] %}
+<div class="ol-page cookbook-page">
+    <header class="ol-page-header">
+        <div class="ol-page-header__row">
+            <div class="ol-page-header__text">
+                <h1 class="ol-page-header__title">Reading groups</h1>
+                <p class="ol-page-header__lede">Read along with other people. Each group picks a book, sets a pace and talks as it goes.</p>
+            </div>
+            <div class="ol-page-header__actions">
+                <ol-button variant="primary">
+                    {{ icon("plus", slot="icon-start") }}
+                    Start a group
+                </ol-button>
+            </div>
+        </div>
+    </header>
+    <section class="ol-section" aria-label="Groups">
+        <div class="ol-toolbar">
+            <div class="ol-toolbar__group">
+                <ol-segmented-control value="all" accessible-label="Which groups">
+                    <ol-segment value="all">
+                        All
+                    </ol-segment>
+                    <ol-segment value="open">
+                        Open to join
+                    </ol-segment>
+                    <ol-segment value="mine">
+                        Yours
+                    </ol-segment>
+                </ol-segmented-control>
+                <span class="ol-toolbar__status">128 groups</span>
+            </div>
+            <div class="ol-toolbar__group">
+                <ol-options-popover label="Sort by" heading="SORT BY" selected="active" show-selection aria-label="Sort order" items="{{ SORTS }}">
+                </ol-options-popover>
+            </div>
+        </div>
+        <ul class="ol-card-grid">
+            {% for name, blurb, members, reading in CLUBS %}
+                <li class="ol-card">
+                    <div class="ol-card__media">
+                        {{ parts.cover(books[loop.index0], size="small") }}
+                        {{ parts.cover(books[loop.index0 + 3], size="small") }}
+                        {{ parts.cover(books[loop.index0 + 6], size="small") }}
+                    </div>
+                    <h2 class="ol-card__title">
+                        <a class="ol-card__link" href="#">{{ name }}</a>
+                    </h2>
+                    <p class="ol-card__body">{{ blurb }}</p>
+                    <p class="ol-card__meta">{{ members }} · {{ reading }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <ol-pagination total-pages="15" current-page="1" label-pagination="Reading groups pages">
+    </ol-pagination>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

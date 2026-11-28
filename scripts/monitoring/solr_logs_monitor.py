@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import itertools
 import re
 import signal
@@ -32,7 +32,6 @@ class RequestLogEntry(SolrLogEntry):
     thread_info: str
     context: str
     class_handler: str
-    webapp: str
     path: str
     params: str
     status: int
@@ -82,12 +81,11 @@ class RequestLogEntry(SolrLogEntry):
             context=match.group("context"),
             class_handler=match.group("class_handler"),
             message=match.group("message"),
-            webapp=fields["webapp"],
             path=fields["path"],
             params=fields["params"],
             status=int(fields["status"]),
             qtime=int(fields["QTime"]),
-            other_fields={k: v for k, v in fields.items() if k not in {"webapp", "path", "params", "status", "QTime"}},
+            other_fields={k: v for k, v in fields.items() if k not in {"path", "params", "status", "QTime"}},
         )
 
 
@@ -233,7 +231,7 @@ def main(
             # eg '2025-01-14 20:50:33.796'
             timestamp_str = minute_log_lines[0].timestamp
             # parse the string and convert to an int
-            timestamp_int = int(datetime.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f").timestamp())
+            timestamp_int = int(dt.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f").timestamp())
 
             events: list[GraphiteEvent] = []
 

@@ -12,6 +12,7 @@ from openlibrary.tests.solr.test_update import (
     FakeDataProvider,
     make_author,
     make_edition,
+    make_tag,
     make_work,
 )
 
@@ -76,6 +77,7 @@ def make_work_solr_builder(
     data_provider: DataProvider | None = None,
     ia_metadata: dict[str, dict | None] | None = None,
     trending_data: dict | None = None,
+    tags: list[dict] | None = None,
 ):
     return WorkSolrBuilder(
         work=work or {},
@@ -86,6 +88,7 @@ def make_work_solr_builder(
         # FIXME: Fix the type
         ia_metadata=cast(dict[str, IALiteMetadata | None], ia_metadata) or {},
         trending_data=trending_data or {},
+        tags=tags or [],
     )
 
 
@@ -113,7 +116,7 @@ class TestWorkSolrBuilder:
 
     def test_edition_key(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL1M"},
                 {"key": "/books/OL2M"},
@@ -169,16 +172,16 @@ class TestWorkSolrBuilder:
                 make_edition(work, identifiers={"librarything": ["lt-1"]}),
                 make_edition(work, identifiers={"librarything": ["lt-2"]}),
             ],
-        ).build_identifiers()
+        )._identifiers
         assert sorted(d.get("id_librarything", [])) == ["lt-1", "lt-2"]
 
     def test_ia_boxid(self):
         w = make_work()
-        d = make_work_solr_builder(w, [make_edition(w)]).build_legacy_ia_fields()
+        d = make_work_solr_builder(w, [make_edition(w)])._legacy_ia_fields
         assert "ia_box_id" not in d
 
         w = make_work()
-        d = make_work_solr_builder(w, [make_edition(w, ia_box_id="foo")]).build_legacy_ia_fields()
+        d = make_work_solr_builder(w, [make_edition(w, ia_box_id="foo")])._legacy_ia_fields
         assert d["ia_box_id"] == ["foo"]
 
     def test_with_one_lending_edition(self):
@@ -294,7 +297,7 @@ class TestWorkSolrBuilder:
 
     def test_subjects(self):
         w = make_work(subjects=["a", "b c"])
-        d = make_work_solr_builder(w).build_subjects()
+        d = make_work_solr_builder(w)._subjects
 
         assert d["subject"] == ["a", "b c"]
         assert d["subject_facet"] == ["a", "b c"]
@@ -310,12 +313,23 @@ class TestWorkSolrBuilder:
             subject_people=["a", "b c"],
             subject_times=["a", "b c"],
         )
-        d = make_work_solr_builder(w).build_subjects()
+        d = make_work_solr_builder(w)._subjects
 
         for k in ["subject", "person", "place", "time"]:
             assert d[k] == ["a", "b c"]
             assert d[k + "_facet"] == ["a", "b c"]
             assert d[k + "_key"] == ["a", "b_c"]
+
+    def test_subjects_as_text_values(self):
+        w = make_work(subject_people=[{"type": "/type/text", "value": "John Bunyan (1628-1688)"}, "b c"])
+        builder = make_work_solr_builder(w)
+        d = builder._subjects
+
+        assert d["person"] == ["John Bunyan (1628-1688)", "b c"]
+        assert d["person_facet"] == ["John Bunyan (1628-1688)", "b c"]
+        assert d["person_key"] == ["john_bunyan_(1628-1688)", "b_c"]
+        assert "/subjects/person:john_bunyan_(1628-1688)" in builder.seed
+        assert "/subjects/person:b_c" in builder.seed
 
     def test_author_info(self):
         authors = [
@@ -434,6 +448,116 @@ class TestWorkSolrBuilder:
         assert d.contributor == set()
 
 
+def make_work_solr_builder_with_tags(work, tags=None):
+    return make_work_solr_builder(work=work, tags=tags or [])
+
+
+# (Tag's singular tag_type, the work field [plural] that lists such tags). The
+# Solr fields are the singular tag_type stem plus `_key` / `_name`.
+WORK_TAG_CASES = [
+    ("genre", "genres"),
+    ("subgenre", "subgenres"),
+    ("audience", "audiences"),
+    ("content_warning", "content_warnings"),
+    ("content_format", "content_formats"),
+    ("literary_form", "literary_forms"),
+    ("award", "awards"),
+]
+
+
+class TestWorkSolrBuilderTags:
+    def test_no_tags(self):
+        assert make_work_solr_builder(make_work()).build_tags() == {}
+
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    def test_tag_type_indexed(self, tag_type, work_field):
+        tags = [
+            make_tag(tag_type=tag_type, name="A", key="/tags/OL1T"),
+            make_tag(tag_type=tag_type, name="B", key="/tags/OL2T"),
+        ]
+        doc = make_work_solr_builder_with_tags(make_work(), tags).build_tags()
+        assert doc[f"{tag_type}_key"] == ["OL1T", "OL2T"]
+        assert doc[f"{tag_type}_name"] == ["A", "B"]
+
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    def test_ignores_plural_tag_type(self, tag_type, work_field):
+        # Only the singular tag_type is indexed; the plural work-field spelling
+        # used as a tag_type must not leak into the Solr fields.
+        tags = [make_tag(tag_type=work_field, name="A", key="/tags/OL1T")]
+        doc = make_work_solr_builder_with_tags(make_work(), tags).build_tags()
+        assert f"{tag_type}_key" not in doc
+        assert f"{tag_type}_name" not in doc
+
+    def test_separates_tag_types(self):
+        tags = [make_tag(tag_type=tag_type, name=tag_type.upper(), key=f"/tags/OL{i}T") for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1)]
+        doc = make_work_solr_builder_with_tags(make_work(), tags).build_tags()
+        for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1):
+            assert doc[f"{tag_type}_key"] == [f"OL{i}T"]
+            assert doc[f"{tag_type}_name"] == [tag_type.upper()]
+
+    def test_missing_name_and_type(self):
+        doc = make_work_solr_builder_with_tags(
+            make_work(),
+            tags=[
+                {"key": "/tags/OL1T", "type": {"key": "/type/tag"}, "tag_type": "genre"},
+                {"key": "/tags/OL2T", "type": {"key": "/type/tag"}, "name": "No type"},
+            ],
+        ).build_tags()
+        assert doc["genre_key"] == ["OL1T"]
+        assert doc["genre_name"] == [""]
+        assert "subgenre_key" not in doc
+
+    def test_tags_in_solr_doc(self):
+        doc = make_work_solr_builder_with_tags(
+            make_work(),
+            tags=[make_tag(tag_type="genre", name="Romance", key="/tags/OL177T")],
+        ).build()
+        assert doc.get("genre_key") == ["OL177T"]
+        assert doc.get("genre_name") == ["Romance"]
+
+
+class TestWorkSolrUpdaterTags:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    async def test_tag_loaded_from_data_provider(self, tag_type, work_field):
+        tags = [
+            make_tag(tag_type=tag_type, name="A", key="/tags/OL1T"),
+            make_tag(tag_type=tag_type, name="B", key="/tags/OL2T"),
+        ]
+        work = make_work()
+        # Exercise both {"key": ...} refs and bare string refs
+        work[work_field] = [{"key": "/tags/OL1T"}, "/tags/OL2T"]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0][f"{tag_type}_key"] == ["OL1T", "OL2T"]
+        assert req.adds[0][f"{tag_type}_name"] == ["A", "B"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(("tag_type", "work_field"), WORK_TAG_CASES)
+    async def test_tag_ignores_non_tag_docs(self, tag_type, work_field):
+        tag = make_tag(tag_type=tag_type, name="A", key="/tags/OL1T")
+        tag["type"] = {"key": "/type/delete"}
+        work = make_work()
+        work[work_field] = [{"key": "/tags/OL1T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, tag])).update_key(work)
+        assert len(req.adds) == 1
+        assert req.adds[0].get(f"{tag_type}_key") is None
+        assert req.adds[0].get(f"{tag_type}_name") is None
+
+    @pytest.mark.asyncio
+    async def test_tags_fetched_across_all_fields(self):
+        tags = [make_tag(tag_type=tag_type, name=tag_type.upper(), key=f"/tags/OL{i}T") for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1)]
+        work = make_work()
+        for i, (_, work_field) in enumerate(WORK_TAG_CASES, start=1):
+            work[work_field] = [{"key": f"/tags/OL{i}T"}]
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
+        assert len(req.adds) == 1
+        doc = req.adds[0]
+        for i, (tag_type, _) in enumerate(WORK_TAG_CASES, start=1):
+            assert doc[f"{tag_type}_key"] == [f"OL{i}T"]
+            assert doc[f"{tag_type}_name"] == [tag_type.upper()]
+
+
 class Test_number_of_pages_median:
     def test_no_editions(self):
         wsb = make_work_solr_builder({"key": "/works/OL1W", "type": {"key": "/type/work"}})
@@ -467,7 +591,7 @@ class Test_number_of_pages_median:
 class Test_Sort_Editions_Ocaids:
     def test_sort(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "ocaid_restricted"},
                 {"key": "/books/OL567M", "ocaid": "ocaid_printdisabled"},
@@ -503,7 +627,7 @@ class Test_Sort_Editions_Ocaids:
 
     def test_goog_deprioritized(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},
@@ -516,7 +640,7 @@ class Test_Sort_Editions_Ocaids:
 
     def test_excludes_fav_ia_collections(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},

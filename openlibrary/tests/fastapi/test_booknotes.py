@@ -1,8 +1,11 @@
 """Tests for POST /works/OL{work_id}W/notes (FastAPI)."""
 
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
+
+from openlibrary.core.booknotes import Booknote
 
 
 @pytest.fixture
@@ -12,7 +15,14 @@ def mock_booknotes():
         patch("openlibrary.core.models.Booknotes.add", autospec=True) as add_mock,
         patch("openlibrary.core.models.Booknotes.remove", autospec=True) as remove_mock,
     ):
-        add_mock.return_value = 1
+        add_mock.return_value = Booknote(
+            username="testuser",
+            work_id=123,
+            edition_id=-1,
+            notes="Great book!",
+            created=datetime.now(),
+            updated=datetime.now(),
+        )
         remove_mock.return_value = 1
         yield add_mock, remove_mock
 
@@ -72,6 +82,32 @@ class TestBooknotesPost:
         _, remove_mock = mock_booknotes
         response = fastapi_client.post(
             "/works/OL123W/notes",
+            data={},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"success": "removed note"}
+        remove_mock.assert_called_once_with("testuser", 123, edition_id=-1)
+
+    def test_add_note_via_json_url(self, fastapi_client, mock_authenticated_user, mock_booknotes):
+        add_mock, remove_mock = mock_booknotes
+        response = fastapi_client.post(
+            "/works/OL123W/notes.json",
+            data={"notes": "Great book!"},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"success": "note added"}
+        add_mock.assert_called_once_with(
+            username="testuser",
+            work_id=123,
+            notes="Great book!",
+            edition_id=-1,
+        )
+        remove_mock.assert_not_called()
+
+    def test_remove_note_via_json_url(self, fastapi_client, mock_authenticated_user, mock_booknotes):
+        _, remove_mock = mock_booknotes
+        response = fastapi_client.post(
+            "/works/OL123W/notes.json",
             data={},
         )
         assert response.status_code == 200

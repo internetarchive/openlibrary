@@ -1,0 +1,4 @@
+$def with ()
+
+$# Called only from wiki page bodies ({{SubjectSearch()}} on /subjects); no code calls it.
+$:render_jinja_template("SubjectSearch.html.jinja", q=query_param("q", ""))

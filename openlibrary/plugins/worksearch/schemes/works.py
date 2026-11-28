@@ -4,9 +4,10 @@ from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from types import MappingProxyType
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import luqum.tree
+from luqum.parser import parser
 
 import infogami
 from openlibrary.fastapi.models import SolrInternalsParams
@@ -19,10 +20,14 @@ from openlibrary.solr.query_utils import (
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
+    luqum_remove_unfielded,
     luqum_replace_child,
     luqum_replace_field,
     luqum_traverse,
 )
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Edition
 from openlibrary.utils.ddc import (
     normalize_ddc,
     normalize_ddc_prefix,
@@ -72,6 +77,20 @@ class WorkSearchScheme(SearchScheme):
             "author_key",
             "author_name",
             "author_alternative_name",
+            "genre_key",
+            "genre_name",
+            "subgenre_key",
+            "subgenre_name",
+            "audience_key",
+            "audience_name",
+            "content_warning_key",
+            "content_warning_name",
+            "content_format_key",
+            "content_format_name",
+            "literary_form_key",
+            "literary_form_name",
+            "award_key",
+            "award_name",
             "subject",
             "person",
             "place",
@@ -116,6 +135,9 @@ class WorkSearchScheme(SearchScheme):
             "work.description",
             "editions.description",
             "editions.providers",
+            # Dotted-only: a bare name is expanded into both `work.X` and
+            # `editions.X`, and a price belongs to a printing, not to a work.
+            "editions.opds_acquisitions",
         }
     )
     facet_fields = frozenset(
@@ -210,6 +232,8 @@ class WorkSearchScheme(SearchScheme):
             "has_fulltext",
             "first_publish_year",
             "cover_i",
+            "cover_width",
+            "cover_height",
             "cover_edition_key",
             "public_scan_b",
             "lending_edition_s",
@@ -278,13 +302,11 @@ class WorkSearchScheme(SearchScheme):
         for node, parents in luqum_traverse(q_tree):
             if isinstance(node, luqum.tree.SearchField):
                 has_search_fields = True
-                if node.name.lower() in self.field_name_map:
-                    node.name = self.field_name_map[node.name.lower()]
                 if node.name == "isbn":
                     isbn_transform(node)
                 if node.name in ("lcc", "lcc_sort"):
                     lcc_transform(node)
-                if node.name in ("dcc", "dcc_sort"):
+                if node.name in ("ddc", "ddc_sort"):
                     ddc_transform(node)
 
         if not has_search_fields:
@@ -300,6 +322,9 @@ class WorkSearchScheme(SearchScheme):
         for k in self.public_api_params & set(params):
             values = params[k] if isinstance(params[k], list) else [params[k]]
             for val in values:
+                # A blank value would build `field:()`, which is not valid lucene
+                if not val.strip():
+                    continue
                 if k == "author":
                     v = val.strip()
                     m = re_author_key.search(v)
@@ -310,7 +335,7 @@ class WorkSearchScheme(SearchScheme):
                         q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
                 elif k == "isbn":
                     normalized = normalize_isbn(val)
-                    q_list.append(f"isbn:({normalized or val})")
+                    q_list.append(f"isbn:({normalized or fully_escape_query(val)})")
                 else:
                     q_list.append(f"{k}:({fully_escape_query(val)})")
 
@@ -376,13 +401,13 @@ class WorkSearchScheme(SearchScheme):
 
         full_work_query = edismax_params.to_solr_edismax_subquery()
         ed_q = None
+        ed_filter_q = None
         full_ed_query = None
         editions_fq = []
         if self.solr_editions and "editions:[subquery]" in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 "edition_key": "key",
-                "text": "text",
                 # Display data
                 "title": "title",
                 "title_suggest": "title_suggest",
@@ -390,12 +415,8 @@ class WorkSearchScheme(SearchScheme):
                 "alternative_title": "alternative_title",
                 "alternative_subtitle": "subtitle",
                 "cover_i": "cover_i",
-                # Duplicate author fields
-                # Disabled until the next full reindex
-                # 'author_name': 'author_name',
-                # 'author_key': 'author_key',
-                # 'author_alternative_name': 'author_alternative_name',
-                # 'author_facet': 'author_facet',
+                # Author fields are duplicated onto editions only so unprefixed queries match via the
+                # edition qf; every edition has its work's authors, so forwarding them would be redundant.
                 # Misc useful data
                 "format": "format",
                 "language": "language",
@@ -497,9 +518,28 @@ class WorkSearchScheme(SearchScheme):
             for param_name, param_value in cur_solr_params:
                 if param_name != "fq" or param_value.startswith("type:"):
                     continue
+                if param_value.startswith("{!"):
+                    # Local-params syntax (e.g. {!terms f=key}...) isn't a plain field:value pair.
+                    continue
                 field_name, field_val = param_value.split(":", 1)
+                # facet_rewrites can produce negated fq values like
+                # '-ebook_access:public' (from public_scan=false). The leading
+                # '-' is Solr negation syntax, not part of the field name —
+                # strip it before lookup and re-apply to the rewritten field.
+                negate = field_name.startswith("-")
+                if negate:
+                    field_name = field_name[1:]
                 if ed_field := convert_work_field_to_edition_field(field_name):
-                    editions_fq.append(f"{ed_field}:{field_val}")
+                    if negate:
+                        # A pure-negative query matches nothing inside the
+                        # block-join `filters=$editions.fq` local param (it gets
+                        # no top-level `*:*` fixup the way a real `fq` does), so
+                        # an unguarded `-ebook_access:public` zeroed out the
+                        # "Borrow online" filter (public_scan=false). Anchor
+                        # with `*:*` so it subtracts instead of matching nothing.
+                        editions_fq.append(f"(*:* -{ed_field}:{field_val})")
+                    else:
+                        editions_fq.append(f"{ed_field}:{field_val}")
             for fq in editions_fq:
                 new_params.append(("editions.fq", fq))
 
@@ -517,29 +557,38 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(("editions.userEdQuery", ed_q or "*:*"))
             new_params.append(("editions.ol.label", "EDITION_MATCH"))
 
-            full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
-                # See qf in work_query
-                qf="text alternative_title^4 author_name^4 chapter^4",
-                # Reading from the url parameter userEdQuery. This lets us avoid
-                # having to try to escape the query in order to fit inside this
-                # other query.
-                v="$userEdQuery",
-                # bq (boost query): Boost which edition is promoted to the top
-                bq=" ".join(
-                    (
-                        f"language:{user_lang}^40",
-                        "ebook_access:public^10",
-                        "ebook_access:borrowable^8",
-                        "ebook_access:printdisabled^2",
-                        "cover_i:*^2",
-                    )
-                ),
+            # Unfielded terms already had to match the work (possibly via
+            # work-only fields like subject), so they only rank editions; the
+            # fielded parts of the edition query must hold on a single edition.
+            if ed_q and (ed_filter_tree := luqum_remove_unfielded(parser.parse(ed_q))):
+                ed_filter_q = str(ed_filter_tree).strip()
+                new_params.append(("userEdFilterQuery", ed_filter_q))
+                new_params.append(("editions.userEdFilterQuery", ed_filter_q))
+
+            # See qf in work_query. Edition docs only carry a subset of
+            # the work-level fields (see EditionSolrBuilder.build()), so
+            # this only lists fields that are actually populated on them.
+            ed_qf = "title subtitle publisher isbn oclc lccn ia key author_key alternative_title^4 author_name^4 author_alternative_name^4 chapter^4"
+            # Reading from the url parameter userEdQuery. This lets us avoid
+            # having to try to escape the query in order to fit inside this
+            # other query.
+            full_ed_query = f'({{!edismax v=$userEdQuery qf="{ed_qf}"}})'
+            ed_filter_query = f'({{!edismax v=$userEdFilterQuery qf="{ed_qf}"}})'
+            # Boost which edition is promoted to the top
+            ed_boosts = " ".join(
+                (
+                    f"language:{user_lang}^40",
+                    "ebook_access:public^10",
+                    "ebook_access:borrowable^8",
+                    "ebook_access:printdisabled^2",
+                    "cover_i:*^2",
+                )
             )
 
-        if ed_q or len(editions_fq) > 1:
+        if ed_filter_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            new_params.append(("fullEdQuery", cast(str, full_ed_query) if ed_q else "*:*"))
+            new_params.append(("fullEdFilterQuery", cast(str, ed_filter_query) if ed_filter_q else "*:*"))
             q = (
                 f"+{full_work_query} "
                 # This is using the special parent query syntax to, on top of
@@ -547,7 +596,7 @@ class WorkSearchScheme(SearchScheme):
                 # editions matching the edition query.
                 # Also include edition-less works (i.e. edition_count:0)
                 "+("
-                '_query_:"{!parent which=type:work v=$fullEdQuery filters=$editions.fq}" '
+                '_query_:"{!parent which=type:work v=$fullEdFilterQuery filters=$editions.fq}" '
                 "OR edition_count:0"
                 ")"
             )
@@ -593,9 +642,19 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(
                 (
                     "editions.q",
-                    # Here we use the special terms parser to only filter the
-                    # editions for a given, already matching work '_root_' node.
-                    f"({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}",
+                    " ".join(
+                        (
+                            # Here we use the special terms parser to only filter the
+                            # editions for a given, already matching work '_root_' node.
+                            "+({!terms f=_root_ v=$row.key})",
+                            f"+{ed_filter_query}" if ed_filter_q else "",
+                            # Editions matching the full query (incl. unfielded terms)
+                            # always rank above those that don't
+                            f"{full_ed_query}^=1000",
+                            full_ed_query,
+                            ed_boosts,
+                        )
+                    ),
                 )
             )
             new_params.append(("editions.rows", "1"))
@@ -627,6 +686,54 @@ class WorkSearchScheme(SearchScheme):
         key_to_thing = {t.key: t for t in things if t.key in keys}
 
         from openlibrary.book_providers import get_acquisitions
+        from openlibrary.core.acquisitions import MAX_DB_INT, MAX_EDITIONS_PER_QUERY
+        from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
+        from openlibrary.utils import extract_numeric_id_from_olid
+
+        # One batched read for every edition on the page. Prices change far
+        # more often than bibliographic data, so this is read at request time
+        # rather than indexed into Solr.
+        #
+        # Deliberately synchronous, on the event loop: `asyncio.to_thread`
+        # would open a Postgres connection per pool thread, since web.py
+        # holds them per thread. Becomes a real await with the async driver.
+        #
+        # This does not bound the method by page size. `get_many()` above is
+        # uncapped for `providers` too; the endpoint's `limit` has no `le=`,
+        # which is where that belongs and is not changed here.
+        stored_by_edition: dict[int, list] = {}
+        if "editions.opds_acquisitions" in prefixed_fields:
+            edition_ids = []
+            for doc in solr_result["response"]["docs"]:
+                for ed_doc in doc.get("editions", {}).get("docs", []):
+                    try:
+                        numeric_id = int(extract_numeric_id_from_olid(ed_doc["key"]))
+                    except ValueError, TypeError, IndexError, OverflowError:
+                        continue
+                    if 0 < numeric_id <= MAX_DB_INT:
+                        edition_ids.append(numeric_id)
+            if len(edition_ids) > MAX_EDITIONS_PER_QUERY:
+                logger.warning(
+                    "skipping acquisitions for a page of %d editions (cap %d); ask for a smaller limit",
+                    len(edition_ids),
+                    MAX_EDITIONS_PER_QUERY,
+                )
+                # Remove the field, all or nothing. It must come out of
+                # `prefixed_fields`, which drives the weave below -- clearing
+                # the ids alone still gives every document a list, built from
+                # the synthesized half and missing every harvested price,
+                # which a caller cannot tell from a book that has none.
+                # Absent they can detect, and retry with a smaller `limit`.
+                prefixed_fields.discard("editions.opds_acquisitions")
+                edition_ids = []
+            try:
+                stored_by_edition = StoredAcquisition.get_by_editions(edition_ids)
+            except Exception:
+                # Same rule as the oversized page above, for the same
+                # reason: a list without the harvested half reads as
+                # complete.
+                prefixed_fields.discard("editions.opds_acquisitions")
+                logger.exception("failed to read acquisitions; returning results without the field")
 
         for doc in solr_result["response"]["docs"]:
             for field in prefixed_fields:
@@ -641,6 +748,10 @@ class WorkSearchScheme(SearchScheme):
                     if not db_thing:
                         continue
 
+                    if field_name == "opds_acquisitions":
+                        solr_doc[field_name] = self._opds_acquisitions(solr_doc, cast("Edition", db_thing), stored_by_edition)
+                        continue
+
                     val = getattr(db_thing, field_name)
                     if field_name == "providers":
                         ed = cast(Edition, db_thing)
@@ -649,6 +760,53 @@ class WorkSearchScheme(SearchScheme):
                         continue
                     elif field_name == "description":
                         solr_doc[field_name] = val if isinstance(val, str) else val.value
+
+    @staticmethod
+    def _opds_acquisitions(solr_doc: dict, edition: Edition, stored_by_edition: dict[int, list]) -> list[dict]:
+        """How this edition can be acquired, as OPDS2 acquisition links.
+
+        Not every way: the Internet Archive synthesizes nothing unless the
+        caller also requested `editions.ebook_access`, because IA reads it
+        off the Solr document and `editions.fl` carries only the solr fields
+        asked for. A documented requirement of the field, pinned by a test.
+
+        One field, one format, one call. Previously a caller had to read
+        `providers` for the providers Open Library synthesizes and a second
+        field for the ones harvested from a registered feed, and reconcile the
+        two shapes itself.
+
+        Precedence is per provider: a harvested row wins over a synthesized
+        one, because the feed is that provider's own statement of what it
+        offers, while the synthesized version is our inference. Providers with
+        no harvested row are coerced into OPDS2 and appended, so the absence of
+        a feed is invisible to the caller.
+
+        Deduplicated on the feed registry's spelling of the provider name --
+        `book_providers` says `gutenberg` where the registry says
+        `project_gutenberg`, and comparing the raw names would treat them as
+        two providers and emit both.
+        """
+        from openlibrary.core.acquisitions import opds_links_for_edition, provider_acquisition_as_opds, provider_dedupe_key, synthesized_acquisitions
+        from openlibrary.utils import extract_numeric_id_from_olid
+
+        try:
+            edition_id = int(extract_numeric_id_from_olid(solr_doc["key"]))
+        except ValueError, TypeError, IndexError, OverflowError, KeyError:
+            edition_id = None
+
+        links = opds_links_for_edition(stored_by_edition.get(edition_id) or []) if edition_id else []
+        # Canonicalize BOTH sides. Resolving only the synthesized one left the
+        # comparison a case-sensitive exact match against raw database strings,
+        # so a harvested row spelled "Lenny" or "standard-ebooks" deduped
+        # against nothing and the edition showed the same acquisition twice.
+        harvested = {provider_dedupe_key(link.get("provider_name")) for link in links}
+
+        for trusted_name, acquisition in synthesized_acquisitions(solr_doc, edition):
+            if provider_dedupe_key(trusted_name or acquisition.provider_name) in harvested:
+                continue
+            if coerced := provider_acquisition_as_opds(acquisition, trusted_name):
+                links.append(coerced)
+        return links
 
 
 def lcc_transform(sf: luqum.tree.SearchField):
@@ -692,13 +850,18 @@ def ddc_transform(sf: luqum.tree.SearchField):
     val = sf.children[0]
     if isinstance(val, luqum.tree.Range):
         normed_range = normalize_ddc_range(val.low.value, val.high.value)
-        val.low.value = normed_range[0] or val.low
-        val.high.value = normed_range[1] or val.high
+        if normed_range[0]:
+            val.low.value = normed_range[0]
+        if normed_range[1]:
+            val.high.value = normed_range[1]
     elif isinstance(val, luqum.tree.Word) and val.value.endswith("*"):
-        return normalize_ddc_prefix(val.value[:-1]) + "*"
-    elif isinstance(val, (luqum.tree.Word, luqum.tree.Phrase)):
+        val.value = normalize_ddc_prefix(val.value[:-1]) + "*"
+    elif isinstance(val, luqum.tree.Word):
+        if normed := normalize_ddc(val.value):
+            val.value = normed[0]
+    elif isinstance(val, luqum.tree.Phrase):
         if normed := normalize_ddc(val.value.strip('"')):
-            val.value = normed
+            val.value = f'"{normed[0]}"'
     else:
         logger.warning(f"Unexpected ddc SearchField value type: {type(val)}")
 

@@ -4,10 +4,23 @@
  * For more details, see:
  * http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
  */
-import { ungettext, ugettext,  sprintf } from './i18n';
+import { sprintf } from './i18n';
 // TODO: Can likely move some of these methods into this file
 import { commify, urlencode, slice } from './python';
 import { truncate, cond } from './utils';
+
+/**
+ * jsdef templates call `_()` and `ungettext()` as their Templetor versions do
+ * on the server. These stand-ins don't translate: they return the English
+ * string. Translated strings for browser-rendered UI come from i18n.js.
+ */
+function ugettext(s) {
+    return s;
+}
+
+function ungettext(s1, s2, n) {
+    return n === 1 ? s1 : s2;
+}
 
 /**
  * Python range function.
@@ -22,15 +35,15 @@ import { truncate, cond } from './utils';
 
 //used in templates/lib/pagination.html
 export function range(begin, end, step) {
-    var r, i;
+    let i;
     step = step || 1;
     if (end === undefined) {
         end = begin;
         begin = 0;
     }
 
-    r = [];
-    for (i=begin; i<end; i += step) {
+    const r = [];
+    for (i = begin; i < end; i += step) {
         r[r.length] = i;
     }
     return r;
@@ -57,8 +70,11 @@ export function len(array) {
 
 // used in templates/type/permission/edit.html
 export function enumerate(a) {
-    var b = new Array(a.length);
-    var i;
+    // Keep new Array(n): it preserves holes for sparse input, which
+    // Array.from({ length }) would turn into undefined entries.
+    // oxlint-disable-next-line unicorn/no-new-array
+    const b = new Array(a.length);
+    let i;
     for (i in a) {
         b[i] = [i, a[i]];
     }
@@ -73,17 +89,17 @@ export function ForLoop(parent, seq) {
     this.index0 = -1;
 }
 
-ForLoop.prototype.next = function() {
-    var i = this.index0+1;
+ForLoop.prototype.next = function () {
+    const i = this.index0 + 1;
 
     this.index0 = i;
-    this.index = i+1;
+    this.index = i + 1;
 
-    this.first = (i === 0);
-    this.last = (i === this.length-1);
+    this.first = i === 0;
+    this.last = i === this.length - 1;
 
-    this.odd = (this.index % 2 === 1);
-    this.even = (this.index % 2 === 0);
+    this.odd = this.index % 2 === 1;
+    this.even = this.index % 2 === 0;
     this.parity = ['even', 'odd'][this.index % 2];
 
     this.revindex0 = this.length - i;
@@ -92,10 +108,10 @@ ForLoop.prototype.next = function() {
 
 // used in plugins/upstream/jsdef.py
 export function foreach(seq, parent_loop, callback) {
-    var loop = new ForLoop(parent_loop, seq);
-    var i, args, j;
+    const loop = new ForLoop(parent_loop, seq);
+    let i, args, j;
 
-    for (i=0; i<seq.length; i++) {
+    for (i = 0; i < seq.length; i++) {
         loop.next();
 
         args = [loop];
@@ -105,8 +121,7 @@ export function foreach(seq, parent_loop, callback) {
             for (j in seq[i]) {
                 args.push(seq[i][j]);
             }
-        }
-        else {
+        } else {
             args[1] = seq[i];
         }
         callback.apply(this, args);
@@ -121,11 +136,8 @@ export function websafe(value) {
         if (value === null || value === undefined) {
             return '';
         }
-        else {
-            return htmlquote(value.toString());
-        }
-    }
-    catch (e) {
+        return htmlquote(value.toString());
+    } catch (e) {
         return '';
     }
 }
@@ -150,7 +162,6 @@ export function is_jsdef() {
     return true;
 }
 
-
 /**
  * foo.get(KEY, default) isn't defined in js, so we can't use that construct
  * in our jsdef methods. This helper function provides a workaround, and works
@@ -160,12 +171,13 @@ export function is_jsdef() {
  * @param {string} key - the key to get from the object
  * @param {any} def - the default value to return if the key isn't found
  */
-export function jsdef_get(obj, key, def=null) {
-    return (key in obj) ? obj[key] : def;
+export function jsdef_get(obj, key, def = null) {
+    return key in obj ? obj[key] : def;
 }
 
 export function exposeGlobally() {
     // Extend existing prototypes
+    // oxlint-disable-next-line no-extend-native -- Templetor-compiled templates call "str".join(...)
     String.prototype.join = join;
 
     window.commify = commify;

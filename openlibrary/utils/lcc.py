@@ -134,7 +134,11 @@ def short_lcc_to_sortable_lcc(lcc: str) -> str | None:
     if parts["letters"] == "CPB":
         return None
 
-    return "%(letters)s%(number)013.8f%(cutter1)s%(rest)s" % parts
+    sortable_lcc = "%(letters)s%(number)013.8f%(cutter1)s%(rest)s" % parts
+    # Must stay parseable by sortable_lcc_to_short_lcc
+    if not LCC_PARTS_RE.match(sortable_lcc):
+        return None
+    return sortable_lcc
 
 
 def sortable_lcc_to_short_lcc(lcc: str) -> str:
@@ -157,6 +161,8 @@ def clean_raw_lcc(raw_lcc: str) -> str:
     Remove noise in lcc before matching to LCC_PARTS_RE
     """
     lcc = collapse_multiple_space(raw_lcc.replace("\\", " ").strip(" "))
+    # Repeated dots are typos, e.g. "PL2898..5.J86"
+    lcc = re.sub(r"\.(\s*\.)+", ".", lcc)
     if (lcc.startswith("[") and lcc.endswith("]")) or (lcc.startswith("(") and lcc.endswith(")")):
         lcc = lcc[1:-1]
     return lcc
@@ -213,4 +219,4 @@ def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
     def short_len(lcc: str) -> int:
         return len(sortable_lcc_to_short_lcc(lcc))
 
-    return sorted(sortable_lccs, key=short_len, reverse=True)[0]
+    return max(sortable_lccs, key=short_len)

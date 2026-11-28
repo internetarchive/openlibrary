@@ -1,16 +1,21 @@
 <template>
-  <div class="noBookCard">
-    <p> No Books Found</p>
-  </div>
+    <div class="noBookCard">
+        <p>{{ strings.noBooksFound }}</p>
+    </div>
 </template>
 
 <script>
+import { _ } from '../../../plugins/openlibrary/js/i18n.js';
+
 export default {
+    data() {
+        return { strings: { noBooksFound: _('No Books Found') } };
+    }
 };
 </script>
 
 <style>
-.noBookCard{
+.noBookCard {
     flex-shrink: 0;
     margin-right: 6px;
     width: 80vw;
@@ -27,6 +32,6 @@ export default {
     justify-content: center;
 }
 .noBookCard:first-child {
-    animation: slideUp .8s;
+    animation: slideUp 0.8s;
 }
 </style>

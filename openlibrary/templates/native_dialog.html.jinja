@@ -1,0 +1,12 @@
+{% macro dialog(id=None, content="", title=None) %}
+    <dialog{% if id %} id="{{ id }}"{% endif %} class="native-dialog">
+        <div class="floaterHead">
+            {% if title %}
+                <h2>{{ title }}</h2>
+            {% endif %}
+            {# detect-missing-i18n-skip-line #}
+            <a class="native-dialog--close" href="javascript:;">×<span class="shift">{{ _("Close") }}</span></a>
+        </div>
+        {{ content | safe }}
+    </dialog>
+{% endmacro %}

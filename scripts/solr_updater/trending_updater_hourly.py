@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import itertools
 import json
 import subprocess
@@ -11,8 +11,7 @@ from math import sqrt
 import requests
 
 from openlibrary.core import db
-from openlibrary.plugins.worksearch.code import execute_solr_query
-from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.search import execute_solr_query, get_solr
 
 # This script handles hourly updating of each works' z-score. The 'trending_score_hourly_23' field is
 # ignored, and the current count of bookshelves events in the last hour is the new trending_score_hourly[0]
@@ -52,8 +51,8 @@ class NoLogsFoundError(subprocess.CalledProcessError):
     pass
 
 
-def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
-    start_ts = int(dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
+def get_logs_for_hour(hour: dt.datetime, extra_grep: str | None = None):
+    start_ts = int(hour.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
     end_ts = start_ts + 3600 * 1000 - 1
 
     if extra_grep:
@@ -115,13 +114,13 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 raise subprocess.CalledProcessError(proc.returncode, proc.args)
 
 
-def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
+def fetch_work_hour_pageviews(hour: dt.datetime) -> Counter[str]:
     """
     Iterate over the nginx logs of the given hour and count the number of pageviews
     """
 
     # We will need to fetch the work keys for these
-    book_keys = {line.strip().split(" ")[1] for line in get_logs_for_hour(dt, 'grep -oE "GET /books/OL[0-9]+M"')}
+    book_keys = {line.strip().split(" ")[1] for line in get_logs_for_hour(hour, 'grep -oE "GET /books/OL[0-9]+M"')}
     print(f"Found {len(book_keys)} /book pageviews in the hour")
 
     book_key_to_work_key: dict[str, str] = {}
@@ -162,7 +161,7 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     # Each tuple is (ip, work_key).
     req_set: set[tuple[str, str]] = set()
 
-    for line in get_logs_for_hour(dt):
+    for line in get_logs_for_hour(hour):
         line = LogLine.from_line(line)
         page_key = line.page_key
         if page_key.startswith("/books/"):
@@ -178,9 +177,9 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     return Counter(work_key for _, work_key in req_set)
 
 
-def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
-    start = dt.replace(minute=0, second=0, microsecond=0)
-    end_ts = start + datetime.timedelta(hours=1)
+def fetch_work_hour_book_events(hour: dt.datetime) -> dict[str, int]:
+    start = hour.replace(minute=0, second=0, microsecond=0)
+    end_ts = start + dt.timedelta(hours=1)
 
     ol_db = db.get_db()
     query = f"""
@@ -224,7 +223,9 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
         resp = execute_solr_query(
             "/export",
             {
-                "q": " OR ".join(f'key:"{key}"' for key in keys_to_fetch),
+                # {!terms f=key} uses Solr's TermsQuery, which avoids the
+                # maxBooleanClauses limit an OR-joined query hits at large key counts.
+                "q": "{!terms f=key}" + ",".join(keys_to_fetch),
                 "fl": ",".join(solr_fields),
                 "sort": "key asc",
             },
@@ -288,10 +289,10 @@ def form_inplace_trending_update(
 
 def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
     if timestamp:
-        ts = datetime.datetime.fromisoformat(timestamp)
+        ts = dt.datetime.fromisoformat(timestamp)
     else:
         # Use previous hour if no timestamp is provided
-        ts = datetime.datetime.now() - datetime.timedelta(hours=1)
+        ts = dt.datetime.now() - dt.timedelta(hours=1)
 
     # The slot in solr that corresponds to the given hour
     hour_slot = ts.hour

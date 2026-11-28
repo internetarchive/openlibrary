@@ -1,7 +1,6 @@
 """Interface to import queue."""
 
-import contextlib
-import datetime
+import datetime as dt
 import json
 import logging
 import time
@@ -10,22 +9,66 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
 
 import web
-from psycopg2.errors import UndefinedTable, UniqueViolation
+from psycopg2.errors import UndefinedTable  # noqa: TID251
 from pydantic import ValidationError
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
+from openlibrary.utils.request_context import site
 
-from . import db
+from . import db  # noqa: TID251
 
 logger = logging.getLogger("openlibrary.imports")
 
 STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
+IMPORT_ITEM_STATUSES: Final = (
+    "staged",
+    "needs_review",
+    "pending",
+    "processing",
+    "found",
+    "created",
+    "modified",
+    "failed",
+)
+"""Every status an ``import_item`` row can have."""
+
+BATCH_SORT_COLUMNS: Final = {"added_time": "b.submit_time", "batch_id": "b.id"}
+"""Sort keys accepted by :meth:`Batch.list_summaries`, mapped to SQL columns."""
+
 if TYPE_CHECKING:
-    from web.db import ResultSet
+    from web.db import ResultSet  # noqa: TID251
 
     from openlibrary.core.models import Edition
+
+
+def _record_changed(stored: str | None, incoming: str | None) -> bool:
+    """Whether a staged record differs from what is already queued.
+
+    Compares parsed JSON rather than raw text so key ordering cannot masquerade
+    as a change.
+
+    A NULL ``stored`` means the row already completed and had its data cleared
+    by :meth:`ImportItem.set_status`. There is nothing to compare against, so it
+    counts as CHANGED: the caller only offers records a feed has already flagged
+    as modified, and treating "cannot tell" as "unchanged" would mean a price
+    that changes after its first successful import never reaches the catalog
+    again -- silently defeating the whole point of the feed. Callers that can
+    compare against durable state (the acquisitions table, say) should filter
+    before calling.
+    """
+    if incoming is None:
+        return False
+    if stored is None:
+        return True
+    try:
+        return json.loads(stored) != json.loads(incoming)
+    except TypeError, ValueError:
+        # Unparsable stored data: prefer leaving the row alone over re-queuing
+        # a corpus on a parse error.
+        logger.warning("could not compare staged record; leaving it unchanged")
+        return False
 
 
 class Batch(web.storage):
@@ -83,6 +126,120 @@ class Batch(web.storage):
         # Those unique items whose ia_id's aren't already present
         return [item for item in items if item.get("ia_id") not in already_present]
 
+    REFRESHABLE_STATUSES = ("created", "modified", "found", "failed")
+    """Terminal statuses -- the only rows safe to refresh.
+
+    A row that is ``pending`` or ``staged`` is QUEUED, and ``manage-imports``
+    (``import_all`` -> ``find_pending()``) never claims it -- it stays ``pending``
+    for the whole in-flight window. So replacing a queued row's ``data`` races a
+    worker that has already read the old copy into memory: the worker imports the
+    stale record, then ``set_status`` writes the terminal status and NULLs
+    ``data``, discarding the update with no error.
+
+    Refusing to touch queued rows removes that race entirely. Nothing is lost:
+    once the row reaches a terminal status its ``data`` is NULL, so the next
+    harvest that sees a genuine change refreshes it then. ``processing`` is
+    excluded too -- it is written only by the on-demand staged path.
+    """
+
+    def add_or_refresh_items(self, items: list[dict]) -> dict[str, int]:
+        """Insert new items, and refresh CHANGED ones in place instead of skipping.
+
+        ``add_items`` skips anything whose ``ia_id`` already exists, anywhere, at
+        any status. That is right for firehose sources -- Amazon price lookups
+        and daily archive.org imports re-offer unchanged records constantly, and
+        re-queuing them is what previously overwhelmed the database.
+
+        It is wrong for a registered feed, which is a change stream: the provider
+        returns a record because it changed, and dropping it discards the update
+        we asked for -- a Better World Books price, say. This variant compares
+        content and re-queues only what actually differs, so the protection
+        against re-processing unchanged records is kept.
+
+        A row whose ``data`` is NULL (cleared by :meth:`ImportItem.set_status`
+        once it completed) counts as changed, since there is nothing left to
+        compare against and the caller only offers records a feed already
+        flagged as modified. Callers with durable prior state should filter
+        first -- :mod:`openlibrary.bookworm.harvest` compares against the
+        acquisitions table.
+
+        Rows claimed by manage-imports (``status='processing'``) are left alone
+        rather than yanked mid-flight.
+
+        Additive and opt-in -- ``add_items`` is untouched, so no existing
+        importer changes behaviour.
+
+        :return: counts keyed ``added``, ``refreshed``, ``unchanged``,
+            ``skipped_in_flight``.
+        """
+        normalized = self.normalize_items(items)
+        counts = {"added": 0, "refreshed": 0, "unchanged": 0, "skipped_in_flight": 0}
+        if not normalized:
+            return counts
+
+        ia_ids = [item["ia_id"] for item in normalized if item.get("ia_id")]
+        if not ia_ids:
+            return counts
+
+        # Scoped to THIS batch. The unique key is (batch_id, ia_id), so the same
+        # ia_id can legitimately exist in another importer's batch -- an
+        # unscoped read collapses those non-deterministically, and turning that
+        # read into a write would let a feed refresh (and effectively steal)
+        # another batch's row.
+        existing = {
+            row.ia_id: row
+            for row in db.query(
+                "SELECT id, ia_id, data, status FROM import_item WHERE batch_id=$batch_id AND ia_id IN $ia_ids",
+                vars={"batch_id": self.id, "ia_ids": ia_ids},
+            )
+        }
+
+        to_insert = []
+        for item in normalized:
+            row = existing.get(item.get("ia_id"))
+            if row is None:
+                to_insert.append(item)
+                counts["added"] += 1
+                continue
+            if row.status not in self.REFRESHABLE_STATUSES:
+                # Queued or in flight: leave it for the worker that may already
+                # be holding it.
+                counts["skipped_in_flight"] += 1
+                continue
+            if not _record_changed(row.data, item.get("data")):
+                counts["unchanged"] += 1
+                continue
+            # Status predicate closes the window between the SELECT above and
+            # this write. ol_key is cleared because the row is no longer a
+            # completed import pointing at an edition.
+            updated = db.update(
+                "import_item",
+                where="id=$id AND status=$status",
+                vars={"id": row.id, "status": row.status},
+                data=item.get("data"),
+                status="pending",
+                error=None,
+                import_time=None,
+                ol_key=None,
+            )
+            if updated:
+                counts["refreshed"] += 1
+            else:
+                counts["skipped_in_flight"] += 1
+
+        if to_insert:
+            self._insert_items(to_insert)
+
+        logger.info(
+            "batch %s: %d added, %d refreshed, %d unchanged, %d in flight",
+            self.name,
+            counts["added"],
+            counts["refreshed"],
+            counts["unchanged"],
+            counts["skipped_in_flight"],
+        )
+        return counts
+
     def normalize_items(self, items: list[str] | list[dict]) -> list[dict]:
         return [
             (
@@ -100,6 +257,27 @@ class Batch(web.storage):
             for item in items
         ]
 
+    @staticmethod
+    def _insert_items(items: list[dict]) -> None:
+        """Insert normalized rows in one statement, leaving duplicate keys alone."""
+        columns = ("batch_id", "ia_id", "status", "data", "submitter")
+        values = []
+        params = {}
+        for index, item in enumerate(items):
+            values.append("(" + ", ".join(f"${column}_{index}" for column in columns) + ")")
+            # Legacy string items omit status, data, and submitter.
+            params.update({f"{column}_{index}": item.get(column, "pending" if column == "status" else None) for column in columns})
+
+        oldb = db.get_db()
+        oldb.query(
+            f"""
+            INSERT INTO import_item ({", ".join(columns)})
+            VALUES {", ".join(values)}
+            ON CONFLICT (batch_id, ia_id) DO NOTHING
+            """,
+            vars=params,
+        )
+
     def add_items(self, items: list[str] | list[dict]) -> None:
         """
         :param items: either a list of `ia_id`  (legacy) or a list of dicts
@@ -114,23 +292,102 @@ class Batch(web.storage):
 
         items = self.dedupe_items(self.normalize_items(items))
         if items:
-            try:
-                # TODO: Upgrade psql and use `INSERT OR IGNORE`
-                # otherwise it will fail on UNIQUE `data`
-                # https://stackoverflow.com/questions/1009584
-                db.get_db().multiple_insert("import_item", items)
-            except UniqueViolation:
-                for item in items:
-                    with contextlib.suppress(UniqueViolation):
-                        db.get_db().insert("import_item", **item)
+            self._insert_items(items)
 
             logger.info("batch %s: added %d items", self.name, len(items))
 
         return None
 
+    def retry_failed(self) -> int:
+        """Re-queue this batch's failed items, returning how many were re-queued.
+
+        Resubmitting a batch can't do this: ``dedupe_items`` skips every
+        ``ia_id`` already in ``import_item``, failed ones included. ``failed``
+        is terminal, so no worker is holding these rows, and ``set_status``
+        keeps ``data`` on failure, so they can be imported again as-is.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='failed'",
+            vars={"batch_id": self.id},
+            status="pending",
+            error=None,
+            import_time=None,
+            ol_key=None,
+        )
+
+    def pause(self) -> int:
+        """Move this batch's pending items to ``needs_review``, returning how many.
+
+        Approving the batch puts them back to ``pending``.
+        """
+        return db.update(
+            "import_item",
+            where="batch_id=$batch_id AND status='pending'",
+            vars={"batch_id": self.id},
+            status="needs_review",
+        )
+
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
+
+    @staticmethod
+    def list_summaries(
+        status: str | None = None,
+        sort: str = "added_time",
+        order: str = "desc",
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[int, list[web.storage]]:
+        """Return ``(total, summaries)`` for one page of batches.
+
+        With ``status``, only batches holding at least one item of that status
+        are listed. ``status_counts`` always cover all of a batch's items.
+
+        Batches are driven from ``import_batch`` rather than by grouping
+        ``import_item``, which has far too many rows to aggregate in full on
+        every page view; items are only counted for the batches on the page.
+        """
+        if status is not None and status not in IMPORT_ITEM_STATUSES:
+            raise ValueError(f"invalid import_item status: {status!r}")
+        if sort not in BATCH_SORT_COLUMNS or order not in ("asc", "desc"):
+            raise ValueError(f"invalid sort: {sort!r} {order!r}")
+
+        where = "b.id IN (SELECT batch_id FROM import_item WHERE status = $status)" if status else "1=1"
+        sql_vars = {"status": status, "limit": limit, "offset": offset}
+        total = db.query(f"SELECT COUNT(*) AS count FROM import_batch b WHERE {where}", vars=sql_vars)[0].count
+        batches = list(
+            db.query(
+                f"SELECT b.id AS batch_id, b.name, b.submitter, b.submit_time AS added_time"
+                f" FROM import_batch b WHERE {where}"
+                f" ORDER BY {BATCH_SORT_COLUMNS[sort]} {order}, b.id {order}"
+                " LIMIT $limit OFFSET $offset",
+                vars=sql_vars,
+            )
+        )
+        if not batches:
+            return total, []
+
+        by_id = {}
+        for batch in batches:
+            batch.status_counts = {}
+            batch.comments = None
+            by_id[batch.batch_id] = batch
+        counts = db.query(
+            "SELECT batch_id, status, COUNT(*) AS count, MIN(comments) AS comments, MAX(submitter) AS submitter"
+            " FROM import_item WHERE batch_id IN $batch_ids"
+            " GROUP BY batch_id, status ORDER BY batch_id, status",
+            vars={"batch_ids": list(by_id)},
+        )
+        for row in counts:
+            batch = by_id[row.batch_id]
+            batch.status_counts[row.status] = row.count
+            if row.comments is not None and (batch.comments is None or row.comments < batch.comments):
+                batch.comments = row.comments
+            # import_batch.submitter is not set by every importer.
+            batch.submitter = batch.submitter or row.submitter
+        return total, batches
 
 
 class ImportItem(web.storage):
@@ -140,6 +397,11 @@ class ImportItem(web.storage):
             return map(ImportItem, result)
 
         return None
+
+    def is_pending(self) -> bool:
+        """Whether this item is still ``pending`` in the database, e.g. its batch wasn't paused."""
+        rows = db.select("import_item", what="status", where="id=$id", vars={"id": self.id})
+        return bool(rows) and rows[0].status == "pending"
 
     @staticmethod
     def find_staged_or_pending(identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:
@@ -199,7 +461,7 @@ class ImportItem(web.storage):
                 if reply.get("success") and "edition" in reply:
                     edition = reply["edition"]
                     self.set_status(edition["status"], ol_key=edition["key"])  # type: ignore[index]
-                    return web.ctx.site.get(edition["key"])  # type: ignore[index]
+                    return site.get().get(edition["key"])  # type: ignore[index]
                 else:
                     error_code = reply.get("error_code", "unknown-error")
                     self.set_status("failed", error=error_code)
@@ -242,7 +504,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": datetime.datetime.utcnow(),
+            "import_time": dt.datetime.now(dt.UTC).replace(tzinfo=None),
         }
         if status != "failed":
             d = dict(**d, data=None)
@@ -383,9 +645,23 @@ class Stats:
             else cls._get_books_imported_per_day
         )()
 
+    # web.db's `order=` kwarg is not parameterized; restrict to a fixed set
+    # so this stays robust even if a future caller forwards user input as the
+    # `order` argument (the bug shape fixed for /merges in PR #12460).
+    _ALLOWED_ORDERS: Final = {
+        None: None,
+        "import_time desc": "import_time desc",
+        "import_time asc": "import_time asc",
+        "added_time desc": "added_time desc",
+        "added_time asc": "added_time asc",
+    }
+
     @staticmethod
     def get_items(date=None, order=None, limit=None):
         """Returns all rows with given added date."""
+        if order not in Stats._ALLOWED_ORDERS:
+            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(Stats._ALLOWED_ORDERS)}.")
+        order = Stats._ALLOWED_ORDERS[order]
         where = "added_time::date = $date" if date else "1 = 1"
         try:
             return db.select("import_item", where=where, order=order, limit=limit, vars=locals())

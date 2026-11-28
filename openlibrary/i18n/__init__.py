@@ -1,5 +1,7 @@
 import functools
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -8,12 +10,12 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-import babel
 import web
 from babel.messages import Catalog, Message
 from babel.messages.extract import (
     extract_from_dir,
     extract_from_file,
+    extract_javascript,
     extract_python,
 )
 from babel.messages.mofile import write_mo
@@ -22,7 +24,7 @@ from babel.support import Translations
 
 from openlibrary.utils.request_context import req_context
 
-from .validators import validate
+from .validators import check_source_string, render_errors, validate
 
 root = os.path.dirname(__file__)
 
@@ -42,7 +44,7 @@ def warning_color_fn(text: str) -> str:
     return "\033[93m" + text + "\033[0m"
 
 
-def get_untracked_files(dirs: list[str], extensions: tuple[str, str] | str) -> set[Path]:
+def get_untracked_files(dirs: list[str], extensions: tuple[str, ...] | str) -> set[Path]:
     """Returns a set of all currently untracked files with specified extension(s)."""
     untracked_files = {
         Path(line)
@@ -110,12 +112,12 @@ def validate_translations(args: list[str]):
                 for w in warnings:
                     print(warning_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + w)
 
-                    if errors:
-                        num_errors += len(errors)
-                        error_print.append(
-                            error_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + repr(message.string),
-                        )
-                        error_print.extend(errors)
+                if errors:
+                    num_errors += len(errors)
+                    error_print.append(
+                        error_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + repr(message.string),
+                    )
+                    error_print.extend(errors)
 
             if num_errors == 0:
                 print(success_color_fn(f'Translations for locale "{locale}" are valid!'))
@@ -149,6 +151,43 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
+def extract_vue(fileobj, keywords, comment_tags, options):
+    """Extract i18n messages from a Vue single-file component's ``<script>`` blocks.
+
+    Babel's JavaScript extractor can't read the ``<template>``, so a ``.vue`` file calls
+    ``_()`` in its script and the template shows the result. A call anywhere outside the
+    scripts is an error, since it would never be translated.
+    """
+    source = fileobj.read().decode("utf-8")
+    scripts = list(re.finditer(r"<script[^>]*>(.*?)</script[^>]*>", source, re.DOTALL | re.IGNORECASE))
+    outside_scripts = re.sub(r"<script[^>]*>.*?</script[^>]*>", "", source, flags=re.DOTALL | re.IGNORECASE)
+    if re.search(r"\b(?:_|n?gettext)\(", outside_scripts):
+        raise ValueError(f"{getattr(fileobj, 'name', 'a .vue file')}: call _() in <script>, not <template>, or it won't be extracted")
+    for script in scripts:
+        offset = source[: script.start(1)].count("\n")
+        for lineno, funcname, message, comments in extract_javascript(BytesIO(script[1].encode("utf-8")), keywords, comment_tags, options):
+            yield lineno + offset, funcname, message, comments
+
+
+# Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location
+# comments that list which templates use each string. When a string gains or loses one
+# file, that wrapping re-flows the whole block and rewrites filenames that didn't change,
+# turning unrelated edits into overlapping diffs and causing spurious merge conflicts.
+# Writing with a very large width disables wrapping, so each location comment stays on a
+# single line and adding a file just extends that line — unrelated changes no longer
+# share, or conflict on, any lines. (``width=0`` does *not* work: Babel mirrors
+# ``xgettext`` and always wraps comments at 76 regardless, while only unwrapping the
+# message text — the opposite of what we want.)
+POT_WIDTH = 1_000_000
+
+
+# Where JavaScript's ``_()`` / ``ngettext()`` calls live, relative to the repository root.
+JAVASCRIPT_SOURCES = ("openlibrary/components", "openlibrary/plugins/openlibrary/js")
+JAVASCRIPT_METHODS = [("**.js", "javascript"), ("**.vue", "openlibrary.i18n:extract_vue")]
+# Lit templates are tagged template literals; without this, calls inside them are missed.
+JAVASCRIPT_OPTIONS = {"**.js": {"parse_template_string": True}, "**.vue": {"parse_template_string": True}}
+
+
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
     # Occasional manual bumps are fine to make it more up-to-date
@@ -158,21 +197,29 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         copyright_holder="Internet Archive",
         creation_date=fixed_creation_date,
     )
-    METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
+    METHODS = [
+        ("**.py", "python"),
+        ("**.html", "openlibrary.i18n:extract_templetor"),
+        ("**.jinja", "jinja2.ext:babel_extract"),
+        *JAVASCRIPT_METHODS,
+    ]
+    OPTIONS = JAVASCRIPT_OPTIONS
     COMMENT_TAGS = ["NOTE:"]
 
     skipped_files = set()
     if skip_untracked:
-        skipped_files = get_untracked_files(sources, (".py", ".html"))
+        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja", ".js", ".vue"))
 
     for source in map(Path, sources):
         counts: dict[Path, int] = {}
 
         if source.is_file():
+            glob, method = next((glb, method) for (glb, method) in METHODS if source.match(glb))
             extracted = extract_from_file(
-                next(method for (glb, method) in METHODS if source.match(glb)),
+                method,
                 source,
                 comment_tags=COMMENT_TAGS,
+                options=OPTIONS.get(glob),
                 strip_comment_tags=True,
             )
 
@@ -182,6 +229,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
             extracted = extract_from_dir(
                 source,
                 METHODS,
+                OPTIONS,
                 comment_tags=COMMENT_TAGS,
                 strip_comment_tags=True,
             )
@@ -201,13 +249,29 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
 
     path = os.path.join(root, "messages.pot")
     with open(path, "wb") as f:
-        write_po(f, catalog, include_lineno=False)
+        write_po(f, catalog, include_lineno=False, width=POT_WIDTH)
 
     print("Updated strings written to", path)
+    return check_source_strings(catalog)
+
+
+def check_source_strings(catalog: Catalog) -> list[str]:
+    """`path:line: problem` for every English msgid that translators can't translate well."""
+    problems = []
+    for message in catalog:
+        if not message.id:
+            continue
+        msgids = message.id if message.pluralizable else (message.id,)
+        found = [p for msgid in msgids for p in check_source_string(str(msgid))]
+        for problem in dict.fromkeys(found):
+            for path, lineno in message.locations:
+                problems.append(f"{path}:{lineno}: {problem}\n    {msgids[0]!r}")
+    return problems
 
 
 def compile_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
+    javascript_msgids = _javascript_msgids()
 
     for locale in locales_to_update:
         po_path = os.path.join(root, locale, "messages.po")
@@ -215,6 +279,77 @@ def compile_translations(locales: list[str]):
 
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
+            _write_javascript_catalog(locale, javascript_msgids)
+
+
+def _write_javascript_catalog(locale: str, msgids: list[str | tuple[str, str]]) -> None:
+    """Write ``static/build/i18n/<locale>.js``, which the page head loads for ``i18n.js``.
+
+    It defines ``window.OL_I18N`` (the strings), ``window.OL_I18N_PLURALS`` (each plural's
+    forms in the .po's order) and ``window.OL_I18N_PLURAL_RULE`` (the .po's own Plural-Forms
+    rule, which picks a form's index), so the browser picks a plural's form exactly as the
+    server does. Plurals stay out of ``OL_I18N``: an ``i18n.js`` and a catalog from different
+    builds then show a plural in English rather than misreading it.
+    """
+    path = Path(root).parents[1] / "static" / "build" / "i18n" / f"{locale}.js"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    strings, plurals = javascript_catalog(locale, msgids)
+    rule = plural_rule(load_translations(locale))
+    # ASCII-only JSON, so the file reads the same whatever charset it's served with.
+    path.write_text(
+        f"window.OL_I18N = {json.dumps(strings, sort_keys=True)};\n"
+        f"window.OL_I18N_PLURALS = {json.dumps(plurals, sort_keys=True)};\n"
+        f"window.OL_I18N_PLURAL_RULE = function (n) {{ return Number({rule}); }};\n"
+    )
+
+
+def check_po_file(po_path: str) -> list[str]:
+    """Reasons this .po file is unsafe to ship, or an empty list if it is safe.
+
+    Unsafe means it would break ``make i18n`` (does not parse or compile), the
+    compiled .mo would not load the way ``load_translations`` loads it (e.g. a
+    malformed Plural-Forms header), or a translation that gets compiled would
+    raise when rendered. Fuzzy entries are skipped because ``write_mo`` leaves
+    them out of the .mo.
+    """
+    try:
+        with open(po_path, "rb") as po_file:
+            catalog = read_po(po_file, abort_invalid=True)
+        mo = BytesIO()
+        write_mo(mo, catalog)
+        mo.seek(0)
+        translations = Translations(mo)
+        for n in range(1000):
+            translations.plural(n)
+    except Exception as e:
+        return [f"does not parse/compile/load: {type(e).__name__}: {e}"]
+
+    errors: list[str] = []
+    for message in catalog:
+        if message.id and not message.fuzzy:
+            errors.extend(f"line {message.lineno}: {err}" for err in render_errors(message))
+    return errors
+
+
+def install_translations(source: str, dest: str = root) -> dict[str, list[str]]:
+    """Copy ``<source>/<locale>/messages.po`` over ``<dest>/<locale>/messages.po``
+    for every locale whose file passes ``check_po_file``.
+
+    A locale that fails keeps whatever file ``dest`` already has. Returns each
+    locale's problems; an empty list means it was installed.
+    """
+    locales = sorted(d for d in os.listdir(source) if os.path.isfile(os.path.join(source, d, "messages.po")))
+    if not locales:
+        raise ValueError(f"no locales with a messages.po found in {source}")
+
+    results = {}
+    for locale in locales:
+        src_po = os.path.join(source, locale, "messages.po")
+        results[locale] = check_po_file(src_po)
+        if not results[locale]:
+            os.makedirs(os.path.join(dest, locale), exist_ok=True)
+            shutil.copyfile(src_po, os.path.join(dest, locale, "messages.po"))
+    return results
 
 
 def update_translations(locales: list[str]):
@@ -314,27 +449,91 @@ def generate_po(args):
         print("Add failed. Missing required locale code.")
 
 
-@functools.cache
-def load_translations(lang):
+@functools.lru_cache(maxsize=256)
+def load_translations(lang: str):
+    """Cache translations without retaining unlimited request-provided locales."""
     mo_path = os.path.join(root, lang, "messages.mo")
 
     if os.path.exists(mo_path):
         return Translations(open(mo_path, "rb"))
 
 
-@functools.cache
-def load_locale(lang):
-    try:
-        return babel.Locale(lang)
-    except babel.UnknownLocaleError:
-        pass
+# A C plural expression is also valid JavaScript; nothing outside these characters belongs in one.
+_PLURAL_RULE = re.compile(r"[n0-9\s()?:<>=!&|%]+")
+
+
+def plural_rule(translations: Translations | None) -> str:
+    """The ``plural=`` expression from these translations' Plural-Forms header, as the server
+    evaluates it: gettext's ``n != 1`` when there is no header."""
+    header = translations.info().get("plural-forms", "") if translations else ""
+    match = re.search(r"plural=([^;]*)", header)
+    rule = match.group(1).strip() if match else "n != 1"
+    if not _PLURAL_RULE.fullmatch(rule):
+        raise ValueError(f"Unexpected characters in plural rule: {rule!r}")
+    return rule
+
+
+def _javascript_msgids() -> list[str | tuple[str, str]]:
+    """The strings JavaScript translates: the ``_()`` / ``ngettext()`` calls in ``JAVASCRIPT_SOURCES``.
+
+    Read from the sources rather than messages.pot, whose copy can lag them (testing's
+    integration branch keeps one PR's .pot when two PRs change it).
+    """
+    repo = Path(root).parents[1]
+    msgids: dict[str | tuple[str, str], None] = {}
+    for source in JAVASCRIPT_SOURCES:
+        for _filename, _lineno, message, _comments, _context in extract_from_dir(repo / source, JAVASCRIPT_METHODS, JAVASCRIPT_OPTIONS):
+            msgids[message] = None
+    return list(msgids)
+
+
+def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> tuple[dict[str, str], dict[str, list[str]]]:
+    """This language's translations of ``msgids`` (from ``_javascript_msgids()``), for ``i18n.js``.
+
+    Two maps: each string to its translation, and each plural's singular to its forms in the
+    .po's order, which ``window.OL_I18N_PLURAL_RULE`` indexes. Untranslated strings are left
+    out, so the browser shows the English it already has.
+    """
+    strings: dict[str, str] = {}
+    plurals: dict[str, list[str]] = {}
+    if not (translations := load_translations(lang)):
+        return strings, plurals
+    for msgid in msgids:
+        if isinstance(msgid, tuple):
+            singular, plural = msgid
+            forms = _plural_forms(translations, singular)
+            if any(form not in (singular, plural) for form in forms):
+                plurals[singular] = forms
+        elif (text := translations.ugettext(msgid)) != msgid:
+            strings[msgid] = text
+    return strings, plurals
+
+
+def _plural_forms(translations: Translations, singular: str) -> list[str]:
+    """Every form of a plural's translation, in the .po's order; empty when it has none."""
+    forms: list[str] = []
+    while (form := translations._catalog.get((singular, len(forms)))) is not None:
+        forms.append(form)
+    return forms
 
 
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
         # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-        translations = load_translations(req_context.get().lang)
+        try:
+            lang = req_context.get().lang
+        except LookupError:
+            lang = None
+
+        if not lang:
+            print(
+                "Warning: No language set in request context. Returning untranslated string.",
+                file=web.debug,
+            )
+            lang = "en"
+
+        translations = load_translations(lang)
         value = (translations and translations.ugettext(string)) or string
 
         if args:
@@ -391,13 +590,6 @@ def ungettext(s1, s2, _n, *a, **kw):
         return value % kw
     else:
         return value
-
-
-def gettext_territory(code):
-    """Returns the territory name in the current locale."""
-    # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-    locale = load_locale(req_context.get().lang)
-    return locale.territories.get(code, code)
 
 
 gettext = GetText()

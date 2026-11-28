@@ -6,7 +6,7 @@
  */
 
 import TableHeader from './MergeRequestTable/TableHeader';
-import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow';
+import { TableRow } from './MergeRequestTable/TableRow';
 
 /**
  * Class representing the librarian request table.
@@ -14,7 +14,6 @@ import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow';
  * @class
  */
 export default class MergeRequestTable {
-
     /**
      * Creates references to the table and its header and hydrates each.
      *
@@ -27,9 +26,6 @@ export default class MergeRequestTable {
          * @param {string}
          */
         this.username = mergeRequestTable.dataset.username;
-
-        const localizedStrings = JSON.parse(mergeRequestTable.dataset.i18n);
-        setI18nStrings(localizedStrings);
 
         /**
          * Reference to this table's header.
@@ -55,7 +51,7 @@ export default class MergeRequestTable {
      */
     initialize() {
         this.tableHeader.initialize();
-        document.addEventListener('click', (event) => this.tableHeader.closeMenusIfClickOutside(event));
+        document.addEventListener('click', event => this.tableHeader.closeMenusIfClickOutside(event));
         this.tableRows.forEach(elem => elem.initialize());
     }
 }

@@ -2,15 +2,6 @@ $def with (form, pd_options=[])
 
 $putctx("cssfile", "signup")
 
-$ i18n_strings = {
-    $ "invalid_email_format": _("Must be a valid email address"),
-    $ "username_length_err": _("Must be between 3 and 20 characters"),
-    $ "username_char_err": _("Username may only contain numbers, letters, - or _"),
-    $ "password_length_err": _("Must be between 3 and 20 characters"),
-    $ "missing_pda_err": _("A qualifying program must be selected"),
-    $ "loading_text": _("Loading...")
-    $ }
-
 $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
 
 $var title: $_("Sign Up to Open Library")
@@ -42,12 +33,14 @@ $var title: $_("Sign Up to Open Library")
                 $:input.render()
                 $if input.name == 'password':
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
-                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                        $:macros.icon("eye-off", label=_('Toggle Password Visibility'))
                     </a>
                 $else:
                     <div class="ol-signup-form__icon-wrap">
                         <img src="/static/images/bubble-loader.svg" class="ol-signup-form__icon ol-signup-form__icon--loading" title="$_('Loading...')" alt="$_('Loading...')" style="display:none"/>
-                        <img src="/static/images/icons/icon_check-circle.svg" class="ol-signup-form__icon ol-signup-form__icon--success" title="$_('Success!')" alt="$_('Success!')" style="display:none" />
+                        $# Wrapped so signup.js can keep show()/hide()-ing a single element:
+                        $# jQuery toggles the inline style, which the macro cannot emit.
+                        <span class="ol-signup-form__icon ol-signup-form__icon--success" style="display:none">$:macros.icon("circle-check", label=_('Success!'))</span>
                     </div>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>
@@ -59,7 +52,7 @@ $var title: $_("Sign Up to Open Library")
         <p>$:_("You are already logged into Open Library as %(user)s.", user=str(user_link()))</p>
         <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
     $else:
-        <form id="register" class="olform create create-form" name="signup" method="post" data-i18n="$json_encode(i18n_strings)" action="">
+        <form id="register" class="olform create create-form" name="signup" method="post" action="">
             $if form.note:
                 <div class="flash-messages">
                     <div class="error ol-signup-form__info-box">

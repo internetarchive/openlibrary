@@ -1,10 +1,11 @@
+import { _ } from './i18n.js';
 import { buildPartialsUrl } from './utils';
 
 export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
     const isLoading = showLoadingIndicators(fulltextSearchSuggestion);
     if (isLoading) {
-        const query = fulltextSearchSuggestion.dataset.query;
-        getPartials(fulltextSearchSuggestion, query);
+        const { query, exclude } = fulltextSearchSuggestion.dataset;
+        getPartials(fulltextSearchSuggestion, query, exclude);
     }
 }
 
@@ -17,15 +18,21 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
     }
     return isLoading;
 }
-async function getPartials(fulltextSearchSuggestion, query) {
-    return fetch(buildPartialsUrl('FulltextSearchSuggestion', {data: query}))
-        .then((resp) => {
+async function getPartials(fulltextSearchSuggestion, query, exclude = '') {
+    const params = { data: query };
+    if (exclude) params.exclude = exclude;
+    const providerPref = new URLSearchParams(window.location.search).get('providerPref');
+    if (providerPref) {
+        params.providerPref = providerPref;
+    }
+    return fetch(buildPartialsUrl('FulltextSearchSuggestion', params))
+        .then(resp => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
             }
             return resp.json();
         })
-        .then((data) => {
+        .then(data => {
             fulltextSearchSuggestion.innerHTML += data['partials'];
             const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator');
             if (loadingIndicator) {
@@ -45,10 +52,9 @@ async function getPartials(fulltextSearchSuggestion, query) {
                 const retryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-suggestions__retry');
                 retryAffordance.addEventListener('click', () => {
                     retryAffordance.classList.add('hidden');
-                    getPartials(fulltextSearchSuggestion, query);
+                    getPartials(fulltextSearchSuggestion, query, exclude);
                 });
             }
-
         });
 }
 
@@ -58,5 +64,5 @@ async function getPartials(fulltextSearchSuggestion, query) {
  * @returns {string} HTML for a retry link.
  */
 function renderRetryLink() {
-    return '<span class="fulltext-suggestions__retry">Failed to fetch fulltext search suggestions. <a href="javascript:;">Retry?</a></span>';
+    return `<span class="fulltext-suggestions__retry">${_('Failed to fetch fulltext search suggestions.')} <a href="javascript:;">${_('Retry?')}</a></span>`;
 }

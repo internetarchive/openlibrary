@@ -9,7 +9,8 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 import web
 
-from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils import server_timing
+from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -25,13 +26,22 @@ SolrRequestLabel = Literal[
     "BOOK_SEARCH",
     "BOOK_SEARCH_API",
     "BOOK_SEARCH_FACETS",
+    "BOOK_SEARCH_READABLE_COUNT",
     "BOOK_CAROUSEL",
     "AUTHOR_BOOKS_PAGE",
+    "AUTHOR_BOOKS_READABLE_COUNT",
+    "AUTHOR_BOOKS_PAGE_COUNT",
     # /get endpoint
     "GET_WORK_SOLR_DATA",
     # Subject, publisher pages
     "SUBJECT_ENGINE_PAGE",
     "SUBJECT_ENGINE_API",
+    # Cached "Notable authors" widget on subject pages
+    "SUBJECT_NOTABLE_AUTHORS",
+    # Async-loaded publishing-history chart on subject pages
+    "SUBJECT_PUBLISHING_HISTORY",
+    # Async-loaded related-subjects/places/people/times widget on subject pages
+    "SUBJECT_RELATED",
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     "EDITION_MATCH",
@@ -42,6 +52,11 @@ SolrRequestLabel = Literal[
     "SUBJECT_SEARCH_API",
     "AUTHOR_SEARCH",
     "AUTHOR_SEARCH_API",
+    "EDITION_SEARCH",
+    "EDITION_SEARCH_API",
+    # Picking the editions of a Tasks initiative, once per initiative
+    "CONTRIBUTE_INITIATIVE",
+    "READING_LOG_SORT",
 ]
 
 
@@ -52,7 +67,7 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.async_session = httpx.AsyncClient()
+        self.get_async_session = cache_per_event_loop(lambda: httpx.AsyncClient(transport=server_timing.TimedTransport("solr")))
 
     @staticmethod
     def escape(query):
@@ -75,7 +90,7 @@ class Solr:
         """Get a specific item from solr"""
         logger.debug(f"solr /get: {key}, {fields}")
         resp = (
-            await self.async_session.get(
+            await self.get_async_session().get(
                 f"{self.base_url}/get",
                 # It's unclear how field=None is getting in here; a better fix would be at the source.
                 params={
@@ -101,7 +116,7 @@ class Solr:
             return []
         logger.debug(f"solr /get: {ids}, {fields}")
         resp = (
-            await self.async_session.post(
+            await self.get_async_session().post(
                 f"{self.base_url}/get",
                 data={
                     "ids": ",".join(ids),
@@ -119,7 +134,7 @@ class Solr:
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
         resp = (
-            await self.async_session.post(
+            await self.get_async_session().post(
                 f"{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}",
                 json=request,
                 timeout=_timeout,
@@ -206,7 +221,7 @@ class Solr:
         """
         if path_or_url.startswith("http"):
             # TODO: Should this only take a path, not a full url? Would need to
-            # update worksearch.code.execute_solr_query accordingly.
+            # update worksearch.search.execute_solr_query accordingly.
             url = path_or_url
         else:
             url = f"{self.base_url}/{path_or_url.lstrip('/')}"
@@ -223,11 +238,11 @@ class Solr:
             sep = "&" if "?" in url else "?"
             url = url + sep + payload
             logger.debug("solr request: %s", url)
-            return await self.async_session.get(url, timeout=_timeout)
+            return await self.get_async_session().get(url, timeout=_timeout)
         else:
             logger.debug("solr request: %s ...", url)
             headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
-            return await self.async_session.post(url, data=payload, headers=headers, timeout=_timeout)
+            return await self.get_async_session().post(url, data=payload, headers=headers, timeout=_timeout)
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result["response"]
@@ -237,6 +252,7 @@ class Solr:
 
         d = web.storage()
         d.num_found = response["numFound"]
+        d.partial = bool(result.get("responseHeader", {}).get("partialResults"))
         d.docs = [doc_wrapper(doc) for doc in response["docs"]]
 
         if "facet_counts" in result:

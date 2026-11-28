@@ -1,5 +1,3 @@
-version: '3.1'
-
 services:
   db:
     profiles:
@@ -29,7 +27,7 @@ services:
   solr:
     profiles:
       - build
-    image: solr:10.0.0
+    image: solr:10.1.0
     restart: on-failure
     environment:
       # This is optimized for bulk loading, so a lot of the auto*Commits are disabled
@@ -57,7 +55,7 @@ services:
     profiles:
       - production
     restart: unless-stopped
-    image: solr:10.0.0
+    image: solr:10.1.0
     expose:
       - 8983
     ports:

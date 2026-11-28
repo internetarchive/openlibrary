@@ -1,19 +1,21 @@
 $def with (selected_layout)
 
-$code:
-  default_layout = 'details'
-  layout_options = [
-    { 'layout': 'details', 'name': _("Details"), 'ga_key': 'Details' },
-    { 'layout': 'grid', 'name': _("Grid"), 'ga_key': 'Grid' },
-  ]
+$# Must match the first segment: the control resolves an unknown value to it.
+$ default_layout = 'details'
 
-<span class="tools--layout tool-button tool-button--group" title="$_('View as: ')">
-  $for layout_option in layout_options:
-    $ is_selected = layout_option['layout'] == selected_layout or (selected_layout is None and layout_option['layout'] == default_layout)
-    <a
-      class="tool-button $cond(is_selected, 'active', '')"
-      data-value="$layout_option['layout']"
-      href="$changequery(layout=cond(layout_option['layout'] == default_layout, None, layout_option['layout']))"
-      data-ol-link-track="SearchLayout|$layout_option['ga_key']"
-    >$layout_option['name']</a>
-</span>
+$# `label` is both the accessible name and the hover tooltip. list_books.js
+$# owns what a change does; ?layout= is still resolved server-side.
+$# <ol-icon> rather than $:macros.icon(): the control re-renders each segment's
+$# innerHTML in its shadow root, where the sprite's <use href> can't resolve.
+<ol-segmented-control
+  class="tools--layout"
+  value="$(selected_layout or default_layout)"
+  accessible-label="$_('View as')"
+>
+  <ol-segment value="details" label="$_('List')">
+    <ol-icon name="list"></ol-icon>
+  </ol-segment>
+  <ol-segment value="grid" label="$_('Grid')">
+    <ol-icon name="layout-grid"></ol-icon>
+  </ol-segment>
+</ol-segmented-control>

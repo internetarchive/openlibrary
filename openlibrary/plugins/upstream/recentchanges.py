@@ -4,44 +4,42 @@ This should go into infogami.
 """
 
 import json
+import logging
 import math
 
 import web
 import yaml
 
-from infogami.utils import delegate, features
+from infogami.infobase import client
+from infogami.utils import delegate
 from infogami.utils.view import (
-    add_flash_message,  # noqa: F401 side effects may be needed
+    add_flash_message,
     public,
     render,
     render_template,
     safeint,
 )  # TODO: unused import?
 from openlibrary.accounts import get_current_user
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_changes
 from openlibrary.utils import dateutil
+from openlibrary.utils.request_context import site
 
 
 @public
 def recentchanges(query):
-    return web.ctx.site.recentchanges(query)
+    return site.get().recentchanges(query)
 
 
 class index2(delegate.page):
     path = "/recentchanges"
 
     def GET(self):
-        if features.is_enabled("recentchanges_v2"):
-            return index().render()
-        else:
-            return render.recentchanges()
+        return index().render()
 
 
 class index(delegate.page):
     path = "/recentchanges(/[^/0-9][^/]*)"
-
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
 
     def GET(self, kind):
         return self.render(kind=kind)
@@ -95,7 +93,7 @@ class index(delegate.page):
         query["limit"] = limit
         query["offset"] = offset
 
-        result = [c.dict() for c in web.ctx.site.recentchanges(query)]
+        result = [c.dict() for c in site.get().recentchanges(query)]
 
         if encoding == "json":
             response = json.dumps(result)
@@ -129,12 +127,9 @@ class index_with_date(index):
 class recentchanges_redirect(delegate.page):
     path = r"/recentchanges/goto/(\d+)"
 
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
-
     def GET(self, id):
         id = int(id)
-        change = web.ctx.site.get_change(id)
+        change = site.get().get_change(id)
         if not change:
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
@@ -144,9 +139,6 @@ class recentchanges_redirect(delegate.page):
 
 class recentchanges_view(delegate.page):
     path = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
-
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
 
     def get_change_url(self, change):
         t = change.timestamp
@@ -160,7 +152,7 @@ class recentchanges_view(delegate.page):
 
     def GET(self, id):
         id = int(id)
-        change = web.ctx.site.get_change(id)
+        change = site.get().get_change(id)
         if not change:
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
@@ -184,21 +176,32 @@ class recentchanges_view(delegate.page):
 
     # Required for reverting changesets
     def POST(self, id):
-        allowed_usergroups = ["/usergroup/admin", "/usergroup/super-librarians"]
-        if not (user := get_current_user()) or not (user.is_member_of_any(allowed_usergroups)):
+        if not (user := get_current_user()) or not user.is_super_librarian_or_higher():
             raise web.unauthorized()
-        if not features.is_enabled("undo"):
-            return render_template("permission_denied", web.ctx.path, "Permission denied to undo.")
-
         id = int(id)
-        change = web.ctx.site.get_change(id)
-        change._undo()
+        change = site.get().get_change(id)
+        if not change:
+            web.ctx.status = "404 Not Found"
+            return render.notfound(web.ctx.path)
+        if undo_error := change.get_undo_error():
+            # The undo's save would be rejected by infobase validation, e.g.
+            # because pre-merge records reference authors that have since been
+            # merged into other authors. See internetarchive/openlibrary#5664.
+            add_flash_message("error", undo_error)
+        else:
+            try:
+                change._undo()
+            except client.ClientException as e:
+                # Fallback for failures the pre-check can't anticipate. The
+                # infobase write is atomic, so nothing was partially undone.
+                logging.getLogger("openlibrary").exception("Failed to undo changeset %s: %s", id, e)
+                add_flash_message("error", _("This change could not be undone automatically."))
         raise web.seeother(change.url())
 
 
 class history(delegate.mode):
     def GET(self, path):
-        page = web.ctx.site.get(path)
+        page = site.get().get(path)
         if not page:
             raise web.seeother(path)
         i = web.input(page=1)

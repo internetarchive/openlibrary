@@ -16,7 +16,7 @@ __version__ = "0.1"
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
 
 
-import datetime
+import datetime as dt
 import json
 import logging
 import os
@@ -117,6 +117,10 @@ class OpenLibrary:
         if "Set-Cookie" in response.headers:
             cookies = response.headers["Set-Cookie"].split(",")
             self.cookie = ";".join([c.split(";")[0] for c in cookies])
+
+        status = response.code if isinstance(response, OLError) else response.status_code
+        cookie_names = [c.split("=", 1)[0].strip() for c in (self.cookie or "").split(";") if "=" in c]
+        logger.info("login status=%s location=%s cookies=%s", status, response.headers.get("Location"), cookie_names)
 
     def get(self, key, v=None):
         response = self._request(key + ".json", params={"v": v} if v else {})
@@ -227,20 +231,22 @@ class OpenLibrary:
         return self._request("/api/import/ia", method="POST", data=data).text
 
     def import_data(self, data):
-        return self._request("/api/import", method="POST", data=data).text
+        # Content-Type required on prod for some reason
+        headers = {"Content-Type": "application/json"}
+        return self._request("/api/import", method="POST", data=data, headers=headers).text
 
 
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
 
-    >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
+    >>> marshal(dt.datetime(2009, 1, 2, 3, 4, 5, 6789))
     {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
     """
     if isinstance(data, list):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
         return {k: marshal(v) for k, v in data.items()}
-    elif isinstance(data, datetime.datetime):
+    elif isinstance(data, dt.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
         return {"type": "/type/text", "value": str(data)}
@@ -283,11 +289,11 @@ def parse_datetime(value):
     >>> parse_datetime("2009-01-02T03:04:05.006789")
     datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
-    if isinstance(value, datetime.datetime):
+    if isinstance(value, dt.datetime):
         return value
     else:
         tokens = re.split(r"-|T|:|\.| ", value)
-        return datetime.datetime(*map(int, tokens))
+        return dt.datetime(*map(int, tokens))
 
 
 class Text(str):

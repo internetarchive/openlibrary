@@ -1,12 +1,11 @@
-import { FadingToast } from './Toast';
+import { showToast } from '../../../components/lit/toast.js';
+import { _ } from './i18n.js';
 
 export function initPrivateButtons(buttons) {
     buttons.forEach(button => {
-        button.addEventListener('click', (event) => {
+        button.addEventListener('click', event => {
             event.preventDefault();
-            const toast = new FadingToast('This patron has not enabled following', null, 3000);
-            toast.show();
-
+            showToast(_('This patron has not enabled following'));
         });
     });
 }

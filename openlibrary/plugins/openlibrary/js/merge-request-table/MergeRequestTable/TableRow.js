@@ -5,13 +5,8 @@
  */
 
 import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService';
-import { FadingToast } from '../../Toast';
-
-let i18nStrings;
-
-export function setI18nStrings(localizedStrings) {
-    i18nStrings = localizedStrings;
-}
+import { _ } from '../../i18n.js';
+import { showToast } from '../../../../../components/lit/toast.js';
 
 /**
  * Represents a row in the librarian request table.
@@ -166,8 +161,9 @@ export class TableRow {
      * row from the DOM.
      */
     async closeRequest() {
-        const comment = prompt(i18nStrings['close_request_comment_prompt']);
-        if (comment !== null) {  // Comment will be `null` if "Cancel" button pressed
+        const comment = prompt(_('(Optional) Why are you closing this request?'));
+        if (comment !== null) {
+            // Comment will be `null` if "Cancel" button pressed
             await declineRequest(this.mrid, comment)
                 .then(result => result.json())
                 .then(data => {
@@ -197,7 +193,7 @@ export class TableRow {
                         this.updateCommentViews(comment);
                         this.commentReplyInput.value = '';
                     } else {
-                        new FadingToast(i18nStrings['comment_submission_failure_message']).show();
+                        showToast(_('Failed to submit comment. Please try again in a few moments.'), { type: 'error' });
                     }
                 })
                 .catch(e => {
@@ -221,10 +217,16 @@ export class TableRow {
         // Update preview:
         this.commentPreview.innerText = escapedComment.textContent;
 
-        // Update full display:
+        // Update full display. `username` is user-controlled, so build the
+        // commenter label with safe DOM construction rather than innerHTML
+        // (GHSA-6xcf): render it as text, not markup.
         const newComment = document.createElement('div');
         newComment.classList.add('comment-panel__comment');
-        newComment.innerHTML = `<span class="commenter">@${this.username}</span> `;
+        const commenter = document.createElement('span');
+        commenter.className = 'commenter';
+        commenter.textContent = `@${this.username}`;
+        newComment.appendChild(commenter);
+        newComment.appendChild(document.createTextNode(' '));
         newComment.appendChild(escapedComment);
 
         this.commentsDisplay.appendChild(newComment);

@@ -1,3 +1,4 @@
+import pytest
 import web
 
 from infogami.infobase import client, common
@@ -12,14 +13,16 @@ from openlibrary.plugins.upstream.merge_authors import (
     space_squash_and_strip,
 )
 from openlibrary.utils import dicthash
+from openlibrary.utils.request_context import site
 
 
-def setup_module(mod):
-    # delegate.fakeload()
-
+@pytest.fixture(autouse=True, scope="module")
+def setup_models():
     # Configure test database settings before calling models.setup().
-    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    models.setup()
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setitem(web.config, "db_parameters", {"dbn": "sqlite", "db": ":memory:"})
+        models.setup()
+        yield
 
 
 class MockSite(client.Site):
@@ -137,6 +140,7 @@ class TestBasicMergeEngine:
 
 def test_get_many():
     web.ctx.site = MockSite()
+    site.set(web.ctx.site)
     # get_many should handle bad table_of_contents in the edition.
     edition = {
         "key": "/books/OL1M",
@@ -144,9 +148,9 @@ def test_get_many():
         "table_of_contents": [{"type": "/type/text", "value": "foo"}],
     }
     type_edition = {"key": "/type/edition", "type": {"key": "/type/type"}}
-    web.ctx.site.add([edition, type_edition])
+    site.get().add([edition, type_edition])
 
-    assert web.ctx.site.get("/books/OL1M").type.key == "/type/edition"
+    assert site.get().get("/books/OL1M").type.key == "/type/edition"
 
     assert get_many(["/books/OL1M"])[0] == {
         "key": "/books/OL1M",
@@ -158,6 +162,7 @@ def test_get_many():
 class TestAuthorRedirectEngine:
     def setup_method(self, method):
         web.ctx.site = MockSite()
+        site.set(web.ctx.site)
 
     def test_fix_edition(self):
         update_references = AuthorRedirectEngine().update_references
@@ -223,36 +228,37 @@ class TestAuthorMergeEngine:
     def setup_method(self, method):
         self.engine = AuthorMergeEngine(AuthorRedirectEngine())
         web.ctx.site = MockSite()
+        site.set(web.ctx.site)
 
     def test_redirection(self):
-        web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
+        site.get().add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
         self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
 
         # assert redirection
-        assert web.ctx.site.get("/authors/b").dict() == {
+        assert site.get().get("/authors/b").dict() == {
             "key": "/authors/b",
             "type": {"key": "/type/redirect"},
             "location": "/authors/a",
         }
-        assert web.ctx.site.get("/authors/c").dict() == {
+        assert site.get().get("/authors/c").dict() == {
             "key": "/authors/c",
             "type": {"key": "/type/redirect"},
             "location": "/authors/a",
         }
 
     def test_alternate_names(self):
-        web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
+        site.get().add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
         self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
-        assert web.ctx.site.get("/authors/a").alternate_names == ["b", "c"]
+        assert site.get().get("/authors/a").alternate_names == ["b", "c"]
 
     def test_photos(self):
         a = dict(TEST_AUTHORS.a, photos=[1, 2])
         b = dict(TEST_AUTHORS.b, photos=[3, 4])
 
-        web.ctx.site.add([a, b])
+        site.get().add([a, b])
         self.engine.merge("/authors/a", ["/authors/b"])
 
-        photos = web.ctx.site.get("/authors/a").photos
+        photos = site.get().get("/authors/a").photos
         assert photos == [1, 2, 3, 4]
 
     def test_links(self):
@@ -261,10 +267,10 @@ class TestAuthorMergeEngine:
 
         a = dict(TEST_AUTHORS.a, links=[link_a])
         b = dict(TEST_AUTHORS.b, links=[link_b])
-        web.ctx.site.add([a, b])
+        site.get().add([a, b])
 
         self.engine.merge("/authors/a", ["/authors/b"])
-        links = web.ctx.site.get("/authors/a").dict()["links"]
+        links = site.get().get("/authors/a").dict()["links"]
         assert links == [link_a, link_b]
 
     def test_new_field(self):
@@ -274,10 +280,10 @@ class TestAuthorMergeEngine:
         birth_date = "1910-01-02"
         a = TEST_AUTHORS.a
         b = dict(TEST_AUTHORS.b, birth_date=birth_date)
-        web.ctx.site.add([a, b])
+        site.get().add([a, b])
 
         self.engine.merge("/authors/a", ["/authors/b"])
-        master_birth_date = web.ctx.site.get("/authors/a").get("birth_date")
+        master_birth_date = site.get().get("/authors/a").get("birth_date")
         assert master_birth_date == birth_date
 
     def test_work_authors(self):
@@ -288,17 +294,17 @@ class TestAuthorMergeEngine:
             "type": {"key": "/type/work"},
             "authors": [{"type": "/type/author_role", "author": {"key": "/authors/b"}}],
         }
-        web.ctx.site.add([a, b, work_b])
+        site.get().add([a, b, work_b])
 
         q = {
             "type": "/type/work",
             "authors": {"author": {"key": "/authors/b"}},
             "limit": 10000,
         }
-        web.ctx.site.add_query(q, ["/works/OL1W"])
+        site.get().add_query(q, ["/works/OL1W"])
 
         self.engine.merge("/authors/a", ["/authors/b"])
-        assert web.ctx.site.get_dict("/works/OL1W") == {
+        assert site.get().get_dict("/works/OL1W") == {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
             "authors": [{"type": "/type/author_role", "author": {"key": "/authors/a"}}],
@@ -318,11 +324,11 @@ class TestAuthorMergeEngine:
 
         c = dict(TEST_AUTHORS.c, remote_ids={"wikidata": "Q12346", "viaf": "123456"})
 
-        web.ctx.site.add([a, b, c])
+        site.get().add([a, b, c])
         self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
 
         # The Wikidata ID should be merged into the master
-        master_remote_ids = dict(web.ctx.site.get("/authors/a").get("remote_ids"))
+        master_remote_ids = dict(site.get().get("/authors/a").get("remote_ids"))
         assert master_remote_ids == {
             "wikidata": "Q12345",
             "viaf": "123456",

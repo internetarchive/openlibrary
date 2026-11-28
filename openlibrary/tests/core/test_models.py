@@ -1,8 +1,158 @@
+from unittest.mock import Mock, PropertyMock, patch
+
 import pytest
 import web
 
 from openlibrary.core import models
 from openlibrary.mocks import mock_infobase
+from openlibrary.utils.request_context import Visitor, visitor
+from openlibrary.utils.request_context import site as site_var
+
+
+class _FakeGroup:
+    def __init__(self, key: str):
+        self.key = key
+
+
+class TestUserGroupMembership:
+    @pytest.mark.parametrize(
+        ("group_keys", "check_groups", "expected"),
+        [
+            ([], ["/usergroup/librarians"], False),
+            ([], ["/usergroup/librarians", "/usergroup/admin"], False),
+            (["/usergroup/librarians"], ["/usergroup/librarians"], True),
+            (["/usergroup/librarians"], ["/usergroup/admin"], False),
+            (["/usergroup/librarians", "/usergroup/admin"], ["/usergroup/librarians"], True),
+            (["/usergroup/admin"], ["/usergroup/librarians", "/usergroup/admin"], True),
+            (["/usergroup/admin"], ["/usergroup/librarians", "/usergroup/super-librarians"], False),
+            ([], [], False),
+        ],
+    )
+    def test_is_member_of_any(self, monkeypatch, group_keys, check_groups, expected):
+        groups = [_FakeGroup(k) for k in group_keys]
+        user = models.User(MockSite(), "/people/test", data={})
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=groups),
+        )
+        assert user.is_member_of_any(check_groups) == expected
+
+    @pytest.mark.parametrize(
+        ("group_keys", "check_group", "expected"),
+        [
+            ([], "librarians", False),
+            ([], "/usergroup/librarians", False),
+            (["/usergroup/librarians"], "librarians", True),
+            (["/usergroup/librarians"], "/usergroup/librarians", True),
+            (["/usergroup/librarians"], "admin", False),
+            (["/usergroup/librarians"], "/usergroup/admin", False),
+            (["/usergroup/admin"], "librarians", False),
+            (["/usergroup/super-librarians"], "super-librarians", True),
+        ],
+    )
+    def test_is_usergroup_member(self, monkeypatch, group_keys, check_group, expected):
+        groups = [_FakeGroup(k) for k in group_keys]
+        user = models.User(MockSite(), "/people/test", data={})
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=groups),
+        )
+        assert user.is_usergroup_member(check_group) == expected
+
+    def test_is_librarian_or_higher(self, monkeypatch):
+        user = models.User(MockSite(), "/people/test", data={})
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]),
+        )
+        assert user.is_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/admin")]),
+        )
+        assert user.is_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/super-librarians")]),
+        )
+        assert user.is_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[]),
+        )
+        assert user.is_librarian_or_higher() is False
+
+    def test_is_librarian_or_higher_marks_the_visitor(self, monkeypatch):
+        monkeypatch.setattr(models.User, "usergroups", PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]))
+        token = visitor.set(me := Visitor(user_key="/people/test"))
+        try:
+            models.User(MockSite(), "/people/someone-else", data={}).is_librarian_or_higher()
+            assert me.is_librarian is False
+            models.User(MockSite(), "/people/test", data={}).is_librarian_or_higher()
+            assert me.is_librarian is True
+        finally:
+            visitor.reset(token)
+
+    def test_is_super_librarian_or_higher(self, monkeypatch):
+        user = models.User(MockSite(), "/people/test", data={})
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/super-librarians")]),
+        )
+        assert user.is_super_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/admin")]),
+        )
+        assert user.is_super_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]),
+        )
+        assert user.is_super_librarian_or_higher() is False
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[]),
+        )
+        assert user.is_super_librarian_or_higher() is False
+
+
+class TestUserIsPrintDisabled:
+    """``User.is_printdisabled()`` must read the unified request context, not
+    ``web.cookies()``: FastAPI has no ``web.ctx``, so reading the ``pd``
+    cookie there always returned nothing and print-disabled patrons lost
+    Special Access on FastAPI-rendered carousels and partials.
+    """
+
+    def test_true_from_request_context(self, request_context_fixture, monkeypatch):
+        # Simulate FastAPI: no web.py request exists, so web.cookies() raises.
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        request_context_fixture(print_disabled=True)
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is True
+
+    def test_false_from_request_context(self, request_context_fixture, monkeypatch):
+        monkeypatch.setattr(web, "cookies", Mock(side_effect=RuntimeError("no web.py request")))
+        user = models.User(MockSite(), "/people/test", data={})
+        assert user.is_printdisabled() is False
 
 
 class MockSite:
@@ -153,16 +303,32 @@ class TestWork:
         work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
         work4 = {"key": work4_key, "type": type_work}
 
-        site = mock_infobase.MockSite()
-        site.save(web.storage(work1))
-        site.save(web.storage(work2))
-        site.save(web.storage(work3))
-        site.save(web.storage(work4))
-        monkeypatch.setattr(web.ctx, "site", site, raising=False)
+        mock_site = mock_infobase.MockSite()
+        mock_site.save(web.storage(work1))
+        mock_site.save(web.storage(work2))
+        mock_site.save(web.storage(work3))
+        mock_site.save(web.storage(work4))
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        token = site_var.set(mock_site)
 
-        work_key = "/works/OL123W"
-        redirect_chain = models.Work.get_redirect_chain(work_key)
-        assert redirect_chain
-        resolved_work = redirect_chain[-1]
-        assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
-        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        try:
+            work_key = "/works/OL123W"
+            redirect_chain = models.Work.get_redirect_chain(work_key)
+            assert redirect_chain
+            resolved_work = redirect_chain[-1]
+            assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+            assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        finally:
+            site_var.reset(token)
+
+
+class TestLoggedBooksDataLoadRatings:
+    def test_load_ratings_batches_and_keeps_doc_order(self):
+        docs = [web.storage(key=key) for key in ("/works/OL3W", "/works/OL1W", "/works/OL2W")]
+        data = models.LoggedBooksData(username="alice", page_size=25, total_results=3, shelf_totals={}, docs=docs)
+
+        with patch.object(models.Ratings, "get_users_ratings_of_works_sync", return_value={1: 5, 3: 2}) as get_ratings:
+            data.load_ratings()
+
+        get_ratings.assert_called_once_with("alice", [3, 1, 2])
+        assert data.ratings == [2, 5, 0]

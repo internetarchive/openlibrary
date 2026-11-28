@@ -4,10 +4,11 @@
 
 import json
 import sys
-from typing import Any
-from unittest.mock import MagicMock
+from typing import Any, ClassVar
+from unittest.mock import MagicMock, patch
 
 import pytest
+import web
 
 # TODO: Can we remove _init_path someday :(
 sys.modules["_init_path"] = MagicMock()
@@ -19,6 +20,7 @@ from scripts.affiliate_server import (
     get_isbns_from_book,
     get_isbns_from_books,
     get_pending_books,
+    load_config,
     make_cache_key,
     process_google_book,
 )
@@ -69,7 +71,7 @@ def test_get_editions_for_books(mock_site):  # noqa: F811
     Attempting to save many ol editions and then get them back...
     """
     start = len(mock_site.docs)
-    mock_site.save_many(ol_editions.values())
+    mock_site.save_many(list(ol_editions.values()))
     assert len(mock_site.docs) - start == len(ol_editions)
     editions = get_editions_for_books(amz_books.values())
     assert len(editions) == len(ol_editions)
@@ -84,7 +86,7 @@ def test_get_pending_books(mock_site):  # noqa: F811
     assert len(get_pending_books(amz_books.values())) == len(amz_books)
     # Save corresponding ol editions into the mock site
     start = len(mock_site.docs)
-    mock_site.save_many(ol_editions.values())  # Save the ol editions
+    mock_site.save_many(list(ol_editions.values()))  # Save the ol editions
     assert len(mock_site.docs) - start == len(ol_editions)
     books = get_pending_books(amz_books.values())
     assert len(books) == 6  # Only 6 books are missing covers, titles, authors, etc.
@@ -350,3 +352,49 @@ def test_process_google_book_multiple_items():
         ],
     }
     assert process_google_book(input_data) is None
+
+
+class TestLoadConfigRequiresCreatorsAPI:
+    """
+    The Creators API is the only supported Amazon client as of #13277; the legacy
+    PA-API fallback was removed once Creators was confirmed live in production.
+
+    Before that, `load_config` silently downgraded to legacy whenever Creators
+    credentials were incomplete -- which is why the outage post-mortem could not tell
+    from the code which client was serving traffic. These pin that a downgrade can no
+    longer happen quietly.
+    """
+
+    CREATORS: ClassVar[dict[str, str]] = {"key": "ck", "secret": "cs", "id": "ci", "version": "3.1"}
+    LEGACY: ClassVar[dict[str, str]] = {"key": "lk", "secret": "ls", "id": "li"}
+
+    def _load(self, creators: dict | None, legacy: dict | None):
+        """Run load_config against a synthetic config; return the patched Creators class."""
+        cfg: dict[str, Any] = {"http_proxy": "http://user:pass@squid:3128"}
+        if creators is not None:
+            cfg["amazon_creators_api"] = creators
+        if legacy is not None:
+            cfg["amazon_api"] = legacy
+
+        with (
+            patch("scripts.affiliate_server.setup_for_script"),
+            patch("scripts.affiliate_server.stats"),
+            patch("scripts.affiliate_server.config", new=cfg),
+            patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,
+            patch.object(web, "amazon_api", None, create=True),  # load_config() sets it
+        ):
+            load_config("openlibrary.yml")
+            return creators_cls
+
+    def test_creators_credentials_build_the_client(self):
+        assert self._load(self.CREATORS, None).called
+
+    def test_only_legacy_credentials_raises(self):
+        """Legacy creds no longer buy a working affiliate server -- fail, don't downgrade."""
+        with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
+            self._load(None, self.LEGACY)
+
+    def test_partial_creators_credentials_raises(self):
+        """One missing key must fail loudly, not half-configure or revert to legacy."""
+        with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
+            self._load({"key": "ck", "secret": None, "id": "ci"}, self.LEGACY)

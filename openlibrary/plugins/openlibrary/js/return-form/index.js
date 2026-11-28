@@ -1,3 +1,5 @@
+import { _ } from '../i18n.js';
+
 /**
  * Requires confirmation whenever a patron attempts to
  * return a book.
@@ -6,9 +8,8 @@
  */
 export function initReturnForms(returnForms) {
     for (const form of returnForms) {
-        const i18nStrings = JSON.parse(form.dataset.i18n);
-        form.addEventListener('submit', (event) => {
-            if (!confirm(i18nStrings['confirm_return'])) {
+        form.addEventListener('submit', event => {
+            if (!confirm(_('Really return this book?'))) {
                 event.preventDefault();
             }
         });

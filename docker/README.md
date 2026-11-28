@@ -8,7 +8,7 @@ This guide covers everything Docker-related for local Open Library development. 
 
 - Docker Engine: <https://docs.docker.com/engine/install/#server>
 
-**Windows** and **macOS** users should use `Docker Desktop`.
+**Windows** and **macOS** users should use `Docker Desktop`. On Windows, turn on WSL2 integration and [clone the repository inside WSL2](https://docs.openlibrary.org/developers/tools/git.html#windows-clone-inside-wsl2-recommended).
 
 - Docker Desktop: <https://docs.docker.com/get-docker/>
 
@@ -29,7 +29,7 @@ Linux users, note the lack of `sudo` before `docker run hello-world`. See the [L
 ## Prepare your system
 
 > [!IMPORTANT]
-> **Windows** users should see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
+> **Windows** users should [clone and run Open Library inside WSL2](https://docs.openlibrary.org/developers/tools/git.html#windows-clone-inside-wsl2-recommended), not from a Windows folder. If you already cloned with Git for Windows, see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Otherwise the containers will likely not come up.
 
 We recommend adjusting Docker's resource settings to use at least 4GB of RAM and 2GB of swap. The defaults of 2GB RAM and 1GB swap are likely to cause the error `Killed` when running `build-assets` to build JS dependencies.
 
@@ -51,6 +51,15 @@ If you encounter any build errors, please check the [Troubleshooting](#troublesh
 docker compose up    # Ctrl-C to stop
 docker compose up -d # or, start in detached (silent) mode
 ```
+
+If the frontend watch command reports missing icon assets, generate them from the project root and then start the watcher again:
+
+```sh
+docker compose run --rm home make icons
+docker compose run --rm home npm run watch
+```
+
+This is especially likely on a first checkout or when setting up on a new machine.
 
 You will know the environment is done loading when the text stops furiously scrolling by and you see the following repeating every few seconds on the console:
 
@@ -128,7 +137,7 @@ bash scripts/fully_reset_environment.sh
 
 These errors may appear in different containers or with different file names, but look for file-not-found type errors where `\r` is in the filename, or there's `exec`, a path that seems to exist, and a `no such file or directory` error, e.g. `openlibrary-web-1 | exec docker/ol-web-start.sh: no such file or directory`
 
-The likely cause here is that text files were given CRLF line endings during cloning+checkout. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
+The likely cause here is that text files were given CRLF line endings during cloning+checkout, usually by Git for Windows. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm), or [clone again inside WSL2](https://docs.openlibrary.org/developers/tools/git.html#windows-clone-inside-wsl2-recommended).
 
 Note: after fixing this error, be on the lookout for another error that will appear almost immediately after running `docker compose up` that mentions something about the `role` of `openlibrary` not existing. Read on for how to address that.
 
@@ -153,11 +162,29 @@ cd path/to/your/cloned/openlibrary
 git submodule init; git submodule sync; git submodule update
 ```
 
-Windows users may need to see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
+On Windows, this can also mean the `infogami` symlink was checked out as a text file. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
 ### "no configuration file provided: not found" when running `docker compose <command>`
 
 Ensure you're running `docker compose` commands from within the `local-openlibrary-dev-directory`.
+
+### No books showing / search returns nothing
+
+First check whether the database has data. This request skips Solr:
+
+```sh
+curl "http://localhost:8080/query.json?type=/type/work&limit=1"
+```
+
+If it returns a work, the database is fine and Solr is empty or stopped. Check the Solr logs:
+
+```sh
+docker compose logs solr --tail=50
+```
+
+An `[ol-local-solr-start] ERROR` line means the Solr data volume no longer matches the code, often because the Docker images were updated before your branch was rebased onto master. Rebase first, then follow the reset steps printed below the error.
+
+If `query.json` returns `[]`, the database itself is empty. See [Fully Resetting Your Environment](#fully-resetting-your-environment).
 
 ### ConnectionError: HTTPConnectionPool(host='solr', port=8983)
 
@@ -203,6 +230,32 @@ docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-we
 No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
 
 To understand a bit more about what's going on here, there are docker networks configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
+
+### npm fails with `ENOTEMPTY: directory not empty, rmdir ...` (Docker Desktop on macOS)
+
+Commands that run npm inside a container (e.g. `make css`/`js`, `npm run build-assets`, or `npm install`) fail consistently with an error such as:
+
+```log
+npm error code ENOTEMPTY
+npm error syscall rmdir
+npm error path /openlibrary/node_modules/vite/dist
+npm error ENOTEMPTY: directory not empty, rmdir '/openlibrary/node_modules/vite/dist'
+make: *** [Makefile:20: node_modules] Error 217
+```
+
+Sometimes accompanied by `npm ls` reporting packages as `UNMET DEPENDENCY` even though the directories visibly exist. On macOS, one known cause is Docker Desktop's **Docker VMM (beta)** virtual machine backend corrupting writes to named volumes (such as `ol-nodemodules`, the volume backing `/openlibrary/node_modules`).
+
+To resolve:
+
+1. In Docker Desktop, go to Settings → General → **Virtual machine options** and switch from "Docker VMM" to the **Apple Virtualization framework** (it's fine to keep VirtioFS selected for file sharing), then Apply & restart.
+2. Recreate the corrupted volume so it's repopulated from a healthy state:
+
+   ```sh
+   docker rm openlibrary-web-1 openlibrary-home-1  # only if these exited containers still reference the volume
+   docker volume rm openlibrary_ol-nodemodules
+   ```
+
+3. Re-run your npm command, e.g. `docker compose run --rm web make css`. (If other `*_ol-nodemodules` volumes were populated while Docker VMM was active — e.g. volumes for other clones/worktrees — recreate them the same way.)
 
 ### Permission denied errors on SELinux
 

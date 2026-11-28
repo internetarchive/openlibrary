@@ -1,4 +1,4 @@
-let i18nStrings;
+import { _ } from '../i18n.js';
 
 /**
  * Initializes the given librarian dashboard component.
@@ -9,11 +9,14 @@ let i18nStrings;
  * @param {HTMLDetailsElement} rootElement
  */
 export function initLibrarianDashboard(rootElement) {
-    i18nStrings = JSON.parse(rootElement.dataset.i18n);
     const table = rootElement.querySelector('.dq-table');
-    rootElement.addEventListener('click', () => {
-        populateTable(table);
-    }, {once: true});
+    rootElement.addEventListener(
+        'click',
+        () => {
+            populateTable(table);
+        },
+        { once: true }
+    );
 }
 
 /**
@@ -43,7 +46,7 @@ async function updateRow(row, totalCount) {
 
     // Make query
     const data = await fetch(apiUrl)
-        .then((resp) => {
+        .then(resp => {
             if (!resp.ok) {
                 throw new Error(`Data quality response status : ${resp.status}`);
             }
@@ -127,7 +130,7 @@ function renderResultsCells(results, totalCount, failingHref) {
         <span>${percentage}%</span>
     </td>
     <td style="text-align:right">
-        <a href="${failingHref}">${numFound} ${i18nStrings['failing']}</a>
+        <a href="${failingHref}">${numFound} ${_('failing')}</a>
     </td>`;
 }
 
@@ -139,7 +142,7 @@ function renderResultsCells(results, totalCount, failingHref) {
 function renderRetryCell() {
     return `<td>
         <button class="dqs-run-again">
-            ${i18nStrings['reload']}
+            ${_('Reload')}
         </button>
     </td>`;
 }
@@ -152,7 +155,7 @@ function renderRetryCell() {
  */
 function renderErrorCell(href) {
     return `<td colspan="2">
-        <a href="${href}">${i18nStrings['error']}</a>
+        <a href="${href}">${_('Error')}</a>
     </td>`;
 }
 
@@ -162,5 +165,5 @@ function renderErrorCell(href) {
  * @returns {string}
  */
 function renderPendingCell() {
-    return `<td colspan="3">${i18nStrings['loading']}</td>`;
+    return `<td colspan="3">${_('Loading...')}</td>`;
 }

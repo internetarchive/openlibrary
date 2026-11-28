@@ -1,17 +1,19 @@
-import datetime
+import datetime as dt
 import json
-from sqlite3 import IntegrityError
 from types import MappingProxyType
-from typing import Literal
+from typing import Any, Literal, TypedDict
 
-from psycopg2.errors import UniqueViolation
+from psycopg.errors import UniqueViolation
+from psycopg.types.json import Json
 
 from infogami.utils.view import public
 from openlibrary.core import cache
+from openlibrary.core.async_db import connection, fetch_all, fetch_one, fetch_val
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 
-from . import db
+from . import db  # noqa: TID251
 
 
 def get_status_for_view(status_code: int) -> str:
@@ -26,6 +28,39 @@ def get_status_for_view(status_code: int) -> str:
 
 
 ApiMode = Literal["all", "open", "closed"]
+StatsRole = Literal["reviewer", "submitter"]
+StatsSort = Literal["total", "merged", "declined", "rate", "username"]
+
+# Number of days covered by each date range offered on the stats page.
+# `None` means no lower bound.
+STATS_RANGES: MappingProxyType[str, int | None] = MappingProxyType(
+    {
+        "all": None,
+        "year": 365,
+        "month": 30,
+    }
+)
+
+# Column to sort by -> SQL expression. Only these are ever interpolated into a query.
+STATS_SORT_COLUMNS: MappingProxyType[str, str] = MappingProxyType(
+    {
+        "total": "total",
+        "merged": "merged",
+        "declined": "declined",
+        "rate": "merge_rate",
+        "username": "username",
+    }
+)
+
+
+class MergeStatsRow(TypedDict):
+    username: str
+    total: int
+    merged: int
+    declined: int
+    author_requests: int
+    work_requests: int
+    merge_rate: float
 
 
 class CommunityEditsQueue:
@@ -111,6 +146,85 @@ class CommunityEditsQueue:
         return list(oldb.query(query))
 
     @classmethod
+    def _stats_where(cls, role: StatsRole, since: dt.date | None) -> str:
+        """WHERE clause for the stats queries: only closed requests are counted,
+        so that merge percentages aren't skewed by requests still waiting."""
+        closed = f"status IN ({cls.STATUS['DECLINED']}, {cls.STATUS['MERGED']})"
+        where = f"{role} IS NOT NULL AND {closed}"
+        if since:
+            where += " AND updated >= %(since)s"
+        return where
+
+    @classmethod
+    async def get_stats(
+        cls,
+        role: StatsRole,
+        since: dt.date | None = None,
+        sort: StatsSort = "total",
+        order: Literal["asc", "desc"] = "desc",
+        limit: int = 25,
+        page: int = 1,
+    ) -> list[MergeStatsRow]:
+        """Per-librarian counts of closed merge requests.
+
+        `role` picks whether requests are grouped by `reviewer` or `submitter`.
+        `since` limits the counts to requests last updated on or after that date.
+        Each row has: username, total, merged, declined, author_requests,
+        work_requests and merge_rate (percentage of requests closed by merging).
+        """
+        if role not in ("reviewer", "submitter"):
+            raise ValueError(f"Unknown stats role: {role}")
+        if sort not in STATS_SORT_COLUMNS:
+            raise ValueError(f"Unknown stats sort: {sort}")
+        sort_column = STATS_SORT_COLUMNS[sort]
+        direction = "ASC" if order == "asc" else "DESC"
+        merged = cls.STATUS["MERGED"]
+        declined = cls.STATUS["DECLINED"]
+
+        query = f"""
+            SELECT {role} AS username,
+                count(*) AS total,
+                count(*) FILTER (WHERE status = {merged}) AS merged,
+                count(*) FILTER (WHERE status = {declined}) AS declined,
+                count(*) FILTER (WHERE mr_type = {cls.TYPE["AUTHOR_MERGE"]}) AS author_requests,
+                count(*) FILTER (WHERE mr_type = {cls.TYPE["WORK_MERGE"]}) AS work_requests,
+                count(*) FILTER (WHERE status = {merged}) * 100.0 / count(*) AS merge_rate
+            FROM {cls.TABLENAME}
+            WHERE {cls._stats_where(role, since)}
+            GROUP BY {role}
+            ORDER BY {sort_column} {direction}, username ASC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """
+        rows = await fetch_all(
+            query,
+            {
+                "since": since.isoformat() if since else None,
+                "limit": limit,
+                "offset": limit * (max(page, 1) - 1),
+            },
+        )
+        return [
+            {
+                "username": row["username"],
+                "total": int(row["total"]),
+                "merged": int(row["merged"]),
+                "declined": int(row["declined"]),
+                "author_requests": int(row["author_requests"]),
+                "work_requests": int(row["work_requests"]),
+                "merge_rate": float(row["merge_rate"]),
+            }
+            for row in rows
+        ]
+
+    @classmethod
+    async def get_stats_count(cls, role: StatsRole, since: dt.date | None = None) -> int:
+        """Number of librarians `get_stats` would list across all pages."""
+        if role not in ("reviewer", "submitter"):
+            raise ValueError(f"Unknown stats role: {role}")
+        query = f"SELECT count(DISTINCT {role}) AS count FROM {cls.TABLENAME} WHERE {cls._stats_where(role, since)}"
+        return int(await fetch_val(query, {"since": since.isoformat() if since else None}))
+
+    @classmethod
     def where_clause(cls, mode: ApiMode, **kwargs):
         wheres = []
 
@@ -148,25 +262,25 @@ class CommunityEditsQueue:
         return where_clause
 
     @classmethod
-    def update_submitter_name(cls, submitter: str, new_username: str, _test=False):
-        oldb = db.get_db()
-        t = oldb.transaction()
-
-        try:
-            rows_changed = oldb.update(
-                cls.TABLENAME,
-                where="submitter=$submitter",
-                submitter=new_username,
-                vars={"submitter": submitter},
-            )
-        except UniqueViolation, IntegrityError:
-            rows_changed = 0
-
-        t.rollback() if _test else t.commit()
+    async def update_submitter_name(cls, submitter: str, new_username: str, _test: bool = False) -> int:
+        """Update request submitters, optionally rolling back for dry-run counts."""
+        rows_changed = 0
+        async with connection() as conn:
+            try:
+                cursor = await conn.execute(
+                    f"UPDATE {cls.TABLENAME} SET submitter = %(new_username)s WHERE submitter = %(submitter)s",
+                    {"submitter": submitter, "new_username": new_username},
+                )
+                rows_changed = cursor.rowcount
+            except UniqueViolation:
+                await conn.rollback()
+                return 0
+            if _test:
+                await conn.rollback()
         return rows_changed
 
     @classmethod
-    def submit_request(
+    async def submit_request(
         cls,
         url: str,
         submitter: str,
@@ -175,27 +289,84 @@ class CommunityEditsQueue:
         comment: str | None = None,
         title: str | None = None,
         mr_type: int | None = None,
-    ):
+        unique_url: bool = False,
+    ) -> int | None:
         """
         Inserts a new record into the table.
 
+        With unique_url, nothing is inserted (and None returned) if a request with this URL already exists.
+
         Preconditions: All data validations should be completed before calling this method.
         """
-        oldb = db.get_db()
-
         comments = [cls.create_comment(submitter, comment)] if comment else []
-        json_comment = json.dumps({"comments": comments})
+        async with connection() as conn:
+            if unique_url:
+                # url has no unique index, so serialize inserts per URL to close the exists/insert race.
+                await conn.execute("SELECT pg_advisory_xact_lock(hashtext(%(url)s))", {"url": url})
+                if await (await conn.execute(f"SELECT 1 FROM {cls.TABLENAME} WHERE url = %(url)s LIMIT 1", {"url": url})).fetchone():
+                    return None
+            cursor = await conn.execute(
+                f"INSERT INTO {cls.TABLENAME} (submitter, reviewer, url, status, comments, title, mr_type) "
+                "VALUES (%(submitter)s, %(reviewer)s, %(url)s, %(status)s, %(comments)s, %(title)s, %(mr_type)s) "
+                "RETURNING id",
+                {
+                    "submitter": submitter,
+                    "reviewer": reviewer,
+                    "url": url,
+                    "status": status,
+                    "comments": Json({"comments": comments}),
+                    "title": title,
+                    "mr_type": mr_type,
+                },
+            )
+            row = await cursor.fetchone()
+        return row["id"] if row else None
 
-        return oldb.insert(
-            cls.TABLENAME,
-            submitter=submitter,
-            reviewer=reviewer,
-            url=url,
-            status=status,
-            comments=json_comment,
-            title=title,
-            mr_type=mr_type,
-        )
+    @classmethod
+    def submit_request_sync(
+        cls,
+        url: str,
+        submitter: str,
+        reviewer: str | None = None,
+        status: int = STATUS["PENDING"],
+        comment: str | None = None,
+        title: str | None = None,
+        mr_type: int | None = None,
+    ) -> int | None:
+        return async_bridge.run(cls.submit_request(url, submitter, reviewer, status, comment, title, mr_type))
+
+    @classmethod
+    async def exists(cls, url: str) -> bool:
+        """Return whether a request with this URL already exists."""
+        query = f"SELECT EXISTS (SELECT 1 FROM {cls.TABLENAME} WHERE url = %(url)s) AS request_exists"
+        row = await fetch_one(query, {"url": url})
+        return bool(row and row["request_exists"])
+
+    @classmethod
+    def exists_sync(cls, url: str) -> bool:
+        return async_bridge.run(cls.exists(url))
+
+    @classmethod
+    async def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
+        """Update a request and append a comment atomically when supplied."""
+        async with connection() as conn:
+            update_kwargs: dict[str, Any] = {"rid": rid, "status": status, "reviewer": reviewer}
+            comments_update = ""
+            if comment:
+                row = await (await conn.execute(f"SELECT comments FROM {cls.TABLENAME} WHERE id = %(rid)s FOR UPDATE", {"rid": rid})).fetchone()
+                comments = (row["comments"] if row else None) or {"comments": []}
+                comments["comments"].append(cls.create_comment(reviewer, comment))
+                update_kwargs["comments"] = Json(comments)
+                comments_update = ", comments = %(comments)s"
+            cursor = await conn.execute(
+                f"UPDATE {cls.TABLENAME} SET status = %(status)s, reviewer = %(reviewer)s, updated = DEFAULT{comments_update} WHERE id = %(rid)s",
+                update_kwargs,
+            )
+            return cursor.rowcount
+
+    @classmethod
+    def update_request_status_sync(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
+        return async_bridge.run(cls.update_request_status(rid, status, reviewer, comment))
 
     @classmethod
     def assign_request(cls, rid: int, reviewer: str | None) -> dict[str, str | None]:
@@ -221,7 +392,7 @@ class CommunityEditsQueue:
                 where="id=$rid",
                 reviewer=reviewer,
                 status=cls.STATUS["PENDING"],
-                updated=datetime.datetime.utcnow(),
+                updated=dt.datetime.now(dt.UTC).replace(tzinfo=None),
                 vars={"rid": rid},
             )
             return {
@@ -241,36 +412,8 @@ class CommunityEditsQueue:
             where="id=$rid",
             status=cls.STATUS["PENDING"],
             reviewer=None,
-            updated=datetime.datetime.utcnow(),
+            updated=dt.datetime.now(dt.UTC).replace(tzinfo=None),
             vars={"rid": rid},
-        )
-
-    @classmethod
-    def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str | None = None) -> int:
-        """
-        Changes the status of the request with the given rid.
-
-        If a comment is included, existing comments list for this request are fetched and
-        the new comment is appended.
-        """
-        oldb = db.get_db()
-
-        update_kwargs = {}
-
-        # XXX Trim whitespace from comment first
-        if comment:
-            comments = cls.get_comments(rid)
-            comments["comments"].append(cls.create_comment(reviewer, comment))
-            update_kwargs["comments"] = json.dumps(comments)
-
-        return oldb.update(
-            cls.TABLENAME,
-            where="id=$rid",
-            status=status,
-            reviewer=reviewer,
-            updated=datetime.datetime.utcnow(),
-            vars={"rid": rid},
-            **update_kwargs,
         )
 
     @classmethod
@@ -284,7 +427,7 @@ class CommunityEditsQueue:
             cls.TABLENAME,
             where="id=$rid",
             comments=json.dumps(comments),
-            updated=datetime.datetime.utcnow(),
+            updated=dt.datetime.now(dt.UTC).replace(tzinfo=None),
             vars={"rid": rid},
         )
 
@@ -292,11 +435,6 @@ class CommunityEditsQueue:
     def find_by_id(cls, rid: int):
         """Returns the record with the given ID."""
         return cls.get_requests(id=rid)[0] or None
-
-    @classmethod
-    def exists(cls, url: str) -> bool:
-        """Returns True if a request with the given URL exists in the table."""
-        return len(cls.get_requests(limit=1, url=url)) > 0
 
     @classmethod
     def get_comments(cls, rid: int):
@@ -310,7 +448,7 @@ class CommunityEditsQueue:
         """
         return {
             # isoformat to avoid to-json issues
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": dt.datetime.now(dt.UTC).replace(tzinfo=None).isoformat(),
             "username": username,
             "message": message,
             # XXX It may be easier to update these comments if they had IDs

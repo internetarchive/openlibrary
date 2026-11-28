@@ -5,6 +5,7 @@ import logging
 import re
 import typing
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import cached_property
 from typing import NotRequired, TypedDict, cast
 
@@ -12,7 +13,10 @@ import web
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
-from infogami.utils import stats  # noqa: F401 side effects may be needed
+from infogami.utils import (
+    stats,  # noqa: F401 side effects may be needed
+    types,
+)
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.models import (
@@ -33,8 +37,10 @@ from openlibrary.plugins.upstream.models import (
     User,
     Work,
 )
+from openlibrary.plugins.upstream.utils import get_markdown
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.utils.request_context import site
 from openlibrary.utils.solr import Solr
 
 logger = logging.getLogger("openlibrary.lists.model")
@@ -75,6 +81,21 @@ class ListDict(TypedDict):
     seeds: NotRequired[list[ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict]]
 
 
+@dataclass(frozen=True)
+class ListPreview:
+    """What a list's preview card (search results, a user's lists) shows, ready to render."""
+
+    key: str
+    name: str
+    cover_url: str
+    owner_key: str | None
+    owner_name: str  # truncated for the byline; empty if the owner has no name
+    is_owner: bool  # the viewer owns this list, so the byline says "You"
+    item_count: int
+    modified: str  # relative or localized date, as text
+    description_html: str  # rendered markdown, trusted HTML; empty without a description
+
+
 class List(Thing):
     """Class to represent /type/list objects in OL.
 
@@ -108,6 +129,22 @@ class List(Thing):
     def get_cover(self):
         """Returns a cover object."""
         return self.cover and Image(self._site, "b", self.cover)
+
+    def card(self, current_user_key: str | None = None) -> ListPreview:
+        """The values for this list's card (search results, a user's lists); ``current_user_key`` is the viewer's, if logged in."""
+        cover = self.get_cover() or self.get_default_cover()
+        owner = self.get_owner()
+        return ListPreview(
+            key=self.key,
+            name=self.name or "",
+            cover_url=(cover and cover.url("M")) or "/static/images/icons/avatar_book-sm.png",
+            owner_key=owner.key if owner else None,
+            owner_name=h.truncate(owner.name, 40) if owner else "",
+            is_owner=bool(owner and current_user_key and current_user_key == owner.key),
+            item_count=len(self.seeds),
+            modified=h.datestr(self.last_modified),
+            description_html=get_markdown(self.description).convert() if self.description else "",
+        )
 
     def get_tags(self):
         """Returns tags as objects.
@@ -200,7 +237,7 @@ class List(Thing):
         # as you access their attributes.
         things = cast(
             list[Thing],
-            web.ctx.site.get_many([seed.key for seed in self.get_seeds() if seed._type != "subject"]),
+            site.get().get_many([seed.key for seed in self.get_seeds() if seed._type != "subject"]),
         )
 
         # Create the return dictionary
@@ -306,7 +343,7 @@ class List(Thing):
             seed = Seed.from_db(self, s)
             max_checks = 10
             while resolve_redirects and seed.type == "redirect" and max_checks:
-                resolved_document = web.ctx.site.get(seed.document.location)
+                resolved_document = site.get().get(seed.document.location)
                 seed = seed.copy_with(thing=resolved_document)
                 max_checks -= 1
             seeds.append(seed)
@@ -330,8 +367,6 @@ class List(Thing):
                 return cover.id
 
     def get_default_cover(self):
-        from openlibrary.core.models import Image
-
         cover_id = self._get_default_cover_id()
         return Image(self._site, "b", cover_id)
 
@@ -665,14 +700,14 @@ class Series(List):
     @typing.override
     def get_seeds(self, sort=False, resolve_redirects=False) -> list[Seed]:
         # Need to query for a series' seeds
-        work_keys = web.ctx.site.things(
+        work_keys = site.get().things(
             {
                 "type": "/type/work",
                 "series": {"series": {"key": self.key}},
                 "limit": self.SEED_LIMIT,
             },
         )
-        works = cast(list[Work], web.ctx.site.get_many(work_keys))
+        works = cast(list[Work], site.get().get_many(work_keys))
         series_edges = [(work, edge) for work in works if (edge := work.find_series_edge(self.key))]
 
         sorted_edges = sorted(series_edges, key=get_work_sort_key)
@@ -693,7 +728,5 @@ def register_models():
 
 
 def register_types():
-    from infogami.utils import types
-
     types.register_type(r"^(/people/[^/]+)?/lists/OL\d+L$", "/type/list")
     types.register_type(r"^/series/OL\d+L$", "/type/series")

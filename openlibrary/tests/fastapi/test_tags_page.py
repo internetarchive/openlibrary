@@ -1,0 +1,207 @@
+"""`/tags` and `/tag/add` on FastAPI, and their web.py handlers.
+
+Both servers render the same Jinja templates until ops routes these paths to
+FastAPI in production. The shell around the pages is tested in
+`test_site_page.py`.
+"""
+
+import re
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
+import pytest
+import web
+from fastapi.testclient import TestClient
+
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.fastapi.tags import pages
+from openlibrary.plugins.upstream import addtag
+
+
+class FakeTag(web.storage):
+    """The fields the tag templates read, without infobase."""
+
+    def get_most_recent_change(self):
+        return web.storage(author=None)
+
+    def url(self, **params):
+        query = "?" + "&".join(f"{k}={v}" for k, v in params.items()) if params else ""
+        return f"{self.key}/{self.name}{query}"
+
+    def is_fake_record(self):
+        return False
+
+
+def tag_doc(**overrides) -> FakeTag:
+    tag = FakeTag(
+        key="/tags/OL1T",
+        type=web.storage(key="/type/tag"),
+        name="Horror",
+        tag_type="genre",
+        slugs=["horror", "scary"],
+        tag_description="Scary stories.",
+        body="A *scary* story.",
+        last_modified="",
+    )
+    tag.update(overrides)
+    return tag
+
+
+@pytest.fixture
+def client(site_page_app) -> TestClient:
+    return TestClient(site_page_app(pages))
+
+
+def mock_site(**methods) -> MagicMock:
+    """Patch the request-scoped site the page reads, returning the site itself."""
+    current_site = MagicMock()
+    for name, value in methods.items():
+        getattr(current_site, name).return_value = value
+    site_mock = MagicMock()
+    site_mock.get.return_value = current_site
+    patcher = patch("openlibrary.fastapi.tags.site", site_mock)
+    patcher.start()
+    return current_site
+
+
+@pytest.fixture(autouse=True)
+def stop_site_patches():
+    yield
+    patch.stopall()
+
+
+def test_tags_index_lists_tags_and_their_subject_pages(client):
+    current_site = mock_site(things=["/tags/OL1T"], get_many=[tag_doc()])
+
+    response = client.get("/tags?type=genre&page=2")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "<title>Tags | Open Library</title>" in html
+    assert '<a class="tag-list__name" href="/tags/OL1T">Horror</a>' in html
+    assert '<a class="tag-list__subject-link" href="/subjects/genre:horror">' in html
+    assert re.search(r'<a href="/tags\?type=genre"\s+class="selected">genre</a>', html)
+    assert 'href="/tags?page=1&amp;type=genre">« Previous</a>' in html
+    current_site.things.assert_called_once_with({"type": "/type/tag", "limit": 21, "offset": 20, "tag_type": "genre"})
+
+
+def test_tags_index_ignores_an_unknown_type_and_a_non_numeric_page(client):
+    current_site = mock_site(things=[], get_many=[])
+
+    response = client.get("/tags?type=nope&page=abc")
+
+    assert response.status_code == 200
+    assert "No tags found." in response.text
+    current_site.things.assert_called_once_with({"type": "/type/tag", "limit": 21, "offset": 0})
+
+
+def test_tags_index_offers_the_next_page(client):
+    mock_site(things=[f"/tags/OL{i}T" for i in range(21)], get_many=[tag_doc(key=f"/tags/OL{i}T") for i in range(20)])
+
+    response = client.get("/tags")
+
+    assert 'href="/tags?page=2">Next »</a>' in response.text
+
+
+def test_concurrent_tags_index_requests_each_get_only_their_own_page(site_page_app, webpy_leftovers, fetch_concurrently):
+    """Pagination comes from this request: never another request's, or web.py's leftovers."""
+    mock_site(things=[f"/tags/OL{i}T" for i in range(21)], get_many=[tag_doc()])
+    n = 12
+    responses = fetch_concurrently(site_page_app(pages), [(f"/tags?page={i + 2}", {}) for i in range(n)])
+    for i, response in enumerate(responses):
+        html = response.text
+        assert response.status_code == 200
+        assert webpy_leftovers not in html
+        assert f'href="/tags?page={i + 1}">« Previous</a>' in html
+        assert f'href="/tags?page={i + 3}">Next »</a>' in html
+        assert not any(f'href="/tags?page={j + 1}">«' in html for j in range(n) if j != i)
+
+
+def test_concurrent_add_tag_requests_each_get_only_their_own_page(site_page_app, webpy_leftovers, fetch_concurrently, monkeypatch):
+    """The prefilled name comes from this request: never another request's, or web.py's leftovers."""
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: True))
+    n = 12
+    responses = fetch_concurrently(site_page_app(pages), [(f"/tag/add?name=name-{i}", {"x-user": "curator"}) for i in range(n)])
+    for i, response in enumerate(responses):
+        html = response.text
+        assert response.status_code == 200
+        assert webpy_leftovers not in html
+        assert f'value="name-{i}"' in html
+        assert not any(f'value="name-{j}"' in html for j in range(n) if j != i)
+
+
+def test_add_tag_sends_a_visitor_to_login(client, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", MagicMock(side_effect=AssertionError("no account lookup for a visitor")))
+
+    response = client.get("/tag/add", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/account/login?redirect=/tag/add"
+
+
+def test_add_tag_page_requires_a_curator(client, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: False))
+
+    response = client.get("/tag/add", headers={"x-user": "patron"})
+
+    assert response.status_code == 401
+
+
+def test_add_tag_page_prefills_the_name(client, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: True))
+
+    response = client.get("/tag/add?name=Cooking", headers={"x-user": "curator"})
+
+    assert response.status_code == 200
+    html = response.text
+    assert "<title>Add a tag | Open Library</title>" in html
+    assert 'content="noindex,nofollow"' in html
+    assert 'value="Cooking"' in html
+    assert '<option value="">Select</option>' in html
+    # Nothing is being edited, so no databar and no delete button
+    assert "Delete Record" not in html
+
+
+def test_edit_form_fills_in_the_tag_and_its_delete_button(request_context_fixture):
+    request_context_fixture(lang="en")
+    body = addtag.render_tag_form(
+        name="Horror",
+        slugs="horror, scary",
+        tag_description="Scary stories.",
+        body="A scary story.",
+        tag_type="genre",
+        is_editing=True,
+        key="/tags/OL1T",
+        can_delete=True,
+        comment="Adding a slug",
+    )
+
+    assert "<title>" not in body  # the layout adds it, from the handler's title
+    assert 'value="horror, scary"' in body
+    assert 'href="/tags/OL1T?m=history"' in body
+    assert "Delete Record" in body
+    assert 'value="Adding a slug"' in body
+    assert "By saving a change to this wiki" in body
+
+
+def test_webpy_tags_index_renders_the_same_body(monkeypatch, request_context_fixture):
+    request_context_fixture(lang="en")
+    current_site = MagicMock()
+    current_site.things.return_value = ["/tags/OL1T"]
+    current_site.get_many.return_value = [tag_doc()]
+    monkeypatch.setattr(addtag, "site", MagicMock(get=MagicMock(return_value=current_site)))
+    for key, value in {"path": "/tags", "env": {"QUERY_STRING": "", "REQUEST_METHOD": "GET"}}.items():
+        monkeypatch.setattr(web.ctx, key, value, raising=False)
+
+    result = addtag.tags_index().GET()
+
+    assert str(result) == render_jinja_template(
+        "type/tag/index.html.jinja",
+        tags=[tag_doc()],
+        page=1,
+        has_next=False,
+        tag_type=None,
+        tag_types=addtag.TAG_TYPES,
+        subject_tag_types=addtag.SUBJECT_SUB_TYPES,
+    )
+    assert result.title == "Tags"

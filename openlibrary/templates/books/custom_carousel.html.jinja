@@ -1,0 +1,49 @@
+{#
+  Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
+#}
+{% from "books/carousel_count.html.jinja" import carousel_count %}
+{% macro book_carousel(show, title, url, key, config_json, cards, count=none, shelf=none, see_all=false, layout="ol-carousel") %}
+    {% if show %}
+        <div class="carousel-section">
+            {% if title %}
+                <div class="carousel-section-header{% if see_all %} carousel-section-header--inline{% endif %}">
+                    <h2 class="home-h2">
+                        {% if url and not see_all %}
+                            <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                               href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
+                        {% else %}
+                            {{ title }}{{ carousel_count(count, shelf) }}
+                        {% endif %}
+                    </h2>
+                    {% if see_all and url %}
+                        <a class="carousel-see-all"
+                           data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                           href="{{ url }}"
+                           aria-label="{{ _('See all %(title)s', title=title) }}">{{ _("See all") }}{{ icon("chevron-right", size="sm") }}</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+            {% if layout == "grid" %}
+                <div class="carousel-container carousel-container-decorated">
+                    <div class="carousel carousel--grid" data-config="{{ config_json }}">
+                        {% for card in cards %}
+                            {{ card | safe }}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                {# CarouselSkeleton's columns mirror these breakpoints (carousel.css). #}
+                <div class="carousel-container carousel-container-decorated">
+                    <ol-carousel class="carousel--native" breakpoints="[[480, 2], [600, 3], [768, 4], [1024, 6], [null, 7]]" label="{{ title or _('Books') }}" data-config="{{ config_json }}">
+                        {% for card in cards %}
+                            {{ card | safe }}
+                        {% endfor %}
+                    </ol-carousel>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endmacro %}
+{% if show is defined %}
+    {{ book_carousel(show, title, url, key, config_json, cards, count, shelf, layout=layout | default("ol-carousel")) }}
+{% endif %}

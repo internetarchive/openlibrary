@@ -1,4 +1,4 @@
-import asyncio
+import inspect
 import time
 
 import pytest
@@ -62,6 +62,19 @@ class Test_memcache_memoize:
         m.join_threads()
 
         assert m.memcache_get([20], {})[0] == 400
+        assert m.active_threads == {}
+
+    def test_contended_refresh_removes_thread_without_deleting_flag(self):
+        m = self.square_memoize()
+        flag = m.compute_key((20,), {}) + "/flag"
+        m.memcache.add(flag, "another worker")
+
+        m.update_async(20)
+        m.join_threads()
+
+        assert m.active_threads == {}
+        assert m.memcache.get(flag) == "another worker"
+        assert m.memcache_get((20,), {}) is None
 
     def test_timeout(self, monkeytime):
         m = self.square_memoize()
@@ -152,7 +165,7 @@ class Test_memoize:
         msquare = cache.memoize(engine="memory", key="asquare")(asquare)
 
         # Check that it is still a coroutine function
-        assert asyncio.iscoroutinefunction(msquare)
+        assert inspect.iscoroutinefunction(msquare)
         assert msquare.__name__ == asquare.__name__
         assert msquare.__doc__ == asquare.__doc__
 

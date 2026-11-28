@@ -1,15 +1,11 @@
-import sinon from 'sinon';
+import $ from 'jquery';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import { init } from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
 
-let sandbox;
-
 beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    global.htmlquote = htmlquote;
     // htmlquote is used inside an eval expression (yuck) so is an implied dependency
-    sandbox.stub(global, 'htmlquote').callsFake(htmlquote);
+    global.htmlquote = htmlquote;
 });
 
 test('identifiers of repeated elements are never the same.', () => {
@@ -36,6 +32,8 @@ test('identifiers of repeated elements are never the same.', () => {
     $('#id-value').text('44415839');
     $('.repeat-add').trigger('click');
     expect($('.repeat-item').length).toBe(6);
-    const ids = $('[id]').map((_, node) => node.getAttribute('id')).toArray();
+    const ids = $('[id]')
+        .map((_, node) => node.getAttribute('id'))
+        .toArray();
     expect(ids.length).toBe(new Set(ids).size);
 });

@@ -13,11 +13,6 @@ div.editionAbout .book-description {
   clear: both;
 }
 
-div.editionTools {
-  float: right;
-  width: 250px;
-}
-
 /* clear the floating of the edition* elements. */
 .workDetails::after {
   content: "";

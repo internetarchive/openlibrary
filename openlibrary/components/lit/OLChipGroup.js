@@ -5,7 +5,10 @@ import { LitElement, html, css } from 'lit';
  *
  * Provides consistent spacing and wrapping behavior for groups of chips.
  *
- * @property {String} gap - Gap size: "small" (4px), "medium" (8px, default), or "large" (12px)
+ * @prop {"small" | "medium" | "large"} gap - "small" (4px), "medium" (8px,
+ *   default), or "large" (12px)
+ *
+ * @slot - One or more <ol-chip> elements
  *
  * @example
  * <ol-chip-group>
@@ -16,7 +19,7 @@ import { LitElement, html, css } from 'lit';
  */
 export class OLChipGroup extends LitElement {
     static properties = {
-        gap: { type: String, reflect: true },
+        gap: { type: String, reflect: true }
     };
 
     static styles = css`
@@ -26,11 +29,11 @@ export class OLChipGroup extends LitElement {
             gap: 8px;
         }
 
-        :host([gap="small"]) {
+        :host([gap='small']) {
             gap: 4px;
         }
 
-        :host([gap="large"]) {
+        :host([gap='large']) {
             gap: 12px;
         }
     `;

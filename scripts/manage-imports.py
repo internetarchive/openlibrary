@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -11,21 +11,40 @@ import time
 
 from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.ia import get_candidate_ocaids
 from openlibrary.core.imports import Batch, ImportItem
+from openlibrary.utils.retry import RetryStrategy
 
 logger = logging.getLogger("openlibrary.importer")
 
 
+# Set in import-all pool workers, which reuse the parent's session rather than
+# all logging in at once: most of a burst of logins to one account fail.
+_session_cookie: str | None = None
+
+
 @functools.cache
-def get_ol(servername=None):
-    if os.getenv("LOCAL_DEV"):
-        ol = OpenLibrary(base_url="http://localhost:8080")
-        ol.login("admin", "admin123")
+def get_ol(servername: str) -> OpenLibrary:
+    ol = OpenLibrary(servername)
+    if _session_cookie:
+        ol.cookie = _session_cookie
+    elif get_ol_env().LOCAL_DEV:
+        ol.login("openlibrary@example.com", "admin123")
     else:
-        ol = OpenLibrary(base_url=servername)
+        # Log in with RC file from OPENLIBRARY_RCFILE env var
         ol.autologin()
+    # A failed login returns normally, just without a session. Raise so
+    # functools.cache doesn't keep a client that gets a 403 on every import.
+    if "session=" not in (ol.cookie or ""):
+        raise RuntimeError("Open Library login returned no session cookie")
     return ol
+
+
+def init_import_worker(configfile: str, session_cookie: str) -> None:
+    global _session_cookie
+    load_config(configfile)
+    _session_cookie = session_cookie
 
 
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
@@ -38,34 +57,42 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             logger.info("sleeping for 5 seconds before next attempt.")
             time.sleep(5)
         try:
-            ol = get_ol(servername=servername)
+            ol = get_ol(servername)
             if item.data:
                 return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
         except OSError as e:
             logger.warning(f"Failed to contact OL server. error={e!r}")
         except OLError as e:
-            logger.warning(f"Failed to contact OL server. error={e!r}")
+            logger.warning(f"OL import request failed. status={e.code} body={e.text[:500]!r}")
             if e.code < 500:
                 return e.text
 
 
-def do_import(item, servername=None, require_marc=True):
-
+def do_import(item, servername=None, require_marc=True, only_pending=False):
     logger.info(f"do_import START (pid:{os.getpid()})")
-    response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    if response and response.startswith("{"):
-        d = json.loads(response)
-        if d.get("success") and "edition" in d:
-            edition = d["edition"]
-            logger.info(f"success: {edition['status']} {edition['key']}")
-            item.set_status(edition["status"], ol_key=edition["key"])
+    # import-all fetches items in bulk before importing them, so their batch may have been paused since.
+    if only_pending and not item.is_pending():
+        logger.info(f"skipping item {item.id}: no longer pending")
+        return
+    try:
+        response = ol_import_request(item, servername=servername, require_marc=require_marc)
+        if response and response.startswith("{"):
+            d = json.loads(response)
+            if d.get("success") and "edition" in d:
+                edition = d["edition"]
+                logger.info(f"success: {edition['status']} {edition['key']}")
+                item.set_status(edition["status"], ol_key=edition["key"])
+            else:
+                error_code = d.get("error_code", "unknown-error")
+                logger.error(f"failed with error code: {error_code}")
+                item.set_status("failed", error=error_code)
         else:
-            error_code = d.get("error_code", "unknown-error")
-            logger.error(f"failed with error code: {error_code}")
-            item.set_status("failed", error=error_code)
-    else:
-        logger.error(f"failed with internal error: {response}")
+            logger.error(f"failed with internal error: {response}")
+            item.set_status("failed", error="internal-error")
+    except Exception:
+        # One bad item must not take down the whole import-all loop.
+        logger.exception(f"failed with unexpected error importing item {item.id}")
         item.set_status("failed", error="internal-error")
     logger.info(f"do_import END (pid:{os.getpid()})")
 
@@ -89,7 +116,7 @@ def import_ocaids(*ocaids, **kwargs):
     servername = kwargs.get("servername")
     require_marc = not kwargs.get("no_marc", False)
 
-    date = datetime.date.today()
+    date = dt.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
     batch_name = f"import-{ocaids[0]}-{date.year:04}{date.month:02}"
@@ -115,10 +142,10 @@ def add_new_scans(args):
     if args:
         datestr = args[0]
         yyyy, mm, dd = datestr.split("-")
-        date = datetime.date(int(yyyy), int(mm), int(dd))
+        date = dt.date(int(yyyy), int(mm), int(dd))
     else:
         # yesterday
-        date = datetime.date.today() - datetime.timedelta(days=1)
+        date = dt.date.today() - dt.timedelta(days=1)
 
     items = list(get_candidate_ocaids(date))
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
@@ -153,21 +180,30 @@ def import_all(args, **kwargs):
 
     servername = kwargs.get("servername")
     require_marc = False
+    configfile = kwargs.get("configfile")
+    sleep = int(os.getenv("OL_IMPORT_ALL_SLEEP", "60"))
+    processes = int(os.getenv("OL_IMPORT_ALL_PROCESSES", "8"))
+
+    ol = RetryStrategy([RuntimeError, OSError], max_retries=5, delay=5)(lambda: get_ol(servername))
 
     # Use multiprocessing to call do_import on each item
-    with multiprocessing.Pool(processes=8) as pool:
+    with multiprocessing.Pool(
+        processes=processes,
+        initializer=init_import_worker,
+        initargs=(configfile, ol.cookie),
+    ) as pool:
         while True:
             logger.info("find_pending START")
             items = ImportItem.find_pending()
             logger.info("find_pending END")
 
             if not items:
-                logger.info("No pending items found. sleeping for a minute.")
-                time.sleep(60)
+                logger.info(f"No pending items found. sleeping for {sleep} seconds before next attempt.")
+                time.sleep(sleep)
                 continue
 
             logger.info("starmap START")
-            pool.starmap(do_import, ((item, servername, require_marc) for item in items))
+            pool.starmap(do_import, ((item, servername, require_marc, True) for item in items))
             logger.info("starmap END")
 
 
@@ -193,7 +229,7 @@ def main():
     from infogami import config
 
     cmd = sys.argv[1]
-    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org")}
+    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org"), "configfile": configfile}
     for i in sys.argv[2:]:
         if i.startswith("--"):
             flags[i[2:]] = True

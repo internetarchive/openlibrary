@@ -11,7 +11,6 @@ import web
 
 from infogami import config
 from infogami.infobase import account, client, common
-from infogami.infobase import config as infobase_config
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.utils.request_context import site as site_context
@@ -29,12 +28,6 @@ class MockSite:
 
     def reset(self):
         self.store = MockStore()
-        if config.get("infobase") is None:
-            config.infobase = {}
-
-        infobase_config.secret_key = "foobar"
-        config.infobase["secret_key"] = "foobar"
-
         self.account_manager = self.create_account_manager()
 
         self._cache = {}
@@ -45,9 +38,7 @@ class MockSite:
         self.keys = {"work": 0, "author": 0, "edition": 0}
 
     def create_account_manager(self):
-        # Hack to use the accounts stuff from Infogami
-        infobase_config.user_root = "/people"
-
+        # Hack to use the accounts stuff from Infogami. The root conftest sets the config it reads.
         store = web.storage(store=self.store)
         site = web.storage(store=store, save_many=self.save_many)
         return account.AccountManager(site, config.infobase["secret_key"])
@@ -83,6 +74,8 @@ class MockSite:
         if author:
             author = {"key": author.key}
 
+        # Mirrors client.Site.save, which sends the query as JSON
+        json.dumps(dict(query))
         doc = self._save_doc(query, timestamp)
 
         changes = [web.storage({"key": doc["key"], "revision": doc["revision"]})]
@@ -100,6 +93,8 @@ class MockSite:
 
     def save_many(self, query, comment=None, action=None, data=None, timestamp=None, author=None):
         timestamp = timestamp or datetime.now()
+        # Mirrors client.Site.save_many, which sends the query as JSON
+        json.dumps(query)
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:
@@ -150,23 +145,31 @@ class MockSite:
         return Changeset(self, self.changesets[cid])
 
     def recentchanges(self, query):
+        """The filters of Infobase's `recentchanges` that tests use, newest first."""
         limit = query.pop("limit", 1000)
         offset = query.pop("offset", 0)
 
         author = query.pop("author", None)
+        kind = query.pop("kind", None)
+        bot = query.pop("bot", None)
+        begin_date = query.pop("begin_date", None)
+        end_date = query.pop("end_date", None)
 
-        if not author:
-            raise NotImplementedError("MockSite.recentchanges without author not implemented")
+        def is_bot(author_key) -> bool:
+            return bool(author_key and self.docs.get(author_key, {}).get("bot"))
 
-        result = list(
-            itertools.islice(
-                (Changeset(self, c) for c in reversed(self.changesets) if safeget(lambda: c["author"]["key"]) == author),
-                offset,
-                offset + limit,
+        def matches(c) -> bool:
+            author_key = safeget(lambda: c["author"]["key"])
+            return (
+                (author is None or author_key == author)
+                and (kind is None or c["kind"] == kind)
+                and (bot is None or is_bot(author_key) == (str(bot).lower() == "true"))
+                and (begin_date is None or datetime.fromisoformat(c["timestamp"]) >= datetime.fromisoformat(begin_date))
+                # end_date is not included in the interval, as in Infobase.
+                and (end_date is None or datetime.fromisoformat(c["timestamp"]) < datetime.fromisoformat(end_date))
             )
-        )
 
-        return result
+        return list(itertools.islice((Changeset(self, c) for c in reversed(self.changesets) if matches(c)), offset, offset + limit))
 
     def get(self, key, revision=None, lazy=False):
         if revision:
@@ -200,8 +203,14 @@ class MockSite:
         return [self.get(k) for k in keys if k in self.docs]
 
     def things(self, query):
-        limit = query.pop("limit", 100)
+        # Matches Infobase's default (`infobase/readquery.py`). A more generous
+        # default here hides bugs that only production's limit can cause: see #13778,
+        # where matching silently only saw an author's first 20 works.
+        limit = query.pop("limit", 20)
         offset = query.pop("offset", 0)
+        # Results are always returned sorted by key below, so accept a sort rather
+        # than treating it as a filter on a field called "sort".
+        query.pop("sort", None)
 
         keys = set(self.docs)
 
@@ -379,7 +388,8 @@ class MockStore(dict):
         for doc in dict.values(self):
             if type is not None and doc.get("type", "") != type:
                 continue
-            if name is not None and doc.get(name) != value:
+            # A list is indexed by each of its items, as in Infobase.
+            if name is not None and doc.get(name) != value and not (isinstance(doc.get(name), list) and value in doc[name]):
                 continue
 
             yield doc

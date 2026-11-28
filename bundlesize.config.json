@@ -2,15 +2,11 @@
   "files": [
     {
       "path": "static/build/js/editions-table.*.js",
-      "maxSize": "33KB"
+      "maxSize": "35KB"
     },
     {
-      "path": "static/build/js/graphs.*.js",
-      "maxSize": "19KB"
-    },
-    {
-      "path": "static/build/js/carousel.*.js",
-      "maxSize": "6KB"
+      "path": "static/build/js/native.*.js",
+      "maxSize": "2KB"
     },
     {
       "path": "static/build/js/covers.*.js",
@@ -21,11 +17,11 @@
       "maxSize": "4KB"
     },
     {
-      "path": "static/build/js/modal-links.*.js",
+      "path": "static/build/js/modals.*.js",
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/js/user-website.*.js",
+      "path": "static/build/js/edit.*.js",
       "maxSize": "7KB"
     },
     {
@@ -33,11 +29,11 @@
       "maxSize": "2KB"
     },
     {
-      "path": "static/build/js/readinglog-stats.*.js",
+      "path": "static/build/js/readinglog_stats.*.js",
       "maxSize": "137KB"
     },
     {
-      "path": "static/build/js/goodreads-import.*.js",
+      "path": "static/build/js/goodreads_import.*.js",
       "maxSize": "2KB"
     },
     {
@@ -49,45 +45,48 @@
       "maxSize": "5KB"
     },
     {
-      "path": "static/build/js/tabs.*.js",
-      "maxSize": "5KB"
+      "path": "static/build/js/main.*.js",
+      "maxSize": "110KB"
     },
     {
-      "path": "static/build/js/all.js",
-      "maxSize": "130KB"
+      "path": "static/build/css/tokens.css",
+      "maxSize": "6KB"
     },
     {
-      "path": "static/build/css/page-admin.css",
-      "maxSize": "27KB"
-
-    },
-    {
-      "path": "static/build/css/page-book.css",
-      "maxSize": "16KB"
-    },
-    {
-      "path": "static/build/css/page-edit.css",
-      "maxSize": "26KB"
-    },
-    {
-      "path": "static/build/css/page-form.css",
-      "maxSize": "26KB"
-    },
-    {
-      "path": "static/build/css/page-home.css",
+      "path": "static/build/css/ol-components.css",
       "maxSize": "8KB"
     },
     {
+      "path": "static/build/css/page-admin.css",
+      "maxSize": "30KB"
+    },
+    {
+      "path": "static/build/css/page-book.css",
+      "maxSize": "19KB"
+    },
+    {
+      "path": "static/build/css/page-edit.css",
+      "maxSize": "28KB"
+    },
+    {
+      "path": "static/build/css/page-form.css",
+      "maxSize": "28KB"
+    },
+    {
+      "path": "static/build/css/page-home.css",
+      "maxSize": "11.5KB"
+    },
+    {
       "path": "static/build/css/page-plain.css",
-      "maxSize": "26KB"
+      "maxSize": "28KB"
     },
     {
       "path": "static/build/css/page-subject.css",
-      "maxSize": "9.2KB"
+      "maxSize": "11KB"
     },
     {
       "path": "static/build/css/page-user.css",
-      "maxSize": "30KB"
+      "maxSize": "31KB"
     }
   ]
 }

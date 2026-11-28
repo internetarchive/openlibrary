@@ -1,3 +1,4 @@
+import functools
 import gzip
 import json
 import logging
@@ -22,6 +23,11 @@ def set_osp_dump_location(val: Path | None):
     osp_dump_location = val
 
 
+@functools.cache
+def _warn_missing_dump(path: Path | None) -> None:
+    logger.warning("Open Syllabus Project database not found at %s; osp_count will be left empty.", path)
+
+
 # Function to get the total based on OLID
 def get_total_by_olid(olid: str) -> int | None:
     """
@@ -38,8 +44,9 @@ def get_total_by_olid(olid: str) -> int | None:
 
     db_file = get_osp_dump_location()
 
-    if not db_file:
-        logger.warning("Open Syllabus Project database not found.")
+    # sqlite3.connect would silently create an empty database at a missing path, and the query would then fail.
+    if not db_file or not db_file.is_file():
+        _warn_missing_dump(db_file)
         return None
 
     with closing(sqlite3.connect(db_file)) as conn:

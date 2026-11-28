@@ -8,8 +8,8 @@
  * @return {string}
  */
 export function commify(n) {
-    var text = n.toString();
-    var re = /(\d+)(\d{3})/;
+    let text = n.toString();
+    const re = /(\d+)(\d{3})/;
 
     while (re.test(text)) {
         text = text.replace(re, '$1,$2');
@@ -20,8 +20,8 @@ export function commify(n) {
 
 // Implementation of Python urllib.urlencode in Javascript.
 export function urlencode(query) {
-    var parts = [];
-    var k;
+    const parts = [];
+    let k;
     for (k in query) {
         parts.push(`${k}=${query[k]}`);
     }
@@ -29,9 +29,9 @@ export function urlencode(query) {
 }
 
 export function slice(array, begin, end) {
-    var a = [];
-    var i;
-    for (i=begin; i < Math.min(array.length, end); i++) {
+    const a = [];
+    let i;
+    for (i = begin; i < Math.min(array.length, end); i++) {
         a.push(array[i]);
     }
     return a;

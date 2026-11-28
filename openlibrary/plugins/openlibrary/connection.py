@@ -1,6 +1,6 @@
 """Open Library extension to provide a new kind of client connection with caching support."""
 
-import datetime
+import datetime as dt
 import functools
 import json
 import logging
@@ -90,6 +90,14 @@ class ConnectionMiddleware:
         # of it, which is invalid JSON and also can't be decode()'d.
         if isinstance(data.get("query"), bytes):
             data["query"] = data["query"].decode()
+        docs = json.loads(data.get("query") or "[]")
+        missing = [i for i, doc in enumerate(docs) if "key" not in doc]
+        if missing:
+            raise client.ClientException(
+                "400 Bad Request",
+                f"save_many: missing 'key' in docs at index {missing}",
+                json_data=json.dumps({"error": "bad_data", "message": f"save_many: missing 'key' in docs at index {missing}"}),
+            )
         return self.conn.request(sitename, "/save_many", "POST", data)
 
     def store_get(self, sitename, path):
@@ -208,7 +216,7 @@ class IAMiddleware(ConnectionMiddleware):
                     "_key": key,
                     "type": "ia-scan",
                     "identifier": identifier,
-                    "created": datetime.datetime.utcnow().isoformat(),
+                    "created": dt.datetime.now(dt.UTC).replace(tzinfo=None).isoformat(),
                 }
                 self.store_put(sitename, store_key, json.dumps(doc))
                 return doc

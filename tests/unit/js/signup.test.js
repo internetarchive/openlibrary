@@ -2,7 +2,7 @@ import { initSignupForm } from '../../../openlibrary/plugins/openlibrary/js/sign
 
 beforeEach(() => {
     document.body.innerHTML = `
-    <form id="signup" name="signup" data-i18n={}>
+    <form id="signup" name="signup">
       <label for="emailAddr">Email</label>
       <div id="emailAddrMessage" class="ol-signup-form__error"></div>
       <input type="email" id="emailAddr">
@@ -158,7 +158,6 @@ describe('Username tests', () => {
         expect(usernameLabel.classList.contains('invalid')).toBe(true);
     });
 });
-
 
 describe('Password tests', () => {
     let passwordLabel, passwordField;

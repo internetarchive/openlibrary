@@ -1,14 +1,16 @@
 """web.py application processors for Open Library."""
 
 import re
-from typing import ClassVar, cast
+from typing import cast
 from urllib.parse import quote
 
 import web
 
 from infogami import config
+from infogami.utils.context import context
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
+from openlibrary.core.experiments import evaluate_experiments_for_request
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
 )
@@ -119,8 +121,6 @@ class CookieValidationProcessor:
     4. nginx sets X-OL-Verify-Human — redirect to /verify_human with next= URL.
     """
 
-    EXEMPT_PATHS: ClassVar[set[str]] = {"/verify_human"}
-
     @staticmethod
     def _reject_spoofed_cookie(name: str) -> None:
         """Purge a forged cookie and raise 403 with an abuse signal header."""
@@ -129,29 +129,49 @@ class CookieValidationProcessor:
         raise web.HTTPError("403 Forbidden")
 
     def __call__(self, handler):
-        # We don't want to bounce identified crawlers that index us
+        # Shared with FastAPI's SitePageRoute.
+        from openlibrary.accounts.model import HUMAN_CHECK_EXEMPT_PATHS, check_human_cookies
         from openlibrary.plugins.openlibrary.code import is_recognized_bot
 
-        if web.ctx.path not in self.EXEMPT_PATHS and not is_recognized_bot():
-            from openlibrary.accounts.model import (
-                verify_session_cookie,
-                verify_verification_cookie,
-            )
-
-            if cookie_value := web.cookies().get("vf"):
-                if verify_verification_cookie(cookie_value):
-                    return handler()
-                self._reject_spoofed_cookie("vf")
-
-            session_cookie_name = config.get("login_cookie_name", "session")
-            if session_value := web.cookies().get(session_cookie_name):
-                if verify_session_cookie(session_value):
-                    return handler()
-                self._reject_spoofed_cookie(session_cookie_name)
+        # We don't want to bounce identified crawlers that index us
+        if web.ctx.path not in HUMAN_CHECK_EXEMPT_PATHS and not is_recognized_bot():
+            check = check_human_cookies(web.cookies())
+            if check.verified:
+                return handler()
+            if check.spoofed:
+                self._reject_spoofed_cookie(check.spoofed)
 
             if web.ctx.env.get("HTTP_X_OL_VERIFY_HUMAN") == "1":
                 next_url = web.ctx.env.get("REQUEST_URI") or web.ctx.env.get("HTTP_X_REQUEST_URI") or web.ctx.path
                 raise web.seeother("/verify_human?next=" + quote(next_url))
+
+        return handler()
+
+
+class ExperimentsProcessor:
+    """Processor to evaluate A/B testing feature flags and inject them
+    into the global web.ctx so they are available to macros and templates.
+    """
+
+    def __call__(self, handler):
+        session_value = web.cookies().get(config.get("login_cookie_name", "session"))
+        forwarded_for = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
+        client_ip = web.ctx.ip
+
+        try:
+            query_params = dict(web.input(_method="GET"))
+        except AttributeError, KeyError, ValueError:
+            query_params = {}
+
+        experiments = evaluate_experiments_for_request(
+            session_value=session_value,
+            forwarded_for=forwarded_for,
+            client_ip=client_ip,
+            query_params=query_params,
+        )
+
+        web.ctx["experiments"] = experiments
+        context["experiments"] = experiments
 
         return handler()
 

@@ -14,7 +14,7 @@
 .work-title-and-author h1.work-title {
   font-family: var(--font-family-title);
   margin: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-headline-large);
   overflow-wrap: break-word;
 }
@@ -22,36 +22,36 @@
 .work-title-and-author h2.work-subtitle {
   font-family: var(--font-family-subtitle);
   margin: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 1.3em;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   font-style: italic;
 }
 
 .work-title-and-author h2.edition-byline {
   font-size: var(--font-size-title-medium);
-  font-weight: normal;
-  color: var(--dark-grey);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text);
   margin: 10px 0 20px;
   line-height: var(--line-height-meta);
 }
 
 .work-title-and-author .work-line {
   font-style: oblique;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .work-title-and-author .work-line a {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .work-title-and-author .series-line a {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
 
 .work-title-and-author .first-published-date {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-label-medium);
 }
 
@@ -83,15 +83,15 @@
   }
 
   .work-title-and-author h1.work-title {
-    font-size: 1.375em;
+    font-size: var(--font-size-title-large);
   }
 
   .work-title-and-author h2.work-subtitle {
-    font-size: 1em;
+    font-size: inherit;
   }
 
   .work-title-and-author h2.edition-byline {
-    font-size: 0.875em;
+    font-size: var(--font-size-title-small);
     margin-bottom: 10px;
     line-height: var(--line-height-meta);
   }
@@ -103,14 +103,14 @@
   .work-title-and-author .share-modal-link {
     display: block;
     margin: 8px 0 0 16px;
+    color: var(--color-text);
     text-align: center;
     text-decoration: none;
     width: 40px;
   }
 
   .work-title-and-author .share-modal-link .icon-link__text {
-    color: var(--dark-grey);
-    font-size: 0.675em;
+    font-size: var(--font-size-label-small);
   }
 
   /* When there are no reviews, hide the review count text */
@@ -120,14 +120,6 @@
   }
 
   /* stylelint-disable selector-max-specificity */
-  /* stylelint-disable max-nesting-depth */
-  .work-title-and-author
-    .readers-stats__review-count--none
-    li.readers-stats__review-count {
-    display: none;
-  }
-  /* stylelint-enable max-nesting-depth */
-
   .work-title-and-author .readers-stats li.avg-ratings .dot,
   .work-title-and-author
     .readers-stats
@@ -135,20 +127,9 @@
     display: none;
   }
 
-  .work-title-and-author .readers-stats li.avg-ratings,
-  .work-title-and-author .readers-stats li.readers-stats__review-count {
+  .work-title-and-author .readers-stats li.avg-ratings {
     font-size: 0.85em;
   }
 
-  /* On mobile only, the rating count text has parentheses around it */
-  .work-title-and-author .readers-stats li.readers-stats__review-count::before {
-    content: "(";
-    margin-right: -2px;
-  }
-
-  .work-title-and-author .readers-stats li.readers-stats__review-count::after {
-    content: ")";
-    margin: 0 0 0 -1px;
-  }
   /* stylelint-enable selector-max-specificity */
 }

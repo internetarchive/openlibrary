@@ -1,0 +1,47 @@
+{# Takes `tags`, `page` (the page number), `has_next`, `tag_type`, `tag_types` and `subject_tag_types`. #}
+{% macro subject_url(tag) -%}
+    {%- set slugs = tag.get("slugs") or [] -%}
+    {%- set slug = slugs[0] if slugs else tag.name.lower().replace(" ", "_") -%}
+    {%- if tag.tag_type == "subject" -%}
+        /subjects/{{ slug }}
+    {%- else -%}
+        /subjects/{{ tag.tag_type }}:{{ slug }}
+    {%- endif -%}
+{%- endmacro %}
+<div id="contentHead">
+    <h1>{{ _("Tags") }}</h1>
+    <p>{{ _("Tags curated by Open Library librarians.") }}</p>
+    <nav class="tag-type-filter">
+        <a href="/tags" class="{{ 'selected' if not tag_type else '' }}">{{ _("All") }}</a>
+        {% for t in tag_types %}
+            <a href="/tags?type={{ t }}"
+               class="{{ 'selected' if tag_type == t else '' }}">{{ t }}</a>
+        {% endfor %}
+    </nav>
+</div>
+<div id="contentBody">
+    {% if tags %}
+        <ul class="tag-list">
+            {% for tag in tags %}
+                <li class="tag-list__item">
+                    <a class="tag-list__name" href="{{ tag.key }}">{{ tag.name }}</a>
+                    <span class="tag-list__type">({{ tag.tag_type }})</span>
+                    {% if tag.tag_type in subject_tag_types %}
+                        —
+                        <a class="tag-list__subject-link" href="{{ subject_url(tag) }}">{{ _("View subject page") }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="tag-list__pagination">
+            {% if page > 1 %}
+                <a href="/tags?page={{ page - 1 }}{{ '&type=' ~ tag_type if tag_type else '' }}">« {{ _("Previous") }}</a>
+            {% endif %}
+            {% if has_next %}
+                <a href="/tags?page={{ page + 1 }}{{ '&type=' ~ tag_type if tag_type else '' }}">{{ _("Next") }} »</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>{{ _("No tags found.") }}</p>
+    {% endif %}
+</div>

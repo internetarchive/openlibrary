@@ -10,16 +10,10 @@ import web
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
+from openlibrary.core.helpers import is_exclusion
+from openlibrary.utils.request_context import site as site_context
 
 logger = logging.getLogger("openlibrary.readableurls")
-
-try:
-    from booklending_utils.openlibrary import is_exclusion
-except ImportError:
-
-    def is_exclusion(obj):
-        """Processor for determining whether records require exclusion"""
-        return False
 
 
 class ReadableUrlProcessor:
@@ -45,10 +39,10 @@ class ReadableUrlProcessor:
         if web.ctx.path.startswith("/l/"):
             raise web.seeother("/languages/" + web.ctx.path[len("/l/") :])
 
-        if web.ctx.path.startswith("/user/") and not web.ctx.site.get(web.ctx.path):
+        if web.ctx.path.startswith("/user/") and not site_context.get().get(web.ctx.path):
             raise web.seeother("/people/" + web.ctx.path[len("/user/") :])
 
-        real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
+        real_path, readable_path = get_readable_path(site_context.get(), web.ctx.path, self.patterns, encoding=web.ctx.encoding)
 
         # @@ web.ctx.path is either quoted or unquoted depends on whether the application is running
         # @@ using builtin-server. That is probably a bug in web.py.
@@ -169,7 +163,12 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     if thing and thing.type.key == _type:
         title = thing.get(_property) or default_title
-        middle = "/" + quote_plus(h.urlsafe(title.strip()))
+        title_slug = quote_plus(h.urlsafe(title.strip()))
+        # Keep a bare list action as the suffix, unless it is the canonical title.
+        # "editions" is not listed: its only route is /editions.yml, which returns early above.
+        if _type in ("/type/list", "/type/series") and not suffix and middle in ("export", "embed", "edit", "preview.png") and middle != title_slug:
+            suffix = "/" + middle
+        middle = "/" + title_slug
     else:
         middle = ""
 

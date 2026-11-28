@@ -1,0 +1,73 @@
+$def with (user=None)
+
+<div class="data-transfer-grid">
+  <div class="data-transfer-card">
+    <h3>$_("Export your Reading Log")</h3>
+    <p>$:_('Download a copy of your %(link_start)sreading log%(link_end)s.', link_start='<a href="/help/faq/reading-log.en#reading-log">', link_end='</a>')</p>
+    <div class="data-transfer-card__footer">
+      <form method="GET" action="/account/export"
+          enctype="multipart/form-data">
+        <input type="hidden" name="type" value="reading_log">
+        <button type="submit" class="cta-btn cta-btn--available" data-ol-link-track="PatronExports|ReadingLog">
+          $_('Download (.csv format)')
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="data-transfer-card">
+    <h3>$_("Export your book notes")</h3>
+    <p>$:_('Download a copy of your <a href="/help/faq/book-notes">book notes</a>.')</p>
+    <div class="data-transfer-card__footer">
+      <form method="GET" action="/account/export"
+          enctype="multipart/form-data">
+        <input type="hidden" name="type" value="book_notes">
+        <button type="submit" class="cta-btn cta-btn--available" data-ol-link-track="PatronExports|BookNotes">
+          $_('Download (.csv format)')
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="data-transfer-card">
+    <h3>$_("Export your reviews")</h3>
+    <p>$:_('Download a copy of your <a href="/help/faq/reviews#book-tags">review tags</a>.')</p>
+    <div class="data-transfer-card__footer">
+      <form method="GET" action="/account/export"
+          enctype="multipart/form-data">
+        <input type="hidden" name="type" value="reviews">
+        <button type="submit" class="cta-btn cta-btn--available" data-ol-link-track="PatronExports|ReviewTags">
+          $_('Download (.csv format)')
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="data-transfer-card">
+    <h3>$_("Export your list overview")</h3>
+    <p>$:_('Download a summary of your <a href="/help/faq/reading-log.en#lists">lists</a>.')</p>
+    <div class="data-transfer-card__footer">
+      <form method="GET" action="/account/export"
+          enctype="multipart/form-data">
+        <input type="hidden" name="type" value="lists">
+        <button type="submit" class="cta-btn cta-btn--available" data-ol-link-track="PatronExports|ListsSummary">
+          $_('Download (.csv format)')
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="data-transfer-card">
+    <h3>$_("Export your star ratings")</h3>
+    <p>$:_('Download a copy of your %(link_start)sstar ratings%(link_end)s.', link_start='<a href="/help/faq/reviews#star-ratings">', link_end='</a>')</p>
+    <div class="data-transfer-card__footer">
+      <form method="GET" action="/account/export"
+          enctype="multipart/form-data">
+        <input type="hidden" name="type" value="ratings">
+        <button type="submit" class="cta-btn cta-btn--available" data-ol-link-track="PatronExports|StarRatings">
+          $_('Download (.csv format)')
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

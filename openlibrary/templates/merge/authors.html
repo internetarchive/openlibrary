@@ -31,14 +31,20 @@ $if formdata:
     </li>
 </ol>
 
-<div id="noMaster" title="$_('No primary record')" style="text-align:left;">
-    <p>$_('You must select a primary record to point the duplicates toward.')</p>
-</div>
+$# Dialog messages for merge.js; see confirm-template.js
+<template id="noMaster">
+    $_('You must select a primary record to point the duplicates toward.')
+</template>
 
+$# Zero selections are rejected server-side too (see the notices
+$# above); noDuplicates just says so before the round-trip.
 $if can_merge:
-    <div id="confirmMerge" title="$_('Please Be Careful...')" style="text-align:left;">
-        <p class="merge">$:_('<b>Are you sure</b> you want to merge these records?')</p>
-    </div>
+    <template id="noDuplicates">
+        $_('Please select some authors to merge.')
+    </template>
+
+    $# merge.js builds the confirmation, and only for librarians who merge directly, from the table rows.
+    <template id="confirmMerge"></template>
 
 <form method="POST" id="mergeForm" name="mergeForm" action="/authors/merge" method="POST">
     <input type="hidden" name="merge" value="true"/>
@@ -83,7 +89,8 @@ $if can_merge:
                             $for id in configured_ids:
                                 $if id.name in a.remote_ids:
                                     $ href = id.url.replace('@@@', a.remote_ids[id.name])
-                                    <small>$id.label:<a href="$href">$a.remote_ids[id.name]</a></small>
+                                    $ display_value = format_author_identifier_value(id.name, a.remote_ids[id.name])
+                                    <small>$id.label:<a href="$href">$display_value</a></small>
                             </div>
                     </label>
                     $if a.bio:
@@ -119,5 +126,16 @@ $if can_merge:
 </div>
 
 </form>
+
+$if can_merge:
+    $# Status messages, shown by merge.js while it runs the merge.
+    <div id="merge-status" class="merge-status" aria-live="polite">
+        <p class="ol-message" data-state="pending" hidden>$_('Merging Authors...')</p>
+        <div class="ol-message ol-message--success" data-state="done" hidden>
+            <p><strong>$_('Success!')</strong> $:_('OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>')</p>
+            <p><a data-primary-link></a></p>
+        </div>
+        <p class="ol-message ol-message--error" data-state="error" hidden><strong>$_('Argh!')</strong> $_("That merge didn't work. It's our fault, and we've made a note of it.")</p>
+    </div>
 
 </div>

@@ -6,6 +6,9 @@
  * -  https://openlibrary.org/books/OL7521653M/Holes/daisy
  */
 
+/* Import all common components */
+@import "legacy.css";
+
 footer,
 div#bottom,
 .siteSearch {
@@ -53,8 +56,8 @@ div.nav {
 
 .borrow-table table th.expires {
   font-family: var(--font-family-body);
-  color: var(--brown);
-  font-weight: 600;
+  color: var(--color-text-heading);
+  font-weight: var(--font-weight-semibold);
   font-size: 0.6875em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -63,8 +66,8 @@ div.nav {
 .borrow-table table th.titles {
   font-family: var(--font-family-body);
   color: var(--teal);
-  font-weight: 600;
-  font-size: 1.125em;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-body-xlarge);
 }
 
 div.message {
@@ -75,8 +78,8 @@ div.message {
     no-repeat 15px 50%;
 }
 div.message h2 {
-  font-weight: normal;
-  font-size: 18px;
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-title-large);
   color: var(--black);
   margin: 0;
   padding: 0;
@@ -91,7 +94,7 @@ ul.link {
   margin-bottom: 50px;
 }
 ul.link li {
-  font-size: 1.125em;
+  font-size: var(--font-size-body-xlarge);
 }
 
 #faq h4 {
@@ -102,7 +105,7 @@ ul.link li {
 }
 #faq p {
   font-size: 0.75em;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 p.help {
@@ -130,13 +133,9 @@ h1 {
   font-size: 1.5em;
   margin: 0 0 var(--spacing-stack-md);
 }
-div.navBorrow {
-  margin: 50px 0 var(--spacing-stack-sm);
-  font-size: 0.75em;
-}
 .panel {
   background-color: var(--white);
-  border: 1px solid var(--beige-two);
+  border: 1px solid var(--color-border-subtle);
   padding: 30px 20px;
   margin-bottom: 20px;
 }
@@ -147,39 +146,26 @@ div.navBorrow {
   font-size: 1.875em;
 }
 
-#borrowThis {
-  margin-bottom: 20px;
-}
-
 .borrow span.book {
-  font-size: 1em;
-  font-weight: 700;
+  font-size: inherit;
+  font-weight: var(--font-weight-bold);
 }
 .borrow span.author {
   font-size: 0.875em;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 .borrow span.publisher,
 .borrow span.contributor {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 0.875em;
 }
 .borrow div.date {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .borrow span.expires {
-  font-size: 1em;
+  font-size: inherit;
 }
 .borrow table {
   border-bottom: none;
 }
-
-div#listsWork p {
-  font-size: 0.75em;
-  padding-left: 0;
-  margin-bottom: var(--spacing-stack-xs) !important;
-}
-
-/* Import all common components */
-@import "legacy.css";

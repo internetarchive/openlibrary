@@ -1,0 +1,123 @@
+{#
+  Recipe: a page with a form. Ruled groups, each with its legend in a left
+  column. A field reads straight down: label, help, control, then its error.
+  Switches and short menus stay on one line. One primary action at the left.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+{% set LANGUAGES = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"},{\"value\":\"de\",\"label\":\"German\"},{\"value\":\"hi\",\"label\":\"Hindi\"},{\"value\":\"ja\",\"label\":\"Japanese\"}]" %}
+<div class="ol-page ol-page--medium cookbook-page">
+    <header class="ol-page-header">
+        <a class="ol-page-header__back" href="#">{{ icon("arrow-left", size="sm") }} Account</a>
+        <div class="ol-page-header__text">
+            <h1 class="ol-page-header__title">Edit your profile</h1>
+            <p class="ol-page-header__lede">This is what other readers see when they visit your lists and reviews.</p>
+        </div>
+    </header>
+    <form class="ol-form" action="#" method="get" novalidate>
+        <fieldset class="ol-form__group ol-form__group--split">
+            <legend class="ol-form__legend">About you</legend>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-name">Display name</label>
+                <div class="ol-field__control">
+                    <input class="ol-input"
+                           id="cb-name"
+                           name="name"
+                           type="text"
+                           value="Mary Lennox"
+                           autocomplete="name">
+                </div>
+            </div>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-handle">Username</label>
+                <p class="ol-field__help" id="cb-handle-help">Your profile lives at openlibrary.org/people/username.</p>
+                <div class="ol-field__control">
+                    <input class="ol-input"
+                           id="cb-handle"
+                           name="handle"
+                           type="text"
+                           value="mary lennox"
+                           autocapitalize="none"
+                           spellcheck="false"
+                           aria-invalid="true"
+                           aria-describedby="cb-handle-help cb-handle-error">
+                    <p class="ol-field__error" id="cb-handle-error">Letters, numbers and hyphens only. Try “mary-lennox”.</p>
+                </div>
+            </div>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-about">
+                    Bio <span class="ol-field__optional">Optional</span>
+                </label>
+                <p class="ol-field__help" id="cb-about-help">A sentence or two about what you read.</p>
+                <div class="ol-field__control">
+                    <textarea class="ol-input"
+                              id="cb-about"
+                              name="about"
+                              rows="3"
+                              aria-describedby="cb-about-help">Mostly gardens, moors and other people’s houses.</textarea>
+                </div>
+            </div>
+            <div class="ol-field">
+                <label class="ol-field__label" for="cb-location">
+                    Location <span class="ol-field__optional">Optional</span>
+                </label>
+                <div class="ol-field__control">
+                    <input class="ol-input"
+                           id="cb-location"
+                           name="location"
+                           type="text"
+                           value="Yorkshire"
+                           autocomplete="address-level2">
+                </div>
+            </div>
+            <div class="ol-field ol-field--inline">
+                <span class="ol-field__label">Reading language</span>
+                <div class="ol-field__control">
+                    <ol-options-popover name="language" label="Choose a language" selected="en" show-selection aria-label="Reading language" items="{{ LANGUAGES }}">
+                    </ol-options-popover>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="ol-form__group ol-form__group--split">
+            <legend class="ol-form__legend" id="cb-visibility">Who can see your shelves</legend>
+            {% with name="visibility",
+                labelled_by="cb-visibility",
+                plain=true,
+                value="public",
+                rows=[
+                    {"value": "public", "label": "Everyone", "description": "Your reading log appears on your profile and in search."},
+                    {"value": "followers", "label": "People you follow", "description": "Only readers you follow can open your shelves."},
+                    {"value": "private", "label": "Only you", "description": "Your shelves stay private. Lists you publish are still public."},
+            ] %}
+                {% include "forms/choice_list.html.jinja" %}
+            {% endwith %}
+        </fieldset>
+        <fieldset class="ol-form__group ol-form__group--split">
+            <legend class="ol-form__legend">Email</legend>
+            <div class="ol-field ol-field--inline">
+                <span class="ol-field__label" id="cb-due-label">Due date reminders</span>
+                <p class="ol-field__help">Three days before a loan ends.</p>
+                <div class="ol-field__control">
+                    <ol-toggle name="due" checked accessible-label="Due date reminders">
+                    </ol-toggle>
+                </div>
+            </div>
+            <div class="ol-field ol-field--inline">
+                <span class="ol-field__label" id="cb-news-label">Monthly newsletter</span>
+                <p class="ol-field__help">New features and what the community has been reading.</p>
+                <div class="ol-field__control">
+                    <ol-toggle name="news" accessible-label="Monthly newsletter">
+                    </ol-toggle>
+                </div>
+            </div>
+        </fieldset>
+        <div class="ol-form__actions">
+            <ol-button type="submit" variant="primary">
+                Save changes
+            </ol-button>
+            <ol-button href="#">
+                Cancel
+            </ol-button>
+        </div>
+    </form>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

@@ -1,6 +1,4 @@
-import datetime
-
-import web
+import datetime as dt
 
 
 class TestMockSite:
@@ -26,7 +24,7 @@ class TestMockSite:
             "type": {"key": "/type/edition"},
             "title": "The Test Book",
         }
-        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
+        timestamp = dt.datetime(2010, 1, 2, 3, 4, 5)
 
         mock_site.save(doc, timestamp=timestamp)
 
@@ -50,7 +48,7 @@ class TestMockSite:
             "isbn_10": ["0123456789"],
             "isbn_13": ["0123456789abc"],
         }
-        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
+        timestamp = dt.datetime(2010, 1, 2, 3, 4, 5)
 
         mock_site.reset()
         mock_site.save(doc, timestamp=timestamp)
@@ -110,5 +108,5 @@ class TestMockSite:
         mock_site.quicksave("/authors/OL5A", "/type/author", name="b. BaGGinS")
         query = {"type": "/type/author", "name~": name}
 
-        reply = web.ctx.site.things(query)
+        reply = mock_site.things(query)
         assert reply == ["/authors/OL5A"]

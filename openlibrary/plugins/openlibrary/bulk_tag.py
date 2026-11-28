@@ -6,6 +6,7 @@ from infogami.utils import delegate
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.utils import uniq
+from openlibrary.utils.request_context import site
 
 # Usergroups that may use the bulk tagger
 ALLOWED_USERGROUPS: list[str] = [
@@ -35,9 +36,10 @@ class bulk_tag_works(delegate.page):
         # Number of tags removed per work:
         docs_removing = 0
 
-        for work in works:
-            w = web.ctx.site.get(f"/works/{work}")
+        keys = [f"/works/{work}" for work in works]
+        ws = site.get().get_many(keys)
 
+        for w in ws:
             current_subjects = {
                 # XXX : Should an empty list be the default for these?
                 "subjects": uniq(w.get("subjects", "")),
@@ -63,7 +65,7 @@ class bulk_tag_works(delegate.page):
 
             docs_to_update.append(w.dict())  # need to convert class to raw dict in order for save_many to work
 
-        web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works", action="bulk-edit-work-tags")
+        site.get().save_many(docs_to_update, comment="Bulk tagging works", action="bulk-edit-work-tags")
 
         def response(msg, status="success"):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")

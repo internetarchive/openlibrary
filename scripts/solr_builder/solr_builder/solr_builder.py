@@ -69,6 +69,7 @@ class LocalPostgresDataProvider(DataProvider):
         self.cached_work_editions_ranges: list = []
         self.cached_work_ratings: dict[str, WorkRatingsSummary] = {}
         self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = {}
+        self.covers_cache: dict[int, list[int]] = {}
 
     def __enter__(self) -> Self:
         """
@@ -178,7 +179,7 @@ class LocalPostgresDataProvider(DataProvider):
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_authors(self, lo_key, hi_key):
-        # Cache upto first five authors
+        # Cache up to first five authors
         q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" works
@@ -285,14 +286,41 @@ class LocalPostgresDataProvider(DataProvider):
         """
             % key
         )
-        row = next(self.query_iter(q))
+        row = next(self.query_iter(q), None)
         if row:
             return row[0]
+        # Match DatabaseDataProvider, so callers can filter dangling refs by type
+        logger.warning("NOT FOUND %s", key)
+        return {"key": key, "type": {"key": "/type/delete"}}
+
+    def get_cover_dimensions(self, cover_id: int) -> tuple[int, int] | None:
+        dimensions = self.covers_cache.get(cover_id)
+        if not dimensions:
+            return None
+        return (dimensions[0], dimensions[1])
+
+    def preload_cover_dimensions(self):
+        cover_ids = set()
+        for doc in self.cache.values():
+            if doc and doc.get("covers") and (cover_id := next((i for i in doc["covers"] if i != -1), None)):
+                cover_ids.add(cover_id)
+        cover_ids = [cid for cid in cover_ids if cid not in self.covers_cache]
+        if not cover_ids:
+            return
+
+        self.query_all(
+            f"""
+                SELECT id, json_build_array(width, height) FROM cover
+                WHERE id IN ({",".join(str(cid) for cid in cover_ids)})
+            """,
+            json_cache=self.covers_cache,
+        )
 
     def clear_cache(self):
         super().clear_cache()
         self.cached_work_editions_ranges.clear()
         self.cached_work_ratings.clear()
+        self.covers_cache.clear()
         self.cache.clear()
 
 
@@ -357,7 +385,7 @@ def build_job_query(
     return f"{q_select} {q_where} {q_order} {q_offset} {q_limit}"
 
 
-async def main(
+async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
     cmd: Literal["index", "fetch-end"],
     job: Literal["works", "orphans", "authors", "lists"],
     osp_dump: Path | None = None,

@@ -28,8 +28,8 @@ import logging
 import re
 import uuid
 from collections import defaultdict
-from collections.abc import Iterable
-from copy import copy
+from collections.abc import Iterable, Iterator
+from html import unescape as html_unescape
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
@@ -41,7 +41,6 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
-    east_in_by_statement,
     import_record_to_edition,
 )
 from openlibrary.catalog.add_book.match import editions_match, mk_norm
@@ -59,9 +58,11 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_accents
-from openlibrary.utils import dicthash, uniq
+from openlibrary.utils import dicthash, extract_numeric_id_from_olid, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.oclc import normalize_oclc
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
@@ -71,6 +72,8 @@ logger = logging.getLogger("add_book")
 re_normalize = re.compile("[^[:alphanum:] ]", re.UNICODE)
 re_lang = re.compile("^/languages/([a-z]{3})$")
 ISBD_UNIT_PUNCT = " : "  # ISBD cataloging title-unit separator punctuation
+# Infobase caps a `things()` limit at 1000; see `author_work_keys`.
+WORKS_QUERY_PAGE_SIZE: Final = 1000
 SUSPECT_PUBLICATION_DATES: Final = [
     "1900",
     "January 1, 1900",
@@ -81,13 +84,42 @@ SUSPECT_PUBLICATION_DATES: Final = [
 SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
+# source_records prefix -> identifiers key. These sources' records are
+# separate e-editions identified by the source's own id, so an import from one
+# only ever matches an edition carrying that same id; matching on title would
+# merge it into some other edition of the work, or miss and duplicate it.
+ID_MATCHED_SOURCES: Final = {
+    "project_gutenberg": "project_gutenberg",
+    "wikisource": "wikisource",
+}
 ALLOWED_COVER_HOSTS: Final = (
     "archive.org",
     "books.google.com",
+    "cdn.sanity.io",
     "commons.wikimedia.org",
     "covers.openlibrary.org",
     "m.media-amazon.com",
+    "www.gutenberg.org",
 )
+
+
+# Matches decimal (&#1059;) and hex (&#x41B;) HTML numeric character references only.
+# Named entities like &amp; are intentionally excluded to avoid false positives in
+# titles that legitimately contain "&" (e.g. "Tom & Jerry").
+_HTML_NUMERIC_ENTITY_RE = re.compile(r"&#(?:[0-9]{1,6}|x[0-9a-fA-F]{1,6});")
+
+
+def _unescape_html_entities(s: str) -> str:
+    """Unescape HTML entities in s, but only when a numeric/hex entity is present.
+
+    The guard (_HTML_NUMERIC_ENTITY_RE) fires on decimal (&#1059;) and hex
+    (&#x41B;) entities only — bare & and named entities (&amp;) do not trigger
+    it, so strings with only those pass through unchanged.  However, once the
+    guard fires, html.unescape() decodes ALL entities in the string, including
+    any named ones that happen to be present alongside the numeric ones.
+    Example: '&#1059; &amp; bar' -> '\\u0423 & bar'.
+    """
+    return html_unescape(s) if _HTML_NUMERIC_ENTITY_RE.search(s) else s
 
 
 type_map = {
@@ -193,6 +225,41 @@ def split_subtitle(full_title: str):
     return (title, subtitle)
 
 
+def author_work_keys(author_key: str) -> Iterator[list[str]]:
+    """
+    Yields pages of work keys for the given author.
+
+    The `limit` has to be passed explicitly: Infobase defaults a `things()` query
+    that doesn't carry one to 20 results, and caps an explicit one at
+    WORKS_QUERY_PAGE_SIZE (both in `infobase/readquery.py`). Authors with more
+    works than that are paged through with `offset`.
+
+    The query is sorted by key so the pages are stable: without a sort, Infobase
+    runs the select with no ORDER BY, and paging with `offset` could skip or repeat
+    works for an author with more than one page of them.
+
+    :param str author_key: an author key, "/authors/OL..A"
+    """
+    offset = 0
+    while True:
+        page = list(
+            site.get().things(
+                {
+                    "type": "/type/work",
+                    "authors": {"author": {"key": author_key}},
+                    "sort": "key",
+                    "limit": WORKS_QUERY_PAGE_SIZE,
+                    "offset": offset,
+                }
+            )
+        )
+        if page:
+            yield page
+        if len(page) < WORKS_QUERY_PAGE_SIZE:
+            return
+        offset += WORKS_QUERY_PAGE_SIZE
+
+
 def find_matching_work(e):
     """
     Looks for an existing Work representing the new import edition by
@@ -206,18 +273,18 @@ def find_matching_work(e):
     """
     seen = set()
     for a in e["authors"]:
-        q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
-        work_keys = list(web.ctx.site.things(q))
-        for wkey in work_keys:
-            w = web.ctx.site.get(wkey)
-            if wkey in seen:
-                continue
-            seen.add(wkey)
-            if not w.get("title"):
-                continue
-            if mk_norm(w["title"]) == mk_norm(e["title"]):
-                assert w.type.key == "/type/work"
-                return wkey
+        for work_keys in author_work_keys(a["key"]):
+            works = {w.key: w for w in site.get().get_many(work_keys)}
+            for wkey in work_keys:
+                w = works.get(wkey)
+                if w is None or wkey in seen:
+                    continue
+                seen.add(wkey)
+                if not w.get("title"):
+                    continue
+                if mk_norm(w["title"]) == mk_norm(e["title"]):
+                    assert w.type.key == "/type/work"
+                    return wkey
 
 
 def load_author_import_records(authors_in, edits, source, save: bool = True):
@@ -236,18 +303,25 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
     for a in authors_in:
         new_author = "key" not in a
         if new_author:
+            status = "created"
             if save:
-                a["key"] = web.ctx.site.new_key("/type/author")
+                a["key"] = site.get().new_key("/type/author")
             else:
                 a["key"] = f"/authors/__new__{uuid.uuid4()}"
             a["source_records"] = [source]
+        else:
+            stored = site.get().get(a["key"])  # Fresh read to check for modifications
+            status = "modified" if a.dict() != stored.dict() else "matched"
+        if status == "created":
             edits.append(a)
+        elif status == "modified":
+            edits.append(a.dict())
         authors.append({"key": a["key"]})
         author_reply.append(
             {
                 "key": a["key"],
                 "name": a["name"],
-                "status": ("created" if new_author else "matched"),
+                "status": status,
             }
         )
     return (authors, author_reply)
@@ -280,7 +354,7 @@ def new_work(edition: dict, rec: dict, cover_id: int | None = None, save: bool =
         w["description"] = {"type": "/type/text", "value": rec["description"]}
 
     if save:
-        w["key"] = web.ctx.site.new_key("/type/work")
+        w["key"] = site.get().new_key("/type/work")
     else:
         w["key"] = f"/works/__new__{uuid.uuid4()}"
 
@@ -351,24 +425,6 @@ def modify_ia_item(item, data):
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
 
 
-def create_ol_subjects_for_ocaid(ocaid, subjects):
-    item = get_ia_item(ocaid)
-    openlibrary_subjects = copy(item.metadata.get("openlibrary_subject")) or []
-
-    if not isinstance(openlibrary_subjects, list):
-        openlibrary_subjects = [openlibrary_subjects]
-
-    for subject in subjects:
-        if subject not in openlibrary_subjects:
-            openlibrary_subjects.append(subject)
-
-    r = modify_ia_item(item, {"openlibrary_subject": openlibrary_subjects})
-    if r.status_code != 200:
-        return f"{item.identifier} failed: {r.content}"
-    else:
-        return f"success for {item.identifier}"
-
-
 def update_ia_metadata_for_ol_edition(edition_id):
     """
     Writes the Open Library Edition and Work id to a linked
@@ -381,7 +437,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
     data = {"error": "No qualifying edition"}
     if edition_id:
-        ed = web.ctx.site.get(f"/books/{edition_id}")
+        ed = site.get().get(f"/books/{edition_id}")
         if ed.ocaid:
             work = ed.works[0] if ed.get("works") else None
             if work and work.key:
@@ -400,17 +456,21 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
 def normalize_record_bibids(rec: dict):
     """
-    Returns the Edition import record with all ISBN fields and LCCNs cleaned.
+    Returns the Edition import record with ISBNs, LCCNs, and OCLC numbers cleaned.
 
     :param dict rec: Edition import record
     :rtype: dict
-    :return: A record with cleaned LCCNs, and ISBNs in the various possible ISBN locations.
+    :return: A record with cleaned ISBN, LCCN, and OCLC fields.
     """
     for field in ("isbn_13", "isbn_10", "isbn"):
         if rec.get(field):
             rec[field] = [normalize_isbn(isbn) for isbn in rec.get(field, "") if normalize_isbn(isbn)]
     if rec.get("lccn"):
         rec["lccn"] = [normalize_lccn(lccn) for lccn in rec.get("lccn", "") if normalize_lccn(lccn)]
+    if oclc_numbers := rec.get("oclc_numbers"):
+        if isinstance(oclc_numbers, str):
+            oclc_numbers = [oclc_numbers]
+        rec["oclc_numbers"] = list(dict.fromkeys(number for value in oclc_numbers if value is not None and (number := normalize_oclc(str(value)))))
     return rec
 
 
@@ -425,14 +485,48 @@ def isbns_from_record(rec: dict) -> list[str]:
     return isbns
 
 
-def find_wikisource_src(rec: dict) -> str | None:
-    if not rec.get("source_records"):
-        return None
-    ws_prefix = "wikisource:"
-    ws_match = next((src for src in rec["source_records"] if src.startswith(ws_prefix)), None)
-    if ws_match:
-        return ws_match[len(ws_prefix) :]
+def find_id_matched_source(rec: dict) -> tuple[str, str] | None:
+    """The ``(identifiers key, id)`` of a source whose imports match on id alone.
+
+    E.g. ``project_gutenberg:1661`` -> ``("project_gutenberg", "1661")``.
+    """
+    for src in rec.get("source_records") or []:
+        prefix, _, source_id = src.partition(":")
+        if source_id and (key := ID_MATCHED_SOURCES.get(prefix)):
+            return key, source_id
     return None
+
+
+def find_ol_edition_ref(rec: dict) -> str | None:
+    """The ``/books/OL...M`` key an import record names outright, if any.
+
+    Some sources know exactly which edition they are describing -- a provider
+    feed whose own local id IS the Open Library edition number, for instance --
+    and pass it as ``openlibrary``. For those records the edition is not a thing
+    to be inferred from the bibliographic data; it is given.
+    """
+    if ol_id := rec.get("openlibrary"):
+        return f"/books/{ol_id}"
+    return None
+
+
+def resolve_edition_ref(ol_key: str) -> str | None:
+    """The live edition an ``/books/OL...M`` reference resolves to, or None.
+
+    A named id is only as good as whoever typed it. Lenny, for example, accepts
+    the Open Library edition number as an unvalidated form field
+    (ArchiveLabs/lenny#214), so a typo'd, deleted or simply wrong id arrives
+    looking exactly like a good one -- and ``_load`` would then dereference the
+    key unconditionally. Redirects are followed; anything that does not resolve
+    to a live edition returns None, so a caller can fall back to ordinary
+    matching instead of saving against a key that is not there.
+    """
+    thing = site.get().get(ol_key)
+    if is_redirect(thing) and (location := getattr(thing, "location", None)):
+        thing = site.get().get(location)
+    if not thing or thing.type.key != "/type/edition":
+        return None
+    return thing.key
 
 
 def build_pool(rec: dict) -> dict[str, list[str]]:
@@ -446,12 +540,40 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
     pool = defaultdict(set)
     match_fields = ("title", "oclc_numbers", "lccn", "ocaid")
 
-    if ws_match := find_wikisource_src(rec):
-        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = set(editions_matched(rec, "identifiers.wikisource", ws_match))
-        if ekeys:
-            pool["wikisource"] = ekeys
-        return {k: list(v) for k, v in pool.items() if v}
+    if ol_key := find_ol_edition_ref(rec):
+        if verified := resolve_edition_ref(ol_key):
+            # The record names its edition and that edition exists: this IS the
+            # answer, not a candidate to weigh against title evidence. Narrow the
+            # pool to it, the same way an ID_MATCHED_SOURCES id narrows to itself.
+            #
+            # Deliberately checked BEFORE the title pool rather than relying on
+            # find_quick_match, which only runs when build_pool returned
+            # something. A record with no same-title match in the catalog -- an
+            # obscure local-history pamphlet, exactly the material a
+            # library-in-a-box feed carries -- would otherwise skip the shortcut
+            # and create a duplicate of the edition it just named. The id should
+            # win most decisively where there is nothing else to go on.
+            return {"openlibrary": [verified]}
+        # A dangling id is a data-entry error at the source, not a reason to skip
+        # matching altogether: fall through to the ordinary pool.
+        #
+        # Names the source record, because trust in a provider's ids is decided
+        # per provider, not per record: a handful of these is data entry, a
+        # large or growing share means that provider's ids are not trustworthy
+        # and its feed should be deactivated. Aggregating this line by source
+        # prefix is how that becomes visible.
+        source = (rec.get("source_records") or ["?"])[0]
+        logger.warning(
+            "import record %s names %s, which does not resolve to an edition; matching normally",
+            source,
+            ol_key,
+        )
+
+    if id_source := find_id_matched_source(rec):
+        id_key, source_id = id_source
+        if ekeys := editions_matched(rec, f"identifiers.{id_key}", source_id):
+            return {id_key: ekeys}
+        return {}
 
     # Find records with matching fields
     for field in match_fields:
@@ -473,16 +595,17 @@ def find_quick_match(rec: dict) -> str | None:
     :param dict rec: Edition record
     :return: First key matched of format "/books/OL..M" or None if no match found.
     """
-    if "openlibrary" in rec:
-        return "/books/" + rec["openlibrary"]
+    if (ol_key := find_ol_edition_ref(rec)) and (verified := resolve_edition_ref(ol_key)):
+        # The record names its edition and that edition exists: that is the
+        # answer. A named id that does NOT resolve deliberately falls through to
+        # the checks below rather than returning a key _load() would dereference
+        # and raise on.
+        return verified
 
-    if ws_match := find_wikisource_src(rec):
-        # If this is a wikisource import, ONLY consider a match if the same wikisource ID
-        ekeys = editions_matched(rec, "identifiers.wikisource", ws_match)
-        if ekeys:
-            return ekeys[0]
-        else:
-            return None
+    if id_source := find_id_matched_source(rec):
+        id_key, source_id = id_source
+        ekeys = editions_matched(rec, f"identifiers.{id_key}", source_id)
+        return ekeys[0] if ekeys else None
 
     ekeys = editions_matched(rec, "ocaid")
     if ekeys:
@@ -525,7 +648,7 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
 
     q = {"type": "/type/edition", key: value}
 
-    ekeys = list(web.ctx.site.things(q))
+    ekeys = list(site.get().things(q))
     return ekeys
 
 
@@ -544,7 +667,7 @@ def find_threshold_match(rec: dict, edition_pool: dict[str, list[str]]) -> str |
             thing = None
             while not thing or is_redirect(thing):
                 seen.add(edition_key)
-                thing = web.ctx.site.get(edition_key)
+                thing = site.get().get(edition_key)
                 if thing is None:
                     break
                 if is_redirect(thing):
@@ -634,7 +757,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     edition_key = edition.get("key")
     if not edition_key:
         if save:
-            edition_key = web.ctx.site.new_key("/type/edition")
+            edition_key = site.get().new_key("/type/edition")
         else:
             edition_key = f"/books/__new__{uuid.uuid4()}"
 
@@ -660,11 +783,8 @@ def load_data(  # noqa: PLR0912, PLR0915
         reply["preview"] = True
         reply["edits"] = edits
 
-    # edition.authors may have passed through `author_import_record_to_author` in `build_query`,
-    # but not necessarily
-    author_in = [(author_import_record_to_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a) for a in edition.get("authors", [])]
-    # build_author_reply() adds authors to edits
-    authors, author_reply = load_author_import_records(author_in, edits, rec["source_records"][0], save=save)
+    authors_in = edition.get("authors", [])
+    authors, author_reply = load_author_import_records(authors_in, edits, rec["source_records"][0], save=save)
 
     if authors:
         edition["authors"] = authors
@@ -676,7 +796,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     if not work_key and "authors" in edition:
         work_key = find_matching_work(edition)
     if work_key:
-        work = web.ctx.site.get(work_key)
+        work = site.get().get(work_key)
         work_state = "matched"
         need_update = False
         for k in subject_fields:
@@ -708,7 +828,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     if save:
         comment = "overwrite existing edition" if existing_edition else "import new book"
         action = "edit-book" if existing_edition else "add-book"
-        web.ctx.site.save_many(edits, comment=comment, action=action)
+        site.get().save_many(edits, comment=comment, action=action)
 
         # Writes back `openlibrary_edition` and `openlibrary_work` to
         # archive.org item after successful import:
@@ -748,6 +868,33 @@ def normalize_import_record(rec: dict) -> None:
     publication_year = get_publication_year(rec.get("publish_date"))
     if publication_year and published_in_future_year(publication_year):
         del rec["publish_date"]
+
+    # Unescape HTML numeric/hex character references introduced by some import
+    # sources (e.g. BetterWorldBooks).  Must run before subtitle split so that
+    # a colon buried inside an entity sequence doesn't produce a spurious split.
+    _EDITION_TEXT_FIELDS = (
+        "title",
+        "subtitle",
+        "full_title",
+        "by_statement",
+        "edition_name",
+        "description",
+        "pagination",
+        "first_sentence",
+        "notes",
+        "copyright_date",
+    )
+    for field in _EDITION_TEXT_FIELDS:
+        value = rec.get(field)
+        if isinstance(value, str):
+            rec[field] = _unescape_html_entities(value)
+        elif isinstance(value, dict) and isinstance(value.get("value"), str):
+            # Some fields (e.g. description) are stored as {"type": "/type/text", "value": "..."}
+            value["value"] = _unescape_html_entities(value["value"])
+    for author in rec.get("authors", []):
+        for field in ("name", "personal_name", "bio", "title", "death_date"):
+            if isinstance(author.get(field), str):
+                author[field] = _unescape_html_entities(author[field])
 
     # Split subtitle if required and not already present
     if ":" in rec.get("title", "") and not rec.get("subtitle"):
@@ -954,6 +1101,96 @@ def load(
     from_marc_record: bool = False,
     save: bool = True,
 ) -> dict:
+    """Add/match an edition, then upsert any provider ``acquisitions`` it carries.
+
+    ``acquisitions`` is not edition data — it is pulled off the record and, once
+    the edition/work are created or matched, written to the acquisitions table
+    keyed on ``(provider_name, local_id)`` with the resolved work/edition ids.
+    The catalog logic itself lives in :func:`_load`. (#12844)
+    """
+    acquisitions = rec.pop("acquisitions", None)
+    reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
+    if acquisitions and reply.get("success"):
+        if save:
+            _save_acquisitions(reply, acquisitions)
+        else:
+            # Previews write nothing, so report what an import would add.
+            reply["acquisitions"] = acquisitions
+    return reply
+
+
+def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
+    """Upsert acquisition rows for a just-created/matched edition (#12844).
+
+    One row per ``(provider_name, local_id)``, whose ``data`` is
+    ``{"acquisitions": [...]}`` holding EVERY acquisition the publication
+    offers -- price, epub, html -- rather than only the last one written.
+
+    Guard: an acquisition is only written when its ``provider_name`` names a
+    feed registered in ``feed_registry``. ImportBot posts feed records to the
+    (privileged, ``can_write``-gated) ``/api/import`` endpoint, so the trust
+    boundary can't be the endpoint — it's feed-registry membership. Acquisitions
+    naming an unregistered provider are dropped, so a caller cannot mint
+    acquisitions for an arbitrary (unregistered) provider.
+
+    Scope of the guarantee (v1): this checks the provider *name* only. It does
+    NOT validate the acquisition's ``local_id`` against the record's identifiers
+    or constrain ``data.url``/price. A privileged import caller is therefore
+    trusted not to forge acquisition *content* for a registered provider;
+    tightening that is deferred. Acquisitions missing the required keys are
+    skipped rather than raising.
+
+    The ``FeedRegistry.provider_names()`` read is unguarded ON PURPOSE — unlike
+    ``import_validator`` (which keeps a try/except because validation runs in
+    DB-less contexts), this only runs inside the import pipeline where the DB and
+    ``feed_registry`` table always exist. Don't add a guard here; don't remove
+    the validator's.
+    """
+    from openlibrary.bookworm.registry import FeedRegistry
+    from openlibrary.core.acquisitions import Acquisition
+
+    registered = FeedRegistry.provider_names()
+    work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    # Group by the row's identity before writing. `acquisitions` is UNIQUE on
+    # (local_id, provider_name), so upserting each acquisition of a publication
+    # separately made them overwrite one another and only the LAST survived --
+    # a Gutenberg book offering epub, html and txt kept one link, and a
+    # publication with both a price and a download kept whichever came last.
+    # One row now holds all of them.
+    grouped: dict[tuple[str, str], list[dict]] = {}
+    for acq in acquisitions:
+        provider_name = acq.get("provider_name")
+        local_id = acq.get("local_id")
+        if not provider_name or not local_id:
+            logger.warning("Skipping malformed acquisition (missing provider_name/local_id): %r", acq)
+            continue
+        if provider_name not in registered:
+            logger.warning("Dropping acquisition for unregistered provider %r", provider_name)
+            continue
+        grouped.setdefault((provider_name, local_id), []).append(acq.get("data") or {})
+
+    for (provider_name, local_id), entries in grouped.items():
+        # The whole set is written, not merged into what is already there: the
+        # feed is authoritative for its own publication, so a link the provider
+        # has withdrawn must disappear rather than linger forever. A dict rather
+        # than a bare list so provider-level fields can be added later without
+        # breaking readers.
+        Acquisition.upsert(
+            work_id=work_id,
+            edition_id=edition_id,
+            provider_name=provider_name,
+            local_id=local_id,
+            data={"acquisitions": entries},
+        )
+
+
+def _load(
+    rec: dict,
+    account_key=None,
+    from_marc_record: bool = False,
+    save: bool = True,
+) -> dict:
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
@@ -986,14 +1223,14 @@ def load(
     # We have an edition match at this point
     need_work_save = need_edition_save = False
     work: dict[str, Any]
-    existing_edition: Edition = web.ctx.site.get(match)
+    existing_edition: Edition = site.get().get(match)
 
     # check for, and resolve, author redirects
     for a in existing_edition.authors:
         while is_redirect(a):
             if a in existing_edition.authors:
                 existing_edition.authors.remove(a)
-            a = web.ctx.site.get(a.location)
+            a = site.get().get(a.location)
             if not is_redirect(a):
                 existing_edition.authors.append(a)
 
@@ -1039,7 +1276,7 @@ def load(
 
     if save:
         if edits:
-            web.ctx.site.save_many(edits, comment="import existing book", action="edit-book")
+            site.get().save_many(edits, comment="import existing book", action="edit-book")
         if "ocaid" in rec:
             update_ia_metadata_for_ol_edition(match.split("/")[-1])
 

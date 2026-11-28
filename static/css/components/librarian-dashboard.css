@@ -1,5 +1,5 @@
 details.librarian-dashboard {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-stack-md);
   max-width: 700px;
 }
@@ -12,7 +12,7 @@ details.librarian-dashboard {
 
 .dq-table th {
   background: var(--white);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-align: center;
   padding: var(--spacing-inset-sm);
 }
@@ -21,7 +21,7 @@ details.librarian-dashboard {
   border: 0;
   background: none;
   text-decoration: underline;
-  color: var(--link-blue);
+  color: var(--color-link);
   cursor: pointer;
   float: right;
 }
@@ -35,7 +35,7 @@ details.librarian-dashboard {
 }
 
 .dq-table__row .dq-table__criterion-cell {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   width: 30%;
 }
 

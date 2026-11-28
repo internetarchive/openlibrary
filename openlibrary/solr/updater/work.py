@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import itertools
 import logging
 import re
@@ -12,12 +12,8 @@ from typing import TYPE_CHECKING, TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
-from openlibrary.core.lists.model import SeriesDict
-from openlibrary.core.models import (
-    ThingReferenceDict,
-    WorkSeriesEdge,
-)
 from openlibrary.plugins.upstream.utils import safeget
+from openlibrary.solr.data_provider import SUPPORTED_WORK_TAG_FIELDS, normalize_tag
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
@@ -28,6 +24,8 @@ from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
 from openlibrary.utils.open_syllabus_project import get_total_by_olid
 
 if TYPE_CHECKING:
+    from openlibrary.core.lists.model import SeriesDict
+    from openlibrary.core.models import ThingReferenceDict, WorkSeriesEdge
     from openlibrary.core.ratings import WorkRatingsSummary
     from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
     from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
@@ -38,6 +36,20 @@ re_author_key = re.compile(r"^/(?:a|authors)/(OL\d+A)")
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_subject = re.compile("[, _]+")
 
+# Tag types indexed onto works. A Tag's `tag_type` is singular (e.g.
+# `content_warning`); the work field that lists such tags is plural
+# (`content_warnings`, see SUPPORTED_WORK_TAG_FIELDS); the Solr fields are the
+# singular stem plus `_key` / `_name`.
+WORK_TAG_TYPES = (
+    "genre",
+    "subgenre",
+    "audience",
+    "content_warning",
+    "content_format",
+    "literary_form",
+    "award",
+)
+
 
 class WorkSolrUpdater(AbstractSolrUpdater):
     key_prefix = "/works/"
@@ -46,6 +58,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
     async def preload_keys(self, keys: Iterable[str]):
         await super().preload_keys(keys)
         self.data_provider.preload_editions_of_works(keys)
+        self.data_provider.preload_cover_dimensions()
 
     async def update_key(self, work: dict) -> tuple[SolrUpdateRequest, list[str]]:
         """
@@ -77,16 +90,12 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 "editions": [work],
                 "authors": [{"type": "/type/author_role", "author": {"key": a["key"]}} for a in work.get("authors", [])],
             }
-            # Hack to add subjects when indexing /books/ia:xxx
             if work.get("subjects"):
                 fake_work["subjects"] = work["subjects"]
             return await self.update_key(fake_work)
         elif work["type"]["key"] == "/type/work":
             try:
-                # Anand - Oct 2013
-                # For /works/ia:xxx, editions are already supplied. Querying will empty response.
-
-                # Fetch editions
+                # Fetch editions. The fake work for an orphaned edition already has them.
                 if "editions" in work:
                     editions = work["editions"]
                 else:
@@ -100,10 +109,17 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     logger.warning("Unexpected author type error: %s", work["key"])
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
 
+                # Fetch tags across all SUPPORTED_WORK_TAG_FIELDS (genres,
+                # subgenres, audiences, content_warnings, content_formats,
+                # literary_forms)
+                tag_keys = [normalize_tag(t)["key"] for field in SUPPORTED_WORK_TAG_FIELDS for t in work.get(field, [])]
+                tags = [await self.data_provider.get_document(key) for key in tag_keys]
+                tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
+
                 # Fetch series
                 series_edges = uniq(
                     [
-                        cast(WorkSeriesEdge[ThingReferenceDict], series)
+                        cast("WorkSeriesEdge[ThingReferenceDict]", series)
                         for rec in (work, *editions)
                         for series in rec.get("series", [])
                         if isinstance(series, dict)
@@ -112,7 +128,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 )
                 series = [
                     cast(
-                        WorkSeriesEdge[SeriesDict],
+                        "WorkSeriesEdge[SeriesDict]",
                         {
                             **edge,
                             "series": await self.data_provider.get_document(edge["series"]["key"]),
@@ -135,15 +151,12 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     self.data_provider,
                     ia_metadata,
                     trending_data,
+                    tags,
                 ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work["key"], exc_info=True)
             else:
                 if solr_doc is not None:
-                    iaids = solr_doc.get("ia") or []
-                    # Delete all ia:foobar keys
-                    if iaids:
-                        update.deletes += [f"/works/ia:{iaid}" for iaid in iaids]
                     update.adds.append(solr_doc)
         else:
             logger.error("unrecognized type while updating work %s", wkey)
@@ -164,13 +177,18 @@ def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> bp.IAL
     if len(ia) == 1:
         return None
 
-    def get_list(d, key):
+    metadata = data_provider.get_metadata(ia)
+    if metadata is None:
+        # It's none when the IA id is not found/invalid.
+        # TODO: It would be better if get_metadata raised an error.
+        return None
+    return full_ia_metadata_to_lite_metadata(metadata)
+
+
+def full_ia_metadata_to_lite_metadata(metadata: dict) -> bp.IALiteMetadata:
+    def get_list(d: dict | None, key: str) -> list:
         """
         Return d[key] as some form of list, regardless of if it is or isn't.
-
-        :param dict or None d:
-        :param str key:
-        :rtype: list
         """
         if not d:
             return []
@@ -182,11 +200,6 @@ def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> bp.IAL
         else:
             return value
 
-    metadata = data_provider.get_metadata(ia)
-    if metadata is None:
-        # It's none when the IA id is not found/invalid.
-        # TODO: It would be better if get_metadata raised an error.
-        return None
     return {
         "boxid": set(get_list(metadata, "boxid")),
         "collection": set(get_list(metadata, "collection")),
@@ -254,9 +267,9 @@ def datetimestr_to_int(datestr):
         try:
             t = h.parse_datetime(datestr)
         except TypeError, ValueError:
-            t = datetime.datetime.now()
+            t = dt.datetime.now()
     else:
-        t = datetime.datetime.now()
+        t = dt.datetime.now()
 
     return int(time.mktime(t.timetuple()))
 
@@ -278,25 +291,51 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         data_provider: DataProvider,
         ia_metadata: dict[str, bp.IALiteMetadata | None],
         trending_data: dict,
+        tags: list[dict],
     ):
         self._work = work
         self._editions = editions
         self._authors = authors
+        self._tags = tags
         self._series = series
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._trending_data = trending_data
-        self._solr_editions = [EditionSolrBuilder(e, self, self._ia_metadata.get(e.get("ocaid", "").strip())) for e in self._editions]
+        self._as_solr_edition = EditionSolrBuilder(
+            edition=self._work,
+            solr_work=self,
+            db_work=self._work,
+            db_authors=authors,
+            data_provider=self._data_provider,
+        )
+        self._solr_editions = [
+            EditionSolrBuilder(
+                edition=e,
+                solr_work=self,
+                db_work=self._work,
+                db_authors=authors,
+                ia_metadata=self._ia_metadata.get(e.get("ocaid", "").strip()),
+                data_provider=self._data_provider,
+            )
+            for e in self._editions
+        ]
 
-    def build(self) -> SolrDocument:
-        doc = cast(dict, super().build())
-        doc |= self.build_identifiers()
-        doc |= self.build_subjects()
-        doc |= self.build_legacy_ia_fields()
-        doc |= self.build_ratings() or {}
-        doc |= self.build_reading_log() or {}
-        doc |= self._trending_data
-        return cast(SolrDocument, doc)
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
+        exclude = exclude or []
+
+        return cast(
+            SolrDocument,
+            {
+                **super().build(exclude=exclude),
+                **self._identifiers,
+                **self._subjects,
+                **self._legacy_ia_fields,
+                **(self._ratings or {}),
+                **(self._reading_log or {}),
+                **self._trending_data,
+                **self.build_tags(),
+            },
+        )
 
     @property
     def key(self):
@@ -308,16 +347,15 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def seed(self) -> list[str]:
-        w = self._work
         return uniq(
             itertools.chain(
                 (e.key for e in self._solr_editions),
                 (self.key,),
                 (author["key"] for author in self._authors),
-                (subject_name_to_key("subject", s) for s in w.get("subjects", [])),
-                (subject_name_to_key("person", s) for s in w.get("subject_people", [])),
-                (subject_name_to_key("place", s) for s in w.get("subject_places", [])),
-                (subject_name_to_key("time", s) for s in w.get("subject_times", [])),
+                (subject_name_to_key("subject", s) for s in self._get_subjects("subjects")),
+                (subject_name_to_key("person", s) for s in self._get_subjects("subject_people")),
+                (subject_name_to_key("place", s) for s in self._get_subjects("subject_places")),
+                (subject_name_to_key("time", s) for s in self._get_subjects("subject_times")),
             )
         )
 
@@ -351,7 +389,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def alternative_title(self) -> set[str]:
         alt_title_set = set()
-        for book in (EditionSolrBuilder(self._work), *self._solr_editions):
+        for book in (self._as_solr_edition, *self._solr_editions):
             alt_title_set.update(book.alternative_title)
             if book.translation_of:
                 alt_title_set.add(book.translation_of)
@@ -480,7 +518,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def isbn(self) -> set[str]:
-        return {isbn for ed in self._editions for isbn in EditionSolrBuilder(ed).isbn}
+        return {isbn for ed in self._solr_editions for isbn in ed.isbn}
 
     @property
     def last_modified_i(self) -> int:
@@ -554,10 +592,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     # ^^^ These should be deprecated and removed ^^^
 
-    def build_ratings(self) -> WorkRatingsSummary | None:
+    @cached_property
+    def _ratings(self) -> WorkRatingsSummary | None:
         return self._data_provider.get_work_ratings(self._work["key"])
 
-    def build_reading_log(self) -> WorkReadingLogSolrSummary | None:
+    @cached_property
+    def _reading_log(self) -> WorkReadingLogSolrSummary | None:
         return self._data_provider.get_work_reading_log(self._work["key"])
 
     @cached_property
@@ -570,6 +610,20 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         )
 
         return work_cover_id or next((ed.cover_i for ed in self._solr_editions if ed.cover_i is not None), None)
+
+    @cached_property
+    def _cover_dimensions(self) -> tuple[int, int] | None:
+        if self.cover_i is None:
+            return None
+        return self._data_provider.get_cover_dimensions(self.cover_i)
+
+    @property
+    def cover_width(self) -> int | None:
+        return self._cover_dimensions[0] if self._cover_dimensions else None
+
+    @property
+    def cover_height(self) -> int | None:
+        return self._cover_dimensions[1] if self._cover_dimensions else None
 
     @property
     def cover_edition_key(self) -> str | None:
@@ -596,7 +650,8 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def language(self) -> set[str]:
         return {lang for ed in self._solr_editions for lang in ed.language}
 
-    def build_legacy_ia_fields(self) -> dict:
+    @property
+    def _legacy_ia_fields(self) -> dict:
         ia_box_id = set()
 
         for e in self._editions:
@@ -626,6 +681,18 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_name(self) -> list[str]:
         return [a.get("name", "") for a in self._authors]
 
+    def build_tags(self) -> dict[str, list[str]]:
+        # One pass over the work's tags, bucketed by the Tag's (singular)
+        # tag_type into the `{tag_type}_key` / `{tag_type}_name` Solr fields.
+        doc: dict[str, list[str]] = {}
+        for tag in self._tags:
+            tag_type = tag.get("tag_type")
+            if tag_type not in WORK_TAG_TYPES:
+                continue
+            doc.setdefault(f"{tag_type}_key", []).append(tag["key"].split("/")[-1])
+            doc.setdefault(f"{tag_type}_name", []).append(tag.get("name", ""))
+        return doc
+
     @cached_property
     def author_alternative_name(self) -> set[str]:
         return {alt_name for a in self._authors for alt_name in a.get("alternate_names", [])}
@@ -634,14 +701,16 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_facet(self) -> list[str]:
         return [f"{key} {name}" for key, name in zip(self.author_key, self.author_name)]
 
-    def build_identifiers(self) -> dict[str, list[str]]:
+    @property
+    def _identifiers(self) -> dict[str, list[str]]:
         identifiers: dict[str, list[str]] = defaultdict(list)
         for ed in self._solr_editions:
-            for k, v in ed.identifiers.items():
+            for k, v in ed._identifiers.items():
                 identifiers[k] += v
         return dict(identifiers)
 
-    def build_subjects(self) -> dict:
+    @property
+    def _subjects(self) -> dict:
         doc: dict = {}
         field_map = {
             "subjects": "subject",
@@ -650,15 +719,19 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             "subject_people": "person",
         }
         for work_field, subject_type in field_map.items():
-            if not self._work.get(work_field):
+            if not (subjects := self._get_subjects(work_field)):
                 continue
 
             doc |= {
-                subject_type: self._work[work_field],
-                f"{subject_type}_facet": self._work[work_field],
-                f"{subject_type}_key": [normalize_subject_name(s) for s in self._work[work_field]],
+                subject_type: subjects,
+                f"{subject_type}_facet": subjects,
+                f"{subject_type}_key": [normalize_subject_name(s) for s in subjects],
             }
         return doc
+
+    def _get_subjects(self, work_field: str) -> list[str]:
+        # Some records store subjects as /type/text values instead of plain strings
+        return [s["value"] if isinstance(s, dict) else s for s in self._work.get(work_field, [])]
 
 
 def get_edition_ddcs(ed: dict):

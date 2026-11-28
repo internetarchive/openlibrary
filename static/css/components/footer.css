@@ -22,24 +22,24 @@ footer {
   display: flex;
   width: 100%;
   bottom: 0;
-  font-size: 0.8em;
+  font-size: var(--font-size-body-small);
 }
 
 footer #footer-details {
-  color: var(--dark-grey);
+  color: var(--color-text);
   display: flex;
   width: 100%;
 }
 
 footer h2 {
-  color: var(--dark-grey);
-  font-size: 1em;
+  color: var(--color-text);
+  font-size: inherit;
   margin: 0;
 }
 
 footer hr {
   border: 0;
-  border-top: 1px solid var(--dark-beige);
+  border-top: 1px solid var(--color-border-muted);
   margin: 20px 0;
 }
 
@@ -49,7 +49,7 @@ footer ul {
 }
 
 footer ul li {
-  font-size: 1em;
+  font-size: inherit;
   list-style-type: none;
   white-space: nowrap;
   margin: var(--spacing-stack-xs) 0;
@@ -100,8 +100,8 @@ div#version-details {
 
 /* FIXME: merge with above CSS rule? */
 .version {
-  color: var(--dark-grey);
-  border: 1px solid var(--dark-beige);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-muted);
   border-radius: 3px;
   padding: var(--spacing-inset-sm);
 }

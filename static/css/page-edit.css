@@ -3,13 +3,8 @@
 
  * Used in templates:
  * - openlibrary/templates/type/about/edit.html
- * - openlibrary/templates/type/i18n/edit.html
- * - openlibrary/templates/type/macro/view.html
- * - openlibrary/templates/type/macro/edit.html
  * - openlibrary/templates/type/page/edit.html
  * - openlibrary/templates/type/permission/edit.html
- * - openlibrary/templates/type/rawtext/edit.html
- * - openlibrary/templates/type/rawtext/view.html
  * - openlibrary/templates/type/template/view.html
  * - openlibrary/templates/type/template/edit.html
  * - openlibrary/templates/type/user/edit.html
@@ -22,7 +17,7 @@
 /* stylelint-disable selector-max-specificity */
 body,
 div#content {
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -54,29 +49,29 @@ div#revertLink {
   padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 .label label {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 .label span {
-  font-size: 0.75em;
+  font-size: var(--font-size-label-medium);
   font-family: var(--font-family-body);
 }
 textarea {
   font-family: var(--font-family-code);
-  font-size: 0.875em;
+  font-size: var(--font-size-body-medium);
   padding: var(--spacing-inset-xs);
   resize: vertical;
 }
 .formElement input[type="text"],
 .formElement select {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
-  color: var(--dark-grey);
+  color: var(--color-text);
   padding: var(--spacing-inset-xs);
 }
 table.code {
-  border: 1px solid var(--grey-e7e7e7);
+  border: 1px solid var(--color-border-subtle);
   width: 100%;
   margin-right: 10px;
   margin-bottom: 40px;
@@ -88,16 +83,6 @@ table.code td {
   font-size: 0.875em;
   padding: var(--spacing-inset-xs);
 }
-/* stylelint-disable selector-max-specificity */
-div#databar {
-  padding: var(--spacing-inset-sm);
-  margin: 20px 20px 0;
-  background-color: var(--light-yellow);
-}
-div#databar a {
-  font-size: 0.75em;
-}
-/* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 #editHead {
   background: url(/static/images/logo_OL-sm.png) 20px 15px no-repeat;
@@ -112,7 +97,7 @@ div#databar a {
   font-family: var(--font-family-body);
   color: var(--red);
   font-size: var(--font-size-label-large);
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   text-decoration: underline;
 }
 #editHead p {
@@ -125,7 +110,8 @@ div#databar a {
 .formElement.pagetype {
   width: 300px;
 }
-.formElement.pagetype #type\.key {
+/* Rendered by thinginput() in openlibrary/macros/TypeChanger.html */
+.formElement.pagetype select {
   width: 100%;
 }
 div#revertNotice,
@@ -133,13 +119,6 @@ footer,
 div#bottom,
 .siteSearch {
   display: none;
-}
-
-/* Defined in openlibrary/macros/EditButtons.html */
-div.adminDelete {
-  margin-top: 8px;
-  font-size: var(--font-size-label-medium);
-  color: var(--grey);
 }
 
 /* @width-breakpoint-desktop = 960px */

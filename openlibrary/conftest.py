@@ -8,6 +8,7 @@ from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.core import helpers
+from openlibrary.core.env import get_ol_env
 from openlibrary.i18n import gettext
 from openlibrary.mocks.mock_ia import mock_ia  # noqa: F401 side effects may be needed
 from openlibrary.mocks.mock_infobase import (
@@ -25,6 +26,18 @@ def no_requests(monkeypatch):
         raise Warning("Network requests are blocked in the testing environment")
 
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
+
+
+@pytest.fixture(autouse=True)
+def no_stored_initiatives(monkeypatch):
+    """Tasks reads its initiatives' definitions from the store on most pages; tests get the built-in ones alone."""
+    monkeypatch.setattr("openlibrary.contribute.initiatives.cached_definitions", list)
+
+
+@pytest.fixture
+def local_dev(monkeypatch):
+    """Run the test as if LOCAL_DEV=true."""
+    monkeypatch.setattr(get_ol_env(), "LOCAL_DEV", True)
 
 
 @pytest.fixture(autouse=True)
@@ -47,7 +60,7 @@ def no_sleep(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def setup_db_config():
+def setup_db_config(monkeypatch):
     """
     Set up empty database configuration for all tests to prevent db_parameters errors.
 
@@ -57,11 +70,11 @@ def setup_db_config():
     missing or incorrect database parameters when initializing site.
     """
     # Set web.config.db_parameters for OLConnection
-    web.config.db_parameters = {}
+    monkeypatch.setitem(web.config, "db_parameters", {})
 
     # Set infobase_parameters to use local connection instead of OLConnection
     # This prevents the database configuration error when tests run
-    config.infobase_parameters = {"type": "local"}
+    monkeypatch.setattr(config, "infobase_parameters", {"type": "local"}, raising=False)
 
 
 @pytest.fixture
@@ -75,8 +88,14 @@ def monkeytime(monkeypatch):
         nonlocal cur_time
         cur_time += secs
 
+    async def async_sleep(secs, result=None):
+        nonlocal cur_time
+        cur_time += secs
+        return result
+
     monkeypatch.setattr("time.time", time)
     monkeypatch.setattr("time.sleep", sleep)
+    monkeypatch.setattr("asyncio.sleep", async_sleep)
 
 
 @pytest.fixture

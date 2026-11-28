@@ -4,7 +4,7 @@ $ edition_config = get_identifier_config('edition')
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 $ is_admin = ctx.user and ctx.user.is_admin()
 $ is_super_librarian = ctx.user and ctx.user.is_super_librarian()
-$ is_privileged_user = is_librarian or is_super_librarian or is_admin
+$ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -60,6 +60,12 @@ $jsdef render_work_autocomplete_item(item):
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
+
+    $if book.scorecard:
+        <ol-scorecard
+            results="$json_encode(book.scorecard.to_dict())"
+            $cond(book.is_solr_data_outdated(), 'outdated')
+        ></ol-scorecard>
 
     <div class="formBack">
 
@@ -182,7 +188,7 @@ $jsdef render_work_autocomplete_item(item):
         <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
-            <div class="formElement" id="roles" data-config="$dumps({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
+            <div class="formElement" id="roles">
                 <div class="label">
                     <label for="select-role">$_("List the people involved")</label>
                     <span class="tip"></span>
@@ -338,10 +344,10 @@ $jsdef render_work_autocomplete_item(item):
                 <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
         $# detect-missing-i18n-skip-line
-        <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
-        ** Chapter 1 | Of the Nature of Flatland | 3
-        ** Chapter 2 | Of the Climate and Houses in Flatland | 5
-        * Part 2 | OTHER WORLDS | 42</pre>
+        <pre class="smaller gray">* Part 1 | THIS WORLD | 1
+** Chapter 1 | Of the Nature of Flatland | 3
+** Chapter 2 | Of the Climate and Houses in Flatland | 5
+* Part 2 | OTHER WORLDS | 42</pre>
                 <br/>
                 $ toc = book.get_table_of_contents()
                 $if toc and toc.is_complex():
@@ -396,8 +402,8 @@ $jsdef render_work_autocomplete_item(item):
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            $ config = {'addnew': is_librarian, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$dumps(config)">
+            $ config = {'addnew': is_librarian}
+            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$json_encode(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
@@ -420,16 +426,7 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
 </fieldset>
-$ config = ({
-    $ 'Please select an identifier.': _('Please select an identifier.'),
-    $ 'You need to give a value to ID.': _('You need to give a value to ID.'),
-    $ 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'),
-    $ 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'),
-    $ 'That ID already exists for this edition.': _('That ID already exists for this edition.'),
-    $ 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'),
-    $ 'Invalid ID format': _('Invalid ID format')
-$ })
-<fieldset class="major" id="identifiers" data-config="$dumps(config)">
+<fieldset class="major" id="identifiers">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
@@ -445,13 +442,13 @@ $ })
                 $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
                 $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
 
-                $:render_component('IdentifiersInput', attrs=dict(id_config_string=edition_config.identifiers, assigned_ids_string=book.get_identifiers().values(), input_prefix='edition--identifiers', output_selector='#hiddenEditionIdentifiers', multiple='true', popular_ids=popular,admin=str(is_privileged_user)))
+                $:render_component('IdentifiersInput', attrs={'id-config-string': edition_config.identifiers, 'assigned-ids-string': book.get_identifiers().values(), 'input-prefix': 'edition--identifiers', 'output-selector': '#hiddenEditionIdentifiers', 'multiple': 'true', 'popular-ids': popular, 'admin': str(bool(ctx.user and ctx.user.can_edit_ocaid()))})
             </div>
         </div>
     </div>
 </fieldset>
 
-<fieldset class="major" id="classifications" data-config="$dumps({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
+<fieldset class="major" id="classifications">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 
@@ -553,7 +550,7 @@ $ })
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
                     <input name="edition--weight--value" type="number" step="any"
-                           id="edition--weight--value" min="0.001" size="6" value="$weight.value"/>
+                           id="edition--weight--value" min="0" size="6" value="$weight.value"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -575,17 +572,17 @@ $ })
                             <tr>
                                 <td rowspan="3"><img src="/static/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0.001"
+                                <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0"
                                            id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" step="any" min="0.001"
+                                <td><input name="edition--physical_dimensions--width" type="number" step="any" min="0"
                                            id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number" step="any" min="0.001"
+                                <td><input name="edition--physical_dimensions--depth" type="number" step="any" min="0"
                                            id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>

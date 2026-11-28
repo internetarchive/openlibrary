@@ -1,8 +1,9 @@
-import { PersistentToast } from './Toast';
+import { showToast } from '../../../components/lit/toast.js';
+import { _ } from './i18n.js';
 
 export async function initAsyncFollowing(followForms) {
     followForms.forEach(form => {
-        form.addEventListener('submit', async(e) => {
+        form.addEventListener('submit', async e => {
             e.preventDefault();
             const url = form.action;
             const formData = new FormData(form);
@@ -10,13 +11,12 @@ export async function initAsyncFollowing(followForms) {
             const stateInput = form.querySelector('input[name=state]');
 
             const isFollowRequest = stateInput.value === '0';
-            const i18nStrings = JSON.parse(submitButton.dataset.i18n);
             submitButton.disabled = true;
 
             await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: new URLSearchParams(formData)
             })
@@ -26,11 +26,11 @@ export async function initAsyncFollowing(followForms) {
                     }
                     submitButton.classList.toggle('cta-btn--primary');
                     submitButton.classList.toggle('cta-btn--delete');
-                    submitButton.textContent = isFollowRequest ? i18nStrings.unfollow : i18nStrings.follow;
+                    submitButton.textContent = isFollowRequest ? _('Unfollow') : _('Follow');
                     stateInput.value = isFollowRequest ? '1' : '0';
                 })
                 .catch(() => {
-                    new PersistentToast(i18nStrings.errorMsg).show();
+                    showToast(_('Failed to update followers. Please try again in a few moments.'), { type: 'error', persistent: true });
                 })
                 .finally(() => {
                     submitButton.disabled = false;

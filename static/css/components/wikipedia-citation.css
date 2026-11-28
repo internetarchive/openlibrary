@@ -1,0 +1,81 @@
+.wikipedia-citation-popover {
+  --ol-popover-content-max-width: min(92vw, 560px);
+}
+
+/* A button, so it opens from the keyboard; dressed as the neighbouring links. */
+.wikipedia-citation-popover__trigger {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wikipedia-citation-popover__trigger:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* The panel sits inside the right-aligned, brown #historyTools line; reset
+   what it would otherwise inherit. */
+.wikipedia-citation-popover__content {
+  max-width: var(--ol-popover-content-max-width);
+  padding: var(--spacing-inset-md);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+  text-align: start;
+}
+
+.wikipedia-citation-popover__title {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+.wikipedia-citation-popover__logo {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.wikipedia-citation-popover__intro {
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-label-small);
+  color: var(--color-text-muted);
+}
+
+.wikipedia-citation-popover__well {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  align-items: flex-start;
+  padding: var(--spacing-inset-xs);
+  padding-inline-start: var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  background: var(--color-surface-sunken);
+}
+
+/* Long citations wrap and scroll rather than run off one line. */
+.wikipedia-citation-popover__code {
+  max-height: 200px;
+  padding-block: var(--spacing-inset-xs);
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.wikipedia-citation-popover__well .copy-button {
+  padding: var(--spacing-inset-xs);
+}
+
+/* 32px target for touch, up from 24px. */
+@media (pointer: coarse) {
+  .wikipedia-citation-popover__well .copy-button {
+    padding: var(--spacing-inset-sm);
+  }
+}

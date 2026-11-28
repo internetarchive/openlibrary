@@ -1,0 +1,352 @@
+/**
+ * Page primitives: the frame, header and sections a page is built from.
+ * Worked examples are at /developers/design/cookbook. The rules they encode:
+ * the serif is for the page title only, body copy is 14px, two weights
+ * (regular and medium), and one bottom margin between sections.
+ */
+
+.ol-page {
+  --ol-page-width: 1080px;
+  --ol-section-label-width: 12.5rem;
+  box-sizing: border-box;
+  max-width: calc(var(--ol-page-width) + 2 * var(--spacing-page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--spacing-page-gutter);
+  padding-block: var(--spacing-stack-lg) var(--spacing-section-gap-desktop);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+}
+
+/* Forms and other single-column tasks: a measure a field or a paragraph can fill. */
+.ol-page--narrow {
+  --ol-page-width: 680px;
+}
+
+/* Pages of split sections: a label column plus a measure for the rows. */
+.ol-page--medium {
+  --ol-page-width: 920px;
+}
+
+.ol-page :where(h1, h2, h3, p, ul, ol, dl, dd, figure) {
+  margin: 0;
+}
+
+/* The primitives set display, which would otherwise undo the hidden attribute. */
+.ol-page [hidden] {
+  display: none;
+}
+
+/* Links are blue and plain; the underline arrives on hover. Running prose
+   (.ol-prose) keeps its underlines, where a link has to be found mid-sentence.
+   A tab is a control, not a link, and keeps the colours ol-tabs.css gives it. */
+.ol-page a:any-link:where(:not([slot="tab"])) {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ol-page a:hover:where(:not([slot="tab"])) {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+}
+
+.ol-prose a:any-link {
+  text-decoration: underline;
+}
+
+/* Sections are spaced by one bottom margin; gap is for related items inside one. */
+.ol-page-header,
+.ol-section {
+  margin-block-end: var(--spacing-section-gap);
+}
+
+.ol-page > :last-child,
+.ol-section:last-child {
+  margin-block-end: 0;
+}
+
+/* Page header: where you are, what this is, and the one thing to do here. */
+
+.ol-page-header {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+a.ol-page-header__back:any-link {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin-block-end: var(--spacing-stack-xs);
+  color: var(--color-text-secondary);
+}
+
+.ol-page-header__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+}
+
+.ol-page-header__text {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+  /* A lede past about 60 characters stops being read as one thought. */
+  max-width: 60ch;
+}
+
+.ol-page-header__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-display);
+  letter-spacing: -0.01em;
+  color: var(--color-text-heading);
+  text-wrap: balance;
+}
+
+.ol-page-header__lede {
+  font-size: var(--font-size-body-large);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+.ol-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+/* Section: a titled block. The header carries at most a title, a count and one link. */
+
+.ol-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  margin-block-end: var(--spacing-md);
+}
+
+.ol-section__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-title);
+  color: var(--color-text-heading);
+  text-wrap: balance;
+}
+
+.ol-section__count {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.ol-section__link {
+  margin-inline-start: auto;
+}
+
+.ol-section__blurb {
+  max-width: 65ch;
+  margin-block: calc(-1 * var(--spacing-stack-sm)) var(--spacing-md);
+  color: var(--color-text-secondary);
+}
+
+/* A rule above a section, for pages made of rows rather than pictures. The
+   rule does the separating, so the space either side of it is tighter. */
+.ol-section--ruled {
+  margin-block-end: var(--spacing-xl);
+  padding-block-start: var(--spacing-xl);
+  border-block-start: var(--border-divider);
+}
+
+/* A major section: one of the few things the page is about, as opposed to
+   facts about it. A larger title and more room around the rule make it a
+   landmark; everything smaller stays at one quiet size. */
+.ol-section--major {
+  margin-block-end: var(--spacing-section-gap);
+  padding-block-start: var(--spacing-section-gap);
+  border-block-start: var(--border-divider);
+}
+
+.ol-section--major > .ol-section__header {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.ol-section--major .ol-section__title {
+  font-size: var(--font-size-title-large);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.01em;
+}
+
+/* Split: the heading in a column of its own on the left and the content on
+   the right, so every section's rows start on one line down the page. For
+   sections of short rows; covers and prose read better stacked. Beside its
+   rows the heading is a label, so it drops to their size. */
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .ol-section--split {
+    display: grid;
+    grid-template-columns: var(--ol-section-label-width) minmax(0, 1fr);
+    column-gap: var(--spacing-2xl);
+    align-items: start;
+  }
+
+  .ol-section--split > .ol-section__header {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-block-end: 0;
+  }
+
+  .ol-section--split > :not(.ol-section__header) {
+    grid-column: 2;
+  }
+
+  .ol-section--split .ol-section__title {
+    font-size: var(--font-size-title-small);
+    line-height: var(--line-height-body);
+  }
+
+  .ol-section--split .ol-section__link {
+    margin-inline-start: 0;
+  }
+}
+
+/* Running prose: text to be read rather than scanned, so it steps up to 16px
+   with a readable measure and a paragraph gap. */
+.ol-prose {
+  display: grid;
+  gap: var(--spacing-md);
+  max-width: 75ch;
+  line-height: var(--line-height-body);
+}
+
+/* Meta line: the facts under a title, one size down and one ink lighter. */
+.ol-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--spacing-inline-md);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.ol-meta-line > :not(:last-child)::after {
+  content: "·";
+  margin-inline-start: var(--spacing-inline-md);
+  color: var(--color-text-muted);
+}
+
+/* Toolbar: filters on the left, sort and view on the right, above the thing they change. */
+.ol-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
+  margin-block-end: var(--spacing-md);
+}
+
+.ol-toolbar__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+.ol-toolbar__status {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+/* Detail layout: the thing and its actions in a side column that stays in view,
+   everything known about it in the main column. One column on phones. */
+.ol-detail {
+  display: grid;
+  gap: var(--spacing-stack-lg);
+}
+
+.ol-detail__side {
+  display: grid;
+  gap: var(--spacing-md);
+  align-content: start;
+  justify-items: center;
+}
+
+.ol-detail__media {
+  width: 160px;
+}
+
+.ol-detail__actions {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  width: 100%;
+  max-width: 320px;
+}
+
+.ol-detail__main {
+  /* The side column has already taken its share of the width. */
+  --ol-section-label-width: 9rem;
+
+  min-width: 0;
+}
+
+.ol-detail__title-block {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  margin-block-end: var(--spacing-stack-md);
+}
+
+/* The thing's own name is the largest type on the page. */
+.ol-detail__title {
+  font-size: var(--font-size-headline-large);
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .ol-detail__title {
+    font-size: var(--font-size-headline-medium);
+  }
+}
+
+.ol-detail__byline {
+  font-size: var(--font-size-body-large);
+  color: var(--color-text-secondary);
+}
+
+/* The title's descenders take up some of the gap under it; this evens the gap under the byline. */
+.ol-detail__title-block > .ol-meta-line {
+  margin-block-start: var(--spacing-3xs);
+}
+
+/* The rating is one more fact on the meta line, with a star to say which. */
+.ol-detail__rating .ol-icon {
+  margin-inline-end: var(--spacing-icon-gap);
+  vertical-align: -0.125em;
+}
+
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .ol-detail {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: var(--spacing-3xl);
+    align-items: start;
+  }
+
+  .ol-detail__side {
+    position: sticky;
+    inset-block-start: var(--spacing-stack-lg);
+  }
+
+  .ol-detail__media {
+    width: 100%;
+  }
+}

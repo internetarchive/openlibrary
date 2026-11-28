@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 """Basic tests for the FastAPI search endpoint."""
 
 import json
+from typing import get_args
+from unittest.mock import MagicMock, patch
 from urllib.parse import urlencode
 
+import httpx
 import pytest
 
-from openlibrary.fastapi.search import PublicQueryOptions
-from openlibrary.plugins.worksearch.code import WorkSearchScheme
+from openlibrary.fastapi.search import FacetField, PublicQueryOptions
+from openlibrary.plugins.worksearch.code import SearchResponse, WorkSearchScheme
+from openlibrary.utils.request_context import create_context_for_script, req_context
 
 
 @pytest.fixture
@@ -243,6 +249,30 @@ class TestSearchEndpoint:
         assert "osp_count_fake" not in query_arg
         assert query_arg["q"] == "test"
 
+    @pytest.mark.parametrize("sort_option", ["old", "new", "title", "ebook_access"])
+    def test_editions_sort_is_forwarded(self, client, mock_work_search, sort_option):
+        """Documented editions.sort must reach work_search_async."""
+        response = search(client, q="test", **{"editions.sort": sort_option})
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+        query_arg = mock_work_search.call_args[0][0]
+        assert query_arg["editions.sort"] == sort_option
+
+    def test_editions_sort_invalid_is_rejected(self, client, mock_work_search):
+        """An unknown editions.sort is a 422, same as sort on /search/editions.json."""
+        response = search(client, q="test", **{"editions.sort": "bogus"})
+
+        assert response.status_code == 422
+        mock_work_search.assert_not_called()
+
+    def test_editions_sort_empty_is_omitted(self, client, mock_work_search):
+        """An empty editions.sort is left out so Solr keeps its default edition ordering."""
+        response = search(client, q="test", **{"editions.sort": ""})
+
+        assert response.status_code == 200
+        assert "editions.sort" not in mock_work_search.call_args[0][0]
+
     def test_multiple_author_keys(self, client, mock_work_search):
         """Test that multiple author_key parameters are parsed correctly.
         Supporting multiple keys from query params isn't the default so this is important to check.
@@ -256,6 +286,26 @@ class TestSearchEndpoint:
         query_arg = call_args[0][0]
         assert "author_key" in query_arg
         assert query_arg["author_key"] == ["OL1A", "OL2A"]
+
+    def test_author_facet_filters_like_author_key(self, client):
+        """author_facet is documented as an alias for author_key, so it must reach Solr
+        as an author_key filter instead of being dropped."""
+        solr_response = httpx.Response(200, json={"response": {"numFound": 0, "numFoundExact": True, "start": 0, "docs": []}})
+        # The search reads solr_editions off req_context, which the test client never populates.
+        token = req_context.set(create_context_for_script())
+        try:
+            with (
+                # Only set from config at startup; nothing is sent there since the request is mocked.
+                patch("openlibrary.plugins.worksearch.code.solr_select_url", "http://solr/select", create=True),
+                patch("openlibrary.plugins.worksearch.code.execute_solr_query_async", return_value=solr_response) as solr,
+            ):
+                response = search(client, q="tolkien", author_facet="OL26320A")
+        finally:
+            req_context.reset(token)
+
+        assert response.status_code == 200
+        fqs = [value for call in solr.call_args_list for key, value in call.args[1] if key == "fq"]
+        assert 'author_key:"OL26320A"' in fqs
 
     @pytest.mark.parametrize(
         ("q_value", "expected_status"),
@@ -391,3 +441,324 @@ class TestOpenAPIDocumentation:
 
         # This test always passes - it's just for debug output
         assert True
+
+
+class TestSearchFacetsEndpoint:
+    """Tests for the /search/facets.json endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def req_context_defaults(self):
+        """The endpoint reads solr_editions off req_context, which the test
+        client never populates (conftest patches out set_context_from_fastapi)."""
+        token = req_context.set(create_context_for_script())
+        yield
+        req_context.reset(token)
+
+    def test_requires_field_param(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?q=tolkien")
+        # FastAPI enforces required + min_length=1 on `field`, returns 422 when absent
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any("field" in err["loc"] for err in detail)
+
+    def test_rejects_invalid_field(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=notafield&q=tolkien")
+        # FastAPI validates FacetField Literal and returns 422 for unknown values
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any(err.get("input") == "notafield" for err in detail)
+
+    def test_returns_facet_values_for_single_field(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=language&q=lord+of+the+rings")
+        assert response.status_code == 200
+        data = response.json()
+        assert "language" in data
+        values = data["language"]
+        assert len(values) > 0
+        assert all("value" in v and "count" in v and "label" in v for v in values)
+        assert values[0] == {"value": "eng", "label": "English", "count": 665}
+
+    def test_filters_zero_count_values(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=language&q=tolkien")
+        assert response.status_code == 200
+        data = response.json()
+        # "Latin" (code "lat") has count=0 in the mock — must not appear
+        assert not any(v["value"] == "lat" for v in data["language"])
+        assert all(v["count"] > 0 for v in data["language"])
+
+    def test_returns_multiple_fields(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=language&field=subject_facet&q=tolkien")
+        assert response.status_code == 200
+        data = response.json()
+        assert "language" in data
+        assert "subject_facet" in data
+
+    def test_author_facet_key_maps_to_author_facet(self, fastapi_client, mock_run_solr_query_async):
+        """Response key should be 'author_facet' even though Solr returns 'author_key' internally."""
+        response = fastapi_client.get("/search/facets.json?field=author_facet&q=tolkien")
+        assert response.status_code == 200
+        data = response.json()
+        assert "author_facet" in data
+        assert "author_key" not in data
+        assert data["author_facet"] == [{"value": "OL9A", "label": "J.R.R. Tolkien", "count": 123}]
+
+    def test_forwards_list_filters_to_solr(self, fastapi_client, mock_run_solr_query_async):
+        """Repeated list-valued filters must reach the Solr query.
+
+        Under `Depends()` FastAPI bound the params model but dropped every list field,
+        so counts silently ignored the language/subject/author filters the page had on.
+        """
+        fastapi_client.get("/search/facets.json?field=language&q=tolkien&subject_facet=Fiction&subject_facet=Fantasy&author_key=OL9A")
+        solr_query = mock_run_solr_query_async.call_args.args[1]
+        assert solr_query["subject_facet"] == ["Fiction", "Fantasy"]
+        assert solr_query["author_key"] == ["OL9A"]
+
+    def test_field_is_not_forwarded_as_a_filter(self, fastapi_client, mock_run_solr_query_async):
+        """`field` selects what to count; it is not part of the search context."""
+        fastapi_client.get("/search/facets.json?field=language&q=tolkien")
+        assert "field" not in mock_run_solr_query_async.call_args.args[1]
+
+    def test_requests_editions_block_join(self, fastapi_client, mock_run_solr_query_async):
+        """Counts must be faceted over the same result set the page renders.
+
+        The edition block-join in WorkSearchScheme only kicks in when `editions`
+        is among the requested fields; without it the facets are counted over a
+        wider set of works than /search shows.
+        """
+        fastapi_client.get("/search/facets.json?field=language&q=lord")
+        kwargs = mock_run_solr_query_async.call_args.kwargs
+        assert "editions" in kwargs["fields"]
+        assert mock_run_solr_query_async.call_args.args[0].solr_editions is True
+
+    def test_empty_query_returns_valid_response(self, fastapi_client, mock_run_solr_query_async):
+        """No q param should still return a valid (unfiltered) facet list."""
+        response = fastapi_client.get("/search/facets.json?field=language")
+        assert response.status_code == 200
+        assert "language" in response.json()
+
+    def test_facet_field_literal_matches_scheme(self):
+        """FacetField Literal must stay in sync with WorkSearchScheme.facet_fields.
+
+        Guards against drift: if a facet field is added/removed upstream, this
+        fails so the endpoint doesn't silently 422 on (or miss) it.
+        """
+        assert set(get_args(FacetField)) == WorkSearchScheme.facet_fields
+
+
+class TestSearchInsideEndpoint:
+    @pytest.fixture
+    def languages(self, monkeypatch):
+        # resolve_language needs a site context these tests lack.
+        monkeypatch.setattr(
+            "openlibrary.fastapi.search.resolve_language",
+            lambda values: ("ger", "German") if values else None,
+        )
+
+    def test_defaults(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, phrase=True, language=None
+        )
+
+    def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello&facets=false&limit=3")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, phrase=True, language=None
+        )
+
+    def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, languages):
+        """Language goes out as the FTS name ("German"), not the URL's MARC code."""
+        response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, phrase=True, language="German"
+        )
+
+    def test_unphrased_query_reaches_the_search(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=argentina+brazil&phrase=false")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "argentina brazil", page=1, offset=None, limit=20, js=True, facets=True, readable=False, phrase=False, language=None
+        )
+
+    def test_limit_cap_accepts_max_allowed(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello&limit=100")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with(
+            "hello", page=1, offset=None, limit=100, js=True, facets=True, readable=False, phrase=True, language=None
+        )
+
+    def test_limit_cap_rejects_over_max(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello&limit=101")
+        assert response.status_code == 422
+
+
+class TestEditionSearchEndpoint:
+    """Tests for the /search/editions.json endpoint."""
+
+    def test_returns_200_with_query(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?q=harry+potter")
+        assert response.status_code == 200
+        data = response.json()
+        assert "numFound" in data
+        assert "num_found" in data
+        assert "docs" in data
+        assert "q" in data
+        assert data["q"] == "harry potter"
+
+    def test_returns_200_without_query(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json")
+        assert response.status_code == 200
+        data = response.json()
+        assert "numFound" in data
+        assert "num_found" in data
+        assert "docs" in data
+        assert data["q"] == ""
+
+    def test_work_key_filter_passed_to_solr_with_work_path(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?work_key=/works/OL82536W")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        extra = call_kwargs.get("extra_params") or []
+        assert any('work_key:"OL82536W"' in v for _, v in extra)
+
+    def test_work_key_filter_passed_to_solr_with_olid(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?work_key=OL82536W")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        extra = call_kwargs.get("extra_params") or []
+        assert any('work_key:"OL82536W"' in v for _, v in extra)
+
+    def test_endpoint_in_openapi_spec(self, fastapi_client):
+        response = fastapi_client.get("/openapi.json")
+        assert response.status_code == 200
+        openapi = response.json()
+        assert "/search/editions.json" in openapi["paths"]
+
+    @pytest.mark.parametrize("sort_option", ["new", "old"])
+    def test_sort_parameter_valid(self, fastapi_client, mock_edition_solr_query, sort_option):
+        response = fastapi_client.get(f"/search/editions.json?sort={sort_option}")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        assert call_kwargs.get("sort") == sort_option
+
+    def test_sort_parameter_invalid(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?sort=invalid_sort_option")
+        assert response.status_code == 422
+
+    def test_pagination_parameters(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?limit=10&page=2")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        assert call_kwargs.get("rows") == 10
+        assert call_kwargs.get("page") == 2
+
+    def test_fields_parameter_parsing(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?fields=key,title,isbn")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        assert call_kwargs.get("fields") == ["key", "title", "isbn"]
+
+
+class TestSearchListsEndpoint:
+    """Tests for /search/lists.json.
+
+    The legacy response shape resolves list documents through the request-scoped
+    site. These cover that path, which had no test coverage before.
+    """
+
+    @staticmethod
+    def _solr_response(*keys):
+        return SearchResponse(
+            facet_counts={},
+            sort="",
+            docs=[{"key": key} for key in keys],
+            num_found=len(keys),
+            solr_select="",
+            raw_resp={"response": {"start": 0}},
+        )
+
+    def test_legacy_shape_resolves_lists_via_request_scoped_site(self, fastapi_client):
+        """The old shape must read the request's own site, not a module-level one."""
+        preview = {"url": "/people/jane/lists/OL1L", "full_url": "https://openlibrary.org/people/jane/lists/OL1L"}
+        current_site = MagicMock()
+        current_site.get_many.return_value = [MagicMock(preview=lambda: preview)]
+
+        with (
+            patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock_solr,
+            patch("openlibrary.fastapi.search.site") as mock_site_context,
+        ):
+            mock_solr.return_value = self._solr_response("/people/jane/lists/OL1L")
+            mock_site_context.get.return_value = current_site
+
+            response = fastapi_client.get("/search/lists.json?q=dogs")
+
+        assert response.status_code == 200
+        assert response.json() == {"start": 0, "docs": [preview]}
+        mock_site_context.get.assert_called_once_with()
+        current_site.get_many.assert_called_once_with(["/people/jane/lists/OL1L"])
+
+    def test_next_api_shape_does_not_resolve_lists(self, fastapi_client):
+        """`api=next` returns raw solr docs and must not touch the site at all."""
+        with (
+            patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock_solr,
+            patch("openlibrary.fastapi.search.site") as mock_site_context,
+        ):
+            mock_solr.return_value = self._solr_response("/people/jane/lists/OL1L")
+
+            response = fastapi_client.get("/search/lists.json?q=dogs&api=next")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["docs"] == [{"key": "/people/jane/lists/OL1L"}]
+        assert data["num_found"] == 1
+        mock_site_context.get.assert_not_called()
+
+
+def _raw_solr_response(docs):
+    return SearchResponse(
+        facet_counts={},
+        sort="",
+        docs=docs,
+        num_found=len(docs),
+        solr_select="",
+        raw_resp={"response": {"numFound": len(docs), "start": 0, "docs": docs}},
+    )
+
+
+def test_subject_search_passes_query_and_pagination(fastapi_client, mock_run_solr_query_async):
+    mock_run_solr_query_async.return_value = _raw_solr_response([{"key": "/subjects/fantasy", "name": "Fantasy", "work_count": 7}])
+
+    response = fastapi_client.get("/search/subjects.json", params={"q": "fantasy", "limit": 5, "page": 2})
+
+    assert response.status_code == 200
+    assert response.json()["docs"] == [{"key": "/subjects/fantasy", "name": "Fantasy", "work_count": 7, "type": "subject", "count": 7}]
+    args, kwargs = mock_run_solr_query_async.call_args
+    assert args[1] == {"q": "fantasy"}
+    assert (kwargs["rows"], kwargs["page"], kwargs["offset"]) == (5, 2, None)
+
+
+def test_subject_search_offset_overrides_page(fastapi_client, mock_run_solr_query_async):
+    mock_run_solr_query_async.return_value = _raw_solr_response([])
+
+    assert fastapi_client.get("/search/subjects.json", params={"offset": 40, "page": 3}).status_code == 200
+    _, kwargs = mock_run_solr_query_async.call_args
+    assert (kwargs["rows"], kwargs["page"], kwargs["offset"]) == (100, None, 40)
+
+
+def test_author_search_passes_query_and_options(fastapi_client, mock_run_solr_query_async):
+    mock_run_solr_query_async.return_value = _raw_solr_response([{"key": "/authors/OL26320A", "name": "J.R.R. Tolkien"}])
+
+    response = fastapi_client.get("/search/authors.json", params={"q": "tolkien", "limit": 3, "fields": "key,name", "sort": "work_count desc"})
+
+    assert response.status_code == 200
+    assert response.json()["docs"] == [{"key": "OL26320A", "name": "J.R.R. Tolkien"}]
+    args, kwargs = mock_run_solr_query_async.call_args
+    assert args[1] == {"q": "tolkien"}
+    assert (kwargs["rows"], kwargs["page"], kwargs["fields"], kwargs["sort"]) == (3, 1, "key,name", "work_count desc")
+
+
+def test_author_search_rejects_a_bad_limit(fastapi_client, mock_run_solr_query_async):
+    assert fastapi_client.get("/search/authors.json", params={"limit": -1}).status_code == 422

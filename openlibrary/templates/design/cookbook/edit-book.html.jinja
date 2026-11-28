@@ -1,0 +1,433 @@
+{#
+  Recipe: a worked example. The book edit page, with its Work and Edition
+  tabs, built from the form recipe: group names in a left column, each field
+  read straight down, switches and short menus on one line. The form is
+  longer than the window, so its actions hold to the bottom edge.
+#}
+{% import "design/cookbook/_parts.html.jinja" as parts %}
+{% set book = books[0] %}
+{% set ROLES = "[{\"value\":\"illustrator\",\"label\":\"Illustrator\"},{\"value\":\"editor\",\"label\":\"Editor\"},{\"value\":\"translator\",\"label\":\"Translator\"},{\"value\":\"introduction\",\"label\":\"Introduction\"},{\"value\":\"narrator\",\"label\":\"Narrator\"}]" %}
+{% set EDITION_IDS = "[{\"value\":\"isbn_13\",\"label\":\"ISBN 13\"},{\"value\":\"isbn_10\",\"label\":\"ISBN 10\"},{\"value\":\"lccn\",\"label\":\"LCCN\"},{\"value\":\"oclc\",\"label\":\"OCLC/WorldCat\"},{\"value\":\"goodreads\",\"label\":\"Goodreads\"}]" %}
+{% set WORK_IDS = "[{\"value\":\"wikidata\",\"label\":\"Wikidata\"},{\"value\":\"viaf\",\"label\":\"VIAF\"},{\"value\":\"librarything\",\"label\":\"LibraryThing\"}]" %}
+{% set CLASSIFICATIONS = "[{\"value\":\"dewey\",\"label\":\"Dewey Decimal\"},{\"value\":\"lc\",\"label\":\"Library of Congress\"},{\"value\":\"udc\",\"label\":\"Universal Decimal\"}]" %}
+{# One stacked field: label, help, then whatever control the caller renders. #}
+{% macro field(id, label, help="", optional=false, wide=false) %}
+    <div class="ol-field{% if wide %} ol-field--wide{% endif %}">
+        <label class="ol-field__label" for="{{ id }}">
+            {{ label }}
+            {% if optional %}<span class="ol-field__optional">Optional</span>{% endif %}
+        </label>
+        {% if help %}<p class="ol-field__help" id="{{ id }}-help">{{ help }}</p>{% endif %}
+        <div class="ol-field__control">{{ caller() }}</div>
+    </div>
+{% endmacro %}
+{# A kind, a value and a button that adds the pair to the list under it. #}
+{% macro adder(label, items, placeholder, action="Add") %}
+    <div class="cookbook-adder">
+        <ol-options-popover label="{{ label }}" show-selection aria-label="{{ label }}" items="{{ items }}">
+        </ol-options-popover>
+        <input class="ol-input"
+               type="text"
+               placeholder="{{ placeholder }}"
+               aria-label="{{ placeholder }}">
+        <ol-button>
+            {{ action }}
+        </ol-button>
+    </div>
+{% endmacro %}
+{% macro added(rows) %}
+    <ul class="ol-item-list cookbook-added">
+        {% for kind, value in rows %}
+            <li class="ol-item">
+                <span class="cookbook-added__kind">{{ kind }}</span>
+                <span>{{ value }}</span>
+                <ol-button variant="ghost" shape="icon" aria-label="Remove {{ kind }} {{ value }}">
+                    {{ icon("x", label="Remove " ~ kind ~ " " ~ value) }}
+                </ol-button>
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+<div class="ol-page ol-page--medium cookbook-page">
+    <header class="ol-page-header">
+        <a class="ol-page-header__back"
+           href="/developers/design/cookbook/detail">{{ icon("arrow-left", size="sm") }} {{ book.title }}</a>
+        <div class="ol-page-header__row">
+            <div class="ol-page-header__text">
+                <h1 class="ol-page-header__title">Edit book</h1>
+                <p class="ol-page-header__lede">{{ book.title }} by {{ book.author }}</p>
+            </div>
+            <div class="ol-page-header__actions">
+                <ol-button variant="ghost">
+                    Delete record
+                </ol-button>
+            </div>
+        </div>
+    </header>
+    <form class="ol-form cookbook-edit" action="#" method="get" novalidate>
+        <ol-tabs accessible-label="What to edit">
+            <a slot="tab" href="#cb-work">Work details</a>
+            <a slot="tab" href="#cb-edition">This edition: Frederick A. Stokes, 1911</a>
+            <div id="cb-work" data-selected>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">This work</legend>
+                    {% call field("cb-w-title", "Title", help="Use “Title: Subtitle” to add a subtitle.") %}
+                        <input class="ol-input"
+                               id="cb-w-title"
+                               type="text"
+                               value="{{ book.title }}"
+                               aria-describedby="cb-w-title-help">
+                    {% endcall %}
+                    {% call field("cb-w-author", "Author", help="Search by name or Open Library ID.") %}
+                        <input class="ol-input"
+                               id="cb-w-author"
+                               type="text"
+                               value="{{ book.author }}"
+                               aria-describedby="cb-w-author-help">
+                        <a href="#">Add another author</a>
+                    {% endcall %}
+                    {% call field("cb-w-about", "Description", help="How would you describe this book? There’s no wrong answer.", wide=true) %}
+                        <textarea id="cb-w-about" name="description" hidden>When orphaned Mary Lennox comes to live at her uncle’s great house on the Yorkshire moors, she finds it full of secrets. The mansion has nearly a hundred rooms, and her uncle keeps himself locked up.</textarea>
+                        <ol-markdown-editor target-id="cb-w-about" height="120px">
+                        </ol-markdown-editor>
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend" id="cb-w-form">Fiction or nonfiction</legend>
+                    {% with name="literary_form",
+                        labelled_by="cb-w-form",
+                        plain=true,
+                        value="fiction",
+                        rows=[
+                            {"value": "fiction", "label": "Fiction", "description": "Novels, stories, plays and poems."},
+                            {"value": "nonfiction", "label": "Nonfiction", "description": "History, biography, memoir, essays, how-to and reference."},
+                            {"value": "", "label": "Not sure", "description": "Hard to call, like a book based on a true story."},
+                    ] %}
+                        {% include "forms/choice_list.html.jinja" %}
+                    {% endwith %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Subjects</legend>
+                    {% call field("cb-w-subjects", "Keywords", help="Separate with commas.", wide=true) %}
+                        <textarea class="ol-input"
+                                  id="cb-w-subjects"
+                                  rows="2"
+                                  aria-describedby="cb-w-subjects-help">Classics, Children’s fiction, Gardens, Orphans, Friendship</textarea>
+                    {% endcall %}
+                    {% call field("cb-w-people", "People", optional=true) %}
+                        <input class="ol-input" id="cb-w-people" type="text" value="Mary Lennox">
+                    {% endcall %}
+                    {% call field("cb-w-places", "Places", optional=true) %}
+                        <input class="ol-input" id="cb-w-places" type="text" value="Yorkshire">
+                    {% endcall %}
+                    {% call field("cb-w-times", "Times", help="When it is set or about.", optional=true) %}
+                        <input class="ol-input"
+                               id="cb-w-times"
+                               type="text"
+                               placeholder="The Middle Ages, 1810–1890"
+                               aria-describedby="cb-w-times-help">
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Excerpts</legend>
+                    {% call field("cb-w-excerpt", "Excerpt", help="Up to 2,000 characters.", wide=true) %}
+                        <textarea class="ol-input"
+                                  id="cb-w-excerpt"
+                                  rows="3"
+                                  aria-describedby="cb-w-excerpt-help"></textarea>
+                    {% endcall %}
+                    {% call field("cb-w-page", "Page", optional=true) %}
+                        <input class="ol-input ol-input--short"
+                               id="cb-w-page"
+                               type="text"
+                               placeholder="23, xi or 433–434">
+                    {% endcall %}
+                    <div class="ol-field ol-field--inline">
+                        <span class="ol-field__label">First sentence of the book</span>
+                        <div class="ol-field__control">
+                            <ol-toggle name="first_sentence" accessible-label="First sentence of the book">
+                            </ol-toggle>
+                        </div>
+                    </div>
+                    {% call field("cb-w-why", "Why this excerpt?", optional=true) %}
+                        <input class="ol-input" id="cb-w-why" type="text">
+                    {% endcall %}
+                    <div>
+                        <ol-button>
+                            Add excerpt
+                        </ol-button>
+                    </div>
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Links</legend>
+                    {% call field("cb-w-link-label", "Label") %}
+                        <input class="ol-input"
+                               id="cb-w-link-label"
+                               type="text"
+                               placeholder="New York Times review">
+                    {% endcall %}
+                    {% call field("cb-w-link-url", "URL", help="Keep links relevant to the book.") %}
+                        <input class="ol-input"
+                               id="cb-w-link-url"
+                               type="url"
+                               placeholder="https://"
+                               aria-describedby="cb-w-link-url-help">
+                    {% endcall %}
+                    <div>
+                        <ol-button>
+                            Add link
+                        </ol-button>
+                    </div>
+                    {{ added([('Gutenberg e-text', 'gutenberg.org/ebooks/113'), ('LibriVox audiobook', 'librivox.org/the-secret-garden')]) }}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Series</legend>
+                    {% call field("cb-w-series", "Series name", optional=true) %}
+                        <input class="ol-input" id="cb-w-series" type="text">
+                    {% endcall %}
+                    {% call field("cb-w-series-pos", "Position", optional=true) %}
+                        <input class="ol-input ol-input--short" id="cb-w-series-pos" type="text">
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Work identifiers</legend>
+                    <p class="ol-field__help">These apply to every edition, like a Wikidata ID. ISBNs belong on the edition.</p>
+                    {{ adder("Select one", WORK_IDS, "Identifier", action="Set") }}
+                </fieldset>
+            </div>
+            <div id="cb-edition">
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">This edition</legend>
+                    {% call field("cb-e-title", "Title") %}
+                        <input class="ol-input" id="cb-e-title" type="text" value="{{ book.title }}">
+                    {% endcall %}
+                    {% call field("cb-e-subtitle", "Subtitle", help="Usually in different or smaller type.", optional=true) %}
+                        <input class="ol-input"
+                               id="cb-e-subtitle"
+                               type="text"
+                               aria-describedby="cb-e-subtitle-help">
+                    {% endcall %}
+                    <div class="ol-field ol-field--inline">
+                        <span class="ol-field__label">Cover</span>
+                        <p class="ol-field__help">One cover, from the publisher’s jacket.</p>
+                        <div class="ol-field__control">
+                            <ol-button>
+                                Change cover
+                            </ol-button>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Publishing</legend>
+                    {% call field("cb-e-publisher", "Publisher") %}
+                        <input class="ol-input"
+                               id="cb-e-publisher"
+                               type="text"
+                               value="Frederick A. Stokes">
+                    {% endcall %}
+                    {% call field("cb-e-place", "Published in", help="City, country.") %}
+                        <input class="ol-input"
+                               id="cb-e-place"
+                               type="text"
+                               value="New York, USA"
+                               aria-describedby="cb-e-place-help">
+                    {% endcall %}
+                    {% call field("cb-e-date", "Publish date", help="In the first few pages of the book.") %}
+                        <input class="ol-input ol-input--short"
+                               id="cb-e-date"
+                               type="text"
+                               value="August 1911"
+                               aria-describedby="cb-e-date-help">
+                    {% endcall %}
+                    {% call field("cb-e-copyright", "Copyright date", optional=true) %}
+                        <input class="ol-input ol-input--short" id="cb-e-copyright" type="text">
+                    {% endcall %}
+                    {% call field("cb-e-edition-name", "Edition name", optional=true) %}
+                        <input class="ol-input"
+                               id="cb-e-edition-name"
+                               type="text"
+                               placeholder="Centennial edition">
+                    {% endcall %}
+                    {% call field("cb-e-series", "Series", help="The publisher’s series.", optional=true) %}
+                        <input class="ol-input"
+                               id="cb-e-series"
+                               type="text"
+                               aria-describedby="cb-e-series-help">
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Contributors</legend>
+                    {{ adder("Select role", ROLES, "Name") }}
+                    {{ added([("Author", book.author), ("Illustrator", "Charles Robinson")]) }}
+                    {% call field("cb-e-by", "By statement", help="As printed, like “edited by David Anderson”.", optional=true) %}
+                        <input class="ol-input"
+                               id="cb-e-by"
+                               type="text"
+                               value="by Frances Hodgson Burnett"
+                               aria-describedby="cb-e-by-help">
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Language</legend>
+                    {% call field("cb-e-language", "Language") %}
+                        <input class="ol-input" id="cb-e-language" type="text" value="English">
+                        <a href="#">Add another language</a>
+                    {% endcall %}
+                    <div class="ol-field ol-field--inline">
+                        <span class="ol-field__label">Translation of another book</span>
+                        <div class="ol-field__control">
+                            <ol-toggle name="translation" accessible-label="Translation of another book">
+                            </ol-toggle>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">About this edition</legend>
+                    {% call field("cb-e-about", "Description", help="Only if it differs from the work’s.", optional=true, wide=true) %}
+                        <textarea id="cb-e-about" name="edition_description" hidden></textarea>
+                        <ol-markdown-editor target-id="cb-e-about" height="96px">
+                        </ol-markdown-editor>
+                    {% endcall %}
+                    {% call field("cb-e-toc", "Table of contents", help="One entry per line. “*” indents, “|” adds a column.", optional=true, wide=true) %}
+                        <textarea class="ol-input"
+                                  id="cb-e-toc"
+                                  rows="4"
+                                  aria-describedby="cb-e-toc-help"></textarea>
+                    {% endcall %}
+                    {% call field("cb-e-notes", "Notes", help="Anything of interest, like “A Plume Book”.", optional=true, wide=true) %}
+                        <textarea id="cb-e-notes" name="notes" hidden>Illustrated in colour by Charles Robinson.</textarea>
+                        <ol-markdown-editor target-id="cb-e-notes" height="96px">
+                        </ol-markdown-editor>
+                    {% endcall %}
+                    {% call field("cb-e-first", "First sentence", optional=true, wide=true) %}
+                        <textarea class="ol-input" id="cb-e-first" rows="2"></textarea>
+                    {% endcall %}
+                    {% call field("cb-e-other", "Other titles", help="If the cover or spine says something different.", optional=true) %}
+                        <input class="ol-input"
+                               id="cb-e-other"
+                               type="text"
+                               aria-describedby="cb-e-other-help">
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Work</legend>
+                    {% call field("cb-e-work", "Edition of", help="Search by title or ID. Changing this ignores any edits to the work on this page.") %}
+                        <input class="ol-input"
+                               id="cb-e-work"
+                               type="text"
+                               value="{{ book.olid }}"
+                               aria-describedby="cb-e-work-help">
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">ID numbers</legend>
+                    {{ adder("Select one", EDITION_IDS, "Identifier", action="Set") }}
+                    {{ added([('ISBN 13', '978-0-06-440188-0')]) }}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Classifications</legend>
+                    {{ adder("Select one", CLASSIFICATIONS, "Value") }}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">The physical object</legend>
+                    {% call field("cb-e-format", "Format", optional=true) %}
+                        <input class="ol-input" id="cb-e-format" type="text" value="Hardcover">
+                    {% endcall %}
+                    {% call field("cb-e-pages", "Pages") %}
+                        <input class="ol-input ol-input--short"
+                               id="cb-e-pages"
+                               type="text"
+                               inputmode="numeric"
+                               value="304">
+                    {% endcall %}
+                    {% call field("cb-e-pagination", "Pagination", help="The highest number in each pattern, like “xii, 346p.”") %}
+                        <input class="ol-input"
+                               id="cb-e-pagination"
+                               type="text"
+                               value="vii, 304 p."
+                               aria-describedby="cb-e-pagination-help">
+                    {% endcall %}
+                    {% call field("cb-e-weight", "Weight", optional=true) %}
+                        <div class="cookbook-measure">
+                            <input class="ol-input" id="cb-e-weight" type="text" inputmode="decimal">
+                            <ol-segmented-control name="weight_units" size="small" value="grams" accessible-label="Weight units">
+                                <ol-segment value="grams">
+                                    grams
+                                </ol-segment>
+                                <ol-segment value="kilos">
+                                    kilos
+                                </ol-segment>
+                                <ol-segment value="ounces">
+                                    ounces
+                                </ol-segment>
+                                <ol-segment value="pounds">
+                                    pounds
+                                </ol-segment>
+                            </ol-segmented-control>
+                        </div>
+                    {% endcall %}
+                    {% call field("cb-e-height", "Dimensions", optional=true) %}
+                        <div class="cookbook-measure">
+                            <input class="ol-input"
+                                   id="cb-e-height"
+                                   type="text"
+                                   inputmode="decimal"
+                                   placeholder="Height"
+                                   aria-label="Height">
+                            <input class="ol-input"
+                                   type="text"
+                                   inputmode="decimal"
+                                   placeholder="Width"
+                                   aria-label="Width">
+                            <input class="ol-input"
+                                   type="text"
+                                   inputmode="decimal"
+                                   placeholder="Depth"
+                                   aria-label="Depth">
+                            <ol-segmented-control name="dimension_units" size="small" value="cm" accessible-label="Dimension units">
+                                <ol-segment value="cm">
+                                    cm
+                                </ol-segment>
+                                <ol-segment value="in">
+                                    in
+                                </ol-segment>
+                            </ol-segmented-control>
+                        </div>
+                    {% endcall %}
+                </fieldset>
+                <fieldset class="ol-form__group ol-form__group--split">
+                    <legend class="ol-form__legend">Web book providers</legend>
+                    <p class="ol-field__help">Places this edition can be read online.</p>
+                    <div>
+                        <ol-button>
+                            {{ icon("plus", slot="icon-start") }}
+                            Add a provider
+                        </ol-button>
+                    </div>
+                </fieldset>
+            </div>
+        </ol-tabs>
+        <fieldset class="ol-form__group ol-form__group--split">
+            <legend class="ol-form__legend">Your edit</legend>
+            {% call field("cb-note", "What did you change?", help="A short note helps other editors.", optional=true) %}
+                <input class="ol-input"
+                       id="cb-note"
+                       name="_comment"
+                       type="text"
+                       aria-describedby="cb-note-help">
+            {% endcall %}
+            <p class="ol-field__help">
+                By saving, you agree that your contribution is given freely to the world under <a href="#">CC0</a>.
+            </p>
+        </fieldset>
+        <div class="ol-form__actions ol-form__actions--sticky">
+            <ol-button type="submit" variant="primary">
+                Save
+            </ol-button>
+            <ol-button href="/developers/design/cookbook/detail">
+                Cancel
+            </ol-button>
+        </div>
+    </form>
+</div>
+{{ parts.dock(recipe, recipes, page_rules) }}

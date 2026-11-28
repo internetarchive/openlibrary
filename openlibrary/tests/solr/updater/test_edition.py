@@ -50,6 +50,6 @@ class TestEditionSolrBuilder:
             }
         )
 
-        assert EditionSolrBuilder(edition).identifiers == {
+        assert EditionSolrBuilder(edition, solr_work={}, db_work=None, db_authors=[])._identifiers == {
             "id_some_weird_key": ["id-1", "id-2"],
         }

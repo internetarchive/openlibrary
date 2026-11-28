@@ -6,7 +6,9 @@ so route conflicts like the one in #12770 are caught.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
+
+import web
 
 
 class TestReadingLogRoute:
@@ -19,11 +21,45 @@ class TestReadingLogRoute:
             "openlibrary.fastapi.public_my_books.site",
             _mock_site_context_returning(mock_user),
         )
-        monkeypatch.setattr("openlibrary.fastapi.public_my_books.ReadingLog", MagicMock())
+        mock_reading_log = MagicMock()
+        mock_reading_log_instance = mock_reading_log.return_value
+        mock_reading_log_instance.get_works_async = AsyncMock(return_value=MagicMock(docs=[]))
+        mock_reading_log_instance.count_shelf = AsyncMock(return_value=0)
+        monkeypatch.setattr("openlibrary.fastapi.public_my_books.ReadingLog", mock_reading_log)
 
         resp = fastapi_client.get("/people/testuser/books/want-to-read.json")
         # If it reaches the reading-log handler with a public user, it returns 200
         assert resp.status_code == 200
+
+    def test_later_page_awaits_async_shelf_count(self, fastapi_client, monkeypatch):
+        mock_user = MagicMock()
+        mock_user.preferences.return_value.get.return_value = "yes"
+        monkeypatch.setattr(
+            "openlibrary.fastapi.public_my_books.site",
+            _mock_site_context_returning(mock_user),
+        )
+        mock_reading_log = MagicMock()
+        mock_reading_log_instance = mock_reading_log.return_value
+        doc = web.storage(
+            key="/works/OL42W",
+            title="Test work",
+            author_key=[],
+            author_name=[],
+            first_publish_year=None,
+            lending_edition_s=None,
+            edition_key=[],
+            cover_i=None,
+            cover_edition_key=None,
+        )
+        mock_reading_log_instance.get_works_async = AsyncMock(return_value=MagicMock(docs=[doc]))
+        mock_reading_log_instance.count_shelf = AsyncMock(return_value=250)
+        monkeypatch.setattr("openlibrary.fastapi.public_my_books.ReadingLog", mock_reading_log)
+
+        response = fastapi_client.get("/people/testuser/books/want-to-read.json?page=2&limit=1")
+
+        assert response.status_code == 200
+        assert response.json()["numFound"] == 250
+        mock_reading_log_instance.count_shelf.assert_awaited_once_with("want-to-read")
 
     def test_private_reading_log_returns_403(self, fastapi_client, monkeypatch):
         mock_user = MagicMock()

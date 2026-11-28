@@ -1,0 +1,10 @@
+$def with (ga_data)
+$# Test-only fixture. Mirrors the icon_link() attribute-construction pattern
+$# duplicated in type/edition/modal_links.html and type/edition/title_and_author.html.
+$# Those files' real call sites only ever pass hardcoded literal ga_data, so there's
+$# no top-level parameter to drive an end-to-end injection test through them directly.
+$# See openlibrary/tests/test_link_track_attribute_escaping.py.
+<a href="javascript:;" class="icon-link"
+  $if ga_data:
+    data-ol-link-track="$ga_data"
+>link</a>

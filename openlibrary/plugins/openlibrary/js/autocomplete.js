@@ -1,8 +1,8 @@
+import $ from 'jquery';
+import { _, fmt } from './i18n.js';
 // jquery plugins to provide author, language, and subject autocompletes.
-import 'jquery-ui/ui/widget';
-import 'jquery-ui/ui/widgets/autocomplete';
-import 'jquery-ui/ui/widgets/mouse';
-import 'jquery-ui/ui/widgets/sortable';
+import './jquery-ui-autocomplete'; // widget + autocomplete + mouse
+import './jquery-ui-sortable'; // drag-to-reorder of the dropdown
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 /**
@@ -28,7 +28,7 @@ export function highlight(value, term) {
  * @return {array} of modified results that are compatible with the jquery autocomplete search suggestions
  */
 export const mapApiResultsToAutocompleteSuggestions = (results, labelFormatter, addNewFieldTerm) => {
-    const mapAPIResultToSuggestedItem = (r) => ({
+    const mapAPIResultToSuggestedItem = r => ({
         key: r.key,
         label: labelFormatter(r),
         value: r.name
@@ -36,13 +36,11 @@ export const mapApiResultsToAutocompleteSuggestions = (results, labelFormatter, 
 
     // When no results if callback is defined, append a create new entry
     if (addNewFieldTerm) {
-        results.push(
-            {
-                name: addNewFieldTerm,
-                key: '__new__',
-                value: addNewFieldTerm
-            }
-        );
+        results.push({
+            name: addNewFieldTerm,
+            key: '__new__',
+            value: addNewFieldTerm
+        });
     }
     return results.map(mapAPIResultToSuggestedItem);
 };
@@ -69,7 +67,7 @@ export function init() {
      * @param {Function} ac_opts.termPreprocessor - optional hook for processing the search term before doing the search
      */
     function setup_autocomplete(_this, ol_ac_opts, ac_opts) {
-        var default_ac_opts = {
+        const default_ac_opts = {
             minChars: 2,
             autoFill: true,
             formatItem: item => item.name,
@@ -79,49 +77,50 @@ export function init() {
              * @param {Event} _event (unused)
              * @param {Object} ui containing item key
              */
-            focus: function(_event, ui) {
+            focus: function (_event, ui) {
                 const $list = $(_this).data('list');
                 if ($list) {
-                    $list.find('li')
+                    $list
+                        .find('li')
                         .removeClass('ac_over')
-                        .filter((_, el) => $(el).data('ui-autocomplete-item').key === ui.item.key)
+                        .filter((index, el) => $(el).data('ui-autocomplete-item').key === ui.item.key)
                         .addClass('ac_over');
                 }
                 return ac_opts.autoFill;
             },
-            select: function(_event, ui) {
-                var item = ui.item;
-                var $this = $(this);
+            select: function (_event, ui) {
+                const item = ui.item;
+                const $this = $(this);
                 $this.closest('.ac-input').find('.ac-input__value').val(item.key);
                 const $preview = $this.closest('.ac-input').find('.ac-input__preview');
                 if ($preview.length) {
                     $preview.html(item.label);
                 }
-                setTimeout(function() {
+                setTimeout(function () {
                     $this.addClass('accept');
                 }, 0);
             },
             mustMatch: true,
-            formatMatch: function(item) { return item.name; },
-            termPreprocessor: function(term) { return term; }
+            formatMatch: function (item) {
+                return item.name;
+            },
+            termPreprocessor: function (term) {
+                return term;
+            }
         };
 
         $.widget('custom.autocompleteHTML', $.ui.autocomplete, {
             _renderMenu($ul, items) {
                 $ul.addClass('ac_results').attr('id', this.ulRef);
-                items.forEach((item) => {
-                    $('<li>')
-                        .data('ui-autocomplete-item', item)
-                        .attr('aria-label', item.value)
-                        .html(item.label)
-                        .appendTo($ul);
+                items.forEach(item => {
+                    $('<li>').data('ui-autocomplete-item', item).attr('aria-label', item.value).html(item.label).appendTo($ul);
                 });
                 // store list so we can add ac_over hover effect in `focus` event
                 $(_this).data('list', $ul);
             }
         });
         const options = $.extend(default_ac_opts, ac_opts);
-        options.source = function(q, response) {
+        options.source = function (q, response) {
             const term = options.termPreprocessor(q.term);
             const params = {
                 q: term,
@@ -134,20 +133,19 @@ export function init() {
             return $.ajax({
                 url: ol_ac_opts.endpoint,
                 data: params
-            }).then((results) => {
+            }).then(results => {
                 response(
                     mapApiResultsToAutocompleteSuggestions(
                         results,
-                        (r) => highlight(options.formatItem(r), term),
-                        ol_ac_opts.addnew === true ||
-                            (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? (ol_ac_opts.new_name || term) : null
+                        r => highlight(options.formatItem(r), term),
+                        ol_ac_opts.addnew === true || (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? ol_ac_opts.new_name || term : null
                     )
                 );
             });
         };
         $(_this)
             .autocompleteHTML(options)
-            .on('keypress', function() {
+            .on('keypress', function () {
                 $(this).removeClass('accept').removeClass('reject');
             });
     }
@@ -168,12 +166,12 @@ export function init() {
      * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
-    $.fn.setup_multi_input_autocomplete = function(input_renderer, ol_ac_opts, ac_opts) {
+    $.fn.setup_multi_input_autocomplete = function (input_renderer, ol_ac_opts, ac_opts) {
         /** @type {JQuery<HTMLElement>} */
-        var container = $(this);
+        const container = $(this);
 
         // first let's init any pre-existing inputs
-        container.find('.ac-input__visible').each(function() {
+        container.find('.ac-input__visible').each(function () {
             setup_autocomplete(this, ol_ac_opts, ac_opts);
         });
         const allow_empty = ol_ac_opts.allow_empty;
@@ -181,27 +179,34 @@ export function init() {
         function update_visible() {
             if (allow_empty || container.find('.mia__input').length > 1) {
                 container.find('.mia__remove').show();
-            }
-            else {
+            } else {
                 container.find('.mia__remove').hide();
             }
         }
 
         function update_indices() {
-            container.find('.mia__input').each(function(index) {
-                $(this).find('.mia__index').each(function() {
-                    $(this).text($(this).text().replace(/\d+/, index + 1));
-                });
-                $(this).find('[name]').each(function() {
-                    // this won't behave nicely with nested numeric things, if that ever happens
-                    if ($(this).attr('name').match(/\d+/)?.length > 1) {
-                        throw new Error('nested numeric names not supported');
-                    }
-                    $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
-                    if ($(this).attr('id')) {
-                        $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
-                    }
-                });
+            container.find('.mia__input').each(function (index) {
+                $(this)
+                    .find('.mia__index')
+                    .each(function () {
+                        $(this).text(
+                            $(this)
+                                .text()
+                                .replace(/\d+/, index + 1)
+                        );
+                    });
+                $(this)
+                    .find('[name]')
+                    .each(function () {
+                        // this won't behave nicely with nested numeric things, if that ever happens
+                        if ($(this).attr('name').match(/\d+/)?.length > 1) {
+                            throw new Error('nested numeric names not supported');
+                        }
+                        $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
+                        if ($(this).attr('id')) {
+                            $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
+                        }
+                    });
             });
         }
 
@@ -216,7 +221,7 @@ export function init() {
             });
         }
 
-        container.on('click', '.mia__remove', function() {
+        container.on('click', '.mia__remove', function () {
             if (allow_empty || container.find('.mia__input').length > 1) {
                 $(this).closest('.mia__input').remove();
                 update_visible();
@@ -225,7 +230,7 @@ export function init() {
         });
 
         // Add move button functionality
-        container.on('click', '.mia__move', function(event) {
+        container.on('click', '.mia__move', function (event) {
             event.preventDefault();
             const $currentItem = $(this).closest('.mia__input');
             const $allItems = container.find('.mia__input');
@@ -234,7 +239,7 @@ export function init() {
             const totalItems = $allItems.length;
 
             // Create a clear message showing current position
-            const message = `Enter the new position (1-${totalItems}):`;
+            const message = fmt(_('Enter the new position (1-%(total)s):'), { total: totalItems });
 
             const userInput = prompt(message);
 
@@ -247,13 +252,13 @@ export function init() {
 
             // Validate the input
             if (isNaN(newPosition) || newPosition < 1 || newPosition > totalItems) {
-                alert(`Please enter a valid number between 1 and ${totalItems}.`);
+                alert(fmt(_('Please enter a valid number between 1 and %(total)s.'), { total: totalItems }));
                 return;
             }
 
             // Check if it's the same position
             if (newPosition === currentPosition) {
-                alert('Item is already at that position.');
+                alert(_('Item is already at that position.'));
                 return;
             }
 
@@ -270,17 +275,13 @@ export function init() {
             update_indices();
         });
 
-        container.on('click', '.mia__add', function(event) {
-            var next_index, new_input;
+        container.on('click', '.mia__add', function (event) {
             event.preventDefault();
 
-            next_index = container.find('.mia__input').length;
-            new_input = $(input_renderer(next_index, {key: '', name: ''}));
+            const next_index = container.find('.mia__input').length;
+            const new_input = $(input_renderer(next_index, { key: '', name: '' }));
             new_input.insertBefore(container.find('.mia__add'));
-            setup_autocomplete(
-                new_input.find('.ac-input__visible')[0],
-                ol_ac_opts,
-                ac_opts);
+            setup_autocomplete(new_input.find('.ac-input__visible')[0], ol_ac_opts, ac_opts);
             update_visible();
         });
     };
@@ -291,7 +292,7 @@ export function init() {
      * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
-    $.fn.setup_csv_autocomplete = function(autocomplete_selector, ol_ac_opts, ac_opts) {
+    $.fn.setup_csv_autocomplete = function (autocomplete_selector, ol_ac_opts, ac_opts) {
         const container = $(this);
         const dataConfig = JSON.parse(container[0].dataset.config);
 
@@ -310,13 +311,11 @@ export function init() {
                 throw new Error('Invalid CSV');
             }
 
-            return m
-                .map(s => s.trim().replace(/^"(.*)"$/, '$1'))
-                .filter(s => s);
+            return m.map(s => s.trim().replace(/^"(.*)"$/, '$1')).filter(s => s);
         }
 
         function joinField(vals) {
-            const escaped = vals.map(val => (val.includes(',')) ? `"${val}"` : val);
+            const escaped = vals.map(val => (val.includes(',') ? `"${val}"` : val));
             return escaped.join(', ');
         }
 
@@ -326,16 +325,15 @@ export function init() {
             matchSubset: false,
             autoFill: false,
             position: { my: 'right top', at: 'right bottom' },
-            termPreprocessor: function(subject_string) {
+            termPreprocessor: function (subject_string) {
                 const terms = splitField(subject_string);
                 if (terms.length !== dataConfig.data.length) {
                     return terms.pop();
-                } else {
-                    $('ul.ui-autocomplete').hide();
-                    return '';
                 }
+                $('ul.ui-autocomplete').hide();
+                return '';
             },
-            select: function(event, ui) {
+            select: function (event, ui) {
                 const terms = splitField(this.value);
                 terms.splice(terms.length - 1, 1, ui.item.value);
                 this.value = `${joinField(terms)}, `;
@@ -344,15 +342,14 @@ export function init() {
                 $(this).trigger('input');
                 return false;
             },
-            response: function(event, ui) {
+            response: function (event, ui) {
                 /* Remove any entries already on the list */
                 const terms = splitField(this.value);
-                ui.content.splice(0, ui.content.length,
-                    ...ui.content.filter(record => !terms.includes(record.value)));
-            },
+                ui.content.splice(0, ui.content.length, ...ui.content.filter(record => !terms.includes(record.value)));
+            }
         };
 
-        container.find(autocomplete_selector).each(function() {
+        container.find(autocomplete_selector).each(function () {
             const options = $.extend(default_ac_opts, ac_opts);
             setup_autocomplete(this, ol_ac_opts, options);
         });

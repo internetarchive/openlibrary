@@ -24,14 +24,6 @@ div#revertLink,
   display: none;
 }
 /* stylelint-enable selector-max-specificity */
-.formButtons {
-  position: absolute;
-  height: 50px;
-  bottom: 0;
-  left: 0;
-  text-align: center;
-  cursor: pointer;
-}
 .column {
   min-height: 90px;
   margin: 10px;
@@ -62,7 +54,7 @@ div#revertLink,
   background-color: var(--light-yellow);
   margin: 0 10px;
   border-radius: 8px;
-  border: 1px solid var(--dark-yellow);
+  border: 1px solid var(--color-warning-border);
 }
 .portlet {
   margin: 7px 13px 13px 7px;
@@ -70,7 +62,7 @@ div#revertLink,
   width: 70px;
   height: 70px;
   overflow: hidden;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   cursor: move;
 }
@@ -94,7 +86,7 @@ div#revertLink,
 .imageSaved {
   width: 300px;
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .imageSaved .imageSaved__button {
   text-decoration: none;
@@ -102,7 +94,7 @@ div#revertLink,
 .saved {
   background: url(/static/images/icons/icon_saved.png) no-repeat;
   font-size: 1.5em;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--black);
   padding: var(--spacing-inset-xs) 0 0 40px;
   min-height: 30px;
@@ -119,16 +111,11 @@ div#revertLink,
     min-height: 440px;
   }
   /* stylelint-disable selector-max-specificity */
-  #placement,
-  #position,
   #content {
     width: 600px;
     min-height: 440px;
   }
   /* stylelint-enable selector-max-specificity */
-  .formButtons {
-    width: 600px;
-  }
   .column {
     width: 560px;
   }
@@ -158,8 +145,30 @@ div#revertLink,
   align-items: center;
 }
 
-.ol-cover-form--ia_image {
-  height: 200px;
+/* The existing covers to pick from: a scroll strip (covers/add.html). */
+.cover-picker {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  margin: 0;
+  padding: var(--spacing-inset-sm) 0;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+
+.cover-picker__item {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-stack-sm);
+  scroll-snap-align: start;
+}
+
+.cover-picker__item img {
+  height: 100px;
+  width: auto;
+  border-radius: var(--border-radius-thumbnail);
 }
 
 .ol-cover-form--clipboard .image-container img {

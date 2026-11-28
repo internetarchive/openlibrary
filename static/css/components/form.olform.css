@@ -26,13 +26,13 @@
 }
 
 .olform .label label {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .olform .label span {
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
 }
 
 .olform textarea {
@@ -76,10 +76,6 @@
   text-align: center;
 }
 
-.olform .mia__input .mia__preview {
-  flex: 1;
-}
-
 /* Weird glitch where while dragging the element is very offset */
 .olform .mia__input.ui-sortable-helper {
   margin-top: -20px;
@@ -120,7 +116,7 @@
 .olform input[type="password"],
 .olform input[type="url"],
 .olform textarea {
-  font-size: 1em;
+  font-size: inherit;
   font-family: var(--font-family-body);
   padding: var(--spacing-inset-xs);
   max-width: 100%;
@@ -180,7 +176,7 @@
 
 /* stylelint-disable-next-line max-nesting-depth */
 .olform.books .TitleAuthor input#author {
-  font-size: 1em !important;
+  font-size: inherit !important;
   width: 100%;
 }
 /* stylelint-enable selector-max-specificity */
@@ -190,12 +186,8 @@
 /* "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)." */
 .olform .tip {
   font-size: var(--font-size-label-small);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body) !important;
-}
-
-.olform__input--large {
-  height: 265px;
 }
 
 @media all and (min-width: 960px) /* @width-breakpoint-desktop */ {
@@ -267,7 +259,7 @@
   transition: all 0.2s ease-out;
   top: -8px;
   left: 3px;
-  font-size: 11px;
+  font-size: var(--font-size-label-small);
   background: var(--white);
   padding: 0 var(--spacing-inset-xs);
   white-space: nowrap;

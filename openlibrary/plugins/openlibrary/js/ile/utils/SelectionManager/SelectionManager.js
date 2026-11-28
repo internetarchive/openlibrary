@@ -1,5 +1,6 @@
 // @ts-check
 import $ from 'jquery';
+import { _, fmt, ngettext } from '../../../i18n.js';
 import { move_to_work, move_to_author } from '../ol.js';
 import './SelectionManager.css';
 
@@ -17,7 +18,7 @@ export default class SelectionManager {
     /**
      * @param {import('../../index.js').IntegratedLibrarianEnvironment} ile
      */
-    constructor(ile, curpath=location.pathname) {
+    constructor(ile, curpath = location.pathname) {
         this.ile = ile;
         this.curpath = curpath;
         this.inited = false;
@@ -33,7 +34,7 @@ export default class SelectionManager {
         this.allowDrop = this.allowDrop.bind(this);
 
         // Collator used to naturally order OLIDs before constructing URL
-        this.collator = new Intl.Collator('en-US', {numeric: true});
+        this.collator = new Intl.Collator('en-US', { numeric: true });
     }
 
     init() {
@@ -43,9 +44,7 @@ export default class SelectionManager {
         // Label each selectable element with a class, and bind the click event
         const providers = this.getPossibleProviders();
         const providerSelectors = providers.map(p => p.selector);
-        $(providerSelectors.join(', '))
-            .addClass('ile-selectable')
-            .on('click', this.processClick);
+        $(providerSelectors.join(', ')).addClass('ile-selectable').on('click', this.processClick);
 
         for (const provider of providers) {
             for (const el of $(provider.selector).toArray()) {
@@ -84,14 +83,16 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     processClick(clickEvent) {
-        // If there is text selection or the click is on a link that isn't a select handle, don't do anything
-        if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button, details').length > 0 &&
-            $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
+        // If there is text selection, don't do anything
+        if (!clickEvent.shiftKey && window.getSelection()?.toString() !== '') return;
+        // Walk the composed path: a click inside a web component (ol-shelf-button)
+        // is retargeted to its host by the time it reaches the row.
+        const path = (clickEvent.originalEvent ?? clickEvent).composedPath();
+        const onControl = path.some(n => n instanceof Element && n.matches('a, button, details, [popover]'));
+        if (onControl && !clickEvent.target.classList.contains('ile-select-handle')) return;
 
         const el = clickEvent.currentTarget;
-        if (clickEvent.shiftKey && this.lastClicked)
-        {
+        if (clickEvent.shiftKey && this.lastClicked) {
             // clear selection ranges created by shift-clicking since they're not suppressed by preventDefault().
             clearTextSelection();
             const siblingSet = this.getSelectableRange(el);
@@ -104,13 +105,12 @@ export default class SelectionManager {
                 } else {
                     affectedElements = siblingSet.slice(elIndex, lastClickedIndex);
                 }
-                const stateChange = this.lastClicked.classList.contains('ile-selected') ? true : false;
+                const stateChange = this.lastClicked.classList.contains('ile-selected');
                 for (const element of affectedElements) this.toggleSelected(element, stateChange);
             } else {
                 this.toggleSelected(el);
             }
-        }
-        else {
+        } else {
             this.toggleSelected(el);
         }
         this.lastClicked = el;
@@ -142,9 +142,8 @@ export default class SelectionManager {
         }
         if (commonParent) {
             return $(commonParent).find('.ile-selectable');
-        } else {
-            return $(clicked);
         }
+        return $(clicked);
     }
 
     /**
@@ -163,13 +162,14 @@ export default class SelectionManager {
         this.setElementSelectionAttributes(el, !isCurSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
-            const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
+            const img_el = $('#ile-drag-status .images img')
+                .toArray()
+                .find(img => img.src === img_src);
             $(img_el).remove();
         } else {
             this.addSelectedItem(olid);
             this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
-
     }
 
     setElementSelectionAttributes(el, selected) {
@@ -191,12 +191,12 @@ export default class SelectionManager {
         this.ile.bulkTagger.hideTaggingMenu();
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
-            if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
+            if (count) statusParts.push(type.label(count));
         });
 
         if (statusParts.length) {
-            this.ile.setStatusText(`${statusParts.join(', ')} selected`);
-            this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', this.clearSelectedItems));
+            this.ile.setStatusText(fmt(_('%(items)s selected'), { items: statusParts.join(', ') }));
+            this.ile.$selectionActions.append($('<a></a>').text(_('Clear Selections')).on('click', this.clearSelectedItems));
         } else {
             this.ile.setStatusText('');
         }
@@ -207,9 +207,13 @@ export default class SelectionManager {
                 action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
                 if (action.multiple_only ? items.length > 1 : items.length > 0)
                     if (action.href) {
-                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
+                        this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.label}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append(
+                            $(`<a href="javascript:;">${action.label}</a>`).on('click', () =>
+                                this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))
+                            )
+                        );
                     }
             }
         }
@@ -234,7 +238,9 @@ export default class SelectionManager {
             if (sessionStorage.getItem('ile-items')) {
                 this.selectedItems = JSON.parse(sessionStorage.getItem('ile-items'));
             } else {
-                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = [];});
+                SelectionManager.TYPES.forEach(type => {
+                    this.selectedItems[type.singular] = [];
+                });
             }
         }
 
@@ -260,7 +266,7 @@ export default class SelectionManager {
             ev.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
         }
         const data = {
-            from: (from ? from[0] : null),
+            from: from ? from[0] : null,
             items: this.getOlidsFromSelectionList(items)
         };
         ev.dataTransfer.setData('text/plain', JSON.stringify(data));
@@ -311,8 +317,7 @@ export default class SelectionManager {
      * @param {HTMLElement} el
      */
     getProvider(el) {
-        return SelectionManager.SELECTION_PROVIDERS
-            .find(p => p.path.test(this.curpath) && el.matches(p.selector));
+        return SelectionManager.SELECTION_PROVIDERS.find(p => p.path.test(this.curpath) && el.matches(p.selector));
     }
 
     getOlidsFromSelectionList(list) {
@@ -337,16 +342,20 @@ SelectionManager.DROP_HANDLERS = [
     /** Dropping books from one author to another */
     {
         path: /\/authors\/OL\d+A.*/,
-        message: 'Move to this author',
+        message: _('Move to this author'),
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
-            window.ILE.setStatusText('Working...');
+            window.ILE.setStatusText(_('Working...'));
             try {
-                await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
+                if (failed) {
+                    window.ILE.setStatusText(fmt(_('Something went wrong: %(failed)s/%(total)s failed to save.'), { failed, total }));
+                } else {
+                    window.ILE.setStatusText(fmt(_('Completed! %(total)s/%(total)s saved.'), { total }));
+                }
             } catch (e) {
-                window.ILE.setStatusText('Errored!');
+                window.ILE.setStatusText(_('Errored!'));
                 throw e;
             }
         }
@@ -354,51 +363,54 @@ SelectionManager.DROP_HANDLERS = [
     /** Dropping editions from one work to another */
     {
         path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
-        message: 'Move to this work',
+        message: _('Move to this work'),
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
-            window.ILE.setStatusText('Working...');
+            window.ILE.setStatusText(_('Working...'));
             try {
                 let workOlid = location.pathname.match(/OL\d+W/)?.[0];
                 if (!workOlid) {
                     const ed = await fetch(`/books/${location.pathname.match(/OL\d+M/)[0]}.json`).then(r => r.json());
                     workOlid = ed.works[0].key.match(/OL\d+W/)[0];
                 }
-                await move_to_work(data.items, data.from, workOlid);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_work(data.items, data.from, workOlid);
+                if (failed) {
+                    window.ILE.setStatusText(fmt(_('Something went wrong: %(failed)s/%(total)s failed to save.'), { failed, total }));
+                } else {
+                    window.ILE.setStatusText(fmt(_('Completed! %(total)s/%(total)s saved.'), { total }));
+                }
             } catch (e) {
-                window.ILE.setStatusText('Errored!');
+                window.ILE.setStatusText(_('Errored!'));
                 throw e;
             }
         }
-    },
+    }
 ];
 
 SelectionManager.TYPES = [
     {
         singular: 'work',
-        plural: 'works',
+        label: count => fmt(ngettext('%(count)s work', '%(count)s works', count), { count }),
         regex: /OL\d+W/,
         image: olid => {
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
                 return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
-            else
-                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
-        },
+            return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
+        }
     },
     {
         singular: 'edition',
-        plural: 'editions',
+        label: count => fmt(ngettext('%(count)s edition', '%(count)s editions', count), { count }),
         regex: /OL\d+M/,
-        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`,
+        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`
     },
     {
         singular: 'author',
-        plural: 'authors',
+        label: count => fmt(ngettext('%(count)s author', '%(count)s authors', count), { count }),
         regex: /OL\d+A/,
-        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`,
+        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`
     }
 ];
 
@@ -419,9 +431,11 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @return {import('../ol.js').WorkOLID}
          **/
         data: el => {
-            const parts = $(el).find('.booktitle a')[0].href.match(/OL\d+[WM]/g);
-            return (parts.length > 1 && parts[0] !== parts[1]) ? parts.join(':') : parts[0];
-        },
+            const parts = $(el)
+                .find('.booktitle a')[0]
+                .href.match(/OL\d+[WM]/g);
+            return parts.length > 1 && parts[0] !== parts[1] ? parts.join(':') : parts[0];
+        }
     },
     /**
      * This selection provider makes editions in the editions table selectable.
@@ -434,7 +448,10 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @param {HTMLElement} el
          * @return {import('../ol.js').EditionOLID}
          **/
-        data: el => $(el).find('.title a')[0].href.match(/OL\d+M/)[0],
+        data: el =>
+            $(el)
+                .find('.title a')[0]
+                .href.match(/OL\d+M/)[0]
     },
     /**
      * This selection provider makes author names on the books page selectable.
@@ -448,7 +465,7 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @param {HTMLAnchorElement} el
          * @return {import('../ol.js').AuthorOLID}
          **/
-        data: el => el.href.match(/OL\d+A/)[0],
+        data: el => el.href.match(/OL\d+A/)[0]
     },
     /**
      * This selection provider makes work on the books page selectable.
@@ -462,7 +479,7 @@ SelectionManager.SELECTION_PROVIDERS = [
          * @param {HTMLAnchorElement} el
          * @return {import('../ol.js').WorkOLID}
          **/
-        data: el => el.href.match(/OL\d+W/)[0],
+        data: el => el.href.match(/OL\d+W/)[0]
     },
     /**
      * This selection provider makes authors selectable on search result pages
@@ -471,8 +488,11 @@ SelectionManager.SELECTION_PROVIDERS = [
         path: /^(\/search\/authors)$/,
         selector: '.searchResultItem',
         type: ['author'],
-        data: el => $(el).find('a')[0].href.match(/OL\d+A/)[0],
-    },
+        data: el =>
+            $(el)
+                .find('a')[0]
+                .href.match(/OL\d+A/)[0]
+    }
 ];
 
 /**
@@ -484,21 +504,24 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: false,
         name: 'Tag Works',
-        onclick: true,
+        label: _('Tag Works'),
+        onclick: true
     },
     {
         applies_to_type: ['work', 'edition', 'author'],
         requires_type: [],
         multiple_only: false,
         name: 'Create list...',
-        href: olids => `/account/lists/add?seeds=${olids.join(',')}`,
+        label: _('Create list...'),
+        href: olids => `/account/lists/add?seeds=${olids.join(',')}`
     },
     {
         applies_to_type: ['work', 'edition'],
         requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',
-        href: olids => `/works/merge?records=${olids.join(',')}`,
+        label: _('Merge Works...'),
+        href: olids => `/works/merge?records=${olids.join(',')}`
     },
     /* Uncomment this when edition merging is available.
     {
@@ -514,6 +537,7 @@ SelectionManager.ACTIONS = [
         requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
-        href: olids => `/authors/merge?records=${olids.join(',')}`,
-    },
+        label: _('Merge Authors...'),
+        href: olids => `/authors/merge?records=${olids.join(',')}`
+    }
 ];

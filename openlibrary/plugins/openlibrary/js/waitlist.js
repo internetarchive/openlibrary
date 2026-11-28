@@ -1,4 +1,5 @@
-import 'jquery-ui/ui/widgets/dialog';
+import { confirmFromTemplate } from './confirm-template';
+import { _ } from './i18n.js';
 
 /**
  * Initialize the leave waitlist link
@@ -6,16 +7,15 @@ import 'jquery-ui/ui/widgets/dialog';
  * @param {NodeList<HTMLElement>} leaveWaitlistLinks - NodeList of leave waitlist links
  */
 export function initLeaveWaitlist(leaveWaitlistLinks) {
+    const template = document.getElementById('leave-waitinglist-dialog');
     for (const link of leaveWaitlistLinks) {
-        link.addEventListener('click', () => {
-            const $link = $(link);
-            const title = $link.parents('tr').find('.book').text();
-            $('#leave-waitinglist-dialog strong').text(title);
-            // We remove the hidden class here because otherwise it flashes for a moment on page load
-            $('#leave-waitinglist-dialog').removeClass('hidden');
-            $('#leave-waitinglist-dialog')
-                .data('origin', $link)
-                .dialog('open');
+        link.addEventListener('click', async event => {
+            event.preventDefault();
+            const message = template.content.cloneNode(true);
+            message.querySelector('strong').textContent = link.closest('tr').querySelector('.book').textContent.trim();
+            if (await confirmFromTemplate(template, { message, title: _('Leave the waiting list?'), confirmLabel: _('Leave waiting list') })) {
+                link.closest('form').requestSubmit();
+            }
         });
     }
 }

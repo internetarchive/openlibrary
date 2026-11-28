@@ -1,6 +1,7 @@
+import json
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
+from unittest.mock import Mock
 
 import pytest
 import web
@@ -46,6 +47,24 @@ def test_entity_decode():
     assert utils.entity_decode("<h1>") == "<h1>"
 
 
+@pytest.mark.parametrize(
+    ("isni", "expected"),
+    [
+        ("0000000121309873", "0000 0001 2130 9873"),
+        ("0000 0001 2130 9873", "0000 0001 2130 9873"),
+        ("000000000000000x", "0000 0000 0000 000X"),
+        ("not-an-isni", "not-an-isni"),
+    ],
+)
+def test_format_isni_display_value(isni, expected):
+    assert utils.format_isni_display_value(isni) == expected
+
+
+def test_format_author_identifier_value_only_formats_isni():
+    assert utils.format_author_identifier_value("isni", "0000000121309873") == "0000 0001 2130 9873"
+    assert utils.format_author_identifier_value("viaf", "123456") == "123456"
+
+
 def test_set_share_links():
     class TestContext:
         def __init__(self):
@@ -57,14 +76,20 @@ def test_set_share_links():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -81,14 +106,20 @@ def test_set_share_links_unicode():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.%C3%A9",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.%C3%A9&description=Check+this+out%3A+b%C4%81",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -136,6 +167,27 @@ def test_canonical_url():
     url = "https://www.openlibrary.org/authors/Ayn_Rand"
     assert request.canonical_url == url
 
+    # Revision selectors for history and diff links.
+    web.ctx.query = "?b=8&a=3"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand"
+    assert request.canonical_url == url
+
+    # Presentation and the librarian toggle go; pagination stays.
+    web.ctx.query = "?page=2&layout=grid&show_page_status=1"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?page=2"
+    assert request.canonical_url == url
+
+    # A query changes what the page shows, so it stays.
+    web.ctx.query = "?q=anthem&page=2&ref=ol"
+    url = "https://www.openlibrary.org/authors/Ayn_Rand?q=anthem&page=2"
+    assert request.canonical_url == url
+
+    # A work canonicalizes without the edition it happens to be showing.
+    web.ctx.path = "/works/OL1W/Title"
+    web.ctx.query = "?edition=key:/books/OL1M&_autoReadAloud=show&ref=ol"
+    url = "https://www.openlibrary.org/works/OL1W/Title"
+    assert request.canonical_url == url
+
 
 def test_get_coverstore_url(monkeypatch):
     monkeypatch.delattr(config, "coverstore_url", raising=False)
@@ -166,12 +218,45 @@ def test_reformat_html():
     assert f("&lt;script&gt;") == "&lt;script&gt;"
 
 
+def test_markdown_excerpt():
+    f = utils.markdown_excerpt
+
+    assert f("") == ""
+    assert f(None) == ""
+    assert f("A *desert* planet, and [a boy](https://example.com).\n\nSecond paragraph.") == "A desert planet, and a boy. Second paragraph."
+    assert f("Tom &amp; Jerry<br><i>Vol. 1</i> <script>alert(1)</script>") == "Tom & Jerry Vol. 1"
+    # Cuts at a word boundary, never mid-word, and drops a trailing comma
+    assert f("one two, three four", max_length=12) == "one two…"
+    assert f("one two three", max_length=13) == "one two three"
+
+
 def test_strip_accents():
     f = utils.strip_accents
     assert f("Plain ASCII text") == "Plain ASCII text"
     assert f("Des idées napoléoniennes") == "Des idees napoleoniennes"
     # It only modifies Unicode Nonspacing Mark characters:
     assert f("Bokmål : Standard Østnorsk") == "Bokmal : Standard Østnorsk"
+
+
+class TestConvertIsoToMarcCache:
+    @pytest.fixture(autouse=True)
+    def language_catalog(self, monkeypatch):
+        loader = Mock(
+            return_value={
+                "eng": web.storage(code="eng", identifiers={"iso_639_1": ["en"]}),
+                "fre": web.storage(code="fre", identifiers={"iso_639_1": ["fr"]}),
+            }
+        )
+        monkeypatch.setattr(utils, "get_languages", loader)
+        utils.convert_iso_to_marc.cache_clear()
+        yield loader
+        utils.convert_iso_to_marc.cache_clear()
+
+    def test_unknown_languages_do_not_grow_cache_without_limit(self):
+        for index in range(1024):
+            assert utils.convert_iso_to_marc(f"unsupported-{index}") is None
+
+        assert utils.convert_iso_to_marc.cache_info().currsize <= 256
 
 
 def test_get_abbrev_from_full_lang_name(
@@ -184,7 +269,7 @@ def test_get_abbrev_from_full_lang_name(
     monkeypatch.setattr(web, "ctx", web.storage())
     web.ctx.site = mock_site
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "eng",
             "key": "/languages/eng",
@@ -200,7 +285,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "fre",
             "key": "/languages/fre",
@@ -214,7 +299,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "spa",
             "key": "/languages/spa",
@@ -223,7 +308,7 @@ def test_get_abbrev_from_full_lang_name(
         }
     )
 
-    web.ctx.site.save(
+    mock_site.save(
         {
             "code": "por",
             "key": "/languages/por",
@@ -256,68 +341,83 @@ def test_get_abbrev_from_full_lang_name(
         utils.get_abbrev_from_full_lang_name("Missing or non-existent language")
 
 
-def test_get_colon_only_loc_pub() -> None:
-    # This is intended as a helper function, and its caller,
-    # get_location_and_publisher(), replaces certain characters,
-    # including "[" and "]".
-    test_cases = [
+@pytest.mark.parametrize(
+    ("loc_pub", "expected"),
+    [
         ("", ("", "")),
         ("New York : Random House", ("New York", "Random House")),
         ("[New York] : [Random House]", ("[New York]", "[Random House]")),
         ("Random House,", ("", "Random House")),
-    ]
+        ("[Place of publication not identified]", ("", "[Place of publication not identified]")),
+    ],
+)
+def test_get_colon_only_loc_pub(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
+    # This is a helper function, and its caller,
+    # get_location_and_publisher(), replaces certain characters,
+    # including "[" and "]".
+    result = utils.get_colon_only_loc_pub(loc_pub)
+    assert result == expected, f"For {loc_pub}, expected {expected}, but got {result}"
 
-    for tc, expected in test_cases:
-        result = utils.get_colon_only_loc_pub(tc)
-        assert result == expected, f"For {tc}, expected {expected}, but got {result}"
+
+@pytest.mark.parametrize(
+    "loc_pub",
+    [
+        "",  # Empty string
+        "[Place of publication not identified]",
+        "Place of publication not identified",
+    ],
+)
+def test_empty_get_location_and_publisher(loc_pub: str) -> None:
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])
 
 
-def test_get_location_and_publisher() -> None:
-    # Empty string
-    assert utils.get_location_and_publisher("") == ([], [])
+@pytest.mark.parametrize(
+    ("loc_pub", "expected"),
+    [
+        (  # Simple case of "City : Publisher"
+            "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]",
+            (
+                ["Sŏul T'ŭkpyŏlsi"],  # city
+                ["Kimyŏngsa"],  # publisher
+            ),
+        ),
+        (  # No colon case: everything is captured by 'publisher'
+            "Funtimes",
+            ([], ["Funtimes"]),
+        ),
+        (  # Multiple locations and one publisher
+            "Londres ; [New York] ; Paris : Berlitz Publishing",
+            (["Londres", "New York", "Paris"], ["Berlitz Publishing"]),
+        ),
+        (  # Two locations and two corresponding publishers
+            "Paris : Pearson ; San Jose (Calif.) : Adobe",
+            (["Paris", "San Jose (Calif.)"], ["Pearson", "Adobe"]),
+        ),
+        (  # "Pattern" breaker insofar as it has two colons separators in a row
+            "London : Wise Publications ; Bury St. Edmunds, Suffolk : Exclusive Distributors : Music Sales Limited",
+            (["London"], ["Wise Publications"]),
+        ),
+        (  # Place of publication not identified
+            "[Place of publication not identified] : Pearson",
+            ([], ["Pearson"]),
+        ),
+        (  # Separating place not identified with a comma
+            "[Place of publication not identified], BARBOUR PUB INC",
+            ([], ["BARBOUR PUB INC"]),
+        ),
+    ],
+)
+def test_get_location_and_publisher(loc_pub: str, expected: tuple[list[str], list[str]]) -> None:
+    assert utils.get_location_and_publisher(loc_pub) == expected
 
-    # Test simple case of "City : Publisher".
-    loc_pub = "Sŏul T'ŭkpyŏlsi : [Kimyŏngsa]"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["Sŏul T'ŭkpyŏlsi"],
-        ["Kimyŏngsa"],
-    )
 
-    # Test multiple locations and one publisher.
-    loc_pub = "Londres ; [New York] ; Paris : Berlitz Publishing"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["Londres", "New York", "Paris"],
-        ["Berlitz Publishing"],
-    )
-
-    # Test two locations and two corresponding publishers.
-    loc_pub = "Paris : Pearson ; San Jose (Calif.) : Adobe"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["Paris", "San Jose (Calif.)"],
-        ["Pearson", "Adobe"],
-    )
-
-    # Test location not identified.
-    loc_pub = "[Place of publication not identified] : Pearson"
-    assert utils.get_location_and_publisher(loc_pub) == ([], ["Pearson"])
-
-    # "Pattern" breaker insofar as it has two colons separators in a row.
-    loc_pub = "London : Wise Publications ; Bury St. Edmunds, Suffolk : Exclusive Distributors : Music Sales Limited"
-    assert utils.get_location_and_publisher(loc_pub) == (
-        ["London"],
-        ["Wise Publications"],
-    )
-
+def test_get_location_and_publisher_bad_type() -> None:
     # Bad input where Python thinks the IA metadata is a Python list
-    loc_pub = [  # type: ignore[assignment]
+    loc_pub = [
         "Charleston, SC : Monkeypaw Press, LLC",
         "Charleston, SC : [manufactured by CreateSpace]",
     ]
-    assert utils.get_location_and_publisher(loc_pub) == ([], [])
-
-    # Separating a not identified place with a comma
-    loc_pub = "[Place of publication not identified], BARBOUR PUB INC"
-    assert utils.get_location_and_publisher(loc_pub) == ([], ["BARBOUR PUB INC"])
+    assert utils.get_location_and_publisher(loc_pub) == ([], [])  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -339,46 +439,6 @@ def test_commify_list(name: str, seq: Sequence[str], locale: str, expected: str,
     assert got == expected
 
 
-def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
-    """
-    When a rendered macro returns `do_not_cache='True'` (e.g. because
-    `work_search` returned a Solr error in RawQueryCarousel), the bad result
-    must be evicted from memcache so subsequent requests get a fresh attempt.
-    """
-    # Simulate the rendered macro result indicating failure
-    error_page = {"do_not_cache": "True", "content": "<div></div>"}
-
-    mock_mc = MagicMock()
-    mock_mc.return_value = error_page  # mc(name, args, **kwargs) returns the error page
-
-    # Patch memcache_memoize to return our mock mc object and
-    # set up web.ctx with the minimum required attributes
-    monkeypatch.setattr(web, "ctx", web.storage(lang="en"))
-    web.ctx.env = {}
-
-    with (
-        patch(
-            "openlibrary.plugins.upstream.utils.cache.memcache_memoize",
-            return_value=mock_mc,
-        ),
-        patch(
-            "openlibrary.plugins.upstream.utils.render_macro",
-        ),
-        patch(
-            "openlibrary.plugins.openlibrary.code.is_bot",
-            return_value=False,
-        ),
-        patch(
-            "openlibrary.plugins.openlibrary.home.caching_prethread",
-            return_value=None,
-        ),
-    ):
-        utils.render_cached_macro("RawQueryCarousel", ("subject:fantasy",))
-
-    # The cache entry must have been evicted
-    mock_mc.memcache_delete_by_args.assert_called_once_with("RawQueryCarousel", ("subject:fantasy",))
-
-
 def test_get_language_name(add_languages):  # noqa: F811
     # Falls back to name when no name_translated field exists
     assert utils.get_language_name("/languages/fre", "fr") == "French"
@@ -386,3 +446,58 @@ def test_get_language_name(add_languages):  # noqa: F811
     assert utils.get_language_name("/languages/ger", "en") == "German"
     # Falls back to name when translation missing for requested language
     assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
+
+
+def test_json_encode():
+    assert utils.json_encode({"a": 1, "b": 2}) == '{"a": 1, "b": 2}'
+    assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
+        '{"description": "\\u003c/script\\u003e\\u003cscript\\u003ealert(\'xss\')\\u003c/script\\u003e"}'
+    )
+
+
+@pytest.mark.parametrize("legacy", ["missing", "different"])
+def test_user_object_uses_current_site(mock_site, monkeypatch, legacy):
+    mock_site.quicksave("/people/alice", "/type/user", displayname="Alice")
+    if legacy == "missing":
+        monkeypatch.delitem(web.ctx, "site")
+    else:
+        monkeypatch.setitem(web.ctx, "site", Mock())
+    assert utils.get_user_object("alice").displayname == "Alice"
+
+
+@pytest.fixture
+def fake_static_url(monkeypatch):
+    monkeypatch.setattr("openlibrary.plugins.upstream.code.static_url", lambda p: f"/static/{p}?v=1")
+
+
+def test_vue_component_html_loads_the_component_and_renders_its_element(fake_static_url):
+    assert utils.vue_component_html("MergeUI") == (
+        '<script type="module" src="/static/build/components/production/ol-MergeUI.js?v=1"></script><ol-merge-ui></ol-merge-ui>'
+    )
+    assert '<script type="module" async defer src=' in utils.vue_component_html("MergeUI", async_defer=True)
+
+
+def test_vue_component_html_attributes_reach_the_component_intact(fake_static_url):
+    """Dicts and lists decode with ``JSON.parse(decodeURIComponent(...))``; strings as written."""
+    from urllib.parse import unquote
+
+    from lxml import html as lxml_html
+
+    attrs = {"i18n": {"retry": 'Try "again" & <go>'}, "ids": [1, "2"], "jenkins-url": 'https://x/?a=1&b="2"'}
+
+    element = lxml_html.fragment_fromstring(str(utils.vue_component_html("TestingEnvironment", attrs=attrs)), create_parent=True)[1]
+
+    assert element.tag == "ol-testing-environment"
+    assert json.loads(unquote(element.get("i18n"))) == attrs["i18n"]
+    assert json.loads(unquote(element.get("ids"))) == attrs["ids"]
+    assert element.get("jenkins-url") == attrs["jenkins-url"]
+
+
+def test_render_component_loads_each_component_script_once_per_request(fake_static_url, monkeypatch):
+    monkeypatch.setattr(web, "ctx", web.storage())
+
+    first = utils.render_component("HelloWorld", attrs={"a": "1"})
+    second = utils.render_component("HelloWorld")
+
+    assert first == utils.vue_component_html("HelloWorld", attrs={"a": "1"})
+    assert second == "<ol-hello-world></ol-hello-world>"

@@ -2,16 +2,6 @@ $def with (work=None, authors=None, recaptcha=None)
 
 $var title: $_("Add a book")
 
-$ i18n_strings = {
-    $ "invalid_checksum": _("Invalid ISBN checksum digit"),
-    $ "invalid_isbn10": _("ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"),
-    $ "invalid_isbn13": _("ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"),
-    $ "invalid_lccn": _("Invalid LC Control Number format"),
-    $ "invalid_oclc": _("Invalid OCLC/WorldCat Control Number format"),
-    $ "empty_id": _("Please enter a value for the selected identifier"),
-    $ "invalid_publish_date": _("Are you sure that's the published date?")
-    $ }
-
 <div id="contentHead">
     <div class="head">
         <h1>$_("Add a book to Open Library")</h1>
@@ -23,7 +13,7 @@ $ i18n_strings = {
 
 <div id="contentBody">
 
-    <form method="post" action="" id="addbook" class="olform addbook1" name="edit" data-i18n="$json_encode(i18n_strings)">
+    <form method="post" action="" id="addbook" class="olform addbook1" name="edit">
         <div class="formElement">
             <div class="label">
                 <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
@@ -56,7 +46,6 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ is_privileged = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
@@ -65,7 +54,7 @@ $ i18n_strings = {
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                $if is_privileged:
+                $if ctx.user and ctx.user.can_edit_ocaid():
                     <option value="ocaid">$_("Internet Archive")</option>
                 <option value="isbn_10">$_("ISBN 10")</option>
                 <option value="isbn_13">$_("ISBN 13")</option>
@@ -79,7 +68,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
+        $if ctx.user and ctx.user.is_librarian_or_higher():
             <div class="formElement">
                 <div class="label">
                     <label for="web_book_url">$_("Book URL")</label> <span class="tip">$_("Only fill this out if this is a web book")</span></span>
@@ -87,9 +76,10 @@ $ i18n_strings = {
                 <div class="input">
                     <input type="text" name="web_book_url" class="" id="web_book_url"/>
                 </div>
+                <div id="web-book-url-errors" class="note hidden"></div>
             </div>
 
-        $if recaptcha and not ctx.user:
+        $if recaptcha:
             $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         <div class="formElement bottom">

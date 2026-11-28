@@ -1,6 +1,41 @@
 #!/bin/bash
 
+# Colors for what needs attention. Decided once, here: inside $(green ...) the output
+# is a pipe, not the terminal. Plain when output isn't a terminal (e.g. piped into tee)
+# or NO_COLOR is set.
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    red() { printf '\033[31m%s\033[0m' "$*"; }
+    yellow() { printf '\033[33m%s\033[0m' "$*"; }
+    green() { printf '\033[32m%s\033[0m' "$*"; }
+    bold() { printf '\033[1m%s\033[0m' "$*"; }
+else
+    red() { printf '%s' "$*"; }
+    yellow() { printf '%s' "$*"; }
+    green() { printf '%s' "$*"; }
+    bold() { printf '%s' "$*"; }
+fi
+
+# The same for stderr, decided when printed: $(...) captures stdout, not stderr.
+stderr_red() {
+    if [ -t 2 ] && [ -z "${NO_COLOR:-}" ]; then
+        printf '\033[31m%s\033[0m' "$*"
+    else
+        printf '%s' "$*"
+    fi
+}
+
+# Background jobs and their temp files, so an early exit (error or Ctrl-C) can stop and
+# remove them: background jobs in a script ignore Ctrl-C and would keep running.
+BACKGROUND_PIDS=()
+BACKGROUND_FILES=()
+
 clean_exit() {
+    if [ ${#BACKGROUND_PIDS[@]} -gt 0 ]; then
+        kill "${BACKGROUND_PIDS[@]}" 2>/dev/null || true
+    fi
+    if [ ${#BACKGROUND_FILES[@]} -gt 0 ]; then
+        rm -f "${BACKGROUND_FILES[@]}"
+    fi
     if [ -d "$DEPLOY_DIR" ]; then
         cleanup "$DEPLOY_DIR"
     fi
@@ -8,12 +43,12 @@ clean_exit() {
 }
 
 handle_error() {
-    echo -e "\n\nERR" >&2
+    echo -e "\n\n$(stderr_red ERR)" >&2
     clean_exit
 }
 
 handle_exit() {
-    echo -e "\n\nSIGINT" >&2
+    echo -e "\n\n$(stderr_red SIGINT)" >&2
     clean_exit
 }
 
@@ -27,15 +62,22 @@ DEPLOY_DIR="/tmp/openlibrary_deploy"
 
 mkdir -p $DEPLOY_DIR
 
-WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2 ol-web3"
+WEB_HOSTNAMES="ol-web0 ol-web2 ol-web3"
 # Note: ol-solr0 and ol-solr2 are currently excluded due to a version
 # upgrade pending full reindex
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
+ALL_HOSTNAMES="ol-home0 ol-covers1 ol-www1 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
+SKIP_NGINX_CHECK=${SKIP_NGINX_CHECK:-""}
+# Set by check_nginx_config when the gate is skipped, so the end-of-deploy
+# summary can say so too; see the comment on SKIP_NGINX_CHECK there.
+NGINX_CHECK_SKIPPED=0
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+# Convert "deploy-2026-05-19-at-19-10" to "2026-05-19T19:10" (replace "-at-" with "T" and the final "-" in the time with ":")
+LATEST_TAG_TIMESTAMP=$(echo "$LATEST_TAG" | sed 's/^deploy-//; s/-at-/T/; s/-\([0-9][0-9]\)$/:\1/')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
+RELEASE_MERGED_PRS_URL="https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr++is%3Amerged+merged%3A$LATEST_TAG_TIMESTAMP..$(date -u +%Y-%m-%dT%H:%M)"
 DEPLOY_TAG="deploy-$(date -u +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
@@ -53,6 +95,92 @@ cleanup() {
     echo ""
     echo "Cleaning up"
     rm -rf $TMP_DIR
+}
+
+# Where the deploy announcements go: channels in the "archive" Slack workspace, which
+# slack_message opens in the Slack app on 1, 2, 3...
+SLACK_TEAM=T03ST9K7K
+SLACK_CHANNEL_NAMES=(openlibrary-g openlibrary open-librarians-g)
+SLACK_CHANNEL_IDS=(C0ETZV72L C075DJ6G1 C0119PRDV46)
+
+# Put $1 on the clipboard with whatever this machine has. Returns 1 if there was no
+# clipboard tool and it asked the terminal to copy instead, which may not have worked.
+copy_to_clipboard() {
+    local tool
+    for tool in pbcopy wl-copy "xclip -selection clipboard" "xsel --clipboard --input" clip.exe; do
+        if command -v "${tool%% *}" >/dev/null 2>&1 && printf '%s' "$1" | $tool 2>/dev/null; then
+            return 0
+        fi
+    done
+    # OSC 52: iTerm2, kitty, WezTerm, Windows Terminal and others support it, also over
+    # SSH; macOS Terminal.app doesn't.
+    printf '\033]52;c;%s\a' "$(printf '%s' "$1" | base64 | tr -d '\n')"
+    return 1
+}
+
+# Open Slack channel <id> in the Slack app (macOS `open`, Linux `xdg-open`).
+open_slack_channel() {
+    local url="slack://channel?team=$SLACK_TEAM&id=$1" opener
+    for opener in open xdg-open; do
+        if command -v "$opener" >/dev/null 2>&1 && "$opener" "$url" >/dev/null 2>&1; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Show a message to paste into Slack, set apart so it's clear what to copy, under a
+# checklist: c copies it, 1, 2, 3... open each channel in the Slack app, and each gets a
+# ✓ once done. Returns on Enter. On a terminal the checklist updates in place.
+slack_message() {
+    local heading=$1 message=$2 key i line note copied="" opened=()
+    local hint="  Press c, then 1-${#SLACK_CHANNEL_NAMES[@]} to open each channel and paste. Press Enter once it's posted everywhere."
+    if [ -t 1 ]; then
+        # Two blank lines at the end: the checklist and hint, redrawn below.
+        printf '\033[1m%s\033[0m\n\n\033[1;36m%s\033[0m\n\n\n\n' "$heading" "$message"
+    else
+        printf '%s\n\n%s\n\n' "$heading" "$message"
+    fi
+    note=$hint
+    while true; do
+        line="  $(bold c) copy message${copied:+ $(green ✓)}"
+        for i in "${!SLACK_CHANNEL_NAMES[@]}"; do
+            line+="   $(bold $((i + 1))) #${SLACK_CHANNEL_NAMES[$i]}${opened[$i]:+ $(green ✓)}"
+        done
+        if [ -t 1 ]; then
+            printf '\033[2A\r\033[K%s\n\033[K\033[2m%s\033[0m' "$line" "$note"
+        else
+            printf '%s\n%s\n' "$line" "$note"
+        fi
+        read -r -s -n 1 key || key=""  # no more input: same as Enter
+        note=$hint
+        if [[ "$key" =~ ^[Cc]$ ]]; then
+            copied=1
+            if ! copy_to_clipboard "$message"; then
+                note="  Asked your terminal to copy it; if pasting doesn't work, select the message and copy it."
+            fi
+        elif [[ "$key" =~ ^[1-9]$ ]] && [ "$key" -le "${#SLACK_CHANNEL_NAMES[@]}" ]; then
+            i=$((key - 1))
+            if open_slack_channel "${SLACK_CHANNEL_IDS[$i]}"; then
+                opened[$i]=1
+            else
+                note="  Couldn't open Slack here; go to #${SLACK_CHANNEL_NAMES[$i]} yourself."
+            fi
+        elif [ -z "$key" ]; then
+            if [ -t 1 ]; then
+                printf '\n'
+            fi
+            break
+        fi
+        if [ -t 1 ]; then
+            printf '\n'  # the redraw starts two lines up from a fresh line
+        fi
+    done
+}
+
+# Throw away keys pressed during a long wait, so they can't answer the next question.
+discard_typeahead() {
+    [ -t 0 ] && python3 -c 'import sys, termios; termios.tcflush(sys.stdin, termios.TCIFLUSH)' 2>/dev/null || true
 }
 
 # Show a looping y/n prompt
@@ -79,7 +207,7 @@ check_crons() {
 
     # If KILL_CRON is an empty string and there are running jobs, exit early
     if [ -z "$KILL_CRON" ] && [ -n "$RUNNING_CRONS" ]; then
-        echo "✗"
+        echo "$(red ✗)"
         echo "Critical cron jobs are currently running. Halting deployment:"
         echo "$RUNNING_CRONS"
         echo ""
@@ -87,7 +215,7 @@ check_crons() {
         echo ""
         exit 1
     else
-        echo "✓"
+        echo "$(green ✓)"
     fi
 }
 
@@ -99,22 +227,22 @@ check_for_local_changes() {
 
     # First check if it doesn't exist
     if ! ssh $SERVER "test -d $REPO_DIR"; then
-        echo "✓ ($REPO_DIR doesn't exist, will be created on deploy)"
+        echo "$(green ✓) ($REPO_DIR doesn't exist, will be created on deploy)"
         return
     fi
 
     # Not a git repo yet (e.g. partial failure before git init) -- skip check
     if ! ssh $SERVER "test -d $REPO_DIR/.git"; then
-        echo "✓ ($REPO_DIR exists but is not a git repo yet)"
+        echo "$(green ✓) ($REPO_DIR exists but is not a git repo yet)"
         return
     fi
 
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
     if [ -z "$OUTPUT" ]; then
-        echo "✓"
+        echo "$(green ✓)"
     else
-        echo "✗"
+        echo "$(red ✗)"
         echo "There are changes in the olsystem repo on $SERVER. Please commit or stash them, or they will be blown away."
         ssh -t $SERVER "
             cd $REPO_DIR
@@ -137,9 +265,9 @@ check_server_access() {
         echo -n "   $SERVER ... "
         DOCKER_ACCESS=$(ssh -o ConnectTimeout=10 $SERVER "sudo usermod -a -G docker \"\$USER\"" && echo "✓" || echo "✗")
         if [ "$DOCKER_ACCESS" == "✓" ]; then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "Could not access $SERVER."
             exit 1
         fi
@@ -163,18 +291,18 @@ copy_to_servers() {
         ssh "$SERVER" "sudo rm -rf $DESTINATION /tmp/$TAR_FILE || true"
 
         if OUTPUT=$(scp "$TAR_PATH" "$SERVER:/tmp/$TAR_FILE" 2>&1); then
-            echo -n "✓."
+            echo -n "$(green ✓)."
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             return 1
         fi
 
         echo -n " Extracting ... "
         if OUTPUT=$(ssh "$SERVER" "sudo tar -xzf /tmp/$TAR_FILE -C $DESTINATION_PARENT" 2>&1); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             ssh "$SERVER" "sudo rm -rf /tmp/$TAR_FILE"
             return 1
@@ -201,7 +329,7 @@ ssh_docker_compose() {
     shift
     local COMPOSE_COMMAND="$*"
 
-    echo -n "[Now] Running \`docker compose $COMPOSE_COMMAND\` on $SERVER:"
+    echo -n "$(bold "[Now] Running \`docker compose $COMPOSE_COMMAND\` on $SERVER:")"
     ssh "$SERVER" "
         set -e
         cd $REPO_DIR
@@ -214,7 +342,7 @@ reset_hard() {
     HOSTNAMES=${SERVERS:-$WEB_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    echo "[Now] Performing clean docker reset of $HOSTNAMES containers"
+    echo "$(bold "[Now] Performing clean docker reset of $HOSTNAMES containers")"
     for SERVER in $FQDNS; do
         echo "Resetting $SERVER container (docker down up)..."
         ssh_docker_compose $SERVER down
@@ -226,7 +354,7 @@ deploy_olsystem() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    echo "[Now] Starting $REPO deployment at $(date)"
+    echo "$(bold "[Now] Starting $REPO deployment at $(date)")"
     echo "Deploying to: $HOSTNAMES"
 
     check_server_access
@@ -260,8 +388,9 @@ deploy_olsystem() {
     echo -ne "Cloning $REPO repo ... "
     git clone --depth=1 "$CLONE_URL" $REPO_NEW 2> /dev/null
     echo -n "✔ (SHA: $(git -C $REPO_NEW rev-parse HEAD | cut -c -7))"
-    # compress the repo to speed up the transfer
-    tar -czf $REPO_NEW.tar.gz $REPO_NEW
+    # compress the repo to speed up the transfer. COPYFILE_DISABLE stops macOS tar
+    # from adding ._* AppleDouble entries, which extract as junk files on the servers.
+    COPYFILE_DISABLE=1 tar -czf $REPO_NEW.tar.gz $REPO_NEW
     echo " ($(du -h $REPO_NEW.tar.gz | cut -f1) compressed)"
 
     if ! copy_to_servers "$DEPLOY_DIR/$REPO_NEW.tar.gz" "/opt/$REPO_NEW" "$REPO_NEW"; then
@@ -285,14 +414,31 @@ deploy_olsystem() {
             fi
             sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             cleanup "${DEPLOY_DIR}/olsystem"
             exit 1
         fi
     done
+
+    # Gate here, inside the function, NOT at the wizard's call site. A rule fix is
+    # an olsystem-only change, so it ships via `deploy.sh olsystem` rather than by
+    # running the whole weekly wizard -- and that CLI path would skip a gate that
+    # lived in deploy_wizard. The highest-risk deploy would have been the
+    # unguarded one. Keeping the call here means there is exactly one call site
+    # per deploy function and no way to reach the swap without it.
+    if [[ "$REPO" == "olsystem" ]]; then
+        check_nginx_config olsystem
+    fi
+
+    if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
+        echo ""
+        echo "$(yellow "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config")"
+        echo "$(yellow "          was NOT validated. A bad ruleset will surface as an [emerg]")"
+        echo "$(yellow "          the next time nginx restarts (olsystem#420).")"
+    fi
 
     echo "Finished $REPO deployment at $(date)"
     echo "[Info] To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -327,7 +473,7 @@ tag_deploy() {
         REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
         local HEAD_SHA
         HEAD_SHA="$(git -C "$REPO_DIR" rev-parse --short HEAD)"
-        echo "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR"
+        echo "$(yellow "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR")"
         echo "          Local HEAD is $HEAD_SHA — confirm this matches what was deployed."
         read -p "Tag production as $HEAD_SHA from the local repo? [y/N]..." confirm
         confirm=${confirm:-N}
@@ -353,15 +499,15 @@ tag_release() {
     local REPO_DIR="${DEPLOY_DIR}/openlibrary"
     if [ ! -d "$REPO_DIR/.git" ]; then
         REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
-        echo "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR"
+        echo "$(yellow "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR")"
     fi
     LATEST_TAG_NAME=$(git -C "$REPO_DIR" describe --tags --abbrev=0)
-    echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
+    echo "$(bold "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME")"
 }
 
 check_olbase_image_up_to_date() {
     local git_branch="${GIT_BRANCH:-master}"
-    echo "[Now] Checking if Docker image is up-to-date"
+    echo "$(bold "[Now] Checking if Docker image is up-to-date")"
 
     # Get latest commit timestamp from GitHub API
     GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/$git_branch"
@@ -378,13 +524,23 @@ check_olbase_image_up_to_date() {
     IMAGE_LAST_UPDATED_TS=$(date_to_timestamp "$IMAGE_LAST_UPDATED")
 
     if [ "$GIT_LAST_UPDATED_TS" -gt "$IMAGE_LAST_UPDATED_TS" ]; then
-        echo "✗ Docker image is NOT up-to-date."
-        echo -e "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml"
+        echo "$(red "✗ Docker image is NOT up-to-date.")"
+        echo -e "$(bold "[Now] Manage docker image build status at: https://github.com/internetarchive/openlibrary/actions/workflows/olbase.yaml")"
         return 1
     else
-        echo "✓ Docker image is up-to-date."
+        echo "$(green ✓) Docker image is up-to-date."
         return 0
     fi
+}
+
+# Start the olbase build with the gh CLI, if installed, so it builds during the rest
+# of the deploy. Sets OLBASE_RUN_ID. Returns 1 if gh is missing or the dispatch fails.
+start_olbase_build() {
+    command -v gh &> /dev/null || return 1
+    local run_url
+    run_url=$(gh workflow run olbase.yaml --repo internetarchive/openlibrary --ref "${GIT_BRANCH:-master}" | grep /actions/runs/) || return 1
+    OLBASE_RUN_ID=${run_url##*/}
+    echo "$(green ✓) Started olbase build: $run_url"
 }
 
 deploy_openlibrary() {
@@ -392,7 +548,7 @@ deploy_openlibrary() {
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
     local git_branch="${GIT_BRANCH:-master}"
 
-    echo "[Now] Deploying openlibrary"
+    echo "$(bold "[Now] Deploying openlibrary")"
 
     cd $DEPLOY_DIR
     if [ -d "$DEPLOY_DIR/openlibrary" ]; then
@@ -437,25 +593,47 @@ deploy_openlibrary() {
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
-    tar -czf openlibrary_new.tar.gz openlibrary_new
+    # scripts/obfi.sh reads the shared bot list from ../openlibrary/utils/
+    mkdir -p openlibrary_new/openlibrary/utils
+    cp openlibrary/openlibrary/utils/bot_user_agents.txt openlibrary_new/openlibrary/utils/
+    COPYFILE_DISABLE=1 tar -czf openlibrary_new.tar.gz openlibrary_new
 
     if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
-        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
+        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary_new" "openlibrary_new"; then
             cleanup "${DEPLOY_DIR}/openlibrary"
             exit 1
         fi
+
         echo ""
-        # Fix file ownership + Make into a git repo so can easily track local mods
+        echo "Final swap..."
         for SERVER in $FQDNS; do
-            ssh $SERVER "
+            echo -n "   $SERVER ... "
+
+            # Fix file ownership, back up the current copy to openlibrary_previous, swap in the
+            # new one, then make it into a git repo so local mods are easy to track.
+            if OUTPUT=$(ssh $SERVER "
                 set -e
-                sudo chown -R root:staff /opt/openlibrary
-                sudo chmod -R g+rwX /opt/openlibrary
+                sudo chown -R root:staff /opt/openlibrary_new
+                sudo chmod -R g+rwX /opt/openlibrary_new
+
+                sudo rm -rf /opt/openlibrary_previous || true
+                if [ -d /opt/openlibrary ]; then
+                    sudo mv /opt/openlibrary /opt/openlibrary_previous
+                fi
+                sudo mv /opt/openlibrary_new /opt/openlibrary
+
                 cd /opt/openlibrary
                 sudo git init 2>&1 > /dev/null
                 sudo git add . > /dev/null
                 sudo git commit -m 'Deployed openlibrary' > /dev/null
-            "
+            "); then
+                echo "$(green ✓)"
+            else
+                echo "$(yellow ⚠)"
+                echo "$OUTPUT"
+                cleanup "${DEPLOY_DIR}/openlibrary"
+                exit 1
+            fi
         done
 
         if ! prune_docker image; then
@@ -467,11 +645,38 @@ deploy_openlibrary() {
     if [[ "$SKIP_OL_TRANSFER_IMAGES" != "1" ]]; then
         echo ""
         echo "Pull the latest docker images..."
-        deploy_images
+        until deploy_images; do
+            read -p "Pulling images failed, retry? [Y/n] " choice
+            choice=${choice:-Y}
+            if [[ ! "$choice" =~ ^[Yy]$ ]]; then
+                echo "Aborting deployment."
+                clean_exit
+            fi
+        done
     fi
+
+    # Gate again, and this is not redundant with the one in deploy_olsystem.
+    # docker/nginx.conf and docker/web_nginx.conf are bind-mounted out of
+    # /opt/openlibrary, which is still PRE-deploy when the olsystem gate runs, so
+    # that gate validates new-olsystem against old-nginx.conf -- a combination
+    # that never actually serves. Coupled changes slip straight through it: an
+    # openlibrary PR adding `include /olsystem/etc/nginx/thing.conf` alongside an
+    # olsystem PR adding the file passes there (old conf, no include) and then
+    # [emerg]s at restart. Only here do both halves exist together.
+    #
+    # Runs before tag_deploy so a broken deploy is not tagged as good, and before
+    # recreate_services so the live containers are still serving the old config.
+    check_nginx_config openlibrary
 
     if [[ "$TAG_DEPLOY" == "1" ]]; then
         tag_deploy
+    fi
+
+    if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
+        echo ""
+        echo "$(yellow "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config")"
+        echo "$(yellow "          was NOT validated. A bad ruleset will surface as an [emerg]")"
+        echo "$(yellow "          the next time nginx restarts (olsystem#420).")"
     fi
 
     echo "Finished production deployment at $(date)"
@@ -480,6 +685,43 @@ deploy_openlibrary() {
     echo "[Info] Skipping booklending utils; see \`deploy.sh utils\`"
     echo "[Next] Run review aka are_servers_in_sync.sh (~50s as of 2024-12-09):"
     echo "time ./scripts/deployment/deploy.sh review"
+}
+
+SPINNER_FRAMES=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+
+# Sets ELAPSED to <seconds> as text, e.g. 75 -> "1m15s". A variable rather than output,
+# since spinners call it every tick and $(...) would start a subshell each time.
+format_elapsed() {
+    if [ "$1" -lt 60 ]; then
+        ELAPSED="${1}s"
+    else
+        printf -v ELAPSED '%dm%02ds' $(($1 / 60)) $(($1 % 60))
+    fi
+}
+
+# Wait for background job <pid>, then print ✓ or ✗ and how long it took; returns the
+# job's exit status. On a terminal, shows a spinner and the elapsed time meanwhile,
+# after whatever is already on the line.
+wait_with_spinner() {
+    local pid=$1 start=$SECONDS n=0 rc=0
+    if [ -t 1 ]; then
+        printf '%s' $'\e7'  # save the cursor position
+        while kill -0 "$pid" 2>/dev/null; do
+            format_elapsed $((SECONDS - start))
+            printf '%s\033[K%s %s' $'\e8' "${SPINNER_FRAMES[n % ${#SPINNER_FRAMES[@]}]}" "$ELAPSED"
+            n=$((n + 1))
+            sleep 0.1
+        done
+        printf '%s\033[K' $'\e8'
+    fi
+    wait "$pid" || rc=$?
+    format_elapsed $((SECONDS - start))
+    if [ $rc -eq 0 ]; then
+        echo "$(green ✓) ($ELAPSED)"
+    else
+        echo "$(red ✗) ($ELAPSED)"
+    fi
+    return $rc
 }
 
 deploy_images() {
@@ -495,16 +737,37 @@ deploy_images() {
         echo -n "   Fetching OLBASE_DIGEST ... "
         IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
         OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
-        echo "✓ ($OLBASE_DIGEST)"
+        echo "$(green ✓) ($OLBASE_DIGEST)"
     fi
 
-    local pids=()
-    local output_files=()
+    # Pull on one node first to warm the nexus cache, avoiding Docker Hub rate limits
+    # when all servers pull in parallel.
+    local FIRST_SERVER
+    FIRST_SERVER=$(echo "$HOSTNAMES" | awk '{print $1}')
+    echo -n "   Warming nexus cache on ${FIRST_SERVER} ... "
+    local WARM_OUTPUT
+    WARM_OUTPUT=$(mktemp)
+    ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" &> "$WARM_OUTPUT" &
+    BACKGROUND_PIDS=($!)
+    BACKGROUND_FILES=("$WARM_OUTPUT")
+    if ! wait_with_spinner $!; then
+        echo "Failed to warm nexus cache on ${FIRST_SERVER}"
+        echo "Output:"
+        cat "$WARM_OUTPUT"
+        rm -f "$WARM_OUTPUT"
+        BACKGROUND_PIDS=() BACKGROUND_FILES=()
+        return 1
+    fi
+    rm -f "$WARM_OUTPUT"
+    BACKGROUND_PIDS=() BACKGROUND_FILES=()
+
+    local pids=() output_files=() servers=() results=() times=()
     for SERVER_NAME in $HOSTNAMES; do
-        echo -n "   $SERVER_NAME ... "
         # Make a temporary file to house the output
         OUTPUT_FILE=$(mktemp)
         output_files+=("$OUTPUT_FILE")
+        BACKGROUND_FILES+=("$OUTPUT_FILE")
+        servers+=("$SERVER_NAME")
         ssh "${SERVER_NAME}${SERVER_SUFFIX}" "
             set -e;
             docker pull openlibrary/olbase@${OLBASE_DIGEST}
@@ -514,36 +777,76 @@ deploy_images() {
             COMPOSE_FILE='${COMPOSE_FILE}' HOSTNAME=\$HOSTNAME docker compose --profile ${SERVER_NAME} build
         " &> "$OUTPUT_FILE" &
         pids+=($!)
-        echo "(started in background)"
+        BACKGROUND_PIDS+=($!)
+        [ -t 1 ] || echo "   $SERVER_NAME ... (started in background)"
     done
 
-    # Convert server domain names string to an array
-    local FAILED=0
-    IFS=' ' read -r -a SERVER_NAMES_ARRAY <<< "$FQDNS"
     echo "Waiting for all servers to finish pulling images..."
+    local i n=0 start=$SECONDS running=${#pids[@]} frame line ok_mark fail_mark
+    if [ -t 1 ]; then
+        # One line per server, redrawn in place: a spinner and the elapsed time while it
+        # runs, then ✓ or ✗ and how long it took, as soon as that server finishes. Each
+        # frame is printed at once, so Ctrl-C can't land with the cursor mid-board.
+        ok_mark=$(green ✓)
+        fail_mark=$(red ✗)
+        for i in "${!pids[@]}"; do echo; done
+        while [ "$running" -gt 0 ]; do
+            printf -v frame '\033[%dA' "${#pids[@]}"  # back up to the first server's line
+            running=0
+            for i in "${!pids[@]}"; do
+                if [ -z "${results[$i]}" ] && ! kill -0 "${pids[$i]}" 2>/dev/null; then
+                    results[$i]=0
+                    wait "${pids[$i]}" || results[$i]=$?
+                    format_elapsed $((SECONDS - start))
+                    times[$i]=$ELAPSED
+                fi
+                if [ -z "${results[$i]}" ]; then
+                    running=$((running + 1))
+                    format_elapsed $((SECONDS - start))
+                    printf -v line '\033[K   %-12s %s %s\n' "${servers[$i]}" "${SPINNER_FRAMES[n % ${#SPINNER_FRAMES[@]}]}" "$ELAPSED"
+                elif [ "${results[$i]}" -eq 0 ]; then
+                    printf -v line '\033[K   %-12s %s %s\n' "${servers[$i]}" "$ok_mark" "${times[$i]}"
+                else
+                    printf -v line '\033[K   %-12s %s %s\n' "${servers[$i]}" "$fail_mark" "${times[$i]}"
+                fi
+                frame+=$line
+            done
+            printf '%s' "$frame"
+            n=$((n + 1))
+            if [ "$running" -gt 0 ]; then
+                sleep 0.1
+            fi
+        done
+    else
+        for i in "${!pids[@]}"; do
+            echo -n "   ${servers[$i]} ... "
+            results[$i]=0
+            wait "${pids[$i]}" || results[$i]=$?
+            if [ "${results[$i]}" -eq 0 ]; then
+                echo "$(green ✓)"
+            else
+                echo "$(red ✗)"
+            fi
+        done
+    fi
+
+    local FAILED=0
     for i in "${!pids[@]}"; do
-        pid="${pids[$i]}"
-        server="${SERVER_NAMES_ARRAY[$i]}"
-        echo -n "   $server ... "
-        if wait $pid; then
-            echo "✓"
-        else
-            echo "✗"
-            echo "Failed to pull images on $server"
+        if [ "${results[$i]}" -ne 0 ]; then
+            echo "$(red "Failed to pull images on ${servers[$i]}")"
             echo "Output:"
             cat "${output_files[$i]}"
             FAILED=1
         fi
-
-        # Clean up the output file
         rm -f "${output_files[$i]}"
     done
+    BACKGROUND_PIDS=() BACKGROUND_FILES=()
 
     return $FAILED
 }
 
 check_servers_in_sync() {
-    echo "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):"
+    echo "$(bold "[Now] Ensuring git repo & docker images in sync across servers (~50s as of 2024-12-09):")"
     time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/are_servers_in_sync.sh"
     echo "[Next] Run restart on all servers (~3m as of 2024-12-09):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh rebuild"
@@ -563,14 +866,14 @@ check_server_storage() {
         AVAILABLE_SIZES=$(ssh $SERVER "sudo df -B1 | grep -E ' /[12]?$' | awk '{print \$4}'")
         for SIZE in $AVAILABLE_SIZES; do
             if [ "$SIZE" -lt 2147483648 ]; then
-                echo "✗ (Less than 2GB free!)"
+                echo "$(red "✗ (Less than 2GB free!)")"
                 ssh $SERVER "sudo df -h | grep -E ' /[12]?$'"
                 FAILED=1
                 SERVER_FAILED=1
             fi
         done
         if [ $SERVER_FAILED -eq 0 ]; then
-            echo "✓"
+            echo "$(green ✓)"
         fi
     done
 
@@ -592,14 +895,14 @@ prune_docker () {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-    echo "[Now] Prune docker images/cache..."
+    echo "$(bold "[Now] Prune docker images/cache...")"
 
     PRUNE_CMD=""
     for arg in "$@"; do
         if [[ "$arg" == "image" ]]; then
             PRUNE_CMD+="docker image prune -f;"
         elif [[ "$arg" == "builder" ]]; then
-            read -p "[Warning] Docker on servers MUST NOT be restarted while 'prune builder' running. Continue? [N/y]..." answer
+            read -p "$(yellow "[Warning] Docker on servers MUST NOT be restarted while 'prune builder' running. Continue? [N/y]...")" answer
             answer=${answer:-N}
             if [[ "$answer" =~ ^[Yy]$ ]]; then
                 PRUNE_CMD+="docker builder prune -f;"
@@ -614,15 +917,15 @@ prune_docker () {
         echo -n "   $SERVER ... "
 
         if [[ -z "$PRUNE_CMD" ]]; then
-            echo "[Error] Docker prune ran without image or builder args"
+            echo "$(red "[Error] Docker prune ran without image or builder args")"
             echo "deploy prune [image|builder]+"
             exit 1
         fi
 
         if OUTPUT=$(ssh $SERVER "$PRUNE_CMD" 2>&1); then
-            echo "✓"
+            echo "$(green ✓)"
         else
-            echo "⚠"
+            echo "$(yellow ⚠)"
             echo "$OUTPUT"
             return 1
         fi
@@ -630,22 +933,234 @@ prune_docker () {
     return 0
 }
 
-clone_booklending_utils() {
-    :
-    #HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $HOSTNAMES ::: /opt/booklending_utils
+# Which compose service runs nginx on each host; the compose profile is the
+# hostname. Hosts absent from this list don't run nginx.
+#
+# All three belong here, even though ol-www1/web_nginx is the only one that loads
+# the ModSecurity ruleset (`modsecurity on` appears in docker/web_nginx.conf and
+# nowhere else). Every nginx service mounts the shared docker/nginx.conf, which
+# includes seven files out of /olsystem -- logging.conf, tagger.js, deny.conf,
+# is_blessed_ip.conf, is_blessed_ua.conf, is_sus_ip.conf, ua_rate_limit_key.conf
+# -- so a bad olsystem include crash-loops infobase_nginx and covers_nginx just
+# as readily. Narrowing this map to ol-www1 would leave those unguarded.
+nginx_service_for() {
+    case "$1" in
+        ol-www1)    echo "web_nginx" ;;
+        ol-home0)   echo "infobase_nginx" ;;
+        ol-covers1) echo "covers_nginx" ;;
+        *)          echo "" ;;
+    esac
+}
+
+# Validate the nginx config that the olsystem deploy just shipped.
+#
+# olsystem carries the ModSecurity ruleset and most of what nginx.conf includes,
+# none of which goes through CI -- so a bad rule is not a failed deploy, it is an
+# [emerg] the next time nginx starts, which takes the site down. See
+# internetarchive/olsystem#420. docker/ol-nginx-start.sh now runs `nginx -t` before
+# serving, so that failure is at least fast and legible rather than a crash loop,
+# but the container is still down either way. Catching it at deploy time is what
+# keeps it off the site: the running containers are still serving the previous
+# (good) config and nothing is user-visible yet.
+#
+# Called twice, from deploy_olsystem and from deploy_openlibrary, and neither
+# call alone is sufficient. The olsystem call runs while /opt/openlibrary is
+# still pre-deploy, so it sees new rules against the OLD nginx.conf; the
+# openlibrary call is the first point at which both halves of a coupled change
+# exist together. Each catches what the other cannot.
+#
+# This MUST use `run --rm`, not `exec`. A bind mount is resolved to an inode when
+# the container starts, and deploy_olsystem does not update /opt/olsystem in
+# place -- it does `mv /opt/olsystem /opt/olsystem_previous` followed by
+# `mv /opt/olsystem_new /opt/olsystem`. The running container keeps the old
+# inode, which is now reachable at /opt/olsystem_previous, so `exec ... nginx -t`
+# parses the PREVIOUS ruleset, passes, and the crash still arrives at restart.
+# Being visible live is a property of editing a file inside a mounted directory,
+# not of directory mounts as such: `mv` orphans a directory mount for exactly the
+# same reason it orphans the single-FILE mounts that copy_to_servers orphans one
+# function later. A fresh container re-resolves the path and sees the new rules.
+#
+# Never pass --service-ports here: it republishes the service's ports and fails
+# with "port is already allocated" against the live container on :80/:443.
+#
+# This depends on the nginx services declaring `command:` and not `entrypoint:`
+# (compose.production.yaml:132, 222, 260). `run ... nginx -t` overrides `command`,
+# so the test runs directly. Were that key `entrypoint:`, the start script would
+# run instead with `nginx -t` as ignored arguments, sail past its own check,
+# reach `nginx -g "daemon off;"` and block forever -- a hung deploy holding a
+# --rm container open. Converting command -> entrypoint looks like a harmless
+# refactor and would silently break this gate.
+#
+# `run` also sidesteps an `exec` edge case -- `exec` against a container that
+# happens to be down exits non-zero and would fail an otherwise healthy deploy.
+#
+# OLIMAGE is passed through for the same reason restart_servers.sh passes it: an
+# operator who exports OLIMAGE=<tag> for a deploy gets it honoured at restart, so
+# the gate has to resolve the same tag or it parses the config against one nginx
+# build while a different one serves it. Unset is the normal case and still
+# resolves ${OLIMAGE:-openlibrary/olbase:latest} -- the `:-` treats empty as
+# unset -- which is what the live containers resolve too.
+#
+# THIS CHECK IS NOT READ-ONLY. It can mutate the tree it is validating, and that
+# is worth knowing before you trust it. A fresh container resolves the
+# single-FILE mounts (../olsystem/etc/cron.d/certbot,
+# ../olsystem/etc/logrotate.d/nginx, and the per-service cron.d entries) against
+# the NEWLY deployed /opt/olsystem. Where the new olsystem no longer ships one of
+# those files, Docker creates an empty DIRECTORY at that host path, inside the
+# tree just deployed. Verified, not theoretical. `exec` never did this, because
+# it reused mounts resolved at the live container's start.
+#
+# Not a false-pass, and `recreate_services` does the same at restart, so the gate
+# makes it earlier rather than new. Left unfixed deliberately: every guard we
+# could see means parsing `docker compose config` over ssh to enumerate bind
+# sources, which is fragile machinery defending against a state that is already a
+# broken deploy -- if olsystem stopped shipping a file compose mounts, the live
+# containers break at the next restart regardless. If you are debugging this,
+# look for a zero-byte directory rather than a bad rule.
+#
+# It is also a standing argument for doing the test in ol-nginx-start.sh, where a
+# container is coming up anyway, rather than in a separate `run`.
+#
+# Known false-abort, distinct from a false-pass: `nginx -t` opens the certs named
+# in web_nginx.conf (ssl_certificate /etc/letsencrypt/...), which arrive via the
+# letsencrypt-data volume. On a host where certbot has never run, the test fails
+# on a missing cert and stops a deploy whose config is fine. If that happens,
+# confirm it is the cert and not a rule before reaching for SKIP_NGINX_CHECK.
+#
+# $1 is which deploy is calling -- "olsystem" (default) or "openlibrary". It only
+# steers the failure text, but it has to be passed: the two callers have just
+# swapped different trees, so they need different repos named and different
+# _previous paths offered for rollback. Telling an operator mid-deploy to roll
+# back the wrong directory is its own outage.
+check_nginx_config() {
+    local CALLER="${1:-olsystem}"
+
+    if [[ "$SKIP_NGINX_CHECK" == "1" ]]; then
+        echo "$(yellow "[Warning] Skipping nginx config test (SKIP_NGINX_CHECK=1)")"
+        # Re-announced at the end of the deploy. A warning printed only at the
+        # moment it is set scrolls past during a 12-minute deploy, and the
+        # failure mode for this gate is someone setting the skip once under
+        # pressure and then keeping it set.
+        NGINX_CHECK_SKIPPED=1
+        return 0
+    fi
+
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    local COMPOSE_FILE="compose.yaml:compose.production.yaml"
+    local FAILED=0
+    local CHECKED=0
+    local SERVICE
+    local SERVER
+    local CERT_FAILURE=0
+    local RULE_FAILURE=0
+
+    if [[ "$CALLER" == "openlibrary" ]]; then
+        echo "$(bold "[Now] Re-testing nginx config, now against the newly deployed docker/ configs...")"
+    else
+        echo "$(bold "[Now] Testing nginx config against the newly deployed olsystem rules...")"
+    fi
+    for SERVER_NAME in $HOSTNAMES; do
+        SERVICE=$(nginx_service_for "$SERVER_NAME")
+        if [[ -z "$SERVICE" ]]; then
+            continue
+        fi
+        CHECKED=1
+
+        SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
+        echo -n "   $SERVER ($SERVICE) ... "
+
+        if OUTPUT=$(ssh "$SERVER" "
+            set -e
+            cd /opt/openlibrary
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME OLIMAGE='$OLIMAGE' docker compose --profile $SERVER_NAME run --rm --no-deps -T $SERVICE nginx -t
+        " 2>&1); then
+            echo "$(green ✓)"
+        else
+            echo "$(yellow ⚠)"
+            echo "$OUTPUT"
+            FAILED=1
+            # Classify rather than making a human under time pressure do it. A
+            # missing cert is a false-abort on a host certbot has never run on;
+            # a bad rule is the thing this gate exists to catch. They need
+            # opposite responses and look alike in a wall of nginx output.
+            if echo "$OUTPUT" | grep -qE 'cannot load certificate|BIO_new_file'; then
+                CERT_FAILURE=1
+            else
+                RULE_FAILURE=1
+            fi
+        fi
+    done
+
+    if [ $CHECKED -eq 0 ]; then
+        echo "   No nginx hosts in this deploy; nothing to test."
+        return 0
+    fi
+
+    if [ $FAILED -eq 1 ]; then
+        echo ""
+        if [ $RULE_FAILURE -eq 1 ]; then
+            echo "$(red "[Error] nginx config test FAILED on one or more hosts (see output above).")"
+            if [[ "$CALLER" == "openlibrary" ]]; then
+                echo "        openlibrary is already deployed, but the new config is invalid --"
+                echo "        restarting nginx now would take the site down (olsystem#420)."
+                echo "        The running containers are still serving the previous config."
+                echo ""
+                echo "        The olsystem rules passed on their own earlier in this deploy,"
+                echo "        so suspect docker/nginx.conf or docker/web_nginx.conf, which"
+                echo "        ship from the openlibrary repo -- most likely an include or a"
+                echo "        directive that expects an olsystem file that isn't there."
+                echo ""
+                echo "        Fix it in openlibrary and deploy again, or roll back using the"
+                echo "        copy left in /opt/openlibrary_previous on each host."
+            else
+                echo "        olsystem is already deployed, but the new config is invalid --"
+                echo "        restarting nginx now would take the site down (olsystem#420)."
+                echo "        The running containers are still serving the previous config."
+                echo ""
+                echo "        Fix the ruleset in olsystem and deploy it again, or roll back"
+                echo "        using the copy left in /opt/olsystem_previous on each host."
+            fi
+        fi
+        if [ $CERT_FAILURE -eq 1 ]; then
+            echo "$(red "[Error] nginx could not load a TLS certificate (see output above).")"
+            if [ $RULE_FAILURE -eq 0 ]; then
+                echo "        No rule syntax error was reported -- this looks like a"
+                echo "        missing cert, not a bad ruleset. On a host where certbot"
+                echo "        has never issued one, /etc/letsencrypt is empty and this"
+                echo "        test aborts a deploy whose config is fine."
+                echo "        Confirm the cert exists before treating this as a rule bug."
+            fi
+        fi
+        echo ""
+        echo "        To proceed anyway (NOT recommended), set SKIP_NGINX_CHECK=1."
+        clean_exit
+    fi
+
+    return 0
 }
 
 recreate_services() {
-    echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
+    echo "$(bold "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)")"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
-    time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/restart_servers.sh"
+    time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
+}
+
+# Kubernetes (us-west-1-p01): see scripts/deployment/deploy_k8s.py.
+# Usage: deploy_k8s [full commit SHA]; defaults to the commit the openlibrary step deployed.
+deploy_k8s() {
+    if ! command -v python3 &>/dev/null; then
+        echo "$(red "[Error] The Kubernetes step needs python3; install it (e.g. https://www.python.org/downloads/) and run \`deploy.sh k8s <sha>\`.")"
+        return 1
+    fi
+    # `|| return` so a failure returns from here and deploy.sh's ERR trap cleans up.
+    # -u keeps its output in order with git's when piped (e.g. into tee).
+    python3 -u "$SCRIPT_DIR/deploy_k8s.py" "$DEPLOY_DIR" ${1:+"$1"} || return
 }
 
 deploy_wizard() {
     # Pull openlibrary before continuing so we have latest deploy.sh
-    read -p "[Now] Switching to main branch and pulling latest changes? [Y/n]..." answer
+    read -p "$(bold "[Now] Switching to main branch and pulling latest changes? [Y/n]...")" answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         git checkout master
@@ -653,57 +1168,85 @@ deploy_wizard() {
     fi
     echo ""
 
-    # Announce the deploy
-    echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
-    echo ""
-    echo "Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
-    read -p "Once announced, press Enter to continue..."
+    # Start the olbase image build before the announcement so it builds during the
+    # announcement and olsystem deploy. Without gh, it has to be started by hand.
+    if ! check_olbase_image_up_to_date; then
+        if ! start_olbase_build; then
+            read -p "Once you've clicked 'Run workflow', press Enter to continue..."
+        fi
+    fi
     echo ""
 
-    if ! check_olbase_image_up_to_date; then
-        read -p "Once you've clicked 'Run workflow', press Enter to continue..."
-    fi
+    # Announce the deploy
+    slack_message "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:" "Open Library is in the process of deploying its weekly release.
+
+See what's changed: $RELEASE_DIFF_URL
+PRs going out: $RELEASE_MERGED_PRS_URL"
     echo ""
 
     # Deploy olsystem
     echo "[Next] Run olsystem deploy (~2m30 as of 2024-12-06):"
     echo "time SERVER_SUFFIX='$SERVER_SUFFIX' ./scripts/deployment/deploy.sh olsystem"
-    read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
+    read -p "$(bold "[Now] Run olsystem deploy now? [Y/n]...")" answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
+        # deploy_olsystem gates on `nginx -t` itself; see check_nginx_config.
         time deploy_olsystem
     fi
     echo ""
 
+    if [ -n "$OLBASE_RUN_ID" ]; then
+        # Ctrl-C here stops only the watch: while it runs, deploy.sh's own Ctrl-C handler
+        # (which ends the deploy) is swapped for one that just says so. gh still gets the
+        # signal, since a handler, unlike an ignored signal, isn't inherited.
+        trap 'echo ""; echo "Stopped watching; checking the image instead."' SIGINT
+        gh run watch "$OLBASE_RUN_ID" --repo internetarchive/openlibrary --exit-status --compact --interval 30 || true
+        trap 'handle_exit' SIGINT
+    fi
     until check_olbase_image_up_to_date; do
-        read -p "Once built, press Enter to continue..."
+        read -p "Image still out of date. Check the olbase build, then press Enter to recheck..."
     done
     echo ""
 
-    read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
-    echo ""
-
-    read -p "[Now] Run openlibrary deploy? [Y/n]..." answer
+    # Keys pressed during the olbase watch and image check above (e.g. Enter to check
+    # it's alive) would otherwise answer this, and its default runs the deploy.
+    discard_typeahead
+    # Y = run every step with its default; p = pick the steps individually.
+    read -p "$(bold "[Now] Run openlibrary deploy? [Y/n/p]...")" answer
     answer=${answer:-Y}
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        read -p "[Now] Transfer codebase to servers? [Y/n]..." answer
-        answer=${answer:-Y}
-        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_CODE=1
+    if [[ "$answer" =~ ^[YyPp]$ ]]; then
+        if [[ "$answer" =~ ^[Pp]$ ]]; then
+            read -p "$(bold "[Now] Transfer codebase to servers? [Y/n]...")" step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Nn]$ ]]; then
+                SKIP_OL_TRANSFER_CODE=1
+            fi
 
-        read -p "[Now] Deploy Docker Images? [Y/n]..." answer
-        answer=${answer:-Y}
-        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_IMAGES=1
+            read -p "$(bold "[Now] Deploy Docker Images? [Y/n]...")" step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Nn]$ ]]; then
+                SKIP_OL_TRANSFER_IMAGES=1
+            fi
 
-        read -p "[Now] Tag deploy? [Y/n]..." answer
-        answer=${answer:-Y}
-        [[ "$answer" =~ ^[Yy]$ ]] && TAG_DEPLOY=1
+            read -p "$(bold "[Now] Tag deploy? [Y/n]...")" step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Yy]$ ]]; then
+                TAG_DEPLOY=1
+            fi
+        else
+            # Full deploy. TAG_DEPLOY must be set explicitly here: it is otherwise
+            # only ever set by the "Tag deploy?" sub-prompt above, so without this
+            # line tagging silently stops happening while the deploy still reports
+            # success.
+            TAG_DEPLOY=1
+        fi
 
         time deploy_openlibrary
         echo ""
         time check_servers_in_sync
         echo ""
     else
-        read -p "[Now] Check if servers in sync? [Y/n]..." answer
+        read -p "$(bold "[Now] Check if servers in sync? [Y/n]...")" answer
         answer=${answer:-Y}
         if [[ "$answer" =~ ^[Yy]$ ]]; then
             time check_servers_in_sync
@@ -711,22 +1254,29 @@ deploy_wizard() {
         fi
     fi
 
-    read -p "[Now] Restart services? [N/y]..." answer
+    # Before the VM restart: Kubernetes replaces its pods gradually, so the two
+    # halves of production are on different versions only while it rolls out.
+    read -p "$(bold "[Now] Deploy to Kubernetes? [Y/n]...")" answer
+    answer=${answer:-Y}
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        time deploy_k8s || echo "$(yellow "[Warning] The Kubernetes step didn't finish (see above); \`deploy.sh k8s <sha>\` runs it again.")"
+        echo ""
+    fi
+
+    read -p "$(bold "[Now] Restart services? [N/y]...")" answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time recreate_services
         echo ""
     fi
 
-    read -p "[Now] Create and announce release? [N/y]..." answer
+    read -p "$(bold "[Now] Create and announce release? [N/y]...")" answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time tag_release
         read -p "Press Enter to continue..."
 
-        echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
-        echo ""
-        echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
+        slack_message "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:" "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
     fi
 }
 
@@ -742,6 +1292,8 @@ elif [ "$1" == "images" ]; then
     deploy_images $2
 elif [ "$1" == "tag" ]; then
     tag_deploy
+elif [ "$1" == "k8s" ]; then
+    deploy_k8s "$2"
 elif [ "$1" == "review" ]; then
     check_servers_in_sync
 elif [ "$1" == "rebuild" ]; then
@@ -759,11 +1311,12 @@ elif [ "$1" == "reset" ]; then
 elif [ "$1" == "" ]; then  # If this works to detect empty
     deploy_wizard
 else
-    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
+    echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage|k8s <sha>]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
     echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
     echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
     echo "          TAG_DEPLOY=1              tag this commit as the deploy (set automatically by wizard)"
+    echo "          SKIP_NGINX_CHECK=1        skip the \`nginx -t\` test run after the olsystem deploy"
     exit 1
 fi
 

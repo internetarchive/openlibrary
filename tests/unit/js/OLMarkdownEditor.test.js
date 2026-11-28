@@ -13,6 +13,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
 import Image from '@tiptap/extension-image';
 import { HtmlBlock } from '../../../openlibrary/components/lit/html-block.js';
+import { OLHardBreak } from '../../../openlibrary/components/lit/hard-break.js';
 
 /* ------------------------------------------------------------------ */
 /*  Helper: create an editor identical to production, roundtrip text   */
@@ -30,19 +31,21 @@ function createTestEditor(markdownContent, { enableCode = false } = {}) {
                 codeBlock: enableCode ? undefined : false,
                 code: enableCode ? undefined : false,
                 link: { openOnClick: false, autolink: true },
-                strike: false
+                strike: false,
+                hardBreak: false
             }),
+            OLHardBreak,
             Markdown.configure({
                 breaks: true,
                 linkify: true
             }),
             Image.configure({
                 inline: true,
-                allowBase64: false,
+                allowBase64: false
             }),
-            HtmlBlock,
+            HtmlBlock
         ],
-        content: markdownContent,
+        content: markdownContent
     });
 
     return { editor, el };
@@ -53,14 +56,11 @@ function createTestEditor(markdownContent, { enableCode = false } = {}) {
  * normalize 2-space list indentation to 4-space.
  */
 function postProcessMarkdown(md) {
-    return md.replace(
-        /^(\s{2,})([*+-]|\d+\.) /gm,
-        (match, spaces, marker) => {
-            const depth = Math.round(spaces.length / 2);
-            const newIndent = ' '.repeat(depth * 4);
-            return `${newIndent}${marker} `;
-        }
-    );
+    return md.replace(/^(\s{2,})([*+-]|\d+\.) /gm, (match, spaces, marker) => {
+        const depth = Math.round(spaces.length / 2);
+        const newIndent = ' '.repeat(depth * 4);
+        return `${newIndent}${marker} `;
+    });
 }
 
 /**
@@ -95,7 +95,6 @@ function normalize(md) {
 /* ================================================================== */
 
 describe('OLMarkdownEditor markdown round-trip', () => {
-
     /* ---------- plain text ---------- */
 
     test('plain paragraph survives round-trip', () => {
@@ -348,7 +347,7 @@ Ethan liked Mattie from the beginning and worried that Zeena was too hard on her
         const output = normalize(roundTrip(input));
         expect(output).toContain('—');
         expect(output).toContain('"hello"');
-        expect(output).toContain('\'goodbye\'');
+        expect(output).toContain("'goodbye'");
         expect(output).toContain('$9.99');
         expect(output).toContain('(10%)');
     });
@@ -438,6 +437,26 @@ Visit [the website](https://example.org) for more.
         // Should contain the same content
         expect(output.length).toBeGreaterThan(input.length * 0.9);
         expect(output).toContain('books and reading');
+    });
+
+    /* ---------- hard breaks (OLMarkdown dialect) ---------- */
+
+    test('hard break serializes as a bare newline, not CommonMark "\\"', () => {
+        // OLMarkdown treats every newline as a <br>. Emitting CommonMark's
+        // "\<newline>" makes the display renderer escape its own injected
+        // <br/> and show a literal "<br />" to readers. Regression for
+        // internetarchive/openlibrary#13074.
+        const output = roundTrip('first line\nsecond line');
+        expect(output).not.toContain('\\');
+        expect(output).not.toContain('<br');
+        expect(normalize(output)).toBe('first line\nsecond line');
+    });
+
+    test('multi-line paragraph round-trips without backslashes', () => {
+        const input = 'line one\nline two\nline three';
+        const output = roundTrip(input);
+        expect(output).not.toContain('\\');
+        expect(normalize(output)).toBe(input);
     });
 });
 
@@ -670,9 +689,7 @@ Fate has placed the burden in the hands of Frodo Baggins, Bilbo's heir...and he 
     });
 
     test('content with links is idempotent after first round-trip', () => {
-        const { first, second } = doubleRoundTrip(
-            'See [Wikipedia](https://en.wikipedia.org/wiki/Main_Page) and [OL](https://openlibrary.org).'
-        );
+        const { first, second } = doubleRoundTrip('See [Wikipedia](https://en.wikipedia.org/wiki/Main_Page) and [OL](https://openlibrary.org).');
         expect(second).toBe(first);
     });
 });
@@ -711,7 +728,6 @@ describe('Unsupported syntax degradation', () => {
 /* ================================================================== */
 
 describe('Real OL page patterns', () => {
-
     // /volunteer page uses reference-style links extensively
     test('reference-style links: text survives, URLs are resolved inline', () => {
         const input = `Open Library is a [open source][1] project.
@@ -773,7 +789,7 @@ Here is some data.`;
 
     // /about/lib uses _underscores_ for italic
     test('underscore italic from /about/lib is preserved as emphasis', () => {
-        const input = 'We\'re currently calling this new schema _futurelib_ and we hope to hold meetings.';
+        const input = "We're currently calling this new schema _futurelib_ and we hope to hold meetings.";
         const output = normalize(roundTrip(input));
         // May convert _ to * — both are valid emphasis
         expect(output).toMatch(/(\*|_)futurelib(\*|_)/);
@@ -817,7 +833,8 @@ Here is some data.`;
 
     // Ethan Frome from API: description with \r\n, bold, italic, many paragraphs
     test('Ethan Frome with \\r\\n line endings (as stored in API)', () => {
-        const input = '*Edith Wharton wrote Ethan Frome*\r\n\r\n**How It All Goes Down**\r\nIt\'s winter. A nameless engineer is in Starkfield.\r\n\r\nEthan has walked from his farm into town.';
+        const input =
+            "*Edith Wharton wrote Ethan Frome*\r\n\r\n**How It All Goes Down**\r\nIt's winter. A nameless engineer is in Starkfield.\r\n\r\nEthan has walked from his farm into town.";
         const output = normalize(roundTrip(input));
         expect(output).toContain('Edith Wharton');
         expect(output).toContain('How It All Goes Down');
@@ -876,7 +893,6 @@ Does OpenLibrary.org look like it's from the the 90's? Help us fix that!`;
 /* ================================================================== */
 
 describe('OLMarkdownEditor code support', () => {
-
     /* ---------- default: code disabled ---------- */
 
     test('without enableCode, fenced code block is flattened to paragraphs', () => {

@@ -17,6 +17,17 @@ CREATE TABLE follows (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (subscriber, publisher)
 );
+CREATE TABLE likes (
+    username    TEXT        NOT NULL,
+    key         TEXT        NOT NULL,   -- full infogami key, e.g. /works/OL123W
+    value       SMALLINT    NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
+    created     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified    TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, key)
+);
+CREATE INDEX likes_key_idx      ON likes (key);
+CREATE INDEX likes_username_idx ON likes (username);
+
 CREATE INDEX subscriber_idx ON follows (subscriber);
 CREATE INDEX publisher_idx ON follows (publisher);
 
@@ -131,3 +142,68 @@ CREATE TABLE bestbooks (
 CREATE INDEX bestbooks_username ON bestbooks (username);
 CREATE INDEX bestbooks_work ON bestbooks (work_id);
 CREATE INDEX bestbooks_topic ON bestbooks (topic);
+
+CREATE TABLE acquisitions (
+    id serial primary key,
+    work_id integer not null,
+    edition_id integer not null,
+    provider_name text not null,
+    local_id text not null,
+    -- provider metadata blob: prices, formats, urls, etc.
+    data jsonb not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (local_id, provider_name)
+);
+
+CREATE INDEX acquisitions_work_id_idx ON acquisitions (work_id);
+CREATE INDEX acquisitions_edition_id_idx ON acquisitions (edition_id);
+CREATE INDEX acquisitions_updated_idx ON acquisitions (updated);
+
+-- BookWorm feed registry (#12844): provider feeds ingested + per-feed cursor +
+-- connector config (data blob: id_strategy, cursor_style). In the OL db for v1;
+-- moves to a dedicated bookworm db later.
+CREATE TABLE feed_registry (
+    id serial primary key,
+    provider_name text not null,
+    feed_type text not null default 'opds',
+    url text not null,
+    -- processing cursor: newest record modified-timestamp harvested so far
+    last_updated timestamp without time zone default null,
+    data jsonb not null default '{}'::jsonb,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (provider_name, url)
+);
+
+CREATE INDEX feed_registry_provider_name ON feed_registry (provider_name);
+
+-- A patron's OAuth grant at each trusted book provider (#13685). One row per
+-- (username, provider_name); both tokens are Fernet-encrypted at rest with the
+-- same secret the S3 keys use. `UNIQUE (username, provider_name)` is
+-- load-bearing, not merely a constraint: ProviderToken.upsert is an
+-- `ON CONFLICT (username, provider_name) DO UPDATE`, which needs this index to
+-- resolve against.
+--
+-- No separate index on `username`: that UNIQUE constraint's index already
+-- serves the `WHERE username=$username` lookup get_providers() does, because
+-- username is its leading column.
+--
+-- This file is applied at database INIT only, and Open Library has no
+-- DDL-migration mechanism (everything under scripts/migrations/ migrates data).
+-- An existing database gets this table when an operator runs the statement by
+-- hand. The copy that has actually been executed is POSTGRES_DDL in
+-- openlibrary/tests/core/test_provider_tokens.py, and a test in that file
+-- asserts the two have not drifted apart.
+CREATE TABLE provider_tokens (
+    id serial primary key,
+    username text not null,
+    provider_name text not null,
+    access_token text not null,
+    refresh_token text default null,
+    expires timestamp without time zone default null,
+    scope text not null default '',
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (username, provider_name)
+);

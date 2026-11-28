@@ -1,0 +1,130 @@
+/**
+ * Lists: facts (meta list), things (item list) and links (link columns).
+ * Worked examples are at /developers/design/cookbook.
+ */
+
+/* Meta list: label and value pairs. The label is the quiet half. */
+.ol-meta-list {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr);
+  gap: var(--spacing-stack-xs) var(--spacing-inline-xl);
+  line-height: var(--line-height-body);
+}
+
+.ol-meta-list__row {
+  display: contents;
+}
+
+.ol-meta-list :is(dt, dd) {
+  font-size: inherit;
+  font-weight: var(--font-weight-regular);
+}
+
+.ol-meta-list dt {
+  color: var(--color-text-secondary);
+}
+
+.ol-meta-list dd {
+  min-width: 0;
+  color: var(--color-text);
+}
+
+/* Item list: rows of a thing, what describes it, and what you can do to it. */
+.ol-item-list {
+  display: grid;
+  padding: 0;
+  list-style: none;
+  counter-reset: ol-item;
+}
+
+.ol-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  padding-block: var(--spacing-stack-sm);
+  /* The separator repeats down the list, so it takes the lightest border. */
+  border-block-end: 1px solid var(--color-border-extra-subtle);
+  counter-increment: ol-item;
+}
+
+.ol-item:first-child {
+  border-block-start: 1px solid var(--color-border-extra-subtle);
+}
+
+.ol-item__media {
+  flex: none;
+  width: 36px;
+}
+
+.ol-item-list--numbered .ol-item {
+  grid-template-columns: 1.5rem auto minmax(0, 1fr) auto;
+}
+
+.ol-item-list--numbered .ol-item::before {
+  content: counter(ol-item);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  text-align: end;
+}
+
+.ol-item__text {
+  display: grid;
+  gap: var(--spacing-3xs);
+  min-width: 0;
+}
+
+.ol-item__title {
+  font-size: inherit;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-title);
+  color: var(--color-text);
+}
+
+a.ol-item__link:any-link {
+  color: inherit;
+}
+
+.ol-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+/* A row that has just been added, for the moment it takes to notice it. */
+@keyframes ol-item-enter {
+  from {
+    background: var(--color-control-selected-bg);
+  }
+}
+
+.ol-item--new {
+  animation: ol-item-enter var(--duration-slower) var(--ease-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ol-item--new {
+    animation: none;
+  }
+}
+
+/* Link columns: a long flat set of links, read down then across. */
+.ol-link-columns {
+  columns: 4 180px;
+  column-gap: var(--spacing-inline-xl);
+  padding: 0;
+  list-style: none;
+}
+
+.ol-link-columns li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+  padding-block: var(--spacing-3xs);
+  break-inside: avoid;
+}
+
+.ol-link-columns__count {
+  color: var(--color-text-muted);
+}

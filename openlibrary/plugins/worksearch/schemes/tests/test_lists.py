@@ -4,7 +4,7 @@ from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 def test_q_to_solr_params_includes_qf():
     s = ListSearchScheme()
     params = dict(s.q_to_solr_params("library journal", set(), []))
-    assert params["qf"] == "text name^10"
+    assert params["qf"] == "subject place person time name^10"
     assert params["defType"] == "edismax"
     assert params["q.op"] == "AND"
 

@@ -1,8 +1,11 @@
 """Tests for human verification challenge functionality."""
 
+import pytest
 import web
 
 from infogami import config
+from openlibrary.accounts import model
+from openlibrary.accounts.model import generate_login_code_for_user
 from openlibrary.plugins.openlibrary.processors import CookieValidationProcessor
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
@@ -10,15 +13,16 @@ from openlibrary.utils.request_context import RequestContextVars, req_context
 class TestCookieValidationProcessor:
     """Tests for the CookieValidationProcessor global processor."""
 
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def cookie_processor(self, monkeypatch):
         ctx = web.storage()
         ctx.env = {"REQUEST_URI": "/books/OL1M"}
         ctx.path = "/books/OL1M"
         ctx.home = "http://localhost"
-        web.ctx = ctx
-        web.webapi.ctx = web.ctx
-        config.infobase = web.storage(secret_key="test-secret-key")
-        config.login_cookie_name = "session"
+        monkeypatch.setattr(web, "ctx", ctx)
+        monkeypatch.setattr(web.webapi, "ctx", ctx)
+        monkeypatch.setattr(config, "infobase", web.storage(secret_key="test-secret-key"), raising=False)
+        monkeypatch.setattr(config, "login_cookie_name", "session", raising=False)
         self._req_context_token = req_context.set(
             RequestContextVars(
                 x_forwarded_for=None,
@@ -32,8 +36,7 @@ class TestCookieValidationProcessor:
             )
         )
         self.processor = CookieValidationProcessor()
-
-    def teardown_method(self):
+        yield
         req_context.reset(self._req_context_token)
 
     def _make_handler(self):
@@ -53,8 +56,6 @@ class TestCookieValidationProcessor:
         assert called
 
     def test_valid_vf_cookie_calls_handler(self, monkeypatch):
-        from openlibrary.accounts import model
-
         valid_cookie = model.create_verification_cookie_value()
         monkeypatch.setattr(web, "cookies", lambda: {"vf": valid_cookie})
         handler, called = self._make_handler()
@@ -63,8 +64,6 @@ class TestCookieValidationProcessor:
         assert called
 
     def test_invalid_vf_cookie_returns_403(self, monkeypatch):
-        import pytest
-
         headers = {}
         cleared = []
         monkeypatch.setattr(web, "cookies", lambda: {"vf": "spoofed_value"})
@@ -87,8 +86,6 @@ class TestCookieValidationProcessor:
         assert called
 
     def test_nginx_header_redirects(self, monkeypatch):
-        import pytest
-
         class FakeSeeOther(Exception):
             def __init__(self, url):
                 self.url = url
@@ -112,8 +109,6 @@ class TestCookieValidationProcessor:
         assert called
 
     def test_valid_session_cookie_calls_handler(self, monkeypatch):
-        from openlibrary.accounts.model import generate_login_code_for_user
-
         valid_session = generate_login_code_for_user("testuser")
         monkeypatch.setattr(web, "cookies", lambda: {"session": valid_session})
         handler, called = self._make_handler()
@@ -122,8 +117,6 @@ class TestCookieValidationProcessor:
         assert called
 
     def test_invalid_session_cookie_returns_403(self, monkeypatch):
-        import pytest
-
         headers = {}
         cleared = []
         monkeypatch.setattr(

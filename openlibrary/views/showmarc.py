@@ -7,6 +7,8 @@ import re
 import requests
 import web
 
+from openlibrary.utils.request_context import site
+
 from .. import app
 
 
@@ -47,12 +49,12 @@ class show_ia(app.view):
                 return "ERROR:" + str(e)
             raise web.seeother("https://archive.org/details/" + ia)
 
-        books = web.ctx.site.things(
+        books = site.get().things(
             {
                 "type": "/type/edition",
                 "source_records": "ia:" + ia,
             }
-        ) or web.ctx.site.things(
+        ) or site.get().things(
             {
                 "type": "/type/edition",
                 "ocaid": ia,
@@ -75,7 +77,12 @@ class show_ia(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showia", ia, record, books)
+        # Precompute the edition document for the breadcrumb
+        edition = books[0] if books else None
+        if edition:
+            edition = site.get().get(edition)
+
+        return app.render_template("showia", ia, record, edition=edition)
 
 
 class show_amazon(app.view):
@@ -111,7 +118,7 @@ class show_marc(app.view):
 
         loc = f"marc:{filename}:{offset}:{length}"
 
-        books = web.ctx.site.things(
+        books = site.get().things(
             {
                 "type": "/type/edition",
                 "source_records": loc,
@@ -144,4 +151,9 @@ class show_marc(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showmarc", record, filename, offset, length, books)
+        # Precompute the edition document for the breadcrumb
+        edition = books[0] if books else None
+        if edition:
+            edition = site.get().get(edition)
+
+        return app.render_template("showmarc", record, filename, offset, length, edition=edition)

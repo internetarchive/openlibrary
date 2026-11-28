@@ -6,9 +6,10 @@ from typing import Literal
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, require_login
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
+from openlibrary.utils.request_context import site
 
 # Usergroups that may use create or update merge requests
 ALLOWED_USERGROUPS: list[str] = [
@@ -35,9 +36,31 @@ def process_merge_request(rtype, data):
     return resp
 
 
+async def perform_merge_update(username: str, mrid: int | None, olids: str, comment: str | None) -> None:
+    """Close the given merge request, or record a new already-merged author merge request."""
+    if mrid:
+        await CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment)
+        return
+
+    olid_list = olids.split(",")
+    title = community_edits_queue.create_title(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
+    url = community_edits_queue.create_url(CommunityEditsQueue.TYPE["AUTHOR_MERGE"], olid_list)
+    await CommunityEditsQueue.submit_request(
+        url,
+        username,
+        reviewer=username,
+        status=CommunityEditsQueue.STATUS["MERGED"],
+        title=title,
+        comment=comment,
+        mr_type=CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
+        unique_url=True,
+    )
+
+
 class community_edits_queue(delegate.page):
     path = "/merges"
 
+    @require_login
     def GET(self) -> str | web.HTTPError:
         i = web.input(
             page=1,
@@ -90,6 +113,7 @@ class community_edits_queue(delegate.page):
             merge_requests=merge_requests,
         )
 
+    @require_login
     def POST(self):
         if not (user := accounts.get_current_user()) or not user.is_member_of_any(ALLOWED_USERGROUPS):
             raise web.unauthorized()
@@ -125,14 +149,14 @@ class community_edits_queue(delegate.page):
 
             # Validate URL
             is_valid_url = True
-            if needs_unique_url(mr_type) and CommunityEditsQueue.exists(url):
+            if needs_unique_url(mr_type) and CommunityEditsQueue.exists_sync(url):
                 is_valid_url = False
 
             if is_valid_url:
                 if action == "create-pending":
-                    result = CommunityEditsQueue.submit_request(url, username, title=title, comment=comment, mr_type=mr_type)
+                    result = CommunityEditsQueue.submit_request_sync(url, username, title=title, comment=comment, mr_type=mr_type)
                 elif action == "create-merged":
-                    result = CommunityEditsQueue.submit_request(
+                    result = CommunityEditsQueue.submit_request_sync(
                         url,
                         username,
                         title=title,
@@ -175,11 +199,11 @@ class community_edits_queue(delegate.page):
             resp = response(newStatus=status)
         # Close request by approving:
         elif action == "approve":
-            CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment=comment)
+            CommunityEditsQueue.update_request_status_sync(mrid, CommunityEditsQueue.STATUS["MERGED"], username, comment=comment)
             resp = response()
         # Close request by declining:
         elif action == "decline":
-            CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["DECLINED"], username, comment=comment)
+            CommunityEditsQueue.update_request_status_sync(mrid, CommunityEditsQueue.STATUS["DECLINED"], username, comment=comment)
             resp = response()
         # Unknown request:
         else:
@@ -203,12 +227,12 @@ class community_edits_queue(delegate.page):
     def create_title(mr_type: int, olids: list[str]) -> str:
         if mr_type == CommunityEditsQueue.TYPE["WORK_MERGE"]:
             for olid in olids:
-                book = web.ctx.site.get(f"/works/{olid}")
+                book = site.get().get(f"/works/{olid}")
                 if book and book.title:
                     return book.title
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
             for olid in olids:
-                author = web.ctx.site.get(f"/authors/{olid}")
+                author = site.get().get(f"/authors/{olid}")
                 if author and author.name:
                     return author.name
         return "Unknown record"

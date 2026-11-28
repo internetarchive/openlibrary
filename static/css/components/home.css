@@ -1,17 +1,34 @@
 /* Homepage about section */
 
+/* <ol-carousel> sets the card's width (home/welcome.html). */
 div.tutorial__item {
   background-color: var(--book-cover-carousel-cards);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
   padding: var(--spacing-inset-sm);
-  min-width: 220px;
+  box-sizing: border-box;
 }
 
-/* @width-breakpoint-desktop: 960px */
-@media only screen and (min-width: 960px) {
-  div.tutorial__item {
-    min-width: 310px;
+/* carousel.css centers native-row items; these cards read left-aligned. */
+.carousel--native > .tutorial__item {
+  text-align: start;
+}
+
+/* Pre-upgrade skeleton: the generic one in ol-components.css assumes 8 book columns,
+   which squeezes these cards to a sliver. Mirror the 3/2/1 breakpoints in home/welcome.html. */
+ol-carousel:not(:defined) > .tutorial__item {
+  flex-basis: 30.6%;
+}
+
+@media (max-width: 1024px) {
+  ol-carousel:not(:defined) > .tutorial__item {
+    flex-basis: 46.5%;
+  }
+}
+
+@media (max-width: 600px) {
+  ol-carousel:not(:defined) > .tutorial__item {
+    flex-basis: 94%;
   }
 }
 
@@ -20,95 +37,38 @@ div.tutorial__item:focus {
 }
 
 div.tutorial__item p {
-  margin: 4% 5% 5%;
-  font-size: 1rem;
-  font-weight: 500;
+  margin: 0;
+  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
+  overflow-wrap: break-word;
 }
 
 div.tutorial__item p.small {
-  font-size: 0.8rem;
+  margin-top: var(--spacing-3xs);
+  font-size: var(--font-size-body-small);
   line-height: var(--line-height-snug);
 }
 
 div.tutorial__item a {
   display: flex;
   align-items: center;
-  height: 100px;
+  min-height: 100px;
+  gap: var(--spacing-inline-md);
+  text-decoration: none;
 }
 
 div.tutorial__item img {
-  position: relative;
-  margin: 5px;
-  float: left;
+  flex-shrink: 0;
   height: 5rem;
   opacity: 80%;
 }
 
 /* stylelint-disable selector-max-specificity */
-div.chartHome a:hover,
-#home-stats-charts .statschart:hover a {
-  color: var(--link-blue);
-  text-decoration: underline;
-}
-
-#home-stats-charts {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-#home-stats-charts .statschart {
-  flex: 1;
-  height: 110px;
-  text-align: center;
-  padding: 1px;
-}
-
-/* stylelint-disable-next-line max-nesting-depth */
-#home-stats-charts .statschart .chartShow {
-  width: 145px;
-  height: 60px;
-  margin: 0 var(--spacing-inline-sm);
-  border-bottom: 1px solid var(--grey);
-  cursor: pointer;
-}
-
-/* stylelint-disable no-descending-specificity */
-/* stylelint-disable max-nesting-depth */
-#home-stats-charts .statschart a {
-  color: var(--black);
-  text-decoration: none;
-}
-
-#home-stats-charts .statschart a span {
-  display: block;
-}
-
-#home-stats-charts .statschart a .ticks {
-  margin-top: var(--spacing-3xs);
-  font-family: var(--font-family-serif);
-  font-size: 1.125em;
-  font-weight: 700;
-  padding-top: var(--spacing-inset-xs);
-}
-
-#home-stats-charts .statschart a .label {
-  font-family: var(--font-family-body);
-  font-size: 0.625em;
-  text-transform: uppercase;
-}
-/* stylelint-enable no-descending-specificity */
-/* stylelint-enable max-nesting-depth */
-
-#home-resource {
-  font-size: 13px;
-  text-align: left;
-}
-
 #home-about {
   display: flex;
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
 }
 
 #home-about-mission {
@@ -123,21 +83,23 @@ div.chartHome a:hover,
 #home-about-mission-tldr {
   padding: 0;
   margin: 0;
-  font-size: 18px;
+  font-size: var(--font-size-body-xlarge);
   line-height: var(--line-height-body);
   font-family: var(--font-family-serif);
-  color: var(--dark-grey);
-  font-weight: normal;
+  color: var(--color-text);
+  font-weight: var(--font-weight-regular);
 }
 /* stylelint-enable selector-max-specificity */
 
 .card__text {
-  margin: 5px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
 }
 
 .home-resource-section {
   flex: 1;
-  font-size: 13px;
+  font-size: var(--font-size-body-small);
   min-width: 150px;
   min-height: 100px;
   margin-bottom: 20px;
