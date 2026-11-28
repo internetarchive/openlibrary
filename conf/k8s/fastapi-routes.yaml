@@ -5,6 +5,7 @@ fastapiRoutes:
     # Pages (SitePageRoute)
     - GET /about/team
     - GET /advancedsearch
+    - GET /barcodescanner
     - GET /explore
     - GET /publishers
     - GET /publishers/{name}

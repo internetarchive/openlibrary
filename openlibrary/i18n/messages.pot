@@ -85,10 +85,6 @@ msgstr ""
 msgid "Please contact us if you need help with anything else."
 msgstr ""
 
-#: barcodescanner.html
-msgid "Barcode Scanner (Beta)"
-msgstr ""
-
 #: batch_import.html batch_import_list.html
 msgid "Batch Imports"
 msgstr ""
@@ -11275,6 +11271,10 @@ msgstr ""
 
 #: openlibrary/fastapi/account.py openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+msgstr ""
+
+#: openlibrary/fastapi/barcodescanner.py openlibrary/plugins/worksearch/code.py
+msgid "Barcode Scanner (Beta)"
 msgstr ""
 
 #: openlibrary/fastapi/merge_stats.py
