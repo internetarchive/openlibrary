@@ -75,7 +75,7 @@ Subjects are **not stored as documents**. They are derived at query time from wo
 
 A second daemon, `trending_updater.py`, runs in parallel and writes trending scores from the OL DB into Solr periodically.
 
-The `docker/ol-solr-updater-start.sh` entrypoint starts both. The OSP (Open Syllabus Project) dump is downloaded on startup from IA to `/solr-updater-data/osp_totals.db`.
+The `docker/ol-solr-updater-start.sh` entrypoint starts both. When `OSP_DUMP=1` is set (production only), it first downloads the OSP (Open Syllabus Project) dump from IA to `/solr-updater-data/osp_totals.db`.
 
 ### Indexing flow
 
