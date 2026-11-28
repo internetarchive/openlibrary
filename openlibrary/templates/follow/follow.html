@@ -9,7 +9,7 @@ $ data_attr = get_preserve_intent_attrs(_("Follow"), publisher, "patron", custom
   $if user:
     <form class="follow-form" id="follow_$fid" method="POST" action="$(subscriber)/follows.json"
           property="follow" typeof="Follows" vocab="http://schema.org/">
-      <input type="hidden" value="$following" name="state"/>
+      <input type="hidden" value="$(1 if following else 0)" name="state"/>
       <input type="hidden" value="$publisher" name="publisher"/>
       <input type="hidden" value="$custom_request_path" name="redir_url"/>
       $ css_treatment = 'delete' if following else 'primary'
