@@ -174,13 +174,35 @@ class TestGoodReadsImport:
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
 
-    @pytest.mark.xfail
     def test_process_goodreads_csv_with_bytes(self):
-        # Note: In Python2, reading data as bytes returns a string, which should
-        # also be supported by account.process_goodreads_csv()
         books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data}))
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
+
+    def test_process_goodreads_csv_rejects_missing_upload(self):
+        with pytest.raises(account.GoodreadsCSVError):
+            account.process_goodreads_csv(web.storage({"csv": {}}))
+
+    @pytest.mark.parametrize("csv_data", ["", "Title,Author\nA book,An author\n"])
+    def test_process_goodreads_csv_rejects_empty_or_incompatible_csv(self, csv_data):
+        with pytest.raises(account.GoodreadsCSVError):
+            account.process_goodreads_csv(web.storage({"csv": csv_data}))
+
+    def test_process_goodreads_csv_rejects_rows_missing_columns(self):
+        csv_data = "ISBN,ISBN13,Book Id\n12345\n"
+        with pytest.raises(account.GoodreadsCSVError):
+            account.process_goodreads_csv(web.storage({"csv": csv_data}))
+
+    def test_process_goodreads_csv_rejects_oversized_upload_before_reading(self):
+        class OversizedUpload:
+            size = account.MAX_GOODREADS_CSV_SIZE + 1
+
+            @property
+            def value(self):
+                pytest.fail("Oversized upload should be rejected before reading its content")
+
+        with pytest.raises(account.GoodreadsCSVError):
+            account.process_goodreads_csv(web.storage({"csv": OversizedUpload()}))
 
 
 # --- account_verify.GET ---
