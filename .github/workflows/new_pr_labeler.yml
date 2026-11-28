@@ -13,7 +13,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout has no `ref:` (base 
       - ready_for_review
       - reopened
 env:
-  NODE_VERSION: '24'
+  NODE_VERSION: '26'
 jobs:
   label_pr:
     # Continue only if this is the canonical repo and the PR is not a draft.
