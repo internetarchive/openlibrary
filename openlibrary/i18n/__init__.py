@@ -316,8 +316,20 @@ def _format_args(message: Message) -> dict | tuple:
     return {}
 
 
+def _browser_only(message: Message) -> bool:
+    """Whether only JavaScript uses this string, judged by where it was extracted from.
+
+    ``i18n.js`` fills in a browser string's placeholders itself and never applies
+    Python's ``%``, so a literal ``%`` in it (``"{percentage}%"``) is just a percent
+    sign. A string that a template or Python file also uses is still checked.
+    """
+    return bool(message.locations) and all(filename.endswith((".js", ".vue")) for filename, _lineno in message.locations)
+
+
 def _render_errors(message: Message) -> list[str]:
     """Errors that formatting this translation would raise at render time."""
+    if _browser_only(message):
+        return []
     args = _format_args(message)
     strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
     errors = []

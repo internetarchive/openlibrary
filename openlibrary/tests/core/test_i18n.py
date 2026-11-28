@@ -250,6 +250,36 @@ class Test_install_translations:
 
         assert i18n.install_translations(str(src), str(dest)) == {"hr": []}
 
+    def test_browser_only_strings_skip_the_percent_check(self, tmp_path):
+        # i18n.js fills these in itself and never applies `%`, so a literal % is safe.
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(
+            src,
+            "hr",
+            '#: lit/OlScorecard.js\n#, python-brace-format\nmsgid "{name}: {percentage}%. Click to expand."\nmsgstr "{name}: {percentage}%. Kliknite."\n'
+            '#: MergeUI.vue\nmsgid "Done"\nmsgstr "Gotovo (100% )"\n' + self.GOOD,
+        )
+        dest.mkdir()
+
+        assert i18n.install_translations(str(src), str(dest)) == {"hr": []}
+
+    @pytest.mark.parametrize(
+        "locations",
+        [
+            pytest.param("#: account.html\n", id="template"),
+            pytest.param("#: lit/OlShelfActions.js\n#: account.html\n", id="javascript-and-template"),
+            pytest.param("", id="no-locations"),
+        ],
+    )
+    def test_strings_python_formats_keep_the_percent_check(self, tmp_path, locations):
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(src, "hr", locations + 'msgid "{name}: {percentage}%. Click to expand."\nmsgstr "{name}: {percentage}%. Kliknite."\n')
+        committed = _write_locale(dest, "hr", self.GOOD)
+        before = committed.read_bytes()
+
+        assert i18n.install_translations(str(src), str(dest))["hr"]
+        assert committed.read_bytes() == before
+
     def test_fuzzy_entries_do_not_block_install(self, tmp_path):
         # Fuzzy entries are never compiled into the .mo, so they cannot crash a render.
         src, dest = tmp_path / "src", tmp_path / "dest"
