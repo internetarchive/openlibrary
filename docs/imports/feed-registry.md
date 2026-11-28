@@ -41,7 +41,7 @@ agent — that is the entire harvest history of the system.
 is one crontab line in olsystem.** Configuration, not a project. It should be
 reordered ahead of every other item in the epic — and note it interacts with
 the unbounded-row-fetch follow-up, which must land *before* harvest volume
-scales (see [[pr-13395-state]]).
+scales (see pr-13395-state).
 
 **The one gap, stated rather than papered over:** nobody has verified that the
 crontab actually deployed on ol-home0 matches olsystem `origin/HEAD`. An entry
@@ -55,7 +55,7 @@ shell access no agent has.
 > answered from scratch by an agent deliberately not shown the retracted
 > version. Arriving independently at a retracted claim's conclusion is the one
 > circumstance that makes it trustworthy — and it took a retraction to get it
-> checked at all. See [[METHODOLOGY]].
+> checked at all. See methodology.
 
 ## Reconciliation, 2026-09-20: what BookWorm actually is vs. what #12655 describes
 
@@ -106,7 +106,7 @@ competes with the CLI already on master. Preserve the question it answers —
 
 > ⚠️ **Design in flight.** This system is actively being built. Most of it is planned; a tested prototype layer exists on branch `12844/feed-registry-acquisitions` (draft PR #13206), verified at the SQLite/unit level only — **no live end-to-end loop has run yet**. Everything below is annotated **built** vs **planned/in-flight**; treat the planned parts as design intent, not shipped behavior.
 
-This is the shared-context architecture doc for the epic. It describes the target ("end-state") system, then two flow diagrams: the **import ecosystem** (how partner feeds become catalog records + acquisitions) and the **catalog system** (how any import record becomes a Work/Edition in Infogami + Solr). It complements [[trusted-book-providers]], which covers where acquisition data lives today and the migration off Infogami edition objects.
+This is the shared-context architecture doc for the epic. It describes the target ("end-state") system, then two flow diagrams: the **import ecosystem** (how partner feeds become catalog records + acquisitions) and the **catalog system** (how any import record becomes a Work/Edition in Infogami + Solr). It complements trusted-book-providers, which covers where acquisition data lives today and the migration off Infogami edition objects.
 
 ---
 
@@ -124,7 +124,7 @@ The target system has five moving parts:
 
 4. **`manage-imports` (dual-source)** — the existing continuous batch-import processor evolves to **drain both** the legacy main-schema `import_batch`/`import_item` **and** the BookWorm staging-db's import tables, promoting staged records into the real catalog. ImportBot (running on `ol-home0` in prod, the `home` container in dev) drives it, hitting the existing import API endpoints.
 
-5. **Acquisitions + Solr** — acquisitions are edition-scoped facts (price, format, access, URL) that currently live incorrectly on Infogami edition objects (the `providers` list). They move to the `acquisitions` table (main OL, one row per `(edition, provider)`, keyed on `(local_id, provider_name)` so work/edition merges never conflict). Acquisitions are surfaced in search via **query-time DB fetch** (join at query time for a page of results), not by embedding them in the Solr index — avoiding index bloat. This lets patrons eventually search by price / availability ("what books are for sale?", "what's available through trusted providers?") and feeds `ebook_access` deduction. Open question (unresolved): whether well-defined implicit providers like IA's ~6M ocaids should be materialized as rows or stay derived — see [[trusted-book-providers]].
+5. **Acquisitions + Solr** — acquisitions are edition-scoped facts (price, format, access, URL) that currently live incorrectly on Infogami edition objects (the `providers` list). They move to the `acquisitions` table (main OL, one row per `(edition, provider)`, keyed on `(local_id, provider_name)` so work/edition merges never conflict). Acquisitions are surfaced in search via **query-time DB fetch** (join at query time for a page of results), not by embedding them in the Solr index — avoiding index bloat. This lets patrons eventually search by price / availability ("what books are for sale?", "what's available through trusted providers?") and feeds `ebook_access` deduction. Open question (unresolved): whether well-defined implicit providers like IA's ~6M ocaids should be materialized as rows or stay derived — see trusted-book-providers.
 
 ### Build status at a glance
 
@@ -286,7 +286,7 @@ flowchart TB
     classDef planned fill:#fff8e1,stroke:#f9a825,stroke-width:2px,stroke-dasharray:5 5,color:#111;
 ```
 
-Key behaviors this captures (all existing): every import path — direct `/api/import`, IA bulk MARC, batch queue — funnels into `add_book.load()`; promise items skip `validate_record`; matching is ISBN/LCCN/OCLC-pool + `threshold_match`; a matched edition is updated in place while an unmatched record creates Edition + (matched-or-new) Work + (matched-or-new) Author; everything is persisted via one `site.save_many(edits)` into Infogami, which the `solr-updater` reflects into Solr. `ebook_access` / `providers[]` are computed from the Infogami edition at index/fetch time today (see [[trusted-book-providers]]).
+Key behaviors this captures (all existing): every import path — direct `/api/import`, IA bulk MARC, batch queue — funnels into `add_book.load()`; promise items skip `validate_record`; matching is ISBN/LCCN/OCLC-pool + `threshold_match`; a matched edition is updated in place while an unmatched record creates Edition + (matched-or-new) Work + (matched-or-new) Author; everything is persisted via one `site.save_many(edits)` into Infogami, which the `solr-updater` reflects into Solr. `ebook_access` / `providers[]` are computed from the Infogami edition at index/fetch time today (see trusted-book-providers).
 
 ---
 
@@ -310,9 +310,9 @@ Key behaviors this captures (all existing): every import path — direct `/api/i
 
 ## Dependencies
 
-*Depends on →* [[trusted-book-providers]] (acquisition storage model + `book_providers.py`), [Imports](README.md) (`add_book.load()` pipeline), Infogami, Solr.
+*Depends on →* **trusted-book-providers** (acquisition storage model + `book_providers.py`), [Imports](README.md) (`add_book.load()` pipeline), Infogami, Solr.
 *Depended on by →* [Features](../features/README.md), search-by-price / availability filtering, `ebook_access` deduction.
 
 ---
 
-*See [README](../README.md) · [[trusted-book-providers]] · epic internetarchive/openlibrary#12844*
+*See [README](../README.md) · trusted-book-providers · epic internetarchive/openlibrary#12844*

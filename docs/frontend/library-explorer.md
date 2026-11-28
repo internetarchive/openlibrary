@@ -154,7 +154,7 @@ No automated test suite for this component tree as of this writing. All verifica
 
 - **Vertical "step one shelf per scroll gesture" (genre mode) is unsolved as of this writing.** Every JS-timing-based approach tried — debounce-to-quiet, leading-edge throttle with a refreshing/capped lock, collect-then-block-until-transition-done, silence-based gesture-active flag — either felt laggy (waiting out a real gesture's momentum tail can take 1-2+ seconds) or let one physical gesture trigger 2-3+ steps, because standard `wheel` events carry no gesture start/end phase and JS can only guess gesture boundaries from event timing, which real trackpad hardware doesn't cooperate with reliably. Currently being reconsidered as native CSS `scroll-snap` instead (letting the browser's own gesture/momentum handling do the work, rather than re-deriving it in JS) — status unresolved.
 - **Tags filter (genre mode) reported as producing wrong/unexpected results** — investigated once (data mapping and query-combination logic checked directly against production, both looked correct) but never conclusively root-caused; needs a precise repro (empty shelf vs. wrong books vs. same books) to make further progress.
-- **Shelf counts are subject-string prefixes, and some prefixes are topics.** `cult*` is 81% `cultur*`, `psychological*` 83% `psychological_aspects`, while `thriller*` misses the BISAC `fiction, thrillers, …` strings the Tag mapping catches (13× fewer readable Thrillers). The "Readable" toggle (`has_fulltext:true`) also includes ~15% print-disabled-only works. Measured 2026-10-04 in [[genre-shelf-coverage]].
+- **Shelf counts are subject-string prefixes, and some prefixes are topics.** `cult*` is 81% `cultur*`, `psychological*` 83% `psychological_aspects`, while `thriller*` misses the BISAC `fiction, thrillers, …` strings the Tag mapping catches (13× fewer readable Thrillers). The "Readable" toggle (`has_fulltext:true`) also includes ~15% print-disabled-only works. Measured 2026-10-04 in genre-shelf-coverage.
 - **`EXCLUDED_SUBGENRES` is a manual, hand-curated list** — there's no automated check that re-verifies "healthy raw count but zero after default filters" the way `resolve_subject_key` verifies raw counts; a future vocabulary refresh could reintroduce a term that needs the same exclusion.
 - **`ddc.json`/`lcc.json` have no regeneration mechanism at all** (see Data provenance above) — they're frozen since a 2020 one-time copy-paste, kept current only via direct manual JSON edits. If their counts are ever found stale, there's no script to fix that; someone has to hand-edit the file, same as every prior fix to these two files has done.
 - Genre Explorer is not merged/shipped — issue #13158 is explicitly labeled `Needs: Staff Decision` and `Needs: Designs`, and is also independently claimed by a GSoC contributor. Treat this whole prototype as a technical spike, not a reference for "how it will actually ship."
@@ -175,7 +175,7 @@ No automated test suite for this component tree as of this writing. All verifica
 
 **Depends on:**
 - [frontend](README.md) — Lit component library (`ol-toggle`, `ol-select-popover`, `ol-options-popover`) used by `GenreFilterBar.vue`; Vue is the exception-case framework noted there
-- [[tags]] — Dewey's Open-Book-Genome-Project/tags vocabulary is genre.json's data source
+- **tags** — Dewey's Open-Book-Genome-Project/tags vocabulary is genre.json's data source
 - [search](../search/README.md) — all book data comes from `search.json` (Solr), including `subject_key` faceting genre mode is built on
 
 **Depended on by:**
@@ -183,4 +183,4 @@ No automated test suite for this component tree as of this writing. All verifica
 
 ---
 
-*See [README](../README.md) · [[METHODOLOGY]]*
+*See [README](../README.md)*

@@ -86,7 +86,7 @@ These are known inconsistencies in OL's metadata — areas where the community h
 | Author names | OL uses "natural order" (First Last); ISNI preferred for authority — but adoption is incomplete |
 | Publish dates | Free text; year is the meaningful field for copyright purposes |
 | Format names | "Hardcover" / "Softcover" have many synonyms — no controlled vocabulary |
-| Subjects | No authority control; case inconsistent; overlap with Tag system (see [[tags]]) |
+| Subjects | No authority control; case inconsistent; overlap with Tag system (see tags) |
 | ISBN validation | Strip non-digits, run checksum, validate against Worldcat before ingesting |
 | Unicode | NFC normalization expected but not enforced; implications for Solr search are undefined |
 | VIAF/Wikidata in records | Full URL should be stored for author links, not just bare ID |
@@ -122,9 +122,9 @@ Librarians collect, vet, and execute author and work merge requests. The merge f
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — editorial UI, admin dashboard, Infogami record editing
-- [[tags]] — subject/tag overlap; community tags (Observations) sit in the tag system
-- [[infrastructure]] — spam blocking via nginx/olsystem on ol-www1; PostgreSQL for account queries
+- **core-operations** — editorial UI, admin dashboard, Infogami record editing
+- **tags** — subject/tag overlap; community tags (Observations) sit in the tag system
+- **infrastructure** — spam blocking via nginx/olsystem on ol-www1; PostgreSQL for account queries
 
 **Depended on by:**
 - [imports](../imports/README.md) — librarians review and correct imported records
@@ -132,4 +132,4 @@ Librarians collect, vet, and execute author and work merge requests. The merge f
 
 ---
 
-*Sources: `raw/openlibrary-wiki/Lead:-Community-Librarian.md` (role), `Anti-Spam-Tools.md` (deprecated), `Library-Metadata-Standards.md`, `Librarian-Resources/Guide-to-Identifiers.md` · Merge/ILE tool stub — needs follow-up · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-wiki/Lead:-Community-Librarian.md` (role), `Anti-Spam-Tools.md` (deprecated), `Library-Metadata-Standards.md`, `Librarian-Resources/Guide-to-Identifiers.md` · Merge/ILE tool stub — needs follow-up · See [README](../README.md)*

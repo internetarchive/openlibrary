@@ -159,11 +159,11 @@ password = admin123
 
 **Depends on:**
 - [imports](../imports/README.md) — `DataProvider` pattern feeds `add_book.load()` via import API
-- [[core-operations]] — `openlibrary/api.py` talks to OL's web.py/Infogami API
+- **core-operations** — `openlibrary/api.py` talks to OL's web.py/Infogami API
 
 **Depended on by:**
 - [imports](../imports/README.md) — all import adapters in `openlibrary-bots` use `DataProvider` as base class
 
 ---
 
-*Sources: `imports/index.md`, `imports/adding-sources.md`, `imports/debugging.md`, `openlibrary/api.py` · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `imports/index.md`, `imports/adding-sources.md`, `imports/debugging.md`, `openlibrary/api.py` · See [README](../README.md)*

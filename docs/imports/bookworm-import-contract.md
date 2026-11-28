@@ -585,7 +585,7 @@ The unbounded row fetch in `acquisitions.get_by_editions` (no SQL `LIMIT`, one
 shared synchronous connection) **must be fixed before harvest volume scales**.
 Since BookWorm is the work that scales harvest volume, that follow-up is a
 prerequisite of this epic rather than a parallel nicety. See
-[[pr-13395-state]].
+pr-13395-state.
 
 ---
 
@@ -779,4 +779,4 @@ Worth knowing before push time, since GitHub reports missing access as
 
 ---
 
-*See [feed-registry](feed-registry.md) · [imports](README.md) · [[METHODOLOGY]]*
+*See [feed-registry](feed-registry.md) · [imports](README.md)*

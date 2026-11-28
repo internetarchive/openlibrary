@@ -286,4 +286,4 @@ This trade-off is the crux of the Feed Registry / Acquisitions epic and is not y
 
 ---
 
-*See [README](../README.md) · [[METHODOLOGY]] for ingest rules*
+*See [README](../README.md) · methodology for ingest rules*

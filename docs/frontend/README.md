@@ -210,7 +210,7 @@ See [i18n-rendering](../i18n/i18n-rendering.md) for translation patterns in Lit 
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Templetor/Jinja templates are served by the Infogami/web.py layer; webpack build produces assets that core-operations serves
+- **core-operations** — Templetor/Jinja templates are served by the Infogami/web.py layer; webpack build produces assets that core-operations serves
 - [i18n-rendering](../i18n/i18n-rendering.md) — translation bridge pattern for Lit components
 
 **Depended on by:**
@@ -224,4 +224,4 @@ Static assets built via webpack, output to `static/build/`. Lit manifest generat
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/css.md`, `design.md`, `web-components.md` · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/css.md`, `design.md`, `web-components.md` · See [README](../README.md)*

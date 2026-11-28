@@ -16,7 +16,7 @@ A second ASGI application layer — FastAPI — runs alongside the legacy app. T
 
 ```
 HTTP request
-  → nginx/haproxy (see [[infrastructure]])
+  → nginx/haproxy (see infrastructure)
   → ASGI app (openlibrary/asgi_app.py)
       → FastAPI router  (if path matches a FastAPI route)
       → Infogami/web.py (everything else)
@@ -62,7 +62,7 @@ async def my_feature(): ...
 ## Subcomponents and Architecture
 
 ### Infogami
-The foundational layer. Provides: versioned object storage, plugin loader, web.py routing, Templetor template engine, Infobase client API. Lives in `vendor/infogami/` as a git submodule. Effectively frozen — OL owns all maintenance. See [[infogami]].
+The foundational layer. Provides: versioned object storage, plugin loader, web.py routing, Templetor template engine, Infobase client API. Lives in `vendor/infogami/` as a git submodule. Effectively frozen — OL owns all maintenance. See infogami.
 
 OL types (Work, Edition, Author) are registered on Infogami via `openlibrary/core/schema.py` and `openlibrary/core/models.py`. See [imports](../imports/README.md) for the data model.
 
@@ -83,10 +83,10 @@ OL types (Work, Edition, Author) are registered on Infogami via `openlibrary/cor
 `openlibrary/fastapi/` — 20 files, active migration. Covers: account, lists, books, search, importapi, checkins, reading goals, partials, merge_authors, internal APIs. Most traffic still flows through web.py.
 
 ### Background jobs
-No async job queue. All background work is cron scripts in `scripts/`, wrapped by `scripts/cron_wrapper.py` (Sentry-monitored). No retry logic; a failed cron fails silently unless cron_wrapper catches it. See [[infrastructure]].
+No async job queue. All background work is cron scripts in `scripts/`, wrapped by `scripts/cron_wrapper.py` (Sentry-monitored). No retry logic; a failed cron fails silently unless cron_wrapper catches it. See infrastructure.
 
 ### Bots
-`internetarchive/openlibrary-bots` — separate repo of cleanup bots built on [[ol-client]].
+`internetarchive/openlibrary-bots` — separate repo of cleanup bots built on ol-client.
 
 ### Affiliate server (BookWorm)
 
@@ -168,8 +168,8 @@ Infogami object reads go through `openlibrary/core/cache.py` (Memcache). FastAPI
 ## Related Processes
 
 - Solr updater background service — see [search](../search/README.md)
-- Batch import crons — see [imports](../imports/README.md) and [[infrastructure]]
-- Deployment via olsystem — see [[infrastructure]]
+- Batch import crons — see [imports](../imports/README.md) and infrastructure
+- Deployment via olsystem — see infrastructure
 
 ## What's Broken / Fragile / Unimplemented
 
@@ -185,13 +185,13 @@ Infogami object reads go through `openlibrary/core/cache.py` (Memcache). FastAPI
 
 ## Dependencies
 
-**Depends on:** Infogami (`vendor/infogami/`), PostgreSQL, Memcache — see [[infrastructure]]
+**Depends on:** Infogami (`vendor/infogami/`), PostgreSQL, Memcache — see infrastructure
 **Depended on by:** all other domains — they all sit on top of this routing and type system.
 
 ## Provisioning / Services
 
-Docker Compose for development. Production via [[infrastructure]] (olsystem, supervisor, nginx/haproxy).
+Docker Compose for development. Production via infrastructure (olsystem, supervisor, nginx/haproxy).
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/README.md` · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/README.md` · See [README](../README.md)*

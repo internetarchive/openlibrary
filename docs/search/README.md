@@ -404,12 +404,12 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 
 ## Related Processes
 
-- **solr-updater** — long-running daemon; see [[infrastructure]] for deployment and supervision
-- **trending_updater** — parallel daemon writing trending scores; also managed by [[infrastructure]]
+- **solr-updater** — long-running daemon; see infrastructure for deployment and supervision
+- **trending_updater** — parallel daemon writing trending scores; also managed by infrastructure
 - **Full reindex** — Jenkins job using `scripts/solr_builder/`; production uses ReplicationHandler leader/follower (followers poll leader every 60s post-commit)
 - **Imports** — newly created/updated editions from [imports](../imports/README.md) must propagate through the solr-updater to appear in search
 - **Lending** — `ebook_access` enum values come from [lending](../lending/README.md) availability data embedded at index time
-- **Tags** — `subject_facet`, `person_facet`, `place_facet`, `time_facet` populated from Work subjects; [[tags]] covers the subject/tag relationship
+- **Tags** — `subject_facet`, `person_facet`, `place_facet`, `time_facet` populated from Work subjects; tags covers the subject/tag relationship
 
 ---
 
@@ -500,11 +500,11 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Infobase changelog (the event stream solr-updater reads); plugin routing for worksearch
+- **core-operations** — Infobase changelog (the event stream solr-updater reads); plugin routing for worksearch
 - [lending](../lending/README.md) — `ebook_access` enum values reflect availability data from the lending system
 - [imports](../imports/README.md) — new editions created by imports must be indexed by solr-updater to appear in search
-- [[tags]] — Work subjects → Solr `subject_facet`, `person_facet`, etc.
-- [[infrastructure]] — solr-updater and trending_updater are supervised processes; production Solr cluster is IA-managed
+- **tags** — Work subjects → Solr `subject_facet`, `person_facet`, etc.
+- **infrastructure** — solr-updater and trending_updater are supervised processes; production Solr cluster is IA-managed
 
 **Depended on by:**
 - All search pages (HTML and JSON API)
@@ -527,4 +527,4 @@ docker compose run --rm home python -m pytest openlibrary/tests/integration/test
 
 ---
 
-*Sources: `raw/openlibrary-docs-ai/solr/index.md`, `raw/openlibrary-docs-ai/solr/priorities.md` · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `raw/openlibrary-docs-ai/solr/index.md`, `raw/openlibrary-docs-ai/solr/priorities.md` · See [README](../README.md)*

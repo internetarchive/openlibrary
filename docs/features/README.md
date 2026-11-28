@@ -155,7 +155,7 @@ Registered types:
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Infogami `Thing` class for List/Series; `site.get()` for data access
+- **core-operations** — Infogami `Thing` class for List/Series; `site.get()` for data access
 - [search](../search/README.md) — `get_users_logged_books()` enriches DB records with Solr work data
 - [auth](../core/auth.md) — all features require a logged-in patron
 
@@ -166,4 +166,4 @@ Registered types:
 
 ---
 
-*Sources: `bookshelves.py`, `ratings.py`, `observations.py`, `booknotes.py`, `yearly_reading_goals.py`, `follows.py`, `lists/model.py` (code synthesis) · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `bookshelves.py`, `ratings.py`, `observations.py`, `booknotes.py`, `yearly_reading_goals.py`, `follows.py`, `lists/model.py` (code synthesis) · See [README](../README.md)*

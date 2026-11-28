@@ -280,11 +280,11 @@ being emailed when a book becomes available, archive.org is sending those mails,
 
 ## Dependencies
 
-**Related:** [lending](README.md) (current state) · [bookreader](../frontend/bookreader.md) · [auth](../core/auth.md) · [[infrastructure]]
+**Related:** [lending](README.md) (current state) · [bookreader](../frontend/bookreader.md) · [auth](../core/auth.md) · infrastructure
 
 ---
 
 *Sources: git archaeology of `internetarchive/openlibrary`, verified against `aced0c079`
-(origin/master) on 2026-08-29 · See [README](../README.md) · [[METHODOLOGY]]*
+(origin/master) on 2026-08-29 · See [README](../README.md)*
 
 ---

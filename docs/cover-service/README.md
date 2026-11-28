@@ -122,15 +122,15 @@ In local dev: set `coverstore_public_url: https://covers.openlibrary.org/` in `c
 ## Dependencies
 
 **Depends on:**
-- [[infrastructure]] — runs on a dedicated cover server; local disk storage for image files; Sentry for error tracking (project #10)
+- **infrastructure** — runs on a dedicated cover server; local disk storage for image files; Sentry for error tracking (project #10)
 
 **Depended on by:**
-- [[core-operations]] — edition/work/author pages display covers via `covers.openlibrary.org` URLs
+- **core-operations** — edition/work/author pages display covers via `covers.openlibrary.org` URLs
 - [imports](../imports/README.md) — imported editions may include cover URLs that get fetched and stored
 
 ---
 
-*Sources: `dev_docs_api_covers.json`, `openlibrary/coverstore/` (code synthesis) · See [README](../README.md) · [[METHODOLOGY]]*
+*Sources: `dev_docs_api_covers.json`, `openlibrary/coverstore/` (code synthesis) · See [README](../README.md)*
 
 ## Sub-documents
 
