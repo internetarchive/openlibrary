@@ -329,11 +329,6 @@ msgid "YAML Representation:"
 msgstr ""
 
 #: history.html
-#, python-format
-msgid "Compare revisions %(a)s and %(b)s"
-msgstr ""
-
-#: history.html
 msgid "History of edits to"
 msgstr ""
 
@@ -5051,16 +5046,12 @@ msgstr ""
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
-#: follow/follow.html lists/list_follow.html.jinja
+#: follow/follow.html following.js lists/list_follow.html.jinja
 msgid "Follow"
 msgstr ""
 
-#: follow/follow.html
+#: follow/follow.html following.js
 msgid "Unfollow"
-msgstr ""
-
-#: follow/follow.html
-msgid "Failed to update followers. Please try again in a few moments."
 msgstr ""
 
 #: history/sources.html
@@ -5123,10 +5114,6 @@ msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
-msgstr ""
-
-#: home/index.html
-msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
 #: home/library_row.html.jinja
@@ -9637,6 +9624,10 @@ msgstr ""
 msgid "Moved to %(shelf)s"
 msgstr ""
 
+#: browse-stacks.js
+msgid "Couldn't load this shelf. Try again?"
+msgstr ""
+
 #: covers.js
 msgid "Searching for covers"
 msgstr ""
@@ -9672,6 +9663,10 @@ msgstr ""
 
 #: edit.js
 msgid "Please enter a valid URL."
+msgstr ""
+
+#: following.js
+msgid "Failed to update followers. Please try again in a few moments."
 msgstr ""
 
 #: fulltext-search-suggestion.js
@@ -9711,6 +9706,11 @@ msgstr ""
 
 #: goodreads_import.js
 msgid "Book not in collection"
+msgstr ""
+
+#: history.js
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
 msgstr ""
 
 #: publishing_history.js

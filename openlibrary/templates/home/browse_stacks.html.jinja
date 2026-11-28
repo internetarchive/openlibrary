@@ -1,9 +1,7 @@
 {# "Browse the stacks": genre tiles that open home/genre_shelf.html.jinja in place (browse-stacks.js). #}
 {% from "CarouselSkeleton.html.jinja" import carousel_skeleton %}
 {% if genres is defined and genres %}
-    <section class="browse-stacks"
-             aria-labelledby="browse-stacks-title"
-             data-i18n="{{ i18n_json }}">
+    <section class="browse-stacks" aria-labelledby="browse-stacks-title">
         <div class="carousel-section-header browse-stacks__header">
             <h2 class="home-h2" id="browse-stacks-title">{{ _("Browse the stacks") }}</h2>
         </div>

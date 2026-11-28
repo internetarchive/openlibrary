@@ -14,10 +14,6 @@ $var title: $name
 
 $ rev = page.latest_revision or page.revision
 
-$ i18n_strings = {
-    $ "compare_label": _("Compare revisions %(a)s and %(b)s"),
-    $ }
-
 <div id="contentHead">
     $:macros.databarHistory(page)
     <span class="lightgreen smallest sansserif">$_("History of edits to")</span>
@@ -31,7 +27,7 @@ $ i18n_strings = {
             <button type="button" class="page-history-compare__clear" data-compare-clear aria-label="$_('Clear comparison')">&times;</button>
         </div>
 
-        <table id="pageHistory" data-i18n="$json_encode(i18n_strings)">
+        <table id="pageHistory">
         <thead>
             <tr>
                 <th class="numberhead" style="text-align:center;">$_("Rev")</th>

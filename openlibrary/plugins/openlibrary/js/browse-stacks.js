@@ -3,6 +3,7 @@
  * The open stack is kept in ?stack= so it survives a trip to a book page and back.
  */
 
+import { _ } from './i18n.js';
 import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl } from './utils';
 
@@ -13,7 +14,6 @@ export function initBrowseStacks(root) {
     const rail = root.querySelector('.browse-stacks__rail');
     const shelf = root.querySelector('.browse-stacks__shelf');
     const tiles = Array.from(root.querySelectorAll('.browse-stacks__tile'));
-    const i18n = JSON.parse(root.dataset.i18n || '{}');
     const skeleton = root.querySelector('.browse-stacks__loading')?.content;
     let current = null;
     let controller = null;
@@ -148,7 +148,7 @@ export function initBrowseStacks(root) {
         } catch (e) {
             if (e.name === 'AbortError') return false;
             trackEvent('BrowseStacks', 'LoadError', slug);
-            shelf.innerHTML = `<p class="genre-shelf__error"><a href="#" class="genre-shelf__retry">${i18n.error || 'Try again?'}</a></p>`;
+            shelf.innerHTML = `<p class="genre-shelf__error"><a href="#" class="genre-shelf__retry">${_("Couldn't load this shelf. Try again?")}</a></p>`;
             shelf.querySelector('.genre-shelf__retry').addEventListener('click', ev => {
                 ev.preventDefault();
                 trackEvent('BrowseStacks', 'Retry', slug);
