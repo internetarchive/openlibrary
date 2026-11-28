@@ -25,7 +25,7 @@ from babel.support import Translations
 
 from openlibrary.utils.request_context import req_context
 
-from .validators import _parse_cfmt, check_source_string, validate
+from .validators import check_source_string, render_errors, validate
 
 root = os.path.dirname(__file__)
 
@@ -291,88 +291,6 @@ def _write_javascript_catalog(locale: str, msgids: list[str | tuple[str, str]]) 
     path.write_text(f"window.OL_I18N = {json.dumps(javascript_catalog(locale, msgids), sort_keys=True)};\n")
 
 
-def _format_args(message: Message) -> dict | tuple:
-    """Build stand-in arguments shaped like the ones the msgid expects at runtime.
-
-    GetText/ungettext apply ``value % args`` (or ``% kwargs``) to whichever string
-    they resolve, so a translation must accept the same arguments as its msgid.
-    A msgid with no placeholders gets ``{}``: Jinja's newstyle gettext applies
-    ``% variables`` even when there are none. Ints are used because they satisfy
-    %s, %d and %f alike, so a %d applied to a runtime str is not caught.
-    """
-    if not message.python_format:
-        return {}
-    ids = message.id if isinstance(message.id, (list, tuple)) else [message.id]
-    names: set[str] = set()
-    positional = 0
-    for msgid in ids:
-        pieces = [p for p in _parse_cfmt(str(msgid)) if p != "%%"]
-        names.update(p[2 : p.index(")")] for p in pieces if p.startswith("%("))
-        positional = max(positional, sum(1 for p in pieces if not p.startswith("%(")))
-    if names:
-        return dict.fromkeys(names, 1)
-    if positional:
-        return (1,) * positional
-    return {}
-
-
-def _browser_only(message: Message) -> bool:
-    """Whether only JavaScript uses this string, judged by where it was extracted from.
-
-    ``i18n.js`` fills in a browser string's placeholders itself and never applies
-    Python's ``%``, so a literal ``%`` in it (``"{percentage}%"``) is just a percent
-    sign. A string that a template or Python file also uses is still checked.
-    """
-    return bool(message.locations) and all(filename.endswith((".js", ".vue")) for filename, _lineno in message.locations)
-
-
-# The placeholders JavaScript fills in: `{name}` (the Lit components' label
-# templates) and `%(name)s` / `%(name)d` (`fmt()` in i18n.js).
-_BROWSER_PLACEHOLDER_RE = re.compile(r"\{(\w+)\}|%\((\w+)\)[sd]")
-
-
-def _browser_placeholders(s: str) -> set[str]:
-    return {brace or named for brace, named in _BROWSER_PLACEHOLDER_RE.findall(s)}
-
-
-def _browser_render_errors(message: Message) -> list[str]:
-    """Placeholders in a browser string's translation that the code will not fill in.
-
-    JavaScript replaces a name it has no value for with an empty string, so a
-    translation that says ``{nombre}`` where the English says ``{name}`` shows
-    users a label with the name missing.
-    """
-    ids = message.id if isinstance(message.id, (list, tuple)) else [message.id]
-    expected = set().union(*(_browser_placeholders(str(msgid)) for msgid in ids))
-    strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
-    errors = []
-    for msgstr in strings:
-        if unknown := _browser_placeholders(msgstr) - expected:
-            errors.append(f"line {message.lineno}: {msgstr!r}: placeholder(s) {', '.join(sorted(unknown))} not in the English")
-    return errors
-
-
-def _render_errors(message: Message) -> list[str]:
-    """Errors that formatting this translation would raise at render time."""
-    if _browser_only(message):
-        return _browser_render_errors(message)
-    args = _format_args(message)
-    strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
-    errors = []
-    for msgstr in strings:
-        if not msgstr:
-            continue
-        try:
-            msgstr % args
-        except (TypeError, ValueError, KeyError) as e:
-            errors.append(f"line {message.lineno}: {msgstr!r}: {type(e).__name__}: {e}")
-            continue
-        # `"%s" % {...}` does not raise; it renders the dict's repr.
-        if isinstance(args, dict) and any(p != "%%" and not p.startswith("%(") for p in _parse_cfmt(msgstr)):
-            errors.append(f"line {message.lineno}: {msgstr!r}: positional placeholder where the msgid has none")
-    return errors
-
-
 def check_po_file(po_path: str) -> list[str]:
     """Reasons this .po file is unsafe to ship, or an empty list if it is safe.
 
@@ -394,10 +312,10 @@ def check_po_file(po_path: str) -> list[str]:
     except Exception as e:
         return [f"does not parse/compile/load: {type(e).__name__}: {e}"]
 
-    errors = []
+    errors: list[str] = []
     for message in catalog:
         if message.id and not message.fuzzy:
-            errors.extend(_render_errors(message))
+            errors.extend(f"line {message.lineno}: {err}" for err in render_errors(message))
     return errors
 
 
