@@ -9,15 +9,9 @@ $# orphaned edition gets the same control in its lists-only form.
 $:shelf_button_for(page)
 
 $if ctx.user:
-  $# The reader's lists that hold this book; keys and strings match OlBookLists.js.
+  $# The reader's lists that hold this book.
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
-  $ book_lists_labels = {
-  $   "onYourLists": _("On your lists"),
-  $   "removeFromList": _("Remove from %(name)s"),
-  $   "removedFromList": _("Removed from %(name)s"),
-  $   "errorGeneric": _("Something went wrong. Please try again."),
-  $ }
-  <ol-book-lists seed-keys="$json_encode(seed_keys)" labels="$json_encode(book_lists_labels)"></ol-book-lists>
+  <ol-book-lists seed-keys="$json_encode(seed_keys)"></ol-book-lists>
 
 $if work and include_rating:
   $:macros.StarRatings(work, edition)
