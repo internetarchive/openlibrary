@@ -401,6 +401,10 @@ msgid "Preview Import"
 msgstr ""
 
 #: import_preview.html
+msgid "Import failed"
+msgstr ""
+
+#: import_preview.html
 msgid "Show Raw Import Data"
 msgstr ""
 

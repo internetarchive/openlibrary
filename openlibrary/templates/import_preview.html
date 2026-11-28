@@ -71,7 +71,16 @@ $def with (md_provider_factory, req, result=None)
 
     $if result:
         <h2>$_("Preview")</h2>
-        <details $cond(not result.get('success'), 'open')>
+        $if not result.get('success'):
+            <div class="import-preview__error" role="alert">
+                <h3>
+                    $_("Import failed")
+                    $if result.get('error_code'):
+                        (<code>$result['error_code']</code>)
+                </h3>
+                <pre style="white-space: pre-wrap;">$result.get('error', '')</pre>
+            </div>
+        <details>
             <summary>$_("Show Raw Import Data")</summary>
             <textarea readonly aria-label="json preview of import record" style="width: 100%; height: 300px;">$json_encode(result, indent=2)</textarea>
         </details>
@@ -151,10 +160,10 @@ $def with (md_provider_factory, req, result=None)
                 </section>
             <hr>
 
-        <form method="POST" action="/import/preview">
-            <input type="hidden" name="provider" value="$req.metadata_provider.id_name">
-            <input type="hidden" name="identifier" value="$req.identifier">
-            <input type="hidden" name="save" value="true">
-            <button type="submit">$_("Import")</button>
-        </form>
+            <form method="POST" action="/import/preview">
+                <input type="hidden" name="provider" value="$req.metadata_provider.id_name">
+                <input type="hidden" name="identifier" value="$req.identifier">
+                <input type="hidden" name="save" value="true">
+                <button type="submit">$_("Import")</button>
+            </form>
 </div>
