@@ -1,0 +1,46 @@
+$def with (tag)
+
+$var title: $tag.name
+$ title = tag.name
+
+$code:
+    def derive_subject_key(tag):
+        key = "/subjects/"
+        if tag.tag_type != "subject":
+            key += "%s:" % tag.tag_type
+        key += tag.name.replace(" ", "_")
+        key = key.lower()
+        return key
+
+<div id="contentHead">
+    $:macros.databarView(tag)
+    <h1 itemprop="name">
+        $title
+    </h1>
+    <div itemprop="tag-type">
+        $:_("<strong>Type:</strong> %(tag_type)s", tag_type=tag.tag_type)
+    </div>
+    <div itemprop="description">
+        <strong>$_("Description")</strong>
+        $:sanitize(format(tag.tag_description))
+    </div>
+    <div>
+        <strong>$_("Tag Body")</strong>
+        $:sanitize(format(tag.body))
+    </div>
+    $if tag.get('slugs'):
+        $ slugs_str = ', '.join(tag.slugs)
+        <div>
+            <strong>$_("URL Slugs")</strong>
+            <span>$slugs_str</span>
+        </div>
+    $if tag.tag_type in get_subject_tag_types():
+        $ subject_key = derive_subject_key(tag)
+        <footer>
+            <ol-chip-group gap="small">
+                <ol-chip size="small" href="$subject_key">
+                    $_('View subject page for %(name)s.', name=title)
+                </ol-chip>
+            </ol-chip-group>
+        </footer>
+</div>

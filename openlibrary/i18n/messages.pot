@@ -33,7 +33,7 @@ msgstr ""
 msgid "or"
 msgstr ""
 
-#: account.html databarHistory.html databarTemplate.html databarView.html.jinja reading_goals/reading_goal_progress.html.jinja subjects.html type/edition/compact_title.html type/user/view.html
+#: account.html databarHistory.html databarTemplate.html databarView.html reading_goals/reading_goal_progress.html.jinja subjects.html type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr ""
 
@@ -609,16 +609,16 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: notfound.html openlibrary/fastapi/tags.py
+#: notfound.html
 #, python-format
 msgid "%(path)s is not found"
 msgstr ""
 
-#: notfound.html notfound.html.jinja
+#: notfound.html
 msgid "404 - Page Not Found"
 msgstr ""
 
-#: notfound.html notfound.html.jinja
+#: notfound.html
 #, python-format
 msgid "%(path)s does not exist."
 msgstr ""
@@ -4429,7 +4429,7 @@ msgstr ""
 msgid "Nothing is public until the start date. Without one, the project is a draft you can check first."
 msgstr ""
 
-#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja type/tag/view.html.jinja type/user/edit.html
+#: contribute/admin/new.html.jinja contribute/admin/project.html.jinja type/tag/view.html type/user/edit.html
 msgid "Description"
 msgstr ""
 
@@ -4745,7 +4745,7 @@ msgstr ""
 msgid "The project runs from the start of its start date through the end of its end date, UTC. A future start date schedules it; no start date makes it a draft. Either takes a live project off the Tasks page."
 msgstr ""
 
-#: contribute/admin/project.html.jinja databarDiff.html databarEdit.html.jinja databarTemplate.html databarView.html.jinja lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
+#: contribute/admin/project.html.jinja databarDiff.html databarEdit.html.jinja databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "History"
 msgstr ""
 
@@ -6887,7 +6887,7 @@ msgstr ""
 msgid "Orphaned Edition"
 msgstr ""
 
-#: databarHistory.html databarView.html.jinja type/edition/compact_title.html
+#: databarHistory.html databarView.html type/edition/compact_title.html
 msgid "Edit this page"
 msgstr ""
 
@@ -7392,20 +7392,20 @@ msgstr ""
 msgid "Tag Deputy"
 msgstr ""
 
-#: type/tag/view.html.jinja
+#: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
 msgstr ""
 
-#: type/tag/view.html.jinja
+#: type/tag/view.html
 msgid "Tag Body"
 msgstr ""
 
-#: type/tag/view.html.jinja
+#: type/tag/view.html
 msgid "URL Slugs"
 msgstr ""
 
-#: type/tag/view.html.jinja
+#: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
 msgstr ""
@@ -8079,16 +8079,16 @@ msgstr ""
 msgid "View this page (exit Edit mode)"
 msgstr ""
 
-#: databarHistory.html databarView.html.jinja
+#: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
 msgstr ""
 
-#: databarHistory.html databarView.html.jinja
+#: databarHistory.html databarView.html
 msgid "Last edited anonymously"
 msgstr ""
 
-#: databarTemplate.html databarView.html.jinja
+#: databarTemplate.html databarView.html
 msgid "View this template's edit history"
 msgstr ""
 

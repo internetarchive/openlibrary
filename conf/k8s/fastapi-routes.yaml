@@ -18,8 +18,6 @@ fastapiRoutes:
     - GET /status
     - GET /tag/add
     - GET /tags
-    - GET /tags/{key}
-    - GET /tags/{key}/{slug}
     - GET /tasks/admin
     - GET POST /tasks/admin/new
     - GET /tasks/admin/{slug}
