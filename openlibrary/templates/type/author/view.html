@@ -30,6 +30,8 @@ $ books_count = books.num_found or 0
 
 $ description = _("Author of %(book_titles)s", book_titles=book_list_excerpt)
 $putctx("description", description)
+$if page.is_created_by_new_account():
+    $ putctx('robots', 'noindex')
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="books.author")
