@@ -37,8 +37,8 @@ import logging
 import re
 import time
 from typing import TYPE_CHECKING, Any, NamedTuple
-from xml.etree import ElementTree as ET
 
+import lxml.etree as ET
 import requests
 from bs4 import BeautifulSoup
 
@@ -124,7 +124,11 @@ def parse_sitemap(xml: bytes) -> list[SitemapEntry]:
     changes the sitemap's shape, the parse test breaks rather than a live harvest
     silently returning nothing.
     """
-    root = ET.fromstring(xml)
+    # The sitemap bytes come straight off the network, so parse with entity
+    # resolution disabled (the repo's house pattern for untrusted XML; see
+    # openlibrary/plugins/importapi/code.py and openlibrary/catalog/get_ia.py)
+    # to close off entity-expansion DoS.
+    root = ET.fromstring(xml, parser=ET.XMLParser(resolve_entities=False))
     entries: list[SitemapEntry] = []
     for url_el in root.findall("sm:url", _SITEMAP_NS):
         loc_el = url_el.find("sm:loc", _SITEMAP_NS)

@@ -331,6 +331,25 @@ class TestConnectorConfig:
             cli.register_command(ol_config="x.yml", provider="lenny")
         assert "stale connector config" not in caplog.text
 
+    def test_changed_feed_type_warns_even_though_it_is_a_column_not_data(self, registry_db, caplog):
+        """feed_type lives in its own column, not the data blob.
+
+        A stale feed_type is the worst drift: the harvester keeps dispatching the
+        old adapter. So it must be caught like every other connector-config key,
+        even though it is not stored in ``data``.
+        """
+        FeedRegistry.register(
+            "bookdash",
+            cli.FEEDS["bookdash"]["url"],
+            feed_type="opds",  # wrong: the real adapter is "bookdash"
+            id_strategy=cli.FEEDS["bookdash"]["id_strategy"],
+            cursor_style=cli.FEEDS["bookdash"]["cursor_style"],
+        )
+        with caplog.at_level(logging.WARNING):
+            cli.register_command(ol_config="x.yml", provider="bookdash")
+        assert "stale connector config" in caplog.text
+        assert "feed_type" in caplog.text
+
 
 class TestIdempotence:
     def test_re_running_does_not_duplicate(self, registry_db):

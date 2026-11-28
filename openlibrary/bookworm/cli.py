@@ -334,6 +334,12 @@ def register_command(
             drift = {
                 k: v for k, v in {"id_strategy": spec["id_strategy"], "cursor_style": spec["cursor_style"], **extra}.items() if (existing.data or {}).get(k) != v
             }
+            # feed_type is a column, not part of the data blob, so it misses the
+            # comparison above; without this a changed feed_type would silently
+            # keep dispatching the old adapter (see registry.FEED_TYPE_OPDS).
+            feed_type = spec.get("feed_type", FEED_TYPE_OPDS)
+            if existing.feed_type != feed_type:
+                drift["feed_type"] = feed_type
             if drift:
                 logger.warning(
                     "%s is registered with stale connector config; %s will NOT be applied. Delete the row and re-register to pick it up.",
