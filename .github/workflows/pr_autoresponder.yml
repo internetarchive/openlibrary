@@ -37,13 +37,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout below runs with NO `
         required: true
         type: string
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-  # Must be `write`: GitHub accepts only `write` or `none` here, so `read` made the whole
-  # file unparsable, and `none` would break the OIDC fetch described above.
-  id-token: write
+permissions: {}
 
 concurrency:
   # `github.event.pull_request.number` is empty on workflow_dispatch, which collapsed
@@ -54,6 +48,13 @@ concurrency:
 jobs:
   respond:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      # Must be `write`: GitHub accepts only `write` or `none` here, so `read` made the whole
+      # file unparsable, and `none` would break the OIDC fetch described above.
+      id-token: write
     # openlibrary-bot's account type is "User", not "Bot" (GitHub API confirms
     # this), so `user.type != 'Bot'` alone does NOT exclude it -- it only
     # catches genuine GitHub Apps (dependabot[bot], renovate[bot], etc). The

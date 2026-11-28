@@ -9,8 +9,7 @@ on:
         description: "openlibrary-i18n branch, tag or full 40-character SHA to bake translations from"
         default: main
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: olbase-${{ github.ref }}
@@ -39,6 +38,8 @@ jobs:
     needs: i18n-ref
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       digest: ${{ steps.build.outputs.digest }}
 
@@ -86,6 +87,8 @@ jobs:
     needs: i18n-ref
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
 
     steps:
       # Docker tags only allow [A-Za-z0-9_.-], so e.g. "7450/foo" becomes "7450-foo"

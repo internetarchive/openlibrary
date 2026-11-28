@@ -7,12 +7,13 @@ on:
   # That includes a stacked PR, which targets the branch of the PR below it.
   pull_request:
   workflow_dispatch:
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   javascript_tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,6 +53,8 @@ jobs:
   # doesn't skip the browser tests. Builds only JS and CSS, which is all it measures.
   bundlesize:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

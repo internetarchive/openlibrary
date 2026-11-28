@@ -11,6 +11,7 @@ on:
     - cron: '0 14 * * *'
     - cron: '0 2 * * *'
   workflow_dispatch:
+permissions: {}
 env:
   NODE_VERSION: '24'
 concurrency:

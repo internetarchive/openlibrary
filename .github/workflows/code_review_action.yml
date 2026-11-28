@@ -60,6 +60,8 @@ on:
         type: boolean
         default: false
 
+permissions: {}
+
 concurrency:
   # One group per PR, and runs are never cancelled. A run cancelled after posting its review but
   # before `status` would leave the head without a status. A second trigger waits instead, and on
