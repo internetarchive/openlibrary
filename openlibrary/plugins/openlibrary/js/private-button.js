@@ -1,12 +1,11 @@
 import { showToast } from '../../../components/lit/toast.js';
+import { _ } from './i18n.js';
 
 export function initPrivateButtons(buttons) {
     buttons.forEach(button => {
         button.addEventListener('click', event => {
             event.preventDefault();
-            // The wrapper's title carries the translated explanation.
-            const message = button.closest('[title]')?.title || 'This patron has not enabled following';
-            showToast(message);
+            showToast(_('This patron has not enabled following'));
         });
     });
 }

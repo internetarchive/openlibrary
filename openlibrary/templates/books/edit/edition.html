@@ -189,7 +189,7 @@ $jsdef render_work_autocomplete_item(item):
         <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
-            <div class="formElement" id="roles" data-config="$json_encode({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
+            <div class="formElement" id="roles">
                 <div class="label">
                     <label for="select-role">$_("List the people involved")</label>
                     <span class="tip"></span>
@@ -427,16 +427,7 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
 </fieldset>
-$ config = ({
-    $ 'Please select an identifier.': _('Please select an identifier.'),
-    $ 'You need to give a value to ID.': _('You need to give a value to ID.'),
-    $ 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'),
-    $ 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'),
-    $ 'That ID already exists for this edition.': _('That ID already exists for this edition.'),
-    $ 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'),
-    $ 'Invalid ID format': _('Invalid ID format')
-$ })
-<fieldset class="major" id="identifiers" data-config="$json_encode(config)">
+<fieldset class="major" id="identifiers">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
@@ -458,7 +449,7 @@ $ })
     </div>
 </fieldset>
 
-<fieldset class="major" id="classifications" data-config="$json_encode({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
+<fieldset class="major" id="classifications">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 

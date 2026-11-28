@@ -1,16 +1,33 @@
+import { _ } from '../i18n.js';
+
+/** Escape a translated string for the markup below. */
+const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+function esc(text) {
+    return text.replace(/[&<>\u0022\u0027]/g, ch => ENTITIES[ch]);
+}
+
 /**
  * Returns the HMTL for the Bulk Tagger component.
  *
  * @returns HTML for the bulk tagging form
  */
 export function renderBulkTagger() {
+    const heading = esc(_('Manage Subjects'));
+    const filterPlaceholder = esc(_('Filter subjects e.g. Epic'));
+    const [createBefore, createAfter] = esc(_('Create new subject %(name)s with type:')).split('%(name)s');
+    const typeSubject = esc(_('subject'));
+    const typePerson = esc(_('person'));
+    const typePlace = esc(_('place'));
+    const typeTime = esc(_('time'));
+    const typeCollection = esc(_('collection'));
+    const submit = esc(_('Submit'));
     return `<form action="/tags/bulk_tag_works" method="post" class="bulk-tagging-form hidden">
         <div class="form-header">
-            <p>Manage Subjects</p>
+            <p>${heading}</p>
             <div class="close-bulk-tagging-form">x</div>
         </div>
         <div class="search-subject-container">
-            <input type="text" class="subjects-search-input" placeholder='Filter subjects e.g. Epic'>
+            <input type="text" class="subjects-search-input" placeholder="${filterPlaceholder}">
         </div>
 
         <input name="work_ids" value="" type="hidden">
@@ -22,19 +39,19 @@ export function renderBulkTagger() {
             <div class="subjects-search-results"></div>
             <div class="create-new-subject-tag">
             <div class="search-subject-row-name search-subject-row-name-create hidden">
-                <div class="search-subject-row-name-create-p">Create new subject <strong class="subject-name"></strong> with type:</div>
+                <div class="search-subject-row-name-create-p">${createBefore}<strong class="subject-name"></strong>${createAfter ?? ''}</div>
                 <div class="search-subject-row-name-create-select">
-                    <div class="subject-type-option subject-type-option--subject" data-tag-type="subjects">subject</div>
-                    <div class="subject-type-option subject-type-option--person" data-tag-type="subject_people">person</div>
-                    <div class="subject-type-option subject-type-option--place" data-tag-type="subject_places">place</div>
-                    <div class="subject-type-option subject-type-option--time" data-tag-type="subject_times">time</div>
-                    <div class="subject-type-option subject-type-option--collection" data-tag-type="collections">collection</div>
+                    <div class="subject-type-option subject-type-option--subject" data-tag-type="subjects">${typeSubject}</div>
+                    <div class="subject-type-option subject-type-option--person" data-tag-type="subject_people">${typePerson}</div>
+                    <div class="subject-type-option subject-type-option--place" data-tag-type="subject_places">${typePlace}</div>
+                    <div class="subject-type-option subject-type-option--time" data-tag-type="subject_times">${typeTime}</div>
+                    <div class="subject-type-option subject-type-option--collection" data-tag-type="collections">${typeCollection}</div>
                 </div>
             </div>
         </div>
         </div>
         <div class="submit-tags-section">
-            <button type="submit" class="bulk-tagging-submit cta-btn cta-btn--primary" disabled>Submit</button>
+            <button type="submit" class="bulk-tagging-submit cta-btn cta-btn--primary" disabled>${submit}</button>
         </div>
     </form>`;
 }

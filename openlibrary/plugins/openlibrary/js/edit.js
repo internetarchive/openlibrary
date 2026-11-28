@@ -70,15 +70,14 @@ function getJqueryElements(selector) {
 
 export function initRoleValidation() {
     initJqueryRepeat();
-    const dataConfig = JSON.parse(document.querySelector('#roles').dataset.config);
     $('#roles').repeat({
         vars: { prefix: 'edition--' },
         validate: function (data) {
             if (data.role === '' || data.role === '---') {
-                return error('#role-errors', '#select-role', dataConfig['Please select a role.']);
+                return error('#role-errors', '#select-role', _('Please select a role.'));
             }
             if (data.name === '') {
-                return error('#role-errors', '#role-name', dataConfig['You need to give this ROLE a name.'].replace(/ROLE/, data.role));
+                return error('#role-errors', '#role-name', fmt(_('You need to give this %(role)s a name.'), { role: data.role }));
             }
             $('#role-errors').hide();
             $('#select-role, #role-name').val('');
@@ -121,15 +120,14 @@ export function isbnConfirmAdd(data) {
  * Called by validateIdentifiers(), validates the addition of new
  * ISBN 10 to an edition.
  * @param {Object} data  data from the input form
- * @param {Object} dataConfig  object mapping error messages to their string values
  * @param {String} label  formatted value of the identifier type name (ISBN 10)
  * @returns {boolean}  true if ISBN passes validation, else returns false and displays appropriate error
  */
-function validateIsbn10(data, dataConfig, label) {
+function validateIsbn10(data, label) {
     data.value = parseIsbn(data.value);
 
     if (!isFormatValidIsbn10(data.value)) {
-        return error('#id-errors', '#id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', fmt(_('%(name)s must be exactly 10 characters [0-9] or X.'), { name: label }));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -145,15 +143,14 @@ function validateIsbn10(data, dataConfig, label) {
  * Called by validateIdentifiers(), validates the addition of new
  * ISBN 13 to an edition.
  * @param {Object} data  data from the input form
- * @param {Object} dataConfig  object mapping error messages to their string values
  * @param {String} label  formatted value of the identifier type name (ISBN 13)
  * @returns {boolean}  true if ISBN passes validation, else returns false and displays appropriate error
  */
-function validateIsbn13(data, dataConfig, label) {
+function validateIsbn13(data, label) {
     data.value = parseIsbn(data.value);
 
     if (isFormatValidIsbn13(data.value) === false) {
-        return error('#id-errors', '#id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', fmt(_('%(name)s must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'), { name: label }));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -169,16 +166,15 @@ function validateIsbn13(data, dataConfig, label) {
  * Called by validateIdentifiers(), validates the addition of new
  * LCCN to an edition.
  * @param {Object} data  data from the input form
- * @param {Object} dataConfig  object mapping error messages to their string values
  * @param {String} label  formatted value of the identifier type name (LCCN)
  * @returns {boolean}  true if LCCN passes validation, else returns false and displays appropriate error
  */
-function validateLccn(data, dataConfig, label) {
+function validateLccn(data, label) {
     data.value = parseLccn(data.value);
 
     if (isValidLccn(data.value) === false) {
         $('#id-value').val(data.value);
-        return error('#id-errors', '#id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', fmt(_('Invalid %(name)s format'), { name: label }));
     }
     return true;
 }
@@ -191,27 +187,25 @@ function validateLccn(data, dataConfig, label) {
  * @returns {boolean}  true if identifier passes validation
  */
 export function validateIdentifiers(data) {
-    const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
-
     if (data.name === '' || data.name === '---') {
         $('#id-value').val(data.value);
-        return error('#id-errors', '#select-id', dataConfig['Please select an identifier.']);
+        return error('#id-errors', '#select-id', _('Please select an identifier.'));
     }
     const label = $('#select-id').find(`option[value='${data.name}']`).html();
     if (data.value === '') {
-        return error('#id-errors', '#id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', fmt(_('You need to give a value to %(name)s.'), { name: label }));
     }
     if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
-        return error('#id-errors', '#id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', fmt(_('%(name)s ids cannot contain whitespace.'), { name: label }));
     }
 
     let validId = true;
     if (data.name === 'isbn_10') {
-        validId = validateIsbn10(data, dataConfig, label);
+        validId = validateIsbn10(data, label);
     } else if (data.name === 'isbn_13') {
-        validId = validateIsbn13(data, dataConfig, label);
+        validId = validateIsbn13(data, label);
     } else if (data.name === 'lccn') {
-        validId = validateLccn(data, dataConfig, label);
+        validId = validateLccn(data, label);
     }
 
     // checking for duplicate identifier entry on all identifier types
@@ -222,7 +216,7 @@ export function validateIdentifiers(data) {
         if (isbnOverride.get()) {
             isbnOverride.clear();
         }
-        return error('#id-errors', '#id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
+        return error('#id-errors', '#id-value', fmt(_('That %(name)s already exists for this edition.'), { name: label }));
     }
 
     if (validId === false) return false;
@@ -232,8 +226,6 @@ export function validateIdentifiers(data) {
 
 export function initClassificationValidation() {
     initJqueryRepeat();
-    const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
-
     // Prevent form submission on Enter for classification fields
     $('#classification-value').on('keydown', function (e) {
         if (e.key === 'Enter') {
@@ -247,11 +239,11 @@ export function initClassificationValidation() {
         vars: { prefix: 'edition--' },
         validate: function (data) {
             if (data.name === '' || data.name === '---') {
-                return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
+                return error('#classification-errors', '#select-classification', _('Please select a classification.'));
             }
             if (data.value === '') {
                 const label = $('#select-classification').find(`option[value='${data.name}']`).html();
-                return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
+                return error('#classification-errors', '#classification-value', fmt(_('You need to give a value to %(name)s.'), { name: label }));
             }
             $('#classification-errors').hide();
             $('#select-classification, #classification-value').val('');
