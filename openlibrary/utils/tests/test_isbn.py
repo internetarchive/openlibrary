@@ -3,6 +3,7 @@ import pytest
 from openlibrary.utils.isbn import (
     get_isbn_10_and_13,
     get_isbn_10s_and_13s,
+    get_isbn_field,
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
     normalize_identifier,
@@ -125,3 +126,25 @@ def test_isbn_13_to_isbn_10_returns_none_for_979_prefix() -> None:
     assert isbn_13_to_isbn_10("9791032310014") is None
     # Sanity check: a 978-prefix ISBN-13 still converts correctly
     assert isbn_13_to_isbn_10("9780590353427") == "059035342X"
+
+
+@pytest.mark.parametrize(
+    ("isbn", "expected"),
+    [
+        # A hyphenated ISBN 10 is 13 characters long, so the field has to follow
+        # the canonical form rather than the length of the string as given.
+        ("0-940787-08-3", ("isbn_10", "0940787083")),
+        ("978-0-940787-08-7", ("isbn_13", "9780940787087")),
+        ("0940787083", ("isbn_10", "0940787083")),
+        ("9780940787087", ("isbn_13", "9780940787087")),
+        ("184115186x", ("isbn_10", "184115186X")),
+        ("123-456-789-X ", ("isbn_10", "123456789X")),
+        # Neither length once canonical, so neither field.
+        ("", (None, None)),
+        ("BAD-ISBN", (None, None)),
+        ("97809407870", (None, None)),
+        ("12345678901234", (None, None)),
+    ],
+)
+def test_get_isbn_field(isbn, expected) -> None:
+    assert get_isbn_field(isbn) == expected

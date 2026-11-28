@@ -90,6 +90,32 @@ def get_isbn_10_and_13(isbn: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def get_isbn_field(isbn: str) -> tuple[str, str] | tuple[None, None]:
+    """
+    Takes an ISBN 10 or 13 and returns the Open Library edition field it belongs
+    in together with the ISBN in canonical form, or (None, None) if the value is
+    an ISBN of neither length.
+
+    The field follows the canonical form, not the length of the string as given:
+    a hyphenated ISBN 10 is 13 characters long, so counting the raw string files
+    it as an ISBN 13.
+
+    >>> get_isbn_field("0-940787-08-3")
+    ('isbn_10', '0940787083')
+    >>> get_isbn_field("978-0-940787-08-7")
+    ('isbn_13', '9780940787087')
+    >>> get_isbn_field("")
+    (None, None)
+    """
+    match len(canonical_isbn := normalize_isbn(isbn) or ""):
+        case 10:
+            return "isbn_10", canonical_isbn
+        case 13:
+            return "isbn_13", canonical_isbn
+        case _:
+            return None, None
+
+
 def normalize_identifier(
     identifier: str,
 ) -> tuple[str | None, str | None, str | None]:

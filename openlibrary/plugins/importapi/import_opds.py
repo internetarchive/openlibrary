@@ -3,6 +3,7 @@ OL Import API OPDS parser
 """
 
 from openlibrary.plugins.importapi import import_edition_builder
+from openlibrary.utils.isbn import get_isbn_field
 
 
 def parse_string(e, key):
@@ -23,11 +24,7 @@ def parse_identifier(e, key):
     isbn_str = "urn:ISBN:"
     ia_str = "http://www.archive.org/details/"
     if val.startswith(isbn_str):
-        isbn = val[len(isbn_str) :]
-        if len(isbn) == 10:
-            return ("isbn_10", isbn)
-        elif len(isbn) == 13:
-            return ("isbn_13", isbn)
+        return get_isbn_field(val[len(isbn_str) :])
     elif val.startswith(ia_str):
         return ("ocaid", val[len(ia_str) :])
     else:
