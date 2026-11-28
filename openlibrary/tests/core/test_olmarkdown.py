@@ -13,8 +13,8 @@ def test_olmarkdown():
 
     assert md("**foo**") == p("<strong>foo</strong>")
     assert md("<b>foo</b>") == p("<b>foo</b>")
-    assert md("https://openlibrary.org") == p('<a href="https://openlibrary.org" rel="nofollow">https://openlibrary.org</a>')
-    assert md("http://example.org") == p('<a href="http://example.org" rel="nofollow">http://example.org</a>')
+    assert md("https://openlibrary.org") == p('<a href="https://openlibrary.org" rel="ugc nofollow">https://openlibrary.org</a>')
+    assert md("http://example.org") == p('<a href="http://example.org" rel="ugc nofollow">http://example.org</a>')
 
     # why extra spaces?
     assert md("a\nb") == p("a<br/>\n   b")
@@ -183,7 +183,7 @@ def test_olmarkdown_link_url_with_parentheses():
         return "<p>%s\n</p>" % html
 
     wiki = "https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"
-    anchor = '<a href="%s" rel="nofollow">George A. Kennedy</a>' % wiki
+    anchor = '<a href="%s" rel="ugc nofollow">George A. Kennedy</a>' % wiki
 
     # The three forms named in the issue render identically, as they do in
     # CommonMark and on GitHub: as typed, backslash-escaped (what the editor
@@ -191,24 +191,26 @@ def test_olmarkdown_link_url_with_parentheses():
     assert md("[George A. Kennedy](%s)" % wiki) == p(anchor)
     assert md(r"[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_\(sinologist\))") == p(anchor)
     assert md("[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29)") == p(
-        '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29" rel="nofollow">George A. Kennedy</a>'
+        '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29" rel="ugc nofollow">George A. Kennedy</a>'
     )
 
     # The link ends at its own closing paren: surrounding prose, including
     # later parentheses, stays outside the anchor.
     body = r"spouse of [George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_\(sinologist\)), a scholar."
     assert md(body) == p("spouse of %s, a scholar." % anchor)
-    assert md("[link](https://example.com/a(b)) then (unrelated) text.") == p('<a href="https://example.com/a(b)" rel="nofollow">link</a> then (unrelated) text.')
+    assert md("[link](https://example.com/a(b)) then (unrelated) text.") == p(
+        '<a href="https://example.com/a(b)" rel="ugc nofollow">link</a> then (unrelated) text.'
+    )
 
     # Links without parentheses, titled links, and parenthesised prose are
     # unaffected.
-    assert md("[plain](https://example.com/foo)") == p('<a href="https://example.com/foo" rel="nofollow">plain</a>')
-    assert md('[a link](https://example.com/foo "a title")') == p('<a href="https://example.com/foo" title="a title" rel="nofollow">a link</a>')
+    assert md("[plain](https://example.com/foo)") == p('<a href="https://example.com/foo" rel="ugc nofollow">plain</a>')
+    assert md('[a link](https://example.com/foo "a title")') == p('<a href="https://example.com/foo" title="a title" rel="ugc nofollow">a link</a>')
     assert md("no link here (just parens) at all") == p("no link here (just parens) at all")
 
 
 def _a(text, url="https://example.com"):
-    return f'<a href="{url}" rel="nofollow">{text}</a>'
+    return f'<a href="{url}" rel="ugc nofollow">{text}</a>'
 
 
 @pytest.mark.parametrize(
