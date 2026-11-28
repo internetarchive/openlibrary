@@ -167,7 +167,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
       <a id="overview" name="overview" class="section-anchor section-anchor--no-height"></a>
       <!-- (desktop only) -->
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
-      
+
       $# Show trending badge when trending score > 5
       $if edition and edition.get('trending_z_score', 0) > 5:
           <div class="trending-badge-container">
