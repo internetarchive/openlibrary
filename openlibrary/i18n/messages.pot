@@ -12181,6 +12181,15 @@ msgstr ""
 msgid "You are not allowed to add a Book URL."
 msgstr ""
 
+#: openlibrary/plugins/upstream/addbook.py
+msgid "Daily limit reached"
+msgstr ""
+
+#: openlibrary/plugins/upstream/addbook.py
+#, python-format
+msgid "New accounts can add up to %(count)d books a day. Please try again tomorrow."
+msgstr ""
+
 #: openlibrary/plugins/upstream/borrow.py
 msgid "this book"
 msgstr ""
