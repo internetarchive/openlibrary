@@ -173,7 +173,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <ol-read-more class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
+        <ol-read-more class="book-description">
           $:sanitize(format(overview_desc))
         </ol-read-more>
       $elif edition:
@@ -281,7 +281,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
             <div class="section">
               <h3>$_("Table of Contents")</h3>
               $ component_times['TableOfContents'] = time()
-              <ol-read-more max-height="200px" style="min-height: 241px" more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more max-height="200px" style="min-height: 241px">
                 $:macros.TableOfContents(table_of_contents, ocaid)
               </ol-read-more>
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
@@ -399,7 +399,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <ol-read-more more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more>
                 $:sanitize(format(work.description))
               </ol-read-more>
 

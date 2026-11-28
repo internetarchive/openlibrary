@@ -1,7 +1,7 @@
 {% macro ol_pagination(page, total_pages, size="medium") %}
     {% if total_pages > 1 %}
         <div class="ol-pagination-wrapper">
-            <ol-pagination total-pages="{{ total_pages }}" current-page="{{ page }}" size="{{ size }}" label-previous-page="{{ _('Go to previous page') }}" label-next-page="{{ _('Go to next page') }}" label-go-to-page="{{ _('Go to page {page}') }}" label-current-page="{{ _('Page {page}, current page') }}" label-pagination="{{ _('Pagination') }}">
+            <ol-pagination total-pages="{{ total_pages }}" current-page="{{ page }}" size="{{ size }}">
             </ol-pagination>
         </div>
     {% endif %}

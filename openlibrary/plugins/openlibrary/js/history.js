@@ -1,3 +1,5 @@
+import { _, fmt } from './i18n.js';
+
 /**
  * History page revision comparison.
  *
@@ -10,8 +12,7 @@
  */
 export function initHistory(pageHistoryElement) {
     const bar = document.getElementById('pageHistoryCompare');
-    if (!bar || !pageHistoryElement.dataset.i18n) return;
-    const i18n = JSON.parse(pageHistoryElement.dataset.i18n);
+    if (!bar) return;
 
     const compareLink = bar.querySelector('[data-compare-link]');
     const clearButton = bar.querySelector('[data-compare-clear]');
@@ -88,7 +89,7 @@ export function initHistory(pageHistoryElement) {
             return;
         }
         bar.hidden = false;
-        compareLink.textContent = i18n.compare_label.replace('%(a)s', first).replace('%(b)s', second || '?');
+        compareLink.textContent = fmt(_('Compare revisions %(a)s and %(b)s'), { a: first, b: second || '?' });
 
         if (second && first !== second) {
             const [lower, higher] = first < second ? [first, second] : [second, first];
