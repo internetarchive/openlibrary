@@ -257,7 +257,7 @@ def _substitution_errors(message: Message, *, numbers_only: bool = False) -> lis
             continue
         if isinstance(args, dict) and any(p != "%%" and not p.startswith("%(") for p in _parse_cfmt(msgstr)):
             # A mapping fills a positional placeholder with its own repr instead of raising
-            errors.append(f"{msgstr!r} uses positional placeholders but its msgid has none")
+            errors.append(f"{msgstr!r} uses positional placeholders but its msgid {'is named' if args else 'has none'}")
     return errors
 
 
