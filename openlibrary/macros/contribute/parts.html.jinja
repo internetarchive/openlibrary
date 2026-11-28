@@ -323,11 +323,7 @@
                autocomplete="off"
                data-id-input
                data-id-field="{{ task.field }}"
-               value="{{ value }}"
-               data-msg-ok="{{ _('That looks like a valid number.') }}"
-               data-msg-tidied="{{ _('Will be stored as %(value)s.', value='__VALUE__') }}"
-               data-msg-url="{{ _('Paste only the number, not the web address.') }}"
-               data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
+               value="{{ value }}" />
     {% elif languages %}
         <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ field_guide.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
         </ol-options-popover>

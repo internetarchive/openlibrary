@@ -6,6 +6,8 @@
  * Markup mirrors the ``feed_row`` macro in macros/contribute/parts.html.jinja.
  */
 
+import { _, fmt } from './i18n.js';
+
 const MAX_ROWS = 25;
 const GAP_MS = [3500, 7000];
 // How long to wait before asking again when there are no edits to show.
@@ -36,10 +38,9 @@ export function formatWhen(iso) {
 /**
  * Build one feed row. Text goes in via textContent, never HTML.
  * @param {object} row - a row from /tasks/feed.json
- * @param {string} byTemplate - the translated "by %(authors)s"
  * @returns {HTMLLIElement}
  */
-function buildRow(row, byTemplate) {
+function buildRow(row) {
     const el = (tag, className, text) => {
         const node = document.createElement(tag);
         if (className) node.className = className;
@@ -79,7 +80,7 @@ function buildRow(row, byTemplate) {
     const link = el('a', 'contrib-feed__link', row.title);
     link.href = row.key;
     title.append(link);
-    if (row.authors) title.append(' ', el('span', 'contrib-feed__by', byTemplate.replace('%(authors)s', row.authors)));
+    if (row.authors) title.append(' ', el('span', 'contrib-feed__by', fmt(_('by %(authors)s'), { authors: row.authors })));
 
     const line = el('div', 'contrib-feed__line');
     line.append(el('span', 'contrib-feed__editor', row.editor), ' ', el('span', undefined, row.comment || row.action));
@@ -98,7 +99,7 @@ function buildRow(row, byTemplate) {
  * @param {object} row
  */
 function insertRow(list, row) {
-    const li = buildRow(row, list.dataset.feedBy || 'by %(authors)s');
+    const li = buildRow(row);
     list.querySelectorAll('.is-new').forEach(prev => prev.classList.remove('is-new'));
     li.classList.add('is-entering', 'is-new');
     list.prepend(li);

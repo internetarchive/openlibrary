@@ -68,18 +68,15 @@
                     <input type="checkbox"
                            class="new-accounts__select-all"
                            aria-label="{{ _('Select all accounts') }}">
-                    <span class="new-accounts__selected"
-                          aria-live="polite"
-                          data-select-all="{{ _('Select all') }}"
-                          data-selected-count="{{ _('%(count)s selected', count='__COUNT__') }}">{{ _("Select all") }}</span>
+                    <span class="new-accounts__selected" aria-live="polite">{{ _("Select all") }}</span>
                 </label>
-                <ol-button class="new-accounts__bulk-action" type="submit" name="action" value="block_account" size="small" data-confirm="{{ _('Block the selected accounts?') }}">
+                <ol-button class="new-accounts__bulk-action" type="submit" name="action" value="block_account" size="small">
                     {{ icon("ban", slot="icon-start") }}{{ _("Block") }}
                 </ol-button>
-                <ol-button class="new-accounts__bulk-action" type="submit" name="action" value="block_account_and_revert" size="small" tone="danger" data-confirm="{{ _('Block the selected accounts and revert all their edits?') }}">
+                <ol-button class="new-accounts__bulk-action" type="submit" name="action" value="block_account_and_revert" size="small" tone="danger">
                     {{ icon("undo-2", slot="icon-start") }}{{ _("Block and revert") }}
                 </ol-button>
-                <ol-button class="new-accounts__bulk-action" type="submit" name="action" value="mark_trusted" size="small" variant="ghost" data-confirm="{{ _('Mark the selected accounts trusted? They leave this queue and skip the captcha when adding books.') }}">
+                <ol-button class="new-accounts__bulk-action" type="submit" name="action" value="mark_trusted" size="small" variant="ghost">
                     {{ icon("circle-check", slot="icon-start") }}{{ _("Mark trusted") }}
                 </ol-button>
             </div>
