@@ -6,9 +6,9 @@ import { getLists, subscribeToLists, loadLists, removeListSeeds } from './utils/
 import { redirectToLogin } from './utils/books-api.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { _, translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, lookup } from '../../plugins/openlibrary/js/i18n.js';
 
-export const DEFAULT_LABELS = {
+const STRINGS = {
     onYourLists: _('On your lists'),
     removeFromList: _('Remove from %(name)s'),
     removedFromList: _('Removed from %(name)s'),
@@ -32,7 +32,6 @@ export const DEFAULT_LABELS = {
  *
  * @prop {Array<String>} seedKeys - The book's keys a list may hold: work and
  *     edition, or an author's key. Attribute: `seed-keys` (JSON).
- * @prop {Object} labels - Translated overrides for DEFAULT_LABELS (JSON).
  *
  * @fires ol-list-change - After the book is taken out of a list here.
  *     detail: { key, name, seedKeys, member: false }
@@ -43,7 +42,6 @@ export const DEFAULT_LABELS = {
 export class OlBookLists extends LitElement {
     static properties = {
         seedKeys: { type: Array, attribute: 'seed-keys' },
-        labels: { type: Object },
         _lists: { state: true },
         _announcement: { state: true }
     };
@@ -139,7 +137,6 @@ export class OlBookLists extends LitElement {
     constructor() {
         super();
         this.seedKeys = [];
-        this.labels = {};
         this._lists = getLists();
         this._announcement = '';
         this._order = [];
@@ -174,7 +171,7 @@ export class OlBookLists extends LitElement {
     }
 
     t(key, vars) {
-        return translate(this.labels, DEFAULT_LABELS, key, vars);
+        return lookup(STRINGS, key, vars);
     }
 
     /** One row per list, with the page's keys that list holds. */

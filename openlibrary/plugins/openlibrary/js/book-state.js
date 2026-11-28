@@ -20,7 +20,7 @@
  * @module book-state
  */
 import { SHELF_LABEL, setShelf } from '../../../components/lit/utils/books-api.js';
-import { _, translate } from './i18n.js';
+import { _, lookup } from './i18n.js';
 import { debounce } from './nonjquery_utils.js';
 import { showToast } from '../../../components/lit/toast.js';
 import { buildPartialsUrl } from './utils';
@@ -29,8 +29,8 @@ import { buildPartialsUrl } from './utils';
 export const BATCH_SIZE = 100;
 /** How long insertions are pooled before a pass. Long enough to outlast a lazy carousel's fetch. */
 export const HYDRATE_DELAY = 100;
-/** The left-shelf notice's strings, keyed like the shelf components' labels. */
-const NOTICE_LABELS = {
+/** The left-shelf notice's strings, keyed like the shelf components' strings. */
+const NOTICE_STRINGS = {
     wantToRead: _('Want to Read'),
     currentlyReading: _('Currently Reading'),
     alreadyRead: _('Already Read'),
@@ -97,12 +97,12 @@ export function applyState(button, state) {
 }
 
 /**
- * @param {string} key A key of NOTICE_LABELS.
+ * @param {string} key A key of NOTICE_STRINGS.
  * @param {Object<string, string|number>} [vars] Values for its %(name)s placeholders.
  * @returns {string}
  */
 function t(key, vars) {
-    return translate(null, NOTICE_LABELS, key, vars);
+    return lookup(NOTICE_STRINGS, key, vars);
 }
 
 /**

@@ -1,8 +1,8 @@
 # i18n Translation Pipeline — which repo is authoritative
 
 > How Open Library's UI translations are stored, generated, and shipped to production. Companion:
-> [i18n-rendering](i18n-rendering.md) covers *how* a translated string reaches the page (Templetor, Jinja, the
-> `data-i18n` JS bridge); this page is *where translations live* and how they flow.
+> [i18n-rendering](i18n-rendering.md) covers *how* a translated string reaches the page (Templetor, Jinja,
+> `_()` in browser JS); this page is *where translations live* and how they flow.
 
 **Before editing a `.po` file, know which repo owns it.** Two repositories hold Open Library's
 translations, and which one you touch depends on what you are doing.

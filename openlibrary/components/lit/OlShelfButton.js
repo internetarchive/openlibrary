@@ -1,15 +1,15 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { _, translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, lookup } from '../../plugins/openlibrary/js/i18n.js';
 import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
+import { STRINGS as ACTION_STRINGS } from './OlShelfActions.js';
 import './OlIcon.js';
 
-export const DEFAULT_LABELS = {
-    ...ACTION_LABELS,
+const STRINGS = {
+    ...ACTION_STRINGS,
     save: _('Save %(title)s to your reading log'),
     saved: _('%(title)s is on your reading log'),
     // The main half's accessible name: the shelf it toggles plus the book, so
@@ -79,7 +79,6 @@ export const DEFAULT_LABELS = {
  * @prop {Boolean} hideRating - Always drop the popover's stars. Without it
  *     the popover drops them itself while a visible star form for the same
  *     book is on the page
- * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
  *     rolled back. detail: { key, shelf, rating }
@@ -115,7 +114,6 @@ export class OlShelfButton extends LitElement {
         eventId: { type: Number, attribute: 'event-id' },
         userKey: { type: String, attribute: 'user-key' },
         placement: { type: String },
-        labels: { type: Object },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
         pending: { type: Boolean, reflect: true },
@@ -440,7 +438,6 @@ export class OlShelfButton extends LitElement {
         this.shelf = null;
         this.rating = null;
         this.userKey = '';
-        this.labels = {};
         this.hideRating = false;
         this.listsOnly = false;
         this.pending = false;
@@ -453,7 +450,7 @@ export class OlShelfButton extends LitElement {
     }
 
     t(key, vars) {
-        return translate(this.labels, DEFAULT_LABELS, key, vars);
+        return lookup(STRINGS, key, vars);
     }
 
     /** Read `message` out through the live region; cleared first so a repeat is still a change. */
@@ -496,7 +493,6 @@ export class OlShelfButton extends LitElement {
                 .rating=${this.rating}
                 .readDate=${this.readDate}
                 .eventId=${this.eventId}
-                .labels=${this.labels}
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
                 .anchorElement=${this._glyphShaped ? null : this}
