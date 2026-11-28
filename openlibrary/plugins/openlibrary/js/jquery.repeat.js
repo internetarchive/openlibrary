@@ -1,6 +1,5 @@
 import $ from 'jquery';
 import Template from './template';
-import { isbnOverride } from '../../openlibrary/js/isbnOverride';
 
 /**
  * jquery repeat: jquery plugin to handle repetitive inputs in a form.
@@ -62,8 +61,6 @@ export function init() {
          * @param {jQuery.Event} event
          */
         function onAdd(event) {
-            let data;
-            const isbnOverrideData = isbnOverride.get();
             event.preventDefault();
 
             // if no index, set it to the number of children
@@ -71,19 +68,11 @@ export function init() {
                 nextRowId = elems.display.children().length;
             }
 
-            // If a user confirms adding an ISBN with a failed checksum in
-            // js/edit.js, the {data} object is filled from the
-            // isbnOverrideData object rather than the input form.
-            if (isbnOverrideData) {
-                data = isbnOverrideData;
-                isbnOverride.clear();
-            } else {
-                data = formdata();
-                data.index = nextRowId;
+            const data = formdata();
+            data.index = nextRowId;
 
-                if (options.validate && options.validate(data) === false) {
-                    return;
-                }
+            if (options.validate && options.validate(data) === false) {
+                return;
             }
 
             $.extend(data, options.vars || {});

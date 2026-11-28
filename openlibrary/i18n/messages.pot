@@ -1524,11 +1524,11 @@ msgstr ""
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html edit.js
+#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html
 msgid "Yes"
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html books/edit/edition.html edit.js
+#: LibraryExplorer/components/LibraryToolbar.vue account/privacy.html admin/people/view.html books/edit/edition.html
 msgid "No"
 msgstr ""
 
@@ -9584,46 +9584,12 @@ msgid "You need to give this %(role)s a name."
 msgstr ""
 
 #: edit.js
-#, python-format
-msgid "ISBN %(isbn)s may be invalid. Add it anyway?"
-msgstr ""
-
-#: edit.js
-#, python-format
-msgid "%(name)s must be exactly 10 characters [0-9] or X."
-msgstr ""
-
-#: edit.js
-#, python-format
-msgid "%(name)s must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
-msgstr ""
-
-#: edit.js
-#, python-format
-msgid "Invalid %(name)s format"
-msgstr ""
-
-#: edit.js
-msgid "Please select an identifier."
+msgid "Please select a classification."
 msgstr ""
 
 #: edit.js
 #, python-format
 msgid "You need to give a value to %(name)s."
-msgstr ""
-
-#: edit.js
-#, python-format
-msgid "%(name)s ids cannot contain whitespace."
-msgstr ""
-
-#: edit.js
-#, python-format
-msgid "That %(name)s already exists for this edition."
-msgstr ""
-
-#: edit.js
-msgid "Please select a classification."
 msgstr ""
 
 #: edit.js
