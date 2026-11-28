@@ -574,7 +574,7 @@ def _update_infobase_config():
     server.update_config(config.infobase)
 
 
-def OLConnection() -> client.Connection | ConnectionMiddleware:
+def OLConnection(use_memcache: bool = True) -> client.Connection | ConnectionMiddleware:
     """Create a connection to Open Library infobase server."""
 
     def create_local_connection():
@@ -603,7 +603,7 @@ def OLConnection() -> client.Connection | ConnectionMiddleware:
     else:
         raise Exception("db_parameters are not specified in the configuration")
 
-    if config.get("memcache_servers"):
+    if use_memcache and config.get("memcache_servers"):
         conn = MemcacheMiddleware(conn, config.get("memcache_servers"))
 
     if config.get("upstream_to_www_migration"):
