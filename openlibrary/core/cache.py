@@ -1,10 +1,12 @@
 """Caching utilities."""
 
 import asyncio
+import contextlib
 import functools
 import hashlib
 import inspect
 import json
+import logging
 import random
 import string
 import threading
@@ -32,9 +34,26 @@ __all__ = [
     "memcache_memoize",
     "memoize",
     "singleflight_cache",
+    "wait_for_background_tasks",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
+
+logger = logging.getLogger("openlibrary.cache")
+
+
+@cache_per_event_loop
+def _background_tasks() -> set[asyncio.Task[None]]:
+    """Keep refresh tasks alive without letting another loop await them."""
+    return set()
+
+
+async def wait_for_background_tasks() -> None:
+    """Waits for all in-flight background refresh tasks to complete. Primarily used in tests."""
+    tasks = _background_tasks()
+    while tasks:
+        await asyncio.gather(*list(tasks), return_exceptions=True)
+
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -126,6 +145,171 @@ class memcache_memoize[**P, T]:
                 self.update_async(*args, **kw)
 
         return value
+
+    async def call_many_async(
+        self,
+        args_list: list[tuple],
+        f_async: Callable[..., Awaitable[T]],
+        max_concurrency: int = 10,
+    ) -> list[T]:
+        """Like ``[self(*args) for args in args_list]``, without blocking the event loop.
+
+        ``f_async`` must be an async version of ``self.f``: it is awaited for each cache miss,
+        at most ``max_concurrency`` at a time, and its results go into the same memcache keys
+        that ``self(...)`` reads and writes, so sync and async callers share one cache.
+        Memcache is read and written with one multi-key call each, in a worker thread
+        (the memcache client is blocking). As with ``self(...)``, a value older than
+        ``self.timeout`` is returned as-is and refreshed in the background.
+        Unexpected computation failures propagate after unfinished siblings are
+        cancelled and awaited; this generic helper does not cache error placeholders.
+        """
+        if max_concurrency < 1:
+            raise ValueError(f"max_concurrency must be at least 1, got {max_concurrency}")
+
+        self.stats.calls += len(args_list)
+        if not args_list:
+            return []
+
+        cached = await asyncio.to_thread(self._memcache_get_multi, args_list)
+        semaphore = asyncio.Semaphore(max_concurrency)
+
+        async def compute(args: tuple) -> tuple[tuple, T]:
+            async with semaphore:
+                return args, await f_async(*args)
+
+        num_hits = sum(1 for args in args_list if args in cached)
+        self.stats.hits += num_hits
+        self.stats.updates += len(args_list) - num_hits
+
+        misses = list(dict.fromkeys(args for args in args_list if args not in cached))
+        computed: dict[tuple, T] = {}
+        if misses:
+            miss_tasks = [asyncio.create_task(compute(args)) for args in misses]
+            try:
+                computed_items = await asyncio.gather(*miss_tasks)
+            except BaseException:
+                # gather propagates failures without stopping siblings. Finish their
+                # cancellation before returning control to the failed caller.
+                for miss_task in miss_tasks:
+                    miss_task.cancel()
+                await asyncio.gather(*miss_tasks, return_exceptions=True)
+                raise
+            computed = dict(computed_items)
+            now = time.time()
+            await asyncio.to_thread(self._memcache_set_multi, {args: (val, now) for args, val in computed.items()})
+
+        stale = [args for args in dict.fromkeys(args_list) if args in cached and cached[args][1] + self.timeout < time.time()]
+        if stale:
+            self.stats.async_updates += sum(1 for args in args_list if args in cached and cached[args][1] + self.timeout < time.time())
+            task = asyncio.create_task(self._refresh_async(stale, f_async, semaphore))
+            background_tasks = _background_tasks()
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
+
+        return [computed[args] if args in computed else cached[args][0] for args in args_list]
+
+    async def _refresh_async(
+        self,
+        args_list: list[tuple],
+        f_async: Callable[..., Awaitable[T]],
+        semaphore: asyncio.Semaphore,
+    ) -> None:
+        """Recomputes stale values, skipping any another worker is already recomputing (same flag as ``update_async``)."""
+
+        async def refresh_one(args: tuple) -> None:
+            flag = self.compute_key(args, {}) + "/flag"
+            flag_acquired = False
+            add_task: asyncio.Task[bool] | None = None
+            try:
+                async with semaphore:
+                    add_task = asyncio.create_task(asyncio.to_thread(self._memcache_add_flag, flag))
+                    try:
+                        flag_acquired = await asyncio.shield(add_task)
+                    except asyncio.CancelledError:
+                        with contextlib.suppress(asyncio.CancelledError):
+                            flag_acquired = await asyncio.shield(add_task)
+                        raise
+
+                    if not flag_acquired:
+                        return
+                    value = await f_async(*args)
+                    now = time.time()
+                    set_task = asyncio.create_task(asyncio.to_thread(self._memcache_set_multi, {args: (value, now)}))
+                    try:
+                        await asyncio.shield(set_task)
+                    except asyncio.CancelledError:
+                        with contextlib.suppress(asyncio.CancelledError):
+                            await asyncio.shield(set_task)
+                        raise
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("Error refreshing stale cache entry for %s", args)
+            finally:
+                if flag_acquired:
+                    await asyncio.shield(asyncio.to_thread(self._memcache_delete_flag, flag))
+
+        await asyncio.gather(*(refresh_one(args) for args in args_list), return_exceptions=True)
+
+    def _memcache_add_flag(self, flag: str) -> bool:
+        try:
+            return bool(self.memcache.add(flag, "true"))
+        except Exception:
+            logger.exception("memcache add failed for flag %s", flag)
+            return False
+
+    def _memcache_delete_flag(self, flag: str) -> None:
+        try:
+            self.memcache.delete(flag)
+        except Exception:
+            logger.exception("memcache delete failed for flag %s", flag)
+
+    def _memcache_get_multi(self, args_list: list[tuple]) -> dict[tuple, tuple[T, float]]:
+        """The cached (value, time) for each of ``args_list`` found in memcache, in one round trip."""
+        keys = {self.compute_key(args, {}): args for args in args_list}
+        found = {}
+        stats.begin("memcache.get_multi")
+        try:
+            found = self.memcache.get_multi(list(keys))
+        except Exception:
+            logger.exception("memcache get_multi failed; treating all keys as misses")
+            return {}
+        finally:
+            stats.end(hit=bool(found))
+
+        result: dict[tuple, tuple[T, float]] = {}
+        for key, raw in found.items():
+            if not raw or key not in keys:
+                continue
+            args = keys[key]
+            try:
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8")
+                loaded = json.loads(raw)
+                if isinstance(loaded, (list, tuple)) and len(loaded) == 2 and isinstance(loaded[1], (int, float)):
+                    result[args] = (loaded[0], float(loaded[1]))
+                else:
+                    logger.warning("Malformed cache envelope for key %s; treating as miss", key)
+            except Exception:
+                logger.warning("Failed to decode cached data for key %s; treating as miss", key, exc_info=True)
+        return result
+
+    def _memcache_set_multi(self, values: dict[tuple, tuple[T, float]]) -> None:
+        if not values:
+            return
+        mapping = {}
+        for args, (value, t) in values.items():
+            key = self.compute_key(args, {})
+            mapping[key] = self.json_encode([value, t])
+        stats.begin("memcache.set_multi")
+        try:
+            failed_keys = self.memcache.set_multi(mapping)
+            if failed_keys:
+                logger.warning("memcache set_multi could not set keys: %s", failed_keys)
+        except Exception:
+            logger.exception("memcache set_multi failed; returning fetched data anyway")
+        finally:
+            stats.end()
 
     def update_async(self, *args: P.args, **kw: P.kwargs) -> None:
         """Starts the update process asynchronously."""
