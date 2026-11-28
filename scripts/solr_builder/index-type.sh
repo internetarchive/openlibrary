@@ -7,8 +7,10 @@ source aliases.sh
 # Display each line before running it
 set -o xtrace
 
-# One of 'work' or 'author' or 'list'
+# One of 'work', 'orphan', 'author', 'list' or 'series'
 TYPE="$1"
+# "series" is already plural
+TYPE_PLURAL="${TYPE%s}s"
 INSTANCES="$2"
 LOG_DIR="$3"
 CHUNK_SIZE=${CHUNK_SIZE:-10000}
@@ -24,19 +26,19 @@ while [ $done != "true" ]; do
   runners=$(ps aux | grep -F 'solr_builder.py index' | grep -v grep | wc -l)
   while [ $((runners < INSTANCES)) = "1" ] && [ $done != "true" ]; do
     # Actually start the job
-    RUN_SIG="ol_run_${TYPE}s_${runner_id}"
+    RUN_SIG="ol_run_${TYPE_PLURAL}_${runner_id}"
     ((runner_id++))
     mkdir -p {logs,progress}/$LOG_DIR
     touch {logs,progress}/$LOG_DIR/$RUN_SIG.txt
     # Run in parallel in a subshell
-    (&>"logs/$LOG_DIR/$RUN_SIG.txt" python solr_builder/solr_builder.py index "${TYPE}s" \
+    (&>"logs/$LOG_DIR/$RUN_SIG.txt" python solr_builder/solr_builder.py index "$TYPE_PLURAL" \
       --start-at "/$next_start" \
       --limit $CHUNK_SIZE \
       --osp-dump /storage/openlibrary/osp_totals.db \
       --progress "progress/$LOG_DIR/$RUN_SIG.txt" \
     &)
 
-    next_start=$(python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)
+    next_start=$(python solr_builder/solr_builder.py fetch-end "$TYPE_PLURAL" --start-at "/$next_start" --limit $CHUNK_SIZE)
     if [ "$next_start" = "" ]; then done="true"; fi
 
     # Stagger starting of the runners so they don't all request a lot of
