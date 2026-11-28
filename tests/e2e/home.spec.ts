@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { collectConsoleErrors, login } from './helpers';
+import { ACCOUNT_AVATAR, collectConsoleErrors, login } from './helpers';
 
 test.describe('Home page @smoke', () => {
     test('loads with correct title and header', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Home page @smoke', () => {
         const header = page.locator('#header-bar').first();
         await expect(header.locator('a[href="/account/login"]').first()).toBeAttached();
         await expect(header.locator('a[href="/account/create"]').first()).toBeAttached();
-        await expect(header.locator('a[href="/account"]')).toHaveCount(0);
+        await expect(header.locator(ACCOUNT_AVATAR)).toHaveCount(0);
     });
 
     test.describe('when logged in', () => {
@@ -40,7 +40,7 @@ test.describe('Home page @smoke', () => {
         test('header shows the account menu instead of Log In', async ({ page }) => {
             await page.goto('/');
             const header = page.locator('#header-bar').first();
-            await expect(header.locator('a[href="/account"]').first()).toBeAttached();
+            await expect(header.locator(ACCOUNT_AVATAR).first()).toBeAttached();
             await expect(header.locator('a[href="/account/login"]')).toHaveCount(0);
             await expect(header.locator('a[href="/account/create"]')).toHaveCount(0);
         });
