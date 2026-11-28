@@ -83,11 +83,6 @@ describe('ol-book-cover artwork', () => {
         const el = await mount({ src: '/c.jpg', authors: '' });
         expect(q(el, '.img').getAttribute('alt')).toBe('The Two Towers');
     });
-
-    test('labels override the byline joiner used in the accessible name', async () => {
-        const el = await mount({ src: '/c.jpg', labels: { by: 'par %(name)s' } });
-        expect(q(el, '.img').getAttribute('alt')).toBe('The Two Towers par J.R.R. Tolkien');
-    });
 });
 
 describe('ol-book-cover link and hover card', () => {

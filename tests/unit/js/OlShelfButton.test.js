@@ -133,11 +133,6 @@ describe('ol-shelf-button shapes', () => {
         await el.updateComplete;
         expect(el.hasAttribute('shelf')).toBe(false);
     });
-
-    test('labels override the shelf names', async () => {
-        const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire' } });
-        expect(q(el, '.main').textContent.trim()).toBe('À lire');
-    });
 });
 
 describe('ol-shelf-button popover', () => {
@@ -484,12 +479,6 @@ describe('ol-shelf-button accessible name and state', () => {
         await new Promise(r => setTimeout(r, 0));
         await el.updateComplete;
         expect(live.textContent).toBe('Removed from shelf');
-    });
-
-    test('translated labels reach the name', async () => {
-        stubFetch();
-        const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire', shelfToggle: '%(title)s — %(shelf)s' } });
-        expect(q(el, '.main').getAttribute('aria-label')).toBe('The Two Towers — À lire');
     });
 });
 

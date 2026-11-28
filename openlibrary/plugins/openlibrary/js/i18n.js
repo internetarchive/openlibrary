@@ -7,18 +7,11 @@
  * language's translations of them (`window.OL_I18N`, from static/build/i18n/<lang>.js,
  * which `make i18n` writes); see docs/i18n/i18n.md. Without a translation, the English shows.
  *
- * Older components get their strings from the page template instead, as a JSON
- * attribute: each owns a map of English defaults (`DEFAULT_LABELS` in the Lit
- * components) and takes a `labels` object that overrides it. A composing parent passes its whole
- * `labels` blob straight down — extra keys a child doesn't know are harmless,
- * so one server-rendered blob can feed a whole subtree.
- *
- * A label can be a function of the count (`count => ngettext(...)`), which
- * `translate` calls with `vars.count`, or a plural set: an object keyed by CLDR plural category
- * (`one`, `other`, and for languages that need them `zero`, `two`, `few`,
- * `many`). `translate` picks the form for `vars.count` with the page
- * language's rules, so a translation blob can carry every form its language
- * has rather than a singular/plural pair that only fits English.
+ * A plural string's translation is a plural set: an object keyed by CLDR plural
+ * category (`one`, `other`, and for languages that need them `zero`, `two`,
+ * `few`, `many`). `ngettext` picks the form for the count with the page
+ * language's rules, so a translation carries every form its language has
+ * rather than a singular/plural pair that only fits English.
  *
  * jsdef templates get their own `_()` and `ungettext()` in the browser, from
  * jsdef.js; those are pass-throughs, not translations.
@@ -70,14 +63,14 @@ export function ngettext(singular, pluralForm, count) {
 }
 
 /**
- * Resolve one label: the instance override wins, then the component's own
- * default, then the key itself — a missing string shows up as its key rather
- * than as blank space.
+ * One string from a component's table of `_()` strings, with its `%(name)s`
+ * placeholders filled from `vars`. An entry can be a function of the count
+ * (`count => ngettext(...)`), called with `vars.count`. A missing key shows up
+ * as the key itself rather than as blank space.
  */
-export function translate(labels, defaults, key, vars) {
-    let s = labels?.[key] ?? defaults?.[key] ?? key;
+export function lookup(strings, key, vars) {
+    let s = strings[key] ?? key;
     if (typeof s === 'function') s = s(vars?.count ?? 0);
-    else if (typeof s === 'object') s = plural(s, vars?.count ?? 0);
     return vars ? fmt(s, vars) : s;
 }
 

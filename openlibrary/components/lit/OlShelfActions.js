@@ -25,12 +25,12 @@ import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
 import { showToast } from './toast.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { _, ngettext, translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, lookup, ngettext } from '../../plugins/openlibrary/js/i18n.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import './OlPopover.js';
 import './OLButton.js';
 
-export const DEFAULT_LABELS = {
+export const STRINGS = {
     actionsFor: _('Actions for %(title)s'),
     readingLog: _('Reading log'),
     wantToRead: _('Want to Read'),
@@ -142,7 +142,6 @@ export function resetWorkEditionsCache() {
  * @prop {Boolean} pending - The reader's state is not known yet. The shelf and
  *     rating rows dim and ignore clicks until it is: posting the shelf a book
  *     is already on removes it, so a guess could undo a save
- * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
  * @prop {Element} anchorElement - ol-popover anchorElement: what the panel
  *     lines up under when the trigger is only part of a control
@@ -177,7 +176,6 @@ export class OlShelfActions extends LitElement {
         readDate: { type: String, attribute: 'read-date' },
         eventId: { type: Number, attribute: 'event-id' },
         userKey: { type: String, attribute: 'user-key' },
-        labels: { type: Object },
         placement: { type: String },
         anchorElement: { attribute: false },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
@@ -884,7 +882,6 @@ export class OlShelfActions extends LitElement {
         this.shelf = null;
         this.rating = null;
         this.userKey = '';
-        this.labels = {};
         this.hideRating = false;
         this.listsOnly = false;
         this._starsElsewhere = false;
@@ -970,7 +967,7 @@ export class OlShelfActions extends LitElement {
 
     /** @param {string} key */
     t(key, vars) {
-        return translate(this.labels, DEFAULT_LABELS, key, vars);
+        return lookup(STRINGS, key, vars);
     }
 
     /**

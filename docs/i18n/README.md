@@ -3,7 +3,7 @@
 How Open Library translates its UI across locales: the translation **pipeline**
 (string extraction, the `openlibrary-i18n` repo, Weblate, the AI-assisted flow)
 and the **rendering** mechanics that put a translated string on the page
-(Templetor vs Jinja, the `data-i18n` JS bridge, `{% trans %}`, POT
+(Templetor vs Jinja, `_()` in browser JS, `{% trans %}`, POT
 regeneration).
 
 **What belongs here:** how strings are extracted, translated, and rendered.

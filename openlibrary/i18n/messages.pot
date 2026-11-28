@@ -5484,7 +5484,7 @@ msgstr ""
 msgid "by <a href=\"%(key)s\">You</a>"
 msgstr ""
 
-#: BookByline.html lists/preview.html.jinja type/list/embed.html
+#: BookByline.html lists/preview.html.jinja lit/OlBookCover.js type/list/embed.html
 #, python-format
 msgid "by %(name)s"
 msgstr ""

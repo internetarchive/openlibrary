@@ -203,7 +203,7 @@ See [i18n-rendering](../i18n/i18n-rendering.md) for translation patterns in Lit 
 - **`customElements.define()` must run exactly once**: `ol-components.js` runs all defines site-wide. Never import a component module as a bare side-effect from a page-level webpack entry — it will re-define and throw.
 - **BEM not required in Lit or Vue**: Lit has Shadow DOM encapsulation; Vue has `<style scoped>`. BEM is for global styles and templates.
 - **Hover transitions belong on `:active`, not `:hover`**: hover background/color changes should be instant (no `transition`). A slow fade on `:hover` feels laggy. Transitions are for press feedback (`transform` on `:active`), enter/exit animations, and loading states.
-- **`data-i18n` pattern for Lit components**: Lit can't use `$_()` — use the `data-i18n` bridge (server renders JSON into an attribute; JS reads it). See [i18n-rendering](../i18n/i18n-rendering.md).
+- **Translating Lit components**: call `_()` / `ngettext()` from `i18n.js`. See [i18n](../i18n/i18n.md).
 
 ---
 
@@ -211,7 +211,7 @@ See [i18n-rendering](../i18n/i18n-rendering.md) for translation patterns in Lit 
 
 **Depends on:**
 - [[core-operations]] — Templetor/Jinja templates are served by the Infogami/web.py layer; webpack build produces assets that core-operations serves
-- [i18n-rendering](../i18n/i18n-rendering.md) — translation bridge pattern for Lit components
+- [i18n-rendering](../i18n/i18n-rendering.md) — how translated strings reach the page, server and browser
 
 **Depended on by:**
 - Every user-facing page

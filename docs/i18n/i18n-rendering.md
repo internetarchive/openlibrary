@@ -20,7 +20,7 @@ Internationalization (i18n) covers translation of UI strings across two template
 |---------|-----------|
 | Templetor `.html` templates | `$_("string")` |
 | Jinja `.jinja` templates | `{{ _('string') }}`, `{% trans %}...{% endtrans %}` |
-| JavaScript / Lit / Vue components | `_()` / `ngettext()` from `i18n.js` (see [i18n.md](i18n.md)); older components use the `data-i18n` bridge (server renders JSON → JS reads it) |
+| JavaScript / Lit / Vue components | `_()` / `ngettext()` from `i18n.js` (see [i18n.md](i18n.md)) |
 
 All paths use the same `.po`/`.mo` locale files under `openlibrary/i18n/<lang>/`. Those files are
 populated at image-build time from the authoritative `openlibrary-i18n` store and compiled to `.mo`
@@ -37,74 +37,11 @@ Configured in `openlibrary/core/jinja.py` via `get_jinja_env()`:
 
 **New templates should use Jinja (`.jinja`).** Templetor is maintained for backward compatibility only.
 
-### The `data-i18n` bridge (for older JavaScript/Lit code)
+### JavaScript
 
-New client-side strings call `_()` / `ngettext()` from `i18n.js` instead (see [i18n.md](i18n.md)). The bridge below is how components translated before that existed work.
-
-JavaScript cannot call `$_()`. The `ugettext` JS helper in the codebase is a **pass-through only** — strings hardcoded in JS ship in English everywhere.
-
-**The pattern** (4 steps):
-
-**1. Build the strings server-side.** For Jinja pages, build the dict in Python —
-plain `gettext` leaves client-side `sprintf` placeholders (`%s`) intact, while
-Jinja's formatting `_()` would consume them. Its docstring must name which JS
-file consumes the strings and which JS constant holds the English defaults
-(for example, a `build_widget_i18n()` helper):
-
-```python
-# openlibrary/core/shell/widget.py
-"strings": {
-    "inputPlaceholder": _("Search books, authors…"),
-    "closeAria":        _("Close search"),
-    "noResults":        _("No results found"),
-},
-```
-
-(Templetor templates do the same: build the dict with `_()` and emit it with `$json_encode`.)
-
-**2. Drop the JSON into a `data-*` attribute** on the element your JS already targets:
-
-```jinja
-<button
-  class="search-bar-trigger"
-  data-i18n="{{ layout.header.widget.strings | tojson | force_escape }}"
-></button>
-```
-
-`tojson` makes the JSON HTML-safe and `force_escape` protects the quotes inside
-the attribute. In a Templetor template, render the partial with `$:` instead —
-without the colon, Templetor HTML-escapes the JSON. For two independent payloads
-on one element, use two attribute names.
-
-**3. Keep English defaults in the JS module** — they are the fallback AND the extraction source:
-
-```js
-export const DEFAULT_STRINGS = {
-    inputPlaceholder: 'Search books, authors…',
-    closeAria: 'Close search',
-    noResults: 'No results found',
-};
-
-export function stringsFromElement(el) {
-    let overrides = null;
-    try {
-        const raw = el?.dataset?.i18n;
-        if (raw) overrides = JSON.parse(raw);
-    } catch { /* fall through to defaults */ }
-    return overrides
-        ? { ...DEFAULT_STRINGS, ...overrides }
-        : DEFAULT_STRINGS;
-}
-```
-
-Spreading overrides over defaults means partial translations never blank out a string. Wrap `JSON.parse` in `try/catch` — a bad attribute on one element must not take down the page.
-
-**4. Use the merged strings to build DOM:**
-
-```js
-const strings = stringsFromElement(trigger);
-input.placeholder = strings.inputPlaceholder;
-```
+Browser code calls `_()` / `ngettext()` from `i18n.js`. `make i18n` writes each language's
+translations of those msgids to `static/build/i18n/<lang>.js`, which the page head loads as
+`window.OL_I18N`. See [i18n.md](i18n.md).
 
 ---
 
@@ -195,7 +132,7 @@ authoritative source is `openlibrary-i18n`, not the `.po` files committed in `op
 # Jinja translation paths
 docker compose run --rm home python -m pytest openlibrary/tests/core/test_jinja.py -xvs
 
-# JS gettext helpers (_, ngettext, translate)
+# JS gettext helpers (_, ngettext, lookup)
 npm test tests/unit/js/i18n.test.js
 
 # Regenerate POT and verify no mangled entries
@@ -207,15 +144,15 @@ grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
 
 ## What's Broken / Fragile
 
-- **`ugettext` JS helper is a pass-through** — any JS string not using the `data-i18n` bridge ships in English regardless of the user's language setting. This is a known architectural gap; the bridge pattern is the correct fix.
+- **jsdef's `_()` / `ungettext()` are pass-throughs** — strings in jsdef templates ship in English regardless of the user's language setting.
+- **A string that extraction misses ships in English.** `generate-pot` only sees literal `_()` / `ngettext()` calls; see the Lit and Vue rules in [i18n.md](i18n.md).
 - **Whitespace sensitivity in `{% trans %}` blocks** — forgetting `-%}` / `{%-` produces `.pot` entries with leading whitespace that never match the runtime lookup. Silent failure: translations exist but never apply.
-- **Partial translations** show English fallback for missing keys (by design, via the spread pattern). But if the partial itself is missing or the attribute name is wrong, the entire component falls back to English silently.
+- **Untranslated strings** show their English, in the browser as on the server.
 
 ---
 
 ## Common Confusion
 
-- **`$:render_template` vs `$render_template`** — the colon is required. Without it, Templetor HTML-escapes the JSON output, breaking `JSON.parse` in JS.
 - **Newstyle gettext only supports named placeholders** — `%s` (positional) won't work in Jinja. Use `%(name)s` always.
 - **`{{ _() }}` is not a special Jinja override** — unlike Templetor where `$_()` is a special construct, in Jinja `_` is just the registered gettext callable. All four forms (`_()`, `gettext()`, `ngettext()`, `{% trans %}`) call the same function.
 - **Jinja `{% trans %}` whitespace** — `ext.i18n.trimmed = True` handles render-time whitespace but Babel extraction doesn't trim. The mismatch causes silent translation misses.
@@ -226,7 +163,7 @@ grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
 
 **Depends on:**
 - [[core-operations]] — Jinja environment wired into the web.py/Infogami request lifecycle; `openlibrary/core/jinja.py` is the setup point
-- [frontend](../frontend/README.md) — Lit components use the `data-i18n` bridge
+- [frontend](../frontend/README.md) — Lit components call `_()` from `i18n.js`
 - [a11y](../frontend/a11y.md) — accessibility patterns are a separate domain
 
 **Depended on by:**

@@ -4,8 +4,8 @@
  * toggle, create, and the recently-used lists it leans on). Network is stubbed
  * at `fetch`.
  */
-import { DEFAULT_LABELS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
-import { fmt, plural, translate } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
+import { STRINGS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
+import { fmt, lookup, plural } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
 import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';
@@ -107,7 +107,7 @@ describe('fmt', () => {
     });
 });
 
-describe('plural labels', () => {
+describe('plural forms', () => {
     const FORMS = { one: '%(count)s item', other: '%(count)s items' };
 
     afterEach(() => {
@@ -120,11 +120,9 @@ describe('plural labels', () => {
         expect(plural(FORMS, 12)).toBe('%(count)s items');
     });
 
-    test('translate resolves a plural set and interpolates it', () => {
-        expect(translate({}, { itemsInList: FORMS }, 'itemsInList', { count: 1 })).toBe('1 item');
-        expect(translate({}, { itemsInList: FORMS }, 'itemsInList', { count: 2 })).toBe('2 items');
-        expect(translate({}, DEFAULT_LABELS, 'onLists', { count: 1 })).toBe('On 1 list');
-        expect(translate({}, DEFAULT_LABELS, 'onLists', { count: 3 })).toBe('On 3 lists');
+    test('lookup calls a count function and interpolates it', () => {
+        expect(lookup(STRINGS, 'onLists', { count: 1 })).toBe('On 1 list');
+        expect(lookup(STRINGS, 'onLists', { count: 3 })).toBe('On 3 lists');
     });
 
     test("uses the page language's rules, and falls back to other", () => {

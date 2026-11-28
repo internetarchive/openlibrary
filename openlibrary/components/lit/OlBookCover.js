@@ -1,9 +1,9 @@
 import { LitElement, css, html, nothing } from 'lit';
-import { translate } from '../../plugins/openlibrary/js/i18n.js';
+import { _, lookup } from '../../plugins/openlibrary/js/i18n.js';
 import './OlTooltip.js';
 
-export const DEFAULT_LABELS = {
-    by: 'by %(name)s'
+const STRINGS = {
+    by: _('by %(name)s')
 };
 
 /**
@@ -45,7 +45,6 @@ export const DEFAULT_LABELS = {
  *     link while the next page loads, cleared when the page is restored from the bfcache
  * @prop {Boolean} noTip - Drops the hover card, for a cover that already has its title and
  *     author written beside it
- * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
  *
@@ -64,7 +63,6 @@ export class OlBookCover extends LitElement {
         deferred: { type: Boolean, reflect: true },
         loading: { type: Boolean, reflect: true },
         noTip: { type: Boolean, attribute: 'no-tip' },
-        labels: { type: Object },
         _ratio: { state: true },
         _missing: { state: true }
     };
@@ -347,7 +345,6 @@ export class OlBookCover extends LitElement {
         this.format = '';
         this.deferred = false;
         this.loading = false;
-        this.labels = {};
         this._ratio = 0;
         this._missing = false;
         // The back button can restore this page from the bfcache mid-load.
@@ -365,7 +362,7 @@ export class OlBookCover extends LitElement {
     }
 
     t(key, vars) {
-        return translate(this.labels, DEFAULT_LABELS, key, vars);
+        return lookup(STRINGS, key, vars);
     }
 
     /** The cover URL, or empty once it turns out to be the missing-cover placeholder. */
