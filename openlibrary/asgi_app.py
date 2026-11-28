@@ -158,6 +158,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.status import pages as status_pages
     from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.tags import pages as tags_pages
     from openlibrary.fastapi.tasks import pages as tasks_pages
     from openlibrary.fastapi.tasks import public_pages as tasks_public_pages
     from openlibrary.fastapi.tasks import router as tasks_router
@@ -194,6 +195,7 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(publishers_pages)
     app.include_router(search_pages)
     app.include_router(status_pages)
+    app.include_router(tags_pages)
     app.include_router(tasks_pages)
     app.include_router(tasks_public_pages)
 

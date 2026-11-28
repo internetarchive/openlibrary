@@ -1,0 +1,13 @@
+{# Takes `key`: the key of the page being edited. #}
+<div id="editTools" class="edit">
+    <div id="editHistory">
+        <a class="linkButton larger"
+           href="{{ key }}?m=history"
+           title="{{ _('View the editing history of this page') }}">{{ _("History") }}</a>
+    </div>
+    <div class="editButton">
+        <a href="{{ key }}"
+           title="{{ _('View this page (exit Edit mode)') }}"
+           class="cancel">{{ _("Cancel") }}</a>
+    </div>
+</div>

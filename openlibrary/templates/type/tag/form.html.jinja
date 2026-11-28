@@ -1,0 +1,43 @@
+{# Takes `is_editing`, `can_delete`, `key` (the tag's key, when editing), `redirect`, `name`,
+   `slugs`, `tag_description`, `body`, `tag_type`, `deputy`, `tag_types` and `comment`. #}
+<div id="contentHead">
+    {% if is_editing %}
+        {% include "databarEdit.html.jinja" %}
+        {% if can_delete %}
+            <span class="adminOnly right">
+                <button type="submit"
+                        value="{{ _('Delete Record') }}"
+                        name="_delete"
+                        title="{{ _('Delete Record') }}"
+                        id="delete"
+                        form="tag-form">{{ _("Delete Record") }}</button>
+            </span>
+        {% endif %}
+    {% endif %}
+    <h1>{{ _("Edit tag") if is_editing else _("Add a tag to Open Library") }}</h1>
+    {% if not is_editing %}
+        <p class="instruct">{{ _("We require a minimum set of fields to create a new collection tag.") }}</p>
+    {% endif %}
+</div>
+<div id="contentBody">
+    <form id="tag-form" name="edit" method="post" class="olform">
+        {% if redirect %}
+            <input type="hidden" name="redir" value="{{ redirect }}">
+        {% endif %}
+        {% include "type/tag/tag_form_inputs.html.jinja" %}
+        <div class="clearfix"></div>
+        <div class="formElement bottom">
+            {% if is_editing %}
+                {% include "EditButtons.html.jinja" %}
+            {% else %}
+                <div class="cclicense">
+                    {{ _("By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!") | safe }}
+                </div>
+                <div class="input">
+                    <button type="submit" title="{{ _('Add this tag now') }}" class="larger">{{ _("Add") }}</button>
+                    <a href="javascript:;" class="attn go-back-link">{{ _("Cancel") }}</a>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+</div>
