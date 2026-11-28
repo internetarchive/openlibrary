@@ -1,7 +1,7 @@
 {#- A task URL whose field is already filled in. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="contrib-page">
-    {{ parts.book_header(data.book) }}
+    {{ parts.task_book(data.book, data.book_labels) }}
     <section class="contrib-section">
         <h1 class="contrib-question__text">
             {% if data.on_work %}

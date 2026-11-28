@@ -8166,24 +8166,6 @@ msgid "Buy this book"
 msgstr ""
 
 #: contribute/parts.html.jinja
-#, python-format
-msgid "one of %(count)s editions of this work"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Why this book: on about %(count)s readers' shelves."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Go to book page"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Go to edit page"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "Just saved"
 msgstr ""
 
@@ -8195,6 +8177,10 @@ msgstr ""
 #: contribute/parts.html.jinja
 #, python-format
 msgid "%(field)s added"
+msgstr ""
+
+#: contribute/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Go to book page"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8323,6 +8309,10 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "View scan"
+msgstr ""
+
+#: contribute/parts.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Go to edit page"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -11618,6 +11608,11 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Answer for this edition only. Other editions of the book can differ."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+#, python-format
+msgid "one of %(count)s editions of this work"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

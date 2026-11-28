@@ -59,7 +59,7 @@ GET /tasks/admin
 GET /tasks/admin/new
 GET /tasks/faq
 GET /tasks/feed.json
-GET /tasks/rows
+GET /tasks/rows.json
 GET /verify_human
 POST /account/anonymize.json
 POST /account/login
