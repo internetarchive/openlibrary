@@ -10,10 +10,11 @@
   flex-shrink: 0;
 }
 
-.list-follow-showcase__see-all {
+.list-follow-showcase__see-all.cta-btn {
   margin-right: 24px;
   align-self: center;
   width: auto;
+  margin-top: 0;
 }
 
 /* stylelint-disable-next-line no-descending-specificity */

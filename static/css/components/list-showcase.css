@@ -28,10 +28,11 @@ a.list-card {
   flex-shrink: 0;
 }
 
-.list-showcase__see-all {
+.list-showcase__see-all.cta-btn {
   margin-right: 24px;
   align-self: center;
   width: auto;
+  margin-top: 0;
 }
 
 .list-card__name-tag {
