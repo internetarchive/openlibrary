@@ -8,7 +8,7 @@ import { repeat } from 'lit/directives/repeat.js';
 // modules here — re-running customElements.define() throws NotSupportedError,
 // which aborts the rest of that bundle and unregisters every other component.
 import { debounce } from '../nonjquery_utils.js';
-import { sprintf } from '../i18n.js';
+import { fmt } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
 import { isWorkKey, orphanedEditionKey } from '../book-state.js';
@@ -1713,7 +1713,7 @@ export class SearchModal extends LitElement {
     _renderInterpretation() {
         const q = this._ftQuery;
         if (this._ftFellBack) {
-            return html`<p class="ft-note">${sprintf(this._i18n.insideNoExactMatches, q)}</p>`;
+            return html`<p class="ft-note">${fmt(this._i18n.insideNoExactMatches, { query: q })}</p>`;
         }
         if (!isAutoPhrasedQuery(q)) return nothing;
         if (this._fulltextFilters().allWords) {
@@ -1723,7 +1723,7 @@ export class SearchModal extends LitElement {
             </p>`;
         }
         return html`<p class="ft-note">
-            ${sprintf(this._i18n.insideExactMatches, q)}
+            ${fmt(this._i18n.insideExactMatches, { query: q })}
             <button type="button" class="ft-note__action" @click=${this._searchAllWords}>${this._i18n.insideSearchAllWords}</button>
         </p>`;
     }
@@ -1814,8 +1814,7 @@ export class SearchModal extends LitElement {
     }
 
     _seeAllInsideLabel() {
-        const label = this._ftTotal === 1 ? this._i18n.seeAllInsideOne : this._i18n.seeAllInsideMany;
-        return sprintf(label, this._ftTotal.toLocaleString());
+        return this._i18n.seeAllInside(this._ftTotal);
     }
 
     // Opens BookReader searching for what FTS was sent. `q` is the query the hit answers, not the input.
@@ -1878,7 +1877,7 @@ export class SearchModal extends LitElement {
                                     <button
                                         type="button"
                                         class="result__remove-recent"
-                                        aria-label=${sprintf(this._i18n.removeRecent, s)}
+                                        aria-label=${fmt(this._i18n.removeRecent, { query: s })}
                                         @click=${e => {
                                             e.stopPropagation();
                                             this._recentSearches = removeRecentSearch(s, this._mode);
@@ -2089,7 +2088,7 @@ export class SearchModal extends LitElement {
 
         let badge = nothing;
         if (otherLang) {
-            badge = html`<span class="result__badge">${sprintf(this._i18n.readableInLanguage, otherLang)}</span>`;
+            badge = html`<span class="result__badge">${fmt(this._i18n.readableInLanguage, { language: otherLang })}</span>`;
         } else if (readable) {
             badge = html`<span class="result__badge result__badge--readable">${this._i18n.accessReadable}</span>`;
         }
@@ -2222,17 +2221,16 @@ export class SearchModal extends LitElement {
         const n = this._numFound;
         if (this._hasSearched && n === 0) return { wide: this._i18n.seeNone, narrow: this._i18n.seeNone };
         if (typeof n !== 'number' || n <= 0) return { wide: this._i18n.seeAll, narrow: this._i18n.seeAll };
-        const count = n.toLocaleString();
         // "all" is only meaningful when there are more matches than we render
         // inline. Once every hit is shown, drop "all" (and "all 1" never made
-        // sense). A there's-more count is always plural, so seeAllMany suffices.
+        // sense).
         if (n > this._results.length) {
             return {
-                wide: sprintf(this._i18n.seeAllMany, count),
-                narrow: sprintf(this._i18n.seeAllManyNarrow, compactCount(n))
+                wide: this._i18n.seeAllBooks(n),
+                narrow: this._i18n.seeAllBooksNarrow(n, compactCount(n))
             };
         }
-        const label = sprintf(n === 1 ? this._i18n.seeOne : this._i18n.seeMany, count);
+        const label = this._i18n.seeBooks(n);
         return { wide: label, narrow: label };
     }
 
@@ -2470,7 +2468,7 @@ export class SearchModal extends LitElement {
         }
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
-        return sprintf(this._i18n.resultsAnnounce, { shown: shown.toLocaleString(), total: total.toLocaleString() });
+        return fmt(this._i18n.resultsAnnounce, { shown: shown.toLocaleString(), total: total.toLocaleString() });
     }
 
     // Rows on screen, not the backend total (that's on the see-all).
@@ -2481,7 +2479,7 @@ export class SearchModal extends LitElement {
     }
 
     _insideAnnouncement(shown) {
-        return sprintf(shown === 1 ? this._i18n.insideAnnounceOne : this._i18n.insideAnnounceMany, shown.toLocaleString());
+        return this._i18n.insideAnnounce(shown);
     }
 
     _onAvailabilityToggle(e) {

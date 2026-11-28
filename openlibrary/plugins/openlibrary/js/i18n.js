@@ -83,8 +83,8 @@ export function translate(labels, defaults, key, vars) {
 
 /**
  * Fill `%s` placeholders in order, or `%(name)s` ones from an object passed as
- * the only argument; `%%` is a literal percent. jsdef templates and the search
- * modal use it. New code uses `translate`, which also picks plural forms.
+ * the only argument; `%%` is a literal percent. jsdef templates use it. New code
+ * uses `fmt` with `_()` / `ngettext()` instead.
  */
 export function sprintf(s) {
     const args = arguments;

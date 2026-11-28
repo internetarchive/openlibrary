@@ -1,7 +1,7 @@
 /**
  * Filter options for the header search modal.
  */
-import { _ } from '../i18n.js';
+import { _, fmt, ngettext } from '../i18n.js';
 
 // Availability values and their display labels. The header modal and the
 // search-page filter row both surface availability as a binary "Readable Only"
@@ -19,7 +19,8 @@ export const DEFAULT_AVAILABILITY = 'all';
 
 /**
  * The header search modal's chrome strings (labels, placeholders, aria-labels,
- * status messages), in the page language. `%s` placeholders are filled with sprintf.
+ * status messages), in the page language. Placeholders are named (`%(count)s`) and filled with fmt; strings
+ * that depend on a count are functions of the number, which pick their form with ngettext.
  */
 export const DEFAULT_SEARCH_MODAL_STRINGS = {
     dialogAria: _('Search Open Library'),
@@ -29,17 +30,16 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     clearAria: _('Clear search'),
     // Footer button label. "all" only appears when there are more matches than
     // the modal renders inline — when every hit is already shown there's nothing
-    // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
-    // the there's-more case (always plural, since a lone result is always shown).
-    // Counts are books (works); author rows come from the same docs.
+    // more to "see all" of. seeBooks is the all-shown case; seeAllBooks is the
+    // there's-more case. Counts are books (works); author rows come from the same docs.
+    // Each takes the number of books; `formatted` is that number as shown to the reader.
     seeAll: _('See results'),
     // Zero hits: the button still leads to /search, so name the destination.
     seeNone: _('Go to full search'),
-    seeOne: _('See %s book'),
-    seeMany: _('See %s books'),
-    seeAllMany: _('See all %s books'),
-    // Narrow-footer form of seeAllMany; the wide form stays the accessible name.
-    seeAllManyNarrow: _('All %s books'),
+    seeBooks: (n, formatted = n.toLocaleString()) => fmt(ngettext('See %(count)s book', 'See %(count)s books', n), { count: formatted }),
+    seeAllBooks: (n, formatted = n.toLocaleString()) => fmt(ngettext('See all %(count)s book', 'See all %(count)s books', n), { count: formatted }),
+    // Narrow-footer form of seeAllBooks; the wide form stays the accessible name.
+    seeAllBooksNarrow: (n, formatted = n.toLocaleString()) => fmt(ngettext('All %(count)s book', 'All %(count)s books', n), { count: formatted }),
     clearAll: _('Clear all'),
     // Scope tabs: the catalogue, and the text of the scans.
     tabsAria: _('Search scope'),
@@ -69,15 +69,14 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // (public-domain or lendable). Keep short — it sits in a small badge.
     accessReadable: _('Readable'),
     // Replaces "Readable" when the readable copy is in a language other than the
-    // patron's site language. %s = the localized language name, e.g.
-    // "Readable in French". Filled client-side via sprintf.
-    readableInLanguage: _('Readable in %s'),
+    // patron's site language. %(language)s = the localized language name, e.g.
+    // "Readable in French".
+    readableInLanguage: _('Readable in %(language)s'),
     recentSearches: _('Recent searches'),
-    removeRecent: _('Remove "%s" from recent searches'),
+    removeRecent: _('Remove "%(query)s" from recent searches'),
     insideHeading: _('Search inside books'),
-    // Inside tab footer action. %s = books with matches.
-    seeAllInsideOne: _('Search Inside %s book'),
-    seeAllInsideMany: _('Search Inside %s books'),
+    // Inside tab footer action, given the number of books with matches.
+    seeAllInside: n => fmt(ngettext('Search Inside %(count)s book', 'Search Inside %(count)s books', n), { count: n.toLocaleString() }),
     // Before a total is measured for the current input.
     seeAllInsidePlain: _('Search Inside'),
     // Crosses from the band to the Inside books tab — it doesn't leave the modal.
@@ -89,19 +88,18 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // Replaces the empty state when the fulltext backend failed, so an outage
     // doesn't read as a verdict on the query.
     insideError: _('Search inside books is temporarily unavailable. Please try again later.'),
-    // Above Inside tab hits when the query was searched as one exact phrase. %s = the query.
-    insideExactMatches: _('Showing exact matches for "%s".'),
+    // Above Inside tab hits when the query was searched as one exact phrase. %(query)s = the query.
+    insideExactMatches: _('Showing exact matches for "%(query)s".'),
     // Follows insideExactMatches; reruns the query as loose words.
     insideSearchAllWords: _('Search for all of these words instead.'),
     // Above Inside tab hits after the patron chose all words.
     insideAllWords: _('Showing all of these words, in any order.'),
     // Follows insideAllWords; goes back to the exact phrase.
     insideSearchExactPhrase: _('Search for the exact phrase instead.'),
-    // The exact phrase found nothing, so the hits match all the words. %s = the query.
-    insideNoExactMatches: _('No exact matches for "%s". Showing books containing all of these words.'),
-    // %s = snippet rows shown (1–3), not the backend total.
-    insideAnnounceOne: _('%s match found inside books'),
-    insideAnnounceMany: _('%s matches found inside books')
+    // The exact phrase found nothing, so the hits match all the words. %(query)s = the query.
+    insideNoExactMatches: _('No exact matches for "%(query)s". Showing books containing all of these words.'),
+    // Given the snippet rows shown (1–3), not the backend total.
+    insideAnnounce: n => fmt(ngettext('%(count)s match found inside books', '%(count)s matches found inside books', n), { count: n.toLocaleString() })
 };
 
 /**
