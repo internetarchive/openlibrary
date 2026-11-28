@@ -59,6 +59,18 @@
     <link href="{{ static_url(layout.head.page_css_path) }}"
           rel="stylesheet"
           type="text/css" />
+    {# Webfonts load without blocking render: the print media query keeps the sheet off
+       the critical path, onload applies it, and text swaps in from the system fallbacks. #}
+    <link href="{{ static_url('build/css/fonts.css') }}"
+          rel="stylesheet"
+          type="text/css"
+          media="print"
+          onload="this.media='all'" />
+    <noscript>
+        <link href="{{ static_url('build/css/fonts.css') }}"
+              rel="stylesheet"
+              type="text/css" />
+    </noscript>
     <noscript>
         <style>
         /* Don't hide content with clamp if no js to show more/less */

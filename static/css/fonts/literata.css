@@ -9,8 +9,7 @@
  * of the site). Licensed under the SIL Open Font License; see
  * static/fonts/literata/OFL.txt.
  *
- * Import this only from the page bundles that use Literata, so pages that
- * don't reference it never pay for the download.
+ * Imported by static/css/fonts.css, which every page loads after first paint.
  */
 
 /* stylelint-disable scale-unlimited/declaration-strict-value --
