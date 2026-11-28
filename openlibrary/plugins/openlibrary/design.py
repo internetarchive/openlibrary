@@ -293,6 +293,14 @@ COMPONENTS = (
         avoid="For a single choice use Options Popover; for four or fewer choices use Segmented Control.",
     ),
     Component(
+        "tag-picker",
+        "Tag Picker",
+        "design/components/tag-picker.html.jinja",
+        group="Overlays",
+        tag="ol-tag-picker",
+        avoid="For picking from a fixed, non-searchable set, use Select Popover. This is for the managed Tags of one Tag type.",
+    ),
+    Component(
         "options-popover",
         "Options Popover",
         "design/components/options-popover.html.jinja",
