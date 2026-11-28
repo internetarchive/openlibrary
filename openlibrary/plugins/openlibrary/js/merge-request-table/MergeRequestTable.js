@@ -6,7 +6,7 @@
  */
 
 import TableHeader from './MergeRequestTable/TableHeader';
-import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow';
+import { TableRow } from './MergeRequestTable/TableRow';
 
 /**
  * Class representing the librarian request table.
@@ -26,9 +26,6 @@ export default class MergeRequestTable {
          * @param {string}
          */
         this.username = mergeRequestTable.dataset.username;
-
-        const localizedStrings = JSON.parse(mergeRequestTable.dataset.i18n);
-        setI18nStrings(localizedStrings);
 
         /**
          * Reference to this table's header.

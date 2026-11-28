@@ -5,13 +5,8 @@
  */
 
 import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService';
+import { _ } from '../../i18n.js';
 import { showToast } from '../../../../../components/lit/toast.js';
-
-let i18nStrings;
-
-export function setI18nStrings(localizedStrings) {
-    i18nStrings = localizedStrings;
-}
 
 /**
  * Represents a row in the librarian request table.
@@ -166,7 +161,7 @@ export class TableRow {
      * row from the DOM.
      */
     async closeRequest() {
-        const comment = prompt(i18nStrings['close_request_comment_prompt']);
+        const comment = prompt(_('(Optional) Why are you closing this request?'));
         if (comment !== null) {
             // Comment will be `null` if "Cancel" button pressed
             await declineRequest(this.mrid, comment)
@@ -198,7 +193,7 @@ export class TableRow {
                         this.updateCommentViews(comment);
                         this.commentReplyInput.value = '';
                     } else {
-                        showToast(i18nStrings['comment_submission_failure_message'], { type: 'error' });
+                        showToast(_('Failed to submit comment. Please try again in a few moments.'), { type: 'error' });
                     }
                 })
                 .catch(e => {
