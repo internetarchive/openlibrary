@@ -6,7 +6,10 @@
     </div>
     <div class="input">
         <input type="text" name="name" id="tag_name" value="{{ name }}" required />
-        <span class="tip">{{ _("Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\") ") }}</span>
+        {# djLint pads the closing parenthesis of this string with a space, which would change the translated message. #}
+        {# djlint:off #}
+        <span class="tip">{{ _("Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")") }}</span>
+        {# djlint:on #}
     </div>
 </div>
 <div class="formElement">

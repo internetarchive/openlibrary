@@ -7365,7 +7365,7 @@ msgid "Tag Name"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html.jinja
-msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\") "
+msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html.jinja
