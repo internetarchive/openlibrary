@@ -654,18 +654,19 @@ function initCreateSummary(root) {
     const books = root.querySelector('[data-summary-books]');
     const fields = root.querySelector('[data-summary-fields]');
     const submit = root.querySelector('[data-create-submit]');
-    const countText = (singular, pluralForm, count) => fmt(ngettext(singular, pluralForm, count), { count: count.toLocaleString() });
     const describeBooks = () => {
         const source = form.querySelector('input[name="source"]:checked')?.value;
         if (source === 'pasted') {
             // Split as the server splits it (booklist.split_entries).
             const count = form.elements.books.value.split(/[\s,;]+/).filter(Boolean).length;
-            return count ? countText('%(count)s book', '%(count)s books', count) : '';
+            return count ? fmt(ngettext('%(count)s book', '%(count)s books', count), { count: count.toLocaleString() }) : '';
         }
         if (source === 'list') return form.elements.list_url.value.trim() ? _('Every book on the list') : '';
         const size = Number(form.elements.size.value.trim());
         return Number.isInteger(size) && size > 0
-            ? countText('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', size)
+            ? fmt(ngettext('The %(count)s most-shelved book missing a detail', 'The %(count)s most-shelved books missing a detail', size), {
+                  count: size.toLocaleString()
+              })
             : '';
     };
     const sync = () => {

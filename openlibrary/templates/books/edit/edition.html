@@ -65,7 +65,6 @@ $jsdef render_work_autocomplete_item(item):
         <ol-scorecard
             results="$json_encode(book.scorecard.to_dict())"
             $cond(book.is_solr_data_outdated(), 'outdated')
-            label-outdated="$_('This record was recently edited and this scorecard is outdated. It should update in a minute or so.')"
         ></ol-scorecard>
 
     <div class="formBack">
@@ -403,7 +402,7 @@ $jsdef render_work_autocomplete_item(item):
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            $ config = {'addnew': is_librarian, 'new_name': _('-- Move to a new work')}
+            $ config = {'addnew': is_librarian}
             <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$json_encode(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):

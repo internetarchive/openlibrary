@@ -1,5 +1,6 @@
 import { SHELF } from '../../../../components/lit/utils/books-api.js';
 import { showToast } from '../../../../components/lit/toast.js';
+import { _ } from '../i18n.js';
 import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
@@ -72,8 +73,8 @@ function handleRatingSubmission(event, form) {
                 }
                 announceRating(form.dataset.workKey, rating ?? null);
             })
-            .catch(error => {
-                showToast(error.message, { type: 'error' });
+            .catch(() => {
+                showToast(_('Ratings update failed'), { type: 'error' });
             });
     }
 }

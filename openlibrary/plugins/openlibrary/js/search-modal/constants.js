@@ -151,26 +151,26 @@ export function availabilityFromParams(get) {
  * This array is the instant-render and fetch-failure fallback only.
  */
 export const DEFAULT_LANGUAGE_OPTIONS = [
-    { value: 'eng', label: 'English' },
-    { value: 'fre', label: 'French' },
-    { value: 'ger', label: 'German' },
-    { value: 'spa', label: 'Spanish' },
-    { value: 'por', label: 'Portuguese' },
-    { value: 'ita', label: 'Italian' },
-    { value: 'rus', label: 'Russian' },
-    { value: 'chi', label: 'Chinese' },
-    { value: 'jpn', label: 'Japanese' },
-    { value: 'ara', label: 'Arabic' },
-    { value: 'dut', label: 'Dutch' },
-    { value: 'pol', label: 'Polish' },
-    { value: 'swe', label: 'Swedish' },
-    { value: 'tur', label: 'Turkish' },
-    { value: 'hin', label: 'Hindi' },
-    { value: 'kor', label: 'Korean' },
-    { value: 'lat', label: 'Latin' },
-    { value: 'per', label: 'Persian' },
-    { value: 'heb', label: 'Hebrew' },
-    { value: 'ben', label: 'Bengali' }
+    { value: 'eng', label: _('English') },
+    { value: 'fre', label: _('French') },
+    { value: 'ger', label: _('German') },
+    { value: 'spa', label: _('Spanish') },
+    { value: 'por', label: _('Portuguese') },
+    { value: 'ita', label: _('Italian') },
+    { value: 'rus', label: _('Russian') },
+    { value: 'chi', label: _('Chinese') },
+    { value: 'jpn', label: _('Japanese') },
+    { value: 'ara', label: _('Arabic') },
+    { value: 'dut', label: _('Dutch') },
+    { value: 'pol', label: _('Polish') },
+    { value: 'swe', label: _('Swedish') },
+    { value: 'tur', label: _('Turkish') },
+    { value: 'hin', label: _('Hindi') },
+    { value: 'kor', label: _('Korean') },
+    { value: 'lat', label: _('Latin') },
+    { value: 'per', label: _('Persian') },
+    { value: 'heb', label: _('Hebrew') },
+    { value: 'ben', label: _('Bengali') }
 ];
 
 /**

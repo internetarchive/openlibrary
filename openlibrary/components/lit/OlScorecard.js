@@ -148,7 +148,7 @@ if (!customElements.get('ol-score-gauge')) {
  * @prop {String} labelExpand - Accessible label for the collapsed badge button, use `{name}`, `{percentage}` (default: "{name}: {percentage}%. Click to expand.")
  * @prop {String} labelCollapse - Accessible label for the header collapse button (default: "Collapse")
  * @prop {Boolean} outdated - Whether the solr record is stale relative to the database. Default `false`. Presence of the attribute shows a warning banner at the top of the expanded card; no banner is shown otherwise.
- * @prop {String} labelOutdated - Warning banner text shown when outdated (default: "This record has been edited and is not yet reflected in Solr. It should update in a minute or so.")
+ * @prop {String} labelOutdated - Warning banner text shown when outdated (default: "This record was recently edited and this scorecard is outdated. It should update in a minute or so.")
  *
  * @example
  * <ol-scorecard expanded results='{"name":"Edition Scorecard","score":40,"maxScore":100,"sections":[{"name":"Access","score":40,"maxScore":100,"checks":[{"description":"Has title","details":"...","score":40,"passing":true}]}]}'></ol-scorecard>
@@ -422,7 +422,7 @@ export class OlScorecard extends LitElement {
         this.labelExpand = _('{name}: {percentage}%. Click to expand.');
         this.labelCollapse = _('Collapse');
         this.outdated = false;
-        this.labelOutdated = _('This record has been edited and is not yet reflected in Solr. It should update in a minute or so.');
+        this.labelOutdated = _('This record was recently edited and this scorecard is outdated. It should update in a minute or so.');
         this._activeSection = 0;
         this._panelIdPrefix = `ol-scorecard-${++_idCounter}`;
     }

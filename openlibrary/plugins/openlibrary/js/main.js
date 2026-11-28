@@ -179,6 +179,10 @@ $(function () {
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js').then(module => module.initGoodreadsImport());
     }
+    const interestButtons = document.querySelectorAll('.express-interest-btn');
+    if (interestButtons.length) {
+        import('./goodreads_import.js').then(module => module.initExpressInterest(interestButtons));
+    }
     // conditionally load list seed item deletion dialog functionality based on id on lists pages
     if (document.getElementById('listResults')) {
         import('./lists/ListViewBody.js');

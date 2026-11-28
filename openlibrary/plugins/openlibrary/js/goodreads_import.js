@@ -186,3 +186,14 @@ export function initGoodreadsImport() {
         });
     }
 }
+
+/**
+ * The "express interest" buttons for imports Open Library doesn't support yet:
+ * the click is tracked, and this thanks the patron.
+ * @param {NodeListOf<HTMLButtonElement>} buttons
+ */
+export function initExpressInterest(buttons) {
+    for (const button of buttons) {
+        button.addEventListener('click', () => alert(_('Interest recorded, thank you!')));
+    }
+}

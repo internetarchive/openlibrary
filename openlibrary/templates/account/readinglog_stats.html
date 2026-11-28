@@ -75,7 +75,7 @@ $jsdef render_excluded_works_list(works, total):
         $for chart in charts:
             <section>
                 <h3>$chart['title']</h3>
-                <div class="readinglog-charts__plot" data-config="$json_encode(chart)"></div>
+                <div class="readinglog-charts__plot" data-config="$json_encode(dict((k, v) for k, v in chart.items() if k != 'title'))"></div>
             </section>
     </section>
 
@@ -98,7 +98,7 @@ $jsdef render_excluded_works_list(works, total):
         $for chart in charts:
             <section>
                 <h3>$chart['title']</h3>
-                <div class="readinglog-charts__plot" data-config="$json_encode(chart)"></div>
+                <div class="readinglog-charts__plot" data-config="$json_encode(dict((k, v) for k, v in chart.items() if k != 'title'))"></div>
             </section>
     </section>
 </div>

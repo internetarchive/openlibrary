@@ -133,7 +133,7 @@ export function initWorksMultiInputAutocomplete() {
                 {
                     endpoint: '/works/_autocomplete',
                     addnew: dataConfig['addnew'] || false,
-                    new_name: dataConfig['new_name'] || '',
+                    new_name: _('-- Move to a new work'),
                     allow_empty: dataConfig['allow_empty'] || false
                 },
                 {
