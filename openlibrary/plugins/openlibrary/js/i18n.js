@@ -7,11 +7,11 @@
  * language's translations of them (`window.OL_I18N`, from static/build/i18n/<lang>.js,
  * which `make i18n` writes); see docs/i18n/i18n.md. Without a translation, the English shows.
  *
- * A plural string's translation is a plural set: an object keyed by CLDR plural
- * category (`one`, `other`, and for languages that need them `zero`, `two`,
- * `few`, `many`). `ngettext` picks the form for the count with the page
- * language's rules, so a translation carries every form its language has
- * rather than a singular/plural pair that only fits English.
+ * A plural string's translation is its list of forms, in the language's .po
+ * order, and the same file defines `window.OL_I18N_PLURAL`: the .po's
+ * Plural-Forms rule, which turns a count into an index into that list. So
+ * `ngettext` picks exactly the form the server would, for every form the
+ * language has, not just a singular/plural pair that only fits English.
  *
  * jsdef templates get their own `_()` and `ungettext()` in the browser, from
  * jsdef.js; those are pass-throughs, not translations.
@@ -20,28 +20,6 @@
 /** "%(name)s" (or "%(name)d") style interpolation, matching the server-side i18n strings. */
 export function fmt(template, vars) {
     return template.replace(/%\((\w+)\)[sd]/g, (_, k) => vars[k] ?? '');
-}
-
-let _rules = null;
-function pluralCategory(count) {
-    const lang = document.documentElement.lang || 'en';
-    if (!_rules || _rules.lang !== lang) {
-        // A lang the runtime doesn't know falls back to English rules rather
-        // than throwing, which is what it does for `en` too.
-        let rules;
-        try {
-            rules = new Intl.PluralRules(lang);
-        } catch {
-            rules = new Intl.PluralRules('en');
-        }
-        _rules = { lang, rules };
-    }
-    return _rules.rules.select(count);
-}
-
-/** Pick the form of a plural set for `count`; `other` is the required fallback. */
-export function plural(forms, count) {
-    return forms[pluralCategory(Number(count))] ?? forms.other;
 }
 
 function translations() {
@@ -57,9 +35,10 @@ export { gettext as _ };
 
 /** The form of a plural string for `count`, in the page language when it has a translation. */
 export function ngettext(singular, pluralForm, count) {
+    const n = Number(count);
     const forms = translations()[singular];
-    if (forms && typeof forms === 'object') return plural(forms, count);
-    return Number(count) === 1 ? singular : pluralForm;
+    const form = Array.isArray(forms) && window.OL_I18N_PLURAL ? forms[window.OL_I18N_PLURAL(n)] : undefined;
+    return form ?? (n === 1 ? singular : pluralForm);
 }
 
 /**

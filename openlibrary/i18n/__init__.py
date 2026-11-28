@@ -11,7 +11,6 @@ from io import BytesIO
 from pathlib import Path
 
 import web
-from babel import Locale
 from babel.messages import Catalog, Message
 from babel.messages.extract import (
     extract_from_dir,
@@ -284,11 +283,17 @@ def compile_translations(locales: list[str]):
 
 
 def _write_javascript_catalog(locale: str, msgids: list[str | tuple[str, str]]) -> None:
-    """Write ``static/build/i18n/<locale>.js``, which the page head loads for ``i18n.js``."""
+    """Write ``static/build/i18n/<locale>.js``, which the page head loads for ``i18n.js``.
+
+    Besides the strings it defines ``window.OL_I18N_PLURAL``, the .po's own Plural-Forms
+    rule, so the browser picks a plural's form exactly as the server does.
+    """
     path = Path(root).parents[1] / "static" / "build" / "i18n" / f"{locale}.js"
     path.parent.mkdir(parents=True, exist_ok=True)
     # ASCII-only JSON, so the file reads the same whatever charset it's served with.
-    path.write_text(f"window.OL_I18N = {json.dumps(javascript_catalog(locale, msgids), sort_keys=True)};\n")
+    catalog = json.dumps(javascript_catalog(locale, msgids), sort_keys=True)
+    rule = plural_rule(load_translations(locale))
+    path.write_text(f"window.OL_I18N = {catalog};\nwindow.OL_I18N_PLURAL = function (n) {{ return Number({rule}); }};\n")
 
 
 def check_po_file(po_path: str) -> list[str]:
@@ -446,14 +451,19 @@ def load_translations(lang: str):
         return Translations(open(mo_path, "rb"))
 
 
-def _plural_samples(lang: str) -> dict[str, int]:
-    """The smallest count in each of the language's CLDR plural categories, plus ``other``, which ``i18n.js`` falls back to."""
-    rule = Locale.parse(lang).plural_form
-    samples: dict[str, int] = {}
-    for n in range(200):
-        samples.setdefault(rule(n), n)
-    samples.setdefault("other", 100)
-    return samples
+# A C plural expression is also valid JavaScript; nothing outside these characters belongs in one.
+_PLURAL_RULE = re.compile(r"[n0-9\s()?:<>=!&|%]+")
+
+
+def plural_rule(translations: Translations | None) -> str:
+    """The ``plural=`` expression from these translations' Plural-Forms header, as the server
+    evaluates it: gettext's ``n != 1`` when there is no header."""
+    header = translations.info().get("plural-forms", "") if translations else ""
+    match = re.search(r"plural=([^;]*)", header)
+    rule = match.group(1).strip() if match else "n != 1"
+    if not _PLURAL_RULE.fullmatch(rule):
+        raise ValueError(f"Unexpected characters in plural rule: {rule!r}")
+    return rule
 
 
 def _javascript_msgids() -> list[str | tuple[str, str]]:
@@ -473,9 +483,9 @@ def _javascript_msgids() -> list[str | tuple[str, str]]:
 def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> dict:
     """This language's translations of ``msgids`` (from ``_javascript_msgids()``), for ``i18n.js``.
 
-    A string maps to its translation; a plural maps its singular to a set of forms keyed
-    by CLDR plural category. Untranslated strings are left out, so the browser shows the
-    English it already has.
+    A string maps to its translation; a plural maps its singular to its forms in the .po's
+    order, which ``window.OL_I18N_PLURAL`` indexes. Untranslated strings are left out, so
+    the browser shows the English it already has.
     """
     catalog: dict = {}
     if not (translations := load_translations(lang)):
@@ -483,12 +493,20 @@ def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> dict:
     for msgid in msgids:
         if isinstance(msgid, tuple):
             singular, plural = msgid
-            forms = {category: translations.ungettext(singular, plural, n) for category, n in _plural_samples(lang).items()}
-            if any(form not in (singular, plural) for form in forms.values()):
+            forms = _plural_forms(translations, singular)
+            if any(form not in (singular, plural) for form in forms):
                 catalog[singular] = forms
         elif (text := translations.ugettext(msgid)) != msgid:
             catalog[msgid] = text
     return catalog
+
+
+def _plural_forms(translations: Translations, singular: str) -> list[str]:
+    """Every form of a plural's translation, in the .po's order; empty when it has none."""
+    forms: list[str] = []
+    while (form := translations._catalog.get((singular, len(forms)))) is not None:
+        forms.append(form)
+    return forms
 
 
 class GetText:
