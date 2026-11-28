@@ -1,28 +1,14 @@
 {#
-  Cookbook — the index. The rules every page follows, then the recipes, each
-  of which opens as a full page outside this shell. Both are built from
-  PAGE_RULES and RECIPES in design.py.
+  Cookbook — the index. A list of links to the recipes, each of which opens
+  as a full page outside this shell, then the rules every page follows. Both
+  are built from RECIPES and PAGE_RULES in design.py.
 #}
 {% macro body() %}
-    <section class="ds-section">
-        <p class="ds-lead">
-            Components are the ingredients; these are the dishes. Each recipe is a whole page built from the design system, with placeholder content, so type, colour and spacing can be judged where they actually have to work. Starting a new page? Find the closest recipe, copy its structure, and keep the rules below.
-        </p>
-    </section>
     <section class="ds-section" id="recipes">
-        <h2 class="ds-section__title">Recipes</h2>
-        <p class="ds-section__blurb">Each opens at full width, with a small dock for getting back here and moving between them.</p>
-        <ul class="ds-recipes">
+        <ul class="ds-recipes" aria-label="Recipes">
             {% for recipe in recipes %}
-                <li class="ds-recipe">
-                    <h3 class="ds-recipe__title">
-                        <a class="ds-recipe__link"
-                           href="/developers/design/cookbook/{{ recipe.id }}">{{ recipe.title }}</a>
-                    </h3>
-                    <p class="ds-recipe__blurb">{{ recipe.blurb }}</p>
-                    <p class="ds-recipe__uses">
-                        {% for name in recipe.uses %}<code>.{{ name }}</code>{% endfor %}
-                    </p>
+                <li>
+                    <a href="/developers/design/cookbook/{{ recipe.id }}">{{ recipe.title }}</a>
                 </li>
             {% endfor %}
         </ul>
@@ -30,7 +16,7 @@
     <section class="ds-section" id="page-rules">
         <h2 class="ds-section__title">Page rules</h2>
         <p class="ds-section__blurb">What keeps a page calm. Every recipe follows all of them.</p>
-        <dl class="ds-tensions">
+        <dl class="ds-tensions ds-tensions--sans">
             {% for rule in page_rules %}
                 <div class="ds-tensions__row">
                     <dt class="ds-tensions__title">{{ rule.title }}</dt>

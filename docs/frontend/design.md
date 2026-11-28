@@ -79,6 +79,17 @@ h3 {
 }
 ```
 
+## Interface text
+
+Interface text is light. Every sentence on a page is one more thing to read before acting, so text has to earn its place the same way a control does: add it when the page is unclear without it, and not otherwise.
+
+- **No heading followed by a line that only restates it.** A "Recipes" heading over "Each recipe opens as a full page" tells the reader nothing the list below doesn't. If the content under a heading explains itself, the heading stands alone; if the heading adds nothing either, drop both.
+- **No intro paragraph that sets a mood.** Text that describes the page, welcomes the reader or adds colour is removed, not shortened. Keep an intro only when it says what the reader can do here and that isn't already plain from the page.
+- **A link or a label is often the whole content.** A list of destinations is a list of links; a description under each one is needed only when the names alone can't be told apart.
+- **Help text answers a question the reader will actually have**: the expected format, a limit, what happens next. A field whose label is enough gets no help.
+
+The test for any line: remove it and ask whether someone would get stuck or choose wrongly. If not, leave it out.
+
 ## Visual Design
 
 ### Scroll Margins
