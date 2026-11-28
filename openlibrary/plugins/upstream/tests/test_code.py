@@ -538,6 +538,34 @@ class TestIntegratedBookPageRendering:
         assert og["og:title"] == f"{expected_title} | Open Library"
         assert context.description == og["og:description"] == expected_description
 
+    @pytest.mark.parametrize(("score", "expect_badge"), [(6.5, True), (3.0, False)])
+    def test_work_page_trending_badge_rendering(self, monkeypatch, mock_site, render_template, request_context_fixture, score, expect_badge):
+        from openlibrary.plugins.upstream import models as upstream_models
+
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/works/OL4W", "/type/work", title="Trending Test Work", edition_count=1)
+        mock_site.quicksave("/books/OL4M", "/type/edition", title="Trending Test Edition", works=[{"key": "/works/OL4W"}])
+        monkeypatch.setattr(lending, "get_availability", lambda *a, **kw: {})
+        monkeypatch.setattr(lending, "get_cached_groundtruth_availability", lambda ocaid: {})
+
+        mock_solr = Mock()
+        mock_solr.get.return_value = {
+            "key": "/works/OL4W",
+            "trending_z_score": score,
+            "trending_score_hourly_sum": 12,
+            "trending_score_daily_0": 4,
+        }
+        monkeypatch.setattr(upstream_models, "get_solr", lambda: mock_solr)
+
+        self._load_fake_request("/works/OL4W", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        html = str(code.view().GET("/works/OL4W"))
+
+        assert ("trending-badge-container" in html) is expect_badge
+        assert (f"Trending: {score:.2f}" in html) is expect_badge
+        assert "This is only visible to librarians." not in html
+
 
 class TestGenericEditSpamCheck:
     """POST to ?m=edit runs the spam check on every page, not only profiles."""

@@ -325,3 +325,28 @@ class TestSiteContextMigration:
         monkeypatch.setattr(current, "recentchanges", recent)
         assert change.get_undo_changeset() is undo
         recent.assert_called_once_with({"kind": "undo", "data": {"parent_changeset": change.id}})
+
+
+class TestWorkSolrData:
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+        self.site_token = site_context.set(web.ctx.site)
+        models.setup()
+
+    def teardown_method(self):
+        site_context.reset(self.site_token)
+
+    def test_solr_data_requests_trending_fields(self, monkeypatch):
+        work = site_context.get().quicksave("/works/OL1W", "/type/work", title="Trending Work")
+        mock_solr = Mock()
+        mock_solr.get.return_value = {"key": "/works/OL1W", "trending_z_score": 6.5}
+        monkeypatch.setattr(models, "get_solr", lambda: mock_solr)
+
+        data = work._solr_data
+
+        assert data["trending_z_score"] == 6.5
+        fields = mock_solr.get.call_args.kwargs["fields"]
+        assert "trending_z_score" in fields
+        assert "trending_score_hourly_sum" in fields
+        for i in range(7):
+            assert f"trending_score_daily_{i}" in fields

@@ -1,4 +1,4 @@
-$def with (doc)
+$def with (doc, public=False)
 
 $ weekday = today().weekday()
 $ scores = [doc.get('trending_score_daily_%d' % (i % 7), 0) for i in range(weekday, weekday - 7, -1)]
@@ -6,7 +6,8 @@ $ scores.reverse()
 $ scores.append(doc.get('trending_score_hourly_sum', 0))
 $ max_score = max(scores) if scores else 1
 $ max_score = max(max_score, 40)
-<div class="trending-badge" title="$_('This is only visible to librarians.')">
+$ badge_title = "" if public else _('This is only visible to librarians.')
+<div class="trending-badge" title="$badge_title">
     $if doc.trending_z_score >= 4:
         🡽
     $elif doc.trending_z_score >= 2:

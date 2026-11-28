@@ -21,6 +21,14 @@ $ previews = book_page_context.previews
 $ show_observations = book_page_context.show_observations
 $ lending_state = book_page_context.lending_state
 
+$if edition:
+    $ _solr = work._solr_data if (work and work._solr_data) else {}
+    $ trending_score = _solr.get("trending_z_score")
+    $ edition["trending_z_score"] = trending_score if trending_score is not None else 0
+    $if edition["trending_z_score"] > 5:
+        $ edition["trending_score_hourly_sum"] = _solr.get("trending_score_hourly_sum", 0)
+        $for _i in range(7):
+            $ edition[f"trending_score_daily_{_i}"] = _solr.get(f"trending_score_daily_{_i}", 0)
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
@@ -157,6 +165,11 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
       <a id="overview" name="overview" class="section-anchor section-anchor--no-height"></a>
       <!-- (desktop only) -->
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
+
+      $if edition and edition.get('trending_z_score', 0) > 5:
+          <div class="trending-badge-container">
+              $:macros.TrendingBadge(edition, public=True)
+          </div>
 
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:

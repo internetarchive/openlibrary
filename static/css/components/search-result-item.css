@@ -415,3 +415,11 @@
   display: block;
   margin-bottom: var(--spacing-stack-sm);
 }
+
+/* Container for trending badge on book pages */
+.trending-badge-container {
+  margin-bottom: var(--spacing-stack-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-icon-gap);
+}
