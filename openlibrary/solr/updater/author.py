@@ -8,6 +8,7 @@ from openlibrary.solr.data_provider import WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
+from openlibrary.utils.dateutil import parse_user_entered_date
 
 SUBJECT_FACETS = ["subject_facet", "time_facet", "person_facet", "place_facet"]
 
@@ -87,6 +88,14 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
     @property
     def death_date(self) -> str | None:
         return self._author.get("death_date")
+
+    @property
+    def birth_timestamp(self) -> str | None:
+        return parse_user_entered_date(self._author.get("birth_date"))
+
+    @property
+    def death_timestamp(self) -> str | None:
+        return parse_user_entered_date(self._author.get("death_date"))
 
     @property
     def date(self) -> str | None:
