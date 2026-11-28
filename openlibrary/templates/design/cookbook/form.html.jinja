@@ -1,7 +1,7 @@
 {#
   Recipe: a page with a form. Ruled groups, each with its legend in a left
-  column. Short answers sit one to a row, label left and control right; the
-  error lands under its control; one primary action at the left.
+  column. A field reads straight down: label, help, control, then its error.
+  Switches and short menus stay on one line. One primary action at the left.
 #}
 {% import "design/cookbook/_parts.html.jinja" as parts %}
 {% set LANGUAGES = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"},{\"value\":\"de\",\"label\":\"German\"},{\"value\":\"hi\",\"label\":\"Hindi\"},{\"value\":\"ja\",\"label\":\"Japanese\"}]" %}
@@ -14,9 +14,9 @@
         </div>
     </header>
     <form class="ol-form" action="#" method="get" novalidate>
-        <fieldset class="ol-form__group ol-form__group--rows ol-form__group--split">
+        <fieldset class="ol-form__group ol-form__group--split">
             <legend class="ol-form__legend">About you</legend>
-            <div class="ol-field ol-field--split">
+            <div class="ol-field">
                 <label class="ol-field__label" for="cb-name">Display name</label>
                 <div class="ol-field__control">
                     <input class="ol-input"
@@ -27,7 +27,7 @@
                            autocomplete="name">
                 </div>
             </div>
-            <div class="ol-field ol-field--split">
+            <div class="ol-field">
                 <label class="ol-field__label" for="cb-handle">Username</label>
                 <p class="ol-field__help" id="cb-handle-help">Your profile lives at openlibrary.org/people/username.</p>
                 <div class="ol-field__control">
@@ -43,7 +43,7 @@
                     <p class="ol-field__error" id="cb-handle-error">Letters, numbers and hyphens only. Try “mary-lennox”.</p>
                 </div>
             </div>
-            <div class="ol-field ol-field--split ol-field--top">
+            <div class="ol-field">
                 <label class="ol-field__label" for="cb-about">
                     Bio <span class="ol-field__optional">Optional</span>
                 </label>
@@ -56,7 +56,7 @@
                               aria-describedby="cb-about-help">Mostly gardens, moors and other people’s houses.</textarea>
                 </div>
             </div>
-            <div class="ol-field ol-field--split">
+            <div class="ol-field">
                 <label class="ol-field__label" for="cb-location">
                     Location <span class="ol-field__optional">Optional</span>
                 </label>
@@ -91,7 +91,7 @@
                 {% include "forms/choice_list.html.jinja" %}
             {% endwith %}
         </fieldset>
-        <fieldset class="ol-form__group ol-form__group--rows ol-form__group--split">
+        <fieldset class="ol-form__group ol-form__group--split">
             <legend class="ol-form__legend">Email</legend>
             <div class="ol-field ol-field--inline">
                 <span class="ol-field__label" id="cb-due-label">Due date reminders</span>

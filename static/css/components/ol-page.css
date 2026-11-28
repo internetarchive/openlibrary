@@ -40,14 +40,15 @@
 }
 
 /* Links are blue and plain; the underline arrives on hover. Running prose
-   (.ol-prose) keeps its underlines, where a link has to be found mid-sentence. */
-.ol-page a:any-link {
+   (.ol-prose) keeps its underlines, where a link has to be found mid-sentence.
+   A tab is a control, not a link, and keeps the colours ol-tabs.css gives it. */
+.ol-page a:any-link:where(:not([slot="tab"])) {
   color: var(--color-link);
   text-decoration: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .ol-page a:hover {
+  .ol-page a:hover:where(:not([slot="tab"])) {
     color: var(--color-link-hover);
     text-decoration: underline;
   }
@@ -102,7 +103,7 @@ a.ol-page-header__back:any-link {
 
 .ol-page-header__title {
   font-family: var(--font-family-title);
-  font-size: var(--font-size-headline-medium);
+  font-size: var(--font-size-headline-small);
   font-weight: var(--font-weight-heading);
   line-height: var(--line-height-display);
   letter-spacing: -0.01em;
@@ -225,8 +226,7 @@ a.ol-page-header__back:any-link {
 .ol-prose {
   display: grid;
   gap: var(--spacing-md);
-  max-width: 65ch;
-  font-size: var(--font-size-body-large);
+  max-width: 75ch;
   line-height: var(--line-height-body);
 }
 
@@ -307,7 +307,14 @@ a.ol-page-header__back:any-link {
 
 /* The thing's own name is the largest type on the page. */
 .ol-detail__title {
-  font-size: var(--font-size-display-small);
+  font-size: var(--font-size-headline-large);
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .ol-detail__title {
+    font-size: var(--font-size-headline-medium);
+  }
 }
 
 .ol-detail__byline {
@@ -315,28 +322,21 @@ a.ol-page-header__back:any-link {
   color: var(--color-text-secondary);
 }
 
-/* One figure worth reading at a glance, then the counts behind it. */
-.ol-detail__rating {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-xl);
-  margin-block-start: var(--spacing-stack-xs);
+/* The title's descenders take up some of the gap under it; this evens the gap under the byline. */
+.ol-detail__title-block > .ol-meta-line {
+  margin-block-start: var(--spacing-3xs);
 }
 
-.ol-detail__rating-value {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-icon-gap);
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-tight);
+/* The rating is one more fact on the meta line, with a star to say which. */
+.ol-detail__rating .ol-icon {
+  margin-inline-end: var(--spacing-icon-gap);
+  vertical-align: -0.125em;
 }
 
 /* --width-breakpoint-tablet */
 @media (min-width: 768px) {
   .ol-detail {
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: 200px minmax(0, 1fr);
     gap: var(--spacing-3xl);
     align-items: start;
   }

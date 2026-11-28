@@ -30,14 +30,12 @@
                 <p class="ol-detail__byline">
                     <a href="#">{{ book.author }}</a>
                 </p>
-                <div class="ol-detail__rating">
-                    <span class="ol-detail__rating-value">{{ icon("star", size="sm") }} 4.1</span>
-                    <p class="ol-meta-line">
-                        <span>2,869 ratings</span>
-                        <span>626 reviews</span>
-                        <span>First published {{ book.year }}</span>
-                    </p>
-                </div>
+                <p class="ol-meta-line">
+                    <span class="ol-detail__rating">{{ icon("star", size="sm") }}4.1</span>
+                    <span>2,869 ratings</span>
+                    <span>626 reviews</span>
+                    <span>First published {{ book.year }}</span>
+                </p>
             </header>
             <section class="ol-section">
                 <ol-read-more max-height="168px">
@@ -60,22 +58,22 @@
                     <h2 class="ol-section__title" id="cb-subjects">Subjects</h2>
                 </div>
                 <ol-chip-group>
-                    <ol-chip href="#">
+                    <ol-chip size="small" href="#">
                         Classics
                     </ol-chip>
-                    <ol-chip href="#">
+                    <ol-chip size="small" href="#">
                         Children’s fiction
                     </ol-chip>
-                    <ol-chip href="#">
+                    <ol-chip size="small" href="#">
                         Gardens
                     </ol-chip>
-                    <ol-chip href="#">
+                    <ol-chip size="small" href="#">
                         Orphans
                     </ol-chip>
-                    <ol-chip href="#">
+                    <ol-chip size="small" href="#">
                         Yorkshire
                     </ol-chip>
-                    <ol-chip href="#">
+                    <ol-chip size="small" href="#">
                         Friendship
                     </ol-chip>
                 </ol-chip-group>

@@ -122,24 +122,24 @@ Symmetric glyphs (close, search, chevron-down) stay as they are.
 
 ## Pages
 
-A new page starts from a recipe, not from an existing page. The Cookbook at `/developers/design/cookbook` has full-page examples (a form, a detail page, a card collection, a browse page, a builder flow) built only from the components below and the page primitives in `static/css/components/`:
+A new page starts from a recipe, not from an existing page. The Cookbook at `/developers/design/cookbook` has full-page examples (a form, a detail page, a card collection, a browse page, a builder flow, and the book edit page as a worked example) built only from the components below and the page primitives in `static/css/components/`:
 
 | File | Classes |
 |---|---|
 | `ol-page.css` | `.ol-page` (and `--narrow`, `--medium`), `.ol-page-header`, `.ol-section` (and `--ruled`, `--split`, `--major`), `.ol-prose`, `.ol-meta-line`, `.ol-toolbar`, `.ol-detail` |
 | `ol-card.css` | `.ol-card-grid`, `.ol-card`, `.ol-aside`, `.ol-empty` |
 | `ol-list.css` | `.ol-meta-list`, `.ol-item-list`, `.ol-link-columns` |
-| `ol-field.css` | `.ol-form` (groups take `--rows`, `--split`), `.ol-field`, `.ol-input`, `.ol-combobox` |
+| `ol-field.css` | `.ol-form` (groups take `--rows`, `--split`; `.ol-form__actions--sticky` for a form longer than the window), `.ol-field` (and `--inline`, `--wide`), `.ol-input`, `.ol-combobox` |
 
 Import `ol-page.css` first and the two webfonts before it; `static/css/page-cookbook.css` is the reference bundle. Find the closest recipe, copy its structure, and keep these rules. They are what keeps a page calm, and they are the same text the Cookbook shows, sourced from `PAGE_RULES` in `openlibrary/plugins/openlibrary/design.py`:
 
 - **Two families, each with one job.** Literata (`--font-family-title`) sets the page title, and a book's title where the book is the subject. Schibsted Grotesk sets everything else, section headings included.
 - **Two weights.** `--font-weight-regular` for copy, `--font-weight-medium` for titles and labels. Controls bring their own label weight. To make something stand out more, change its size, ink or position, not its weight.
 - **Three inks.** `--color-text` for what the page is about, `--color-text-secondary` for what describes it, `--color-text-muted` for what could be removed. Blue is for links and the one primary action. In a row, link the title and leave its facts plain.
-- **Big steps at the top, one size below.** The title is 28px (`headline-medium`), or 36px (`display-small`, `.ol-detail__title`) when the page is about one thing. The few sections a page is about take a 22px heading (`title-large`, `.ol-section--major`); running prose and the lede are 16px. Every label, fact and control is 14px (`body-medium`), including the heading of a split section, so the details stay quiet; 12px (`body-small`) is for small print. Hierarchy comes from the distance between the top sizes, not from variety among the small ones.
+- **Big steps at the top, one size below.** The title is 24px (`headline-small`), or 32px (`headline-large`, `.ol-detail__title`) when the page is about one thing. The few sections a page is about take a 22px heading (`title-large`, `.ol-section--major`); the lede under a page title is 16px. Everything else is 14px (`body-medium`): running prose, every label, fact and control, and the heading of a split section, so the details stay quiet; 12px (`body-small`) is for small print. Hierarchy comes from the distance between the top sizes, not from variety among the small ones.
 - **One gap inside, one margin between.** Sections take the same bottom margin all the way down the page (`--spacing-section-gap`, 32px), or a rule with `--spacing-xl` (20px) either side of it (`.ol-section--ruled`). `gap` is for related items inside a section, and stays close: 4, 8 or 12px.
 - **One surface.** The page is `--color-surface`. Forms and detail pages have no boxes: sections are separated by `--border-divider` and repeated rows by the lighter `--color-border-extra-subtle`. A card is `--border-card`, with no shadow and no tint, and is for a grid of separate things that are each a link. `--color-surface-sunken` is for an empty state or a single aside.
-- **Dense, then calm.** Show a lot, quietly. Controls are `--control-height-medium` (32px), rows are one line where they can be, and a short answer sits beside its label (`.ol-form__group--rows` with `.ol-field--split` or `--inline`). On a page of rows, section headings move to a left column so every section's rows start on one line (`.ol-section--split`, `.ol-form__group--split`, on an `.ol-page--medium`); covers and prose stay stacked. Calm comes from alignment, not empty space.
+- **Dense, then calm.** Show a lot, quietly. Controls are `--control-height-medium` (32px), rows are one line where they can be, and in a form the label and help sit above the input, with a switch or short menu on its label's line (`.ol-field--inline`). Settings-only groups can still use `.ol-form__group--rows` with `.ol-field--split`. On a page of rows, section headings move to a left column so every section's rows start on one line (`.ol-section--split`, `.ol-form__group--split`, on an `.ol-page--medium`); covers and prose stay stacked. Calm comes from alignment, not empty space.
 - **One primary action per view.** A page header puts it on the right; a page form puts it first on the left (see [below](#primary-action-goes-right-in-a-dialog-left-in-a-page-form)).
 
 When a page needs something no recipe has, add it to a recipe first, so the next page finds it there.

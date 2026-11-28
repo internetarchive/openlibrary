@@ -587,7 +587,7 @@ PAGE_RULES = (
     PageRule(
         "sizes",
         "Big steps at the top, one size below",
-        "36 or 28 for the title, 22 for the few sections a page is about, 16 for prose. Every label, fact and control is 14, so the details stay quiet.",
+        "32 or 24 for the title and 22 for the few sections a page is about. Everything else is 14: prose, labels, facts and controls. The details stay quiet.",
     ),
     PageRule(
         "rhythm",
@@ -602,7 +602,7 @@ PAGE_RULES = (
     PageRule(
         "density",
         "Dense, then calm",
-        "Controls are 32px, a short answer sits beside its label, and on a page of rows the headings take a left column. Calm is alignment, not empty space.",
+        "Controls are 32px and group headings take a left column. In a form, label and help sit above the input. Calm is alignment, not empty space.",
     ),
     PageRule(
         "action",
@@ -630,7 +630,7 @@ RECIPES = (
     Recipe(
         "form",
         "Form page",
-        "Settings-style rows in titled groups: label left, control right, with help, a validation error and one primary action.",
+        "Titled groups with the group name in a left column: label and help above each input, a validation error under it, and one primary action.",
         uses=("ol-page", "ol-page-header", "ol-section", "ol-form", "ol-field", "ol-input"),
     ),
     Recipe(
@@ -662,6 +662,12 @@ RECIPES = (
         "Lists landing",
         "A worked example: the recipes above composed into one landing page for reader-made lists.",
         uses=("ol-page", "ol-page-header", "ol-section", "ol-card", "ol-item-list"),
+    ),
+    Recipe(
+        "edit-book",
+        "Edit book",
+        "A worked example: the book edit page, with its Work and Edition tabs, rebuilt as a long form of titled groups.",
+        uses=("ol-page", "ol-page-header", "ol-form", "ol-field", "ol-input", "ol-item-list"),
     ),
 )
 

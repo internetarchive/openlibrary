@@ -27,6 +27,7 @@
 @import "components/ol-field.css";
 @import "components/ol-message.css";
 @import "components/choice-list.css";
+@import "components/ol-tabs.css";
 
 /* The dock: a floating way back to the design system and across to the other
    recipes. It is the only thing on a recipe page that isn't part of the recipe. */
@@ -196,4 +197,58 @@ a.cookbook-dock__row[aria-current="page"]:any-link {
 .cookbook-person__name {
   font-size: var(--font-size-title-medium);
   font-weight: var(--font-weight-medium);
+}
+
+/* The edit book recipe. Its tab row already draws a divider, so the first
+   group in each panel drops its own rule. */
+.cookbook-edit ol-tabs > div > .ol-form__group--split:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+/* A kind, a value and the button that adds the pair. Recipe content: the
+   primitives have no pattern for repeating facts yet. */
+.cookbook-adder {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+  max-width: 30rem;
+}
+
+.cookbook-added {
+  max-width: 30rem;
+}
+
+.cookbook-added .ol-item {
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr) auto;
+  padding-block: var(--spacing-3xs);
+}
+
+.cookbook-added__kind {
+  color: var(--color-text-secondary);
+}
+
+/* A number and its unit on one line. */
+.cookbook-measure {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+.cookbook-measure .ol-input {
+  flex: 1 1 4rem;
+  min-width: 0;
+  max-width: 6rem;
+}
+
+/* The dock rides above a form's sticky actions and does not cover them. */
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .cookbook-page:has(.ol-form__actions--sticky) ~ .cookbook-dock {
+    inset-block-end: calc(
+      var(--control-height-medium) + 2 * var(--spacing-md) +
+        var(--spacing-inset-md)
+    );
+  }
 }

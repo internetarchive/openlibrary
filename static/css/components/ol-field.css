@@ -206,9 +206,30 @@
   padding-block-end: 0;
 }
 
+/* A stacked field stops at a readable width; it does not fill the column.
+   --wide lifts that for long text. */
+.ol-form__group--split > .ol-field:not(.ol-field--inline, .ol-field--wide) {
+  max-width: 30rem;
+}
+
 .ol-form__group--split ~ .ol-form__actions {
   padding-block-start: var(--spacing-xl);
   border-block-start: var(--border-divider);
+}
+
+/* Sticky actions, for a form longer than the window: the buttons hold to the
+   bottom edge until the end of the form scrolls into view. Phones keep them
+   in place, where a fixed bar would sit behind the keyboard. */
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) {
+  .ol-form .ol-form__actions--sticky {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: var(--z-index-sticky);
+    padding-block: var(--spacing-md);
+    border-block-start: var(--border-divider);
+    background: var(--color-surface);
+  }
 }
 
 /* --width-breakpoint-tablet */
@@ -231,6 +252,13 @@
 
   .ol-form__group--split > :not(.ol-form__legend) {
     grid-column: 2;
+  }
+
+  /* The buttons start where the inputs do, not under the group names. */
+  .ol-form__group--split ~ .ol-form__actions {
+    padding-inline-start: calc(
+      var(--ol-section-label-width) + var(--spacing-2xl)
+    );
   }
 
   .ol-form__group--split:where(.ol-form__group--rows)
