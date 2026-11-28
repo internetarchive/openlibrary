@@ -245,7 +245,6 @@ def read_lc_classification(rec: MarcBase) -> list[str]:
                 found += [f"{a} {b}" for a in contents["a"]]
             else:
                 found += [b]
-        # https://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:671135731:596
         elif "a" in contents:
             found += contents["a"]
     return found
@@ -294,7 +293,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     if not fields:
         raise NoTitle("No Title found in either 245 or 740 fields.")
     # example MARC record with multiple titles:
-    # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
+    # https://openlibrary.org/show-records/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
     contents = fields[0].get_contents("ach")
     linkages = fields[0].get_contents("6")
     bnps = fields[0].get_subfield_values("bnps")
@@ -303,7 +302,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     if "6" in linkages:
         alternate = rec.get_linkage("245", linkages["6"][0])
     # MARC record with 245$a missing:
-    # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
+    # https://openlibrary.org/show-records/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if "a" in contents:
         title = title_from_list(contents["a"])
     elif bnps:
@@ -724,11 +723,11 @@ def read_toc(rec: MarcBase) -> list:
                 toc_split = [i.strip() for i in v.split("--")]
                 if any(len(i) > 2048 for i in toc_split):
                     toc_split = [i.strip() for i in v.split(" - ")]
-                # http://openlibrary.org/show-marc/marc_miami_univ_ohio/allbibs0036.out:3918815:7321
+                # http://openlibrary.org/show-records/marc_miami_univ_ohio/allbibs0036.out:3918815:7321
                 if any(len(i) > 2048 for i in toc_split):
                     toc_split = [i.strip() for i in v.split("; ")]
                 # FIXME:
-                # http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:938969487:3862
+                # http://openlibrary.org/show-records/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:938969487:3862
                 if any(len(i) > 2048 for i in toc_split):
                     toc_split = [i.strip() for i in v.split(" / ")]
                 assert isinstance(toc_split, list)

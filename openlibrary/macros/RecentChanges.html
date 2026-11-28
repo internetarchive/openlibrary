@@ -42,10 +42,7 @@ $def render_changes(bot, hash=""):
                     <td class="history"><a href="/recentchanges?ip=$v.ip" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$v.ip</a></td>
                 $else:
                     <td class="history">$v.ip</td>
-                <td class="comment">$v.comment
-                    $ marc = v.get('machine_comment')
-		    $if marc: (<a href="/show-marc/$marc">$_("View MARC")</a>)
-                </td>
+                <td class="comment">$v.comment</td>
             </tr>
         </tbody>
     </table>

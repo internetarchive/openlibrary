@@ -7841,10 +7841,6 @@ msgstr ""
 msgid "More reading options"
 msgstr ""
 
-#: RecentChanges.html
-msgid "View MARC"
-msgstr ""
-
 #: RelatedSubjects.html.jinja
 msgid "Related..."
 msgstr ""

@@ -12,7 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, Any, Literal, Protocol
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import (
     parse_qs,
     quote,
@@ -520,34 +520,6 @@ def get_locale():
         return babel.Locale(web.ctx.get("lang") or "en")
     except babel.core.UnknownLocaleError:
         return babel.Locale("en")
-
-
-class HasGetKeyRevision(Protocol):
-    key: str
-    revision: int
-
-    def get(self, item) -> Any: ...
-
-
-@public
-def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
-    """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    comments = [
-        "found a matching marc record",
-        "add publisher and source",
-    ]
-
-    if v.key.startswith("/books/") and not v.get("machine_comment"):
-        thing = v.get("thing") or request_context.site.get().get(v.key, v.revision)
-        if (thing.source_records and v.revision == 1) or (
-            v.comment and v.comment.lower() in comments  # type: ignore [attr-defined]
-        ):
-            marc = thing.source_records[-1]
-            if marc.startswith("marc:"):
-                v.machine_comment = marc[len("marc:") :]  # type: ignore [attr-defined]
-            else:
-                v.machine_comment = marc  # type: ignore [attr-defined]
-    return v
 
 
 @public
