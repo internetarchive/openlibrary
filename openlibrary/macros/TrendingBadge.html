@@ -6,7 +6,7 @@ $ scores.reverse()
 $ scores.append(doc.get('trending_score_hourly_sum', 0))
 $ max_score = max(scores) if scores else 1
 $ max_score = max(max_score, 40)
-$ badge_title = "" if public else $_('This is only visible to librarians.')
+$ badge_title = "" if public else _('This is only visible to librarians.')
 <div class="trending-badge" title="$badge_title">
     $if doc.trending_z_score >= 4:
         🡽

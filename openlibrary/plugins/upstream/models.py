@@ -593,6 +593,8 @@ class Work(models.Work):
             "public_scan_b",
             "last_modified_i",
             *[f"trending_score_daily_{i}" for i in range(7)],
+            "trending_z_score",
+            "trending_score_hourly_sum",
             *bp.get_solr_keys(),
             *list(WorkSearchScheme.default_fetched_fields),
             *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),

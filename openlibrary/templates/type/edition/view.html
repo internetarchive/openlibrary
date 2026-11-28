@@ -21,10 +21,8 @@ $ previews = book_page_context.previews
 $ show_observations = book_page_context.show_observations
 $ lending_state = book_page_context.lending_state
 
-$# Add trending data from work to edition for trending badge
-$# Safely handle trending data - graceful fallback if not available
 $if edition:
-    $ _solr = work._solr_data if (work and hasattr(work, "_solr_data") and work._solr_data) else {}
+    $ _solr = work._solr_data if (work and work._solr_data) else {}
     $ trending_score = _solr.get("trending_z_score")
     $ edition["trending_z_score"] = trending_score if trending_score is not None else 0
     $if edition["trending_z_score"] > 5:
@@ -168,7 +166,6 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
       <!-- (desktop only) -->
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
 
-      $# Show trending badge when trending score > 5
       $if edition and edition.get('trending_z_score', 0) > 5:
           <div class="trending-badge-container">
               $:macros.TrendingBadge(edition, public=True)
