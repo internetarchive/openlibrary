@@ -18,26 +18,32 @@
   padding-left: 2rem;
 }
 .teamCards_container {
-  padding: 1rem;
-  display: flex;
-  flex-wrap: wrap;
+  --team-card-width: 280px;
+  --team-photo-size: 160px;
+  --team-photo-overlap: 80px;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--team-card-width), 100%), var(--team-card-width))
+  );
   justify-content: space-evenly;
   gap: 1rem;
+  padding: 1rem 2rem;
   min-height: 50vh;
-  padding-left: 2rem;
 }
 .noResults {
+  grid-column: 1 / -1;
   text-align: center;
 }
 .sectionSeparator {
-  width: 100%;
+  grid-column: 1 / -1;
   margin: 0;
   margin-top: 30px;
   font-size: var(--font-size-headline-large);
   font-weight: var(--font-weight-semibold);
 }
 .subsectionSeparator {
-  width: 100%;
+  grid-column: 1 / -1;
   margin: 0;
   font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-semibold);
@@ -51,15 +57,15 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
   align-items: center;
   position: relative;
   border-radius: var(--border-radius-card);
 }
 .teamCard__container {
-  height: 340px;
-  width: 280px;
   display: flex;
-  align-items: flex-end;
+  box-sizing: border-box;
+  padding-top: var(--team-photo-overlap);
   scroll-margin-top: 120px;
 }
 .teamCard__container--highlighted .teamCard {
@@ -68,9 +74,9 @@
 }
 .teamCard__photoContainer {
   position: absolute;
-  top: -80px;
-  height: 160px;
-  width: 160px;
+  top: calc(-1 * var(--team-photo-overlap));
+  height: var(--team-photo-size);
+  width: var(--team-photo-size);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -89,6 +95,7 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  flex: 1;
 }
 .description__name--length-long {
   text-decoration: underline;
@@ -103,7 +110,7 @@
 }
 .description__title {
   font-weight: var(--font-weight-regular);
-  height: 40px;
+  min-height: 40px;
   font-size: var(--font-size-body-xlarge);
   margin-top: 10px;
   text-align: center;
@@ -127,6 +134,7 @@
   display: flex;
   height: 60px;
   width: 100%;
+  margin-top: auto;
   justify-content: space-evenly;
   align-items: center;
 }
