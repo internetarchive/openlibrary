@@ -72,13 +72,18 @@
                 <fieldset class="ol-form__group ol-form__group--split">
                     <legend class="ol-form__legend">This work</legend>
                     {% call field("cb-w-title", "Title", help="Use “Title: Subtitle” to add a subtitle.") %}
-                        <input class="ol-input" id="cb-w-title" type="text" value="{{ book.title }}">
+                        <input class="ol-input"
+                               id="cb-w-title"
+                               type="text"
+                               value="{{ book.title }}"
+                               aria-describedby="cb-w-title-help">
                     {% endcall %}
                     {% call field("cb-w-author", "Author", help="Search by name or Open Library ID.") %}
                         <input class="ol-input"
                                id="cb-w-author"
                                type="text"
-                               value="{{ book.author }}">
+                               value="{{ book.author }}"
+                               aria-describedby="cb-w-author-help">
                         <a href="#">Add another author</a>
                     {% endcall %}
                     {% call field("cb-w-about", "Description", help="How would you describe this book? There’s no wrong answer.", wide=true) %}
@@ -104,7 +109,10 @@
                 <fieldset class="ol-form__group ol-form__group--split">
                     <legend class="ol-form__legend">Subjects</legend>
                     {% call field("cb-w-subjects", "Keywords", help="Separate with commas.", wide=true) %}
-                        <textarea class="ol-input" id="cb-w-subjects" rows="2">Classics, Children’s fiction, Gardens, Orphans, Friendship</textarea>
+                        <textarea class="ol-input"
+                                  id="cb-w-subjects"
+                                  rows="2"
+                                  aria-describedby="cb-w-subjects-help">Classics, Children’s fiction, Gardens, Orphans, Friendship</textarea>
                     {% endcall %}
                     {% call field("cb-w-people", "People", optional=true) %}
                         <input class="ol-input" id="cb-w-people" type="text" value="Mary Lennox">
@@ -116,13 +124,17 @@
                         <input class="ol-input"
                                id="cb-w-times"
                                type="text"
-                               placeholder="The Middle Ages, 1810–1890">
+                               placeholder="The Middle Ages, 1810–1890"
+                               aria-describedby="cb-w-times-help">
                     {% endcall %}
                 </fieldset>
                 <fieldset class="ol-form__group ol-form__group--split">
                     <legend class="ol-form__legend">Excerpts</legend>
                     {% call field("cb-w-excerpt", "Excerpt", help="Up to 2,000 characters.", wide=true) %}
-                        <textarea class="ol-input" id="cb-w-excerpt" rows="3"></textarea>
+                        <textarea class="ol-input"
+                                  id="cb-w-excerpt"
+                                  rows="3"
+                                  aria-describedby="cb-w-excerpt-help"></textarea>
                     {% endcall %}
                     {% call field("cb-w-page", "Page", optional=true) %}
                         <input class="ol-input ol-input--short"
@@ -155,7 +167,11 @@
                                placeholder="New York Times review">
                     {% endcall %}
                     {% call field("cb-w-link-url", "URL", help="Keep links relevant to the book.") %}
-                        <input class="ol-input" id="cb-w-link-url" type="url" placeholder="https://">
+                        <input class="ol-input"
+                               id="cb-w-link-url"
+                               type="url"
+                               placeholder="https://"
+                               aria-describedby="cb-w-link-url-help">
                     {% endcall %}
                     <div>
                         <ol-button>
@@ -186,7 +202,10 @@
                         <input class="ol-input" id="cb-e-title" type="text" value="{{ book.title }}">
                     {% endcall %}
                     {% call field("cb-e-subtitle", "Subtitle", help="Usually in different or smaller type.", optional=true) %}
-                        <input class="ol-input" id="cb-e-subtitle" type="text">
+                        <input class="ol-input"
+                               id="cb-e-subtitle"
+                               type="text"
+                               aria-describedby="cb-e-subtitle-help">
                     {% endcall %}
                     <div class="ol-field ol-field--inline">
                         <span class="ol-field__label">Cover</span>
@@ -207,13 +226,18 @@
                                value="Frederick A. Stokes">
                     {% endcall %}
                     {% call field("cb-e-place", "Published in", help="City, country.") %}
-                        <input class="ol-input" id="cb-e-place" type="text" value="New York, USA">
+                        <input class="ol-input"
+                               id="cb-e-place"
+                               type="text"
+                               value="New York, USA"
+                               aria-describedby="cb-e-place-help">
                     {% endcall %}
                     {% call field("cb-e-date", "Publish date", help="In the first few pages of the book.") %}
                         <input class="ol-input ol-input--short"
                                id="cb-e-date"
                                type="text"
-                               value="August 1911">
+                               value="August 1911"
+                               aria-describedby="cb-e-date-help">
                     {% endcall %}
                     {% call field("cb-e-copyright", "Copyright date", optional=true) %}
                         <input class="ol-input ol-input--short" id="cb-e-copyright" type="text">
@@ -225,7 +249,10 @@
                                placeholder="Centennial edition">
                     {% endcall %}
                     {% call field("cb-e-series", "Series", help="The publisher’s series.", optional=true) %}
-                        <input class="ol-input" id="cb-e-series" type="text">
+                        <input class="ol-input"
+                               id="cb-e-series"
+                               type="text"
+                               aria-describedby="cb-e-series-help">
                     {% endcall %}
                 </fieldset>
                 <fieldset class="ol-form__group ol-form__group--split">
@@ -236,7 +263,8 @@
                         <input class="ol-input"
                                id="cb-e-by"
                                type="text"
-                               value="by Frances Hodgson Burnett">
+                               value="by Frances Hodgson Burnett"
+                               aria-describedby="cb-e-by-help">
                     {% endcall %}
                 </fieldset>
                 <fieldset class="ol-form__group ol-form__group--split">
@@ -261,7 +289,10 @@
                         </ol-markdown-editor>
                     {% endcall %}
                     {% call field("cb-e-toc", "Table of contents", help="One entry per line. “*” indents, “|” adds a column.", optional=true, wide=true) %}
-                        <textarea class="ol-input" id="cb-e-toc" rows="4"></textarea>
+                        <textarea class="ol-input"
+                                  id="cb-e-toc"
+                                  rows="4"
+                                  aria-describedby="cb-e-toc-help"></textarea>
                     {% endcall %}
                     {% call field("cb-e-notes", "Notes", help="Anything of interest, like “A Plume Book”.", optional=true, wide=true) %}
                         <textarea id="cb-e-notes" name="notes" hidden>Illustrated in colour by Charles Robinson.</textarea>
@@ -272,13 +303,20 @@
                         <textarea class="ol-input" id="cb-e-first" rows="2"></textarea>
                     {% endcall %}
                     {% call field("cb-e-other", "Other titles", help="If the cover or spine says something different.", optional=true) %}
-                        <input class="ol-input" id="cb-e-other" type="text">
+                        <input class="ol-input"
+                               id="cb-e-other"
+                               type="text"
+                               aria-describedby="cb-e-other-help">
                     {% endcall %}
                 </fieldset>
                 <fieldset class="ol-form__group ol-form__group--split">
                     <legend class="ol-form__legend">Work</legend>
                     {% call field("cb-e-work", "Edition of", help="Search by title or ID. Changing this ignores any edits to the work on this page.") %}
-                        <input class="ol-input" id="cb-e-work" type="text" value="{{ book.olid }}">
+                        <input class="ol-input"
+                               id="cb-e-work"
+                               type="text"
+                               value="{{ book.olid }}"
+                               aria-describedby="cb-e-work-help">
                     {% endcall %}
                 </fieldset>
                 <fieldset class="ol-form__group ol-form__group--split">
@@ -303,7 +341,11 @@
                                value="304">
                     {% endcall %}
                     {% call field("cb-e-pagination", "Pagination", help="The highest number in each pattern, like “xii, 346p.”") %}
-                        <input class="ol-input" id="cb-e-pagination" type="text" value="vii, 304 p.">
+                        <input class="ol-input"
+                               id="cb-e-pagination"
+                               type="text"
+                               value="vii, 304 p."
+                               aria-describedby="cb-e-pagination-help">
                     {% endcall %}
                     {% call field("cb-e-weight", "Weight", optional=true) %}
                         <div class="cookbook-measure">
@@ -368,7 +410,11 @@
         <fieldset class="ol-form__group ol-form__group--split">
             <legend class="ol-form__legend">Your edit</legend>
             {% call field("cb-note", "What did you change?", help="A short note helps other editors.", optional=true) %}
-                <input class="ol-input" id="cb-note" name="_comment" type="text">
+                <input class="ol-input"
+                       id="cb-note"
+                       name="_comment"
+                       type="text"
+                       aria-describedby="cb-note-help">
             {% endcall %}
             <p class="ol-field__help">
                 By saving, you agree that your contribution is given freely to the world under <a href="#">CC0</a>.
