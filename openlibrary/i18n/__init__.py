@@ -285,15 +285,22 @@ def compile_translations(locales: list[str]):
 def _write_javascript_catalog(locale: str, msgids: list[str | tuple[str, str]]) -> None:
     """Write ``static/build/i18n/<locale>.js``, which the page head loads for ``i18n.js``.
 
-    Besides the strings it defines ``window.OL_I18N_PLURAL``, the .po's own Plural-Forms
-    rule, so the browser picks a plural's form exactly as the server does.
+    It defines ``window.OL_I18N`` (the strings), ``window.OL_I18N_PLURALS`` (each plural's
+    forms in the .po's order) and ``window.OL_I18N_PLURAL_RULE`` (the .po's own Plural-Forms
+    rule, which picks a form's index), so the browser picks a plural's form exactly as the
+    server does. Plurals stay out of ``OL_I18N``: an ``i18n.js`` and a catalog from different
+    builds then show a plural in English rather than misreading it.
     """
     path = Path(root).parents[1] / "static" / "build" / "i18n" / f"{locale}.js"
     path.parent.mkdir(parents=True, exist_ok=True)
-    # ASCII-only JSON, so the file reads the same whatever charset it's served with.
-    catalog = json.dumps(javascript_catalog(locale, msgids), sort_keys=True)
+    strings, plurals = javascript_catalog(locale, msgids)
     rule = plural_rule(load_translations(locale))
-    path.write_text(f"window.OL_I18N = {catalog};\nwindow.OL_I18N_PLURAL = function (n) {{ return Number({rule}); }};\n")
+    # ASCII-only JSON, so the file reads the same whatever charset it's served with.
+    path.write_text(
+        f"window.OL_I18N = {json.dumps(strings, sort_keys=True)};\n"
+        f"window.OL_I18N_PLURALS = {json.dumps(plurals, sort_keys=True)};\n"
+        f"window.OL_I18N_PLURAL_RULE = function (n) {{ return Number({rule}); }};\n"
+    )
 
 
 def check_po_file(po_path: str) -> list[str]:
@@ -480,25 +487,26 @@ def _javascript_msgids() -> list[str | tuple[str, str]]:
     return list(msgids)
 
 
-def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> dict:
+def javascript_catalog(lang: str, msgids: list[str | tuple[str, str]]) -> tuple[dict[str, str], dict[str, list[str]]]:
     """This language's translations of ``msgids`` (from ``_javascript_msgids()``), for ``i18n.js``.
 
-    A string maps to its translation; a plural maps its singular to its forms in the .po's
-    order, which ``window.OL_I18N_PLURAL`` indexes. Untranslated strings are left out, so
-    the browser shows the English it already has.
+    Two maps: each string to its translation, and each plural's singular to its forms in the
+    .po's order, which ``window.OL_I18N_PLURAL_RULE`` indexes. Untranslated strings are left
+    out, so the browser shows the English it already has.
     """
-    catalog: dict = {}
+    strings: dict[str, str] = {}
+    plurals: dict[str, list[str]] = {}
     if not (translations := load_translations(lang)):
-        return catalog
+        return strings, plurals
     for msgid in msgids:
         if isinstance(msgid, tuple):
             singular, plural = msgid
             forms = _plural_forms(translations, singular)
             if any(form not in (singular, plural) for form in forms):
-                catalog[singular] = forms
+                plurals[singular] = forms
         elif (text := translations.ugettext(msgid)) != msgid:
-            catalog[msgid] = text
-    return catalog
+            strings[msgid] = text
+    return strings, plurals
 
 
 def _plural_forms(translations: Translations, singular: str) -> list[str]:

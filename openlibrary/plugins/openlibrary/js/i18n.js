@@ -7,11 +7,12 @@
  * language's translations of them (`window.OL_I18N`, from static/build/i18n/<lang>.js,
  * which `make i18n` writes); see docs/i18n/i18n.md. Without a translation, the English shows.
  *
- * A plural string's translation is its list of forms, in the language's .po
- * order, and the same file defines `window.OL_I18N_PLURAL`: the .po's
- * Plural-Forms rule, which turns a count into an index into that list. So
- * `ngettext` picks exactly the form the server would, for every form the
- * language has, not just a singular/plural pair that only fits English.
+ * Plurals come from the same file: `window.OL_I18N_PLURALS` maps a plural's
+ * singular to its forms in the language's .po order, and
+ * `window.OL_I18N_PLURAL_RULE` is the .po's Plural-Forms rule, which turns a
+ * count into an index into those forms. So `ngettext` picks exactly the form
+ * the server would, for every form the language has, not just a
+ * singular/plural pair that only fits English.
  *
  * jsdef templates get their own `_()` and `ungettext()` in the browser, from
  * jsdef.js; those are pass-throughs, not translations.
@@ -36,8 +37,8 @@ export { gettext as _ };
 /** The form of a plural string for `count`, in the page language when it has a translation. */
 export function ngettext(singular, pluralForm, count) {
     const n = Number(count);
-    const forms = translations()[singular];
-    const form = Array.isArray(forms) && window.OL_I18N_PLURAL ? forms[window.OL_I18N_PLURAL(n)] : undefined;
+    const forms = window.OL_I18N_PLURALS?.[singular];
+    const form = Array.isArray(forms) && window.OL_I18N_PLURAL_RULE ? forms[window.OL_I18N_PLURAL_RULE(n)] : undefined;
     return form ?? (n === 1 ? singular : pluralForm);
 }
 

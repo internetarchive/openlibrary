@@ -31,7 +31,7 @@ The language directories under `openlibrary/i18n/` hold `messages.po`. `make i18
 | `openlibrary/i18n/<lang>/messages.mo` | The server. Templetor and Jinja read it per request. |
 | `static/build/i18n/<lang>.js` | The browser. The page head loads it as `window.OL_I18N`. |
 
-The browser file's strings come from the `_()` / `ngettext()` calls in the JS sources, not from `messages.pot`. Plural forms use the same `Plural-Forms` rule as the server, exposed as `window.OL_I18N_PLURAL`. See [i18n.md](i18n.md) for the details.
+The browser file's strings come from the `_()` / `ngettext()` calls in the JS sources, not from `messages.pot`. Plural forms use the same `Plural-Forms` rule as the server, exposed as `window.OL_I18N_PLURAL_RULE`. See [i18n.md](i18n.md) for the details.
 
 ### Jinja environment
 

@@ -443,7 +443,7 @@ def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, l
     monkeypatch.setattr(i18n, "load_translations", lambda lang: Translations(mo))
     msgids = ["Advanced", ("%(count)s list", "%(count)s lists"), "Untranslated"]
 
-    assert i18n.javascript_catalog(lang, msgids) == {"Advanced": advanced, "%(count)s list": expected_list}
+    assert i18n.javascript_catalog(lang, msgids) == ({"Advanced": advanced}, {"%(count)s list": expected_list})
 
 
 def test_compile_translations_writes_the_javascript_catalog(tmp_path, monkeypatch):
@@ -463,7 +463,7 @@ def test_compile_translations_writes_the_javascript_catalog(tmp_path, monkeypatc
     i18n.compile_translations(["es"])
 
     assert (tmp_path / "static" / "build" / "i18n" / "es.js").read_text() == (
-        'window.OL_I18N = {"Advanced": "Avanzado"};\nwindow.OL_I18N_PLURAL = function (n) { return Number((n != 1)); };\n'
+        'window.OL_I18N = {"Advanced": "Avanzado"};\nwindow.OL_I18N_PLURALS = {};\nwindow.OL_I18N_PLURAL_RULE = function (n) { return Number((n != 1)); };\n'
     )
 
 

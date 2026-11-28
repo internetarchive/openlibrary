@@ -21,10 +21,12 @@ describe('sprintf', () => {
 });
 
 describe('_ and ngettext', () => {
-    // `rule` is the Plural-Forms expression the page's catalog file would define.
+    // Like the page's catalog file: array values are plurals, and `rule` is the Plural-Forms expression.
     async function withCatalog(catalog, rule = 'n != 1') {
-        window.OL_I18N = catalog ?? undefined;
-        window.OL_I18N_PLURAL = catalog ? n => Number(new Function('n', `return (${rule});`)(n)) : undefined;
+        const entries = Object.entries(catalog ?? {});
+        window.OL_I18N = catalog ? Object.fromEntries(entries.filter(([, v]) => !Array.isArray(v))) : undefined;
+        window.OL_I18N_PLURALS = catalog ? Object.fromEntries(entries.filter(([, v]) => Array.isArray(v))) : undefined;
+        window.OL_I18N_PLURAL_RULE = catalog ? n => Number(new Function('n', `return (${rule});`)(n)) : undefined;
         vi.resetModules();
         return import('../../../openlibrary/plugins/openlibrary/js/i18n.js');
     }
@@ -63,6 +65,13 @@ describe('_ and ngettext', () => {
             'один',
             'несколько'
         ]);
+    });
+
+    it("shows the English for a plural in another build's format", async () => {
+        // A catalog from before plurals moved out of OL_I18N keyed them by CLDR category.
+        const { ngettext } = await withCatalog({ '%(count)s list': { one: '%(count)s lista', other: '%(count)s listas' } });
+        expect(ngettext('%(count)s list', '%(count)s lists', 1)).toBe('%(count)s list');
+        expect(ngettext('%(count)s list', '%(count)s lists', 3)).toBe('%(count)s lists');
     });
 
     it('shows the English when the rule points past the forms it has', async () => {

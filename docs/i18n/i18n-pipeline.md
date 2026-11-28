@@ -153,7 +153,7 @@ translations. A `make i18n-sync` or equivalent has to exist first.
 
 ## Plural entries — gotchas
 
-The browser uses the same `Plural-Forms` rule as the server, exposed as `window.OL_I18N_PLURAL`; see "Plurals" in [i18n](i18n.md).
+The browser uses the same `Plural-Forms` rule as the server, exposed as `window.OL_I18N_PLURAL_RULE`; see "Plurals" in [i18n](i18n.md).
 
 - **An empty plural form renders English, silently.** Babel's `write_mo` substitutes the English
   msgid for an empty form, so a partly-filled plural shows English at the n values whose form is
