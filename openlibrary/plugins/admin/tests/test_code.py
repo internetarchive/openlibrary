@@ -418,9 +418,18 @@ class TestSiteContextMigration:
     def test_solr_update_uses_current_store(self, current, monkeypatch):
         monkeypatch.setattr(web, "input", lambda **defaults: web.storage(keys=" /works/OL1W \n /books/OL2M "))
         admin_code.solr().POST()
-        assert current.store["solr-force-update"] == {
-            "_key": "solr-force-update",
-            "type": "solr-force-update",
-            "keys": ["/works/OL1W", "/books/OL2M"],
-            "_rev": None,
-        }
+        doc = current.store["solr-force-update"]
+        assert doc["keys"] == ["/works/OL1W", "/books/OL2M"]
+        assert [(request["seq"], request["keys"]) for request in doc["requests"]] == [(1, ["/works/OL1W", "/books/OL2M"])]
+
+
+def test_add_solr_force_update_keeps_latest_keys_and_recent_numbered_requests(monkeypatch):
+    monkeypatch.setattr(admin_code, "SOLR_FORCE_UPDATE_HISTORY", 2)
+    store: dict = {}
+    for keys in (["/works/OL1W"], ["/works/OL2W"], ["/books/OL3M", "/authors/OL3A"]):
+        admin_code.add_solr_force_update(store, keys)
+
+    doc = store["solr-force-update"]
+    # The Infobase write-log source reads "keys", as before.
+    assert doc["keys"] == ["/books/OL3M", "/authors/OL3A"]
+    assert [(r["seq"], r["keys"]) for r in doc["requests"]] == [(2, ["/works/OL2W"]), (3, ["/books/OL3M", "/authors/OL3A"])]
