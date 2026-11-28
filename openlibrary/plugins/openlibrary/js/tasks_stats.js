@@ -551,7 +551,7 @@ export async function init(root) {
             ?.querySelectorAll('.tasks-stats__card[data-metric]')
             .forEach(other => other.setAttribute('aria-pressed', String(other === card)));
         title.textContent = card.querySelector('.tasks-stats__card-label')?.textContent || '';
-        note.textContent = card.dataset.note || '';
+        note.textContent = card.querySelector('.tasks-stats__card-note')?.textContent || '';
         drawMain();
     }
 

@@ -1,9 +1,11 @@
 import functools
 from io import BytesIO
+from pathlib import Path
 
 import pytest
 import web
 from babel.messages.catalog import Catalog
+from babel.messages.extract import extract_javascript
 from babel.messages.mofile import write_mo
 from babel.messages.pofile import read_po, write_po
 from babel.support import Translations
@@ -399,6 +401,25 @@ def test_javascript_msgids_are_the_strings_in_the_javascript_sources(tmp_path, m
     monkeypatch.setattr(i18n, "root", str(tmp_path / "openlibrary" / "i18n"))
 
     assert sorted(i18n._javascript_msgids(), key=str) == [("%(count)s list", "%(count)s lists"), "Advanced"]
+
+
+def test_every_javascript_translation_call_passes_literal_strings():
+    # Babel's directory extraction silently drops a call whose strings aren't literals, such as
+    # ngettext(singular, plural, n) inside a helper, so those strings never reach messages.pot.
+    repo = Path(i18n.root).parents[1]
+    extractors = {".js": extract_javascript, ".vue": i18n.extract_vue}
+    keywords = {"_": None, "gettext": None, "ngettext": (1, 2)}
+    non_literal = []
+    for source in i18n.JAVASCRIPT_SOURCES:
+        for path in (repo / source).rglob("*"):
+            if path.suffix not in extractors or "node_modules" in path.parts:
+                continue
+            with path.open("rb") as fileobj:
+                for lineno, _funcname, message, _comments in extractors[path.suffix](fileobj, keywords, [], {"parse_template_string": True}):
+                    if message is None or (isinstance(message, tuple) and message[0] is None):
+                        non_literal.append(f"{path.relative_to(repo)}:{lineno}")
+
+    assert non_literal == []
 
 
 @pytest.mark.parametrize(

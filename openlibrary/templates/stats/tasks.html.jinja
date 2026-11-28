@@ -10,9 +10,9 @@
             <button type="button"
                     class="tasks-stats__card"
                     data-metric="{{ card.metric }}"
-                    data-note="{{ card.note }}"
                     aria-pressed="{{ 'true' if loop.first else 'false' }}">
                 <span class="tasks-stats__card-label">{{ card.label }}</span>
+                <span class="tasks-stats__card-note" hidden>{{ card.note }}</span>
                 <span class="tasks-stats__card-value">{{ card.value }}</span>
                 {% if card.split %}
                     <span class="tasks-stats__split" aria-hidden="true">

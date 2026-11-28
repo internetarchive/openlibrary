@@ -49,7 +49,6 @@ function truncateToWidth(ctx, label, maxWidth) {
 
 /**
  * @typedef {object} ChartConfig
- * @property {string} title
  * @property {'wd-chart' | 'work-chart'} type
  * @property {string} key
  * @property {string[]} [exclude]
@@ -137,7 +136,8 @@ export function init(config) {
         // Let Chart.js size the canvas to the wrapper so its click hit-testing matches what is drawn
         /** @type {HTMLElement} */ (canvas.parentElement).style.height = `${bars.length * ROW_HEIGHT + 8}px`;
         canvas.setAttribute('role', 'img');
-        canvas.setAttribute('aria-label', `${chartConfig.title}: ${bars.map(([label, works]) => `${label} (${works.length})`).join(', ')}`);
+        const title = container.closest('section')?.querySelector('h3')?.textContent.trim() ?? '';
+        canvas.setAttribute('aria-label', `${title}: ${bars.map(([label, works]) => `${label} (${works.length})`).join(', ')}`);
         const chart = new Chart(canvas, {
             type: 'bar',
             plugins: [ChartDataLabels],

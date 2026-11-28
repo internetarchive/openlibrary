@@ -21,8 +21,7 @@ function addShareModalButtonListeners() {
         event.preventDefault();
         try {
             await navigator.clipboard.writeText(window.location.href);
-            const msg = this.dataset.copyToast || 'URL copied to clipboard';
-            showToast(msg, { type: 'success' });
+            showToast(_('URL copied to clipboard'), { type: 'success' });
         } catch {
             // Fallback for non-secure contexts or permission denied
         }

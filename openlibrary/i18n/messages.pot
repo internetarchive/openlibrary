@@ -3670,16 +3670,12 @@ msgstr ""
 msgid "Remove this work"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html edit.js
 msgid "-- Move to a new work"
 msgstr ""
 
 #: books/edit/edition.html
 msgid "This Edition"
-msgstr ""
-
-#: books/edit/edition.html
-msgid "This record was recently edited and this scorecard is outdated. It should update in a minute or so."
 msgstr ""
 
 #: books/edit/edition.html
@@ -7271,7 +7267,7 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
-#: openlibrary/contribute/initiatives.py type/page/view.html
+#: contribute.js openlibrary/contribute/initiatives.py type/page/view.html
 #, python-format
 msgid "%(count)s book"
 msgid_plural "%(count)s books"
@@ -7879,10 +7875,6 @@ msgstr ""
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
-
-#: ShareModal.html
-msgid "URL copied to clipboard"
 msgstr ""
 
 #: ShareModal.html
@@ -9230,7 +9222,7 @@ msgid "Collapse"
 msgstr ""
 
 #: lit/OlScorecard.js
-msgid "This record has been edited and is not yet reflected in Solr. It should update in a minute or so."
+msgid "This record was recently edited and this scorecard is outdated. It should update in a minute or so."
 msgstr ""
 
 #: lit/OlSelectPopover.js
@@ -9554,6 +9546,13 @@ msgid "Every book on the list"
 msgstr ""
 
 #: contribute.js
+#, python-format
+msgid "The %(count)s most-shelved book missing a detail"
+msgid_plural "The %(count)s most-shelved books missing a detail"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute.js
 msgid "None yet"
 msgstr ""
 
@@ -9648,6 +9647,10 @@ msgstr ""
 
 #: goodreads_import.js
 msgid "Book not in collection"
+msgstr ""
+
+#: goodreads_import.js
+msgid "Interest recorded, thank you!"
 msgstr ""
 
 #: history.js
@@ -9990,6 +9993,10 @@ msgid "Failed to submit comment. Please try again in a few moments."
 msgstr ""
 
 #: modals/index.js
+msgid "URL copied to clipboard"
+msgstr ""
+
+#: modals/index.js
 msgid "Copy embed code to clipboard:"
 msgstr ""
 
@@ -10180,6 +10187,90 @@ msgid "%(count)s match found inside books"
 msgid_plural "%(count)s matches found inside books"
 msgstr[0] ""
 msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "English"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "French"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "German"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Spanish"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Portuguese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Italian"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Russian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Chinese"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Japanese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Arabic"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Dutch"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Polish"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Swedish"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Turkish"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Hindi"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py search-modal/constants.js
+msgid "Korean"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Latin"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Persian"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Hebrew"
+msgstr ""
+
+#: search-modal/constants.js
+msgid "Bengali"
+msgstr ""
+
+#: star-ratings/index.js
+msgid "Ratings update failed"
+msgstr ""
 
 #: stats/index.js
 msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
@@ -11458,10 +11549,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/code.py
-msgid "Arabic"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
 msgid "Azerbaijani"
 msgstr ""
 
@@ -11470,39 +11557,7 @@ msgid "Czech"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
-msgid "German"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "English"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Spanish"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "French"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Hindi"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
 msgid "Croatian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Italian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Korean"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Portuguese"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
@@ -11519,10 +11574,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Chinese"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
