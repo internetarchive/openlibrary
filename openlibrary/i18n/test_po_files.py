@@ -155,6 +155,72 @@ def test_validate_placeholders(msgid, msgstr, valid):
     assert (validate(catalog[msgid if isinstance(msgid, str) else msgid[0]], catalog) == []) == valid
 
 
+SCORECARD = "{name}: {percentage}%. Click to expand."
+
+
+@pytest.mark.parametrize(
+    ("location", "msgid", "msgstr", "valid"),
+    [
+        # JavaScript never applies `%`, so a literal one is just a percent sign
+        ("lit/OlScorecard.js", SCORECARD, "{name}: {percentage}%. Kliknite.", True),
+        ("lit/OlCarousel.js", "Go to page {page} of {total}", "{total} stranica, idi na {page}", True),
+        # JavaScript fills a name it has no value for with '', so the label loses it
+        ("lit/OlScorecard.js", SCORECARD, "{nombre}: {percentage}%. Kliknite.", False),
+        ("lit/OlScorecard.js", SCORECARD, "{name}. Kliknite.", False),
+        ("components/MergeUI.vue", "%(start)s-%(end)s of %(total)s", "%(start)s-%(end)s od %(ukupno)s", False),
+        (("lit/OlShelfActions.js", "account.html"), "%(count)s items", "%(count)s stavki", True),
+        # A template formats it with `%`, and Jinja does so even when the msgid has no placeholders
+        (("lit/OlShelfActions.js", "account.html"), SCORECARD, "{name}: {percentage}%. Kliknite.", False),
+        ("merge_stats.py", "Merged", "% spojeno", False),
+        ("merge_stats.py", "Merged", "%% spojeno", True),
+    ],
+)
+def test_validate_by_where_the_string_is_used(location, msgid, msgstr, valid):
+    locations = [(f, None) for f in ([location] if isinstance(location, str) else location)]
+    catalog = Catalog(locale="hr")
+    catalog.add(msgid, msgstr, locations=locations)
+    assert (validate(catalog[msgid], catalog) == []) == valid
+
+
+@pytest.mark.parametrize(
+    ("msgid", "msgstrs", "valid"),
+    [
+        # A singular form may drop the count
+        (("One point", "{score} points"), ("Jedan bod", "{score} boda", "{score} bodova"), True),
+        (("One point", "{score} points"), ("Jedan bod", "{bodovi} boda", "{score} bodova"), False),
+    ],
+)
+def test_validate_browser_plurals(msgid, msgstrs, valid):
+    catalog = Catalog(locale="hr")
+    catalog.add(msgid, msgstrs, locations=[("lit/OlScorecard.js", None)])
+    assert (validate(catalog[msgid[0]], catalog) == []) == valid
+
+
+def test_validate_skips_rendering_fuzzy_entries():
+    # Fuzzy entries are left out of the compiled .mo, so they are never rendered
+    catalog = Catalog(locale="hr")
+    catalog.add("No current loans.", "%d posudbi", flags=["fuzzy"], locations=[("admin/loans_table.html", None)])
+    assert validate(catalog["No current loans."], catalog) == []
+
+
+@pytest.mark.parametrize(
+    ("msgid", "msgstr"),
+    [
+        # Refused at deploy -> refused by validate, so the PR check is never the laxer one
+        ("by %(name)s", "von %(author)s"),
+        ("Edit", "Modifier (100% gratuit)"),
+        (SCORECARD, "{nombre}: {percentage}%. Kliknite."),
+    ],
+)
+def test_validate_rejects_what_the_deploy_check_refuses(msgid, msgstr):
+    catalog = Catalog(locale="hr")
+    location = "lit/OlScorecard.js" if "{" in msgid else "account.html"
+    catalog.add(msgid, msgstr, flags=["python-format"] if "%(" in msgid else [], locations=[(location, None)])
+    message = catalog[msgid]
+    assert i18n.render_errors(message)
+    assert validate(message, catalog)
+
+
 PLURAL_RULES = {
     "nplurals=1": "nplurals=1; plural=0;",
     "de": "nplurals=2; plural=(n != 1);",
