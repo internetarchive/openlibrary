@@ -108,6 +108,29 @@ class AutolinkPreprocessor(markdown.Preprocessor):
 AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
 
 
+def emphasis_re(delimiter, content, before=""):
+    """Match text wrapped in `delimiter`, made of `content` characters.
+
+    The text can't be empty, or start or end with a space or another marker, so
+    a stray marker stays as text, as on GitHub. The vendored patterns accepted
+    all of those, so a lone `**` became an empty `<em/>`, which browsers leave
+    open for the rest of the page, or paired with a marker further along.
+    """
+    delim = re.escape(delimiter)
+    char = re.escape(delimiter[0])
+    return rf"{before}{delim}(?![\s{char}])({content}+)(?<![\s{char}]){delim}"
+
+
+EMPHASIS_PATTERNS = {
+    markdown.STRONG_EM_PATTERN: markdown.DoubleTagPattern(emphasis_re("***", "[^_]"), "strong,em"),
+    markdown.STRONG_EM_PATTERN_2: markdown.DoubleTagPattern(emphasis_re("___", "[^_]"), "strong,em"),
+    markdown.STRONG_PATTERN: markdown.SimpleTagPattern(emphasis_re("**", "."), "strong"),
+    markdown.STRONG_PATTERN_2: markdown.SimpleTagPattern(emphasis_re("__", "[^_]"), "strong"),
+    markdown.EMPHASIS_PATTERN: markdown.SimpleTagPattern(emphasis_re("*", r"[^\*]"), "em"),
+    markdown.EMPHASIS_PATTERN_2: markdown.SimpleTagPattern(emphasis_re("_", "[^_]", before=r"(?<!\S)"), "em"),
+}
+
+
 # Placeholders used to hide parentheses that belong to a link's URL/title
 # from the paren-matching that closes the `(...)` part of `[text](...)`.
 # Private-use-area code points, so they can't collide with real content.
@@ -237,6 +260,8 @@ class OLMarkdown(markdown.Markdown):
 
     def _patch(self):
         patterns = self.inlinePatterns
+        for base_pattern, pattern in EMPHASIS_PATTERNS.items():
+            patterns[patterns.index(base_pattern)] = pattern
         autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace("http", "https?"))
         patterns[patterns.index(markdown.AUTOLINK_PATTERN)] = autolink
         first_link_pattern = patterns.index(markdown.IMAGE_LINK_PATTERN)

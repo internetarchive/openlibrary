@@ -20,6 +20,43 @@ def test_olmarkdown():
     assert md("a\nb") == p("a<br/>\n   b")
 
 
+def test_olmarkdown_unmatched_emphasis_markers_stay_text():
+    """Emphasis markers with nothing between them stay as text, as on GitHub.
+
+    A lone ``**`` used to become an empty ``<em/>`` or ``<strong/>``, which
+    browsers read as an unclosed tag, so the rest of the page turned italic
+    or bold (internetarchive/openlibrary#9041).
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    def p(html):
+        return "<p>%s\n</p>" % html
+
+    assert md("italics start here**\nand never end.") == p("italics start here**<br/>\n   and never end.")
+    assert md("**") == p("**")
+    assert md("a ** b") == p("a ** b")
+    assert md("a**b") == p("a**b")
+    assert md("**** So, how does this function?") == p("**** So, how does this function?")
+    assert md("____ So, how does this function?") == p("____ So, how does this function?")
+    assert md("****** x") == p("****** x")
+    assert md("** not bold **") == p("** not bold **")
+
+    assert md("*a* and **") == p("<em>a</em> and **")
+    assert md("**a** and **") == p("<strong>a</strong> and **")
+    assert md("__a__ and __") == p("<strong>a</strong> and __")
+
+    assert md("**bold**") == p("<strong>bold</strong>")
+    assert md("__bold__") == p("<strong>bold</strong>")
+    assert md("*it*") == p("<em>it</em>")
+    assert md("_it_") == p("<em>it</em>")
+    assert md("***both***") == p("<strong><em>both</em></strong>")
+    assert md("___both___") == p("<strong><em>both</em></strong>")
+    assert md("**a** and **b**") == p("<strong>a</strong> and <strong>b</strong>")
+    assert md("**bold *it* bold**") == p("<strong>bold <em>it</em> bold</strong>")
+
+
 def test_olmarkdown_no_br_leak_into_reference_block():
     """Regression: a hard line break must not be glued onto a line that
     immediately precedes a markdown link-reference definition.
