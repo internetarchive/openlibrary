@@ -1515,7 +1515,7 @@ def render_once(key: str) -> bool:
 
 @public
 def today():
-    return dt.datetime.today()
+    return dt.datetime.now(dt.UTC).replace(tzinfo=None)
 
 
 class HTMLTagRemover(HTMLParser):

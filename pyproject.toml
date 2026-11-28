@@ -85,8 +85,11 @@ lint.select = [
   "BLE",     # flake8-blind-except
   "C4",      # flake8-comprehensions
   "C90",     # McCabe cyclomatic complexity
+  "DTZ002",  # flake8-datetimez: datetime.today()
   "DTZ003",  # flake8-datetimez: datetime.utcnow()
   "DTZ004",  # flake8-datetimez: datetime.utcfromtimestamp()
+  "DTZ006",  # flake8-datetimez: datetime.fromtimestamp() without tz
+  "DTZ011",  # flake8-datetimez: date.today()
   "E",       # pycodestyle
   "F",       # Pyflakes
   "FA",      # flake8-future-annotations

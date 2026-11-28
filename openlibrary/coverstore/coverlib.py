@@ -67,7 +67,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
 
 def make_path_prefix(olid, date=None):
     """Makes a file prefix for storing an image."""
-    date = date or dt.date.today()
+    date = date or dt.datetime.now(dt.UTC).date()
     return "%04d/%02d/%02d/%s-%s" % (
         date.year,
         date.month,

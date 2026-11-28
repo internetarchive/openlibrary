@@ -455,7 +455,7 @@ def build_tasks_stats_page(scope: str = "all") -> dict:
     ]
     docs = get_count_docs(28)
     counts = rolling_counts(docs, keys)
-    today = dt.date.today()
+    today = dt.datetime.now(dt.UTC).date()
     edits = window_sum(docs, "book_edits", day_keys(today))
     since = (today - dt.timedelta(days=27)).strftime("counts-%Y-%m-%d")
     return {
