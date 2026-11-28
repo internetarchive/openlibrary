@@ -181,7 +181,7 @@ Key rules from the Lit component standards:
 - **iOS Safari auto-zoom**: set `font-size: 16px` on every focusable text-entry control on mobile. Do NOT suppress auto-zoom with `maximum-scale=1` — that disables pinch-zoom (a11y failure).
 - **Hover styles**: gate all `:hover` rules with `@media (hover: hover) and (pointer: fine)` — touch devices fire `:hover` on tap and the style sticks.
 
-See [i18n-rendering](../i18n/i18n-rendering.md) for translation patterns in Lit components.
+See [i18n](../i18n/i18n.md) for translation patterns in Lit components.
 
 ---
 

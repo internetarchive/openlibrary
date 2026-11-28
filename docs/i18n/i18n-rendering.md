@@ -1,175 +1,98 @@
-# i18n Rendering — templates & JavaScript
+# i18n Rendering — server-side internals
 
-> **Status:** reference — the rendering mechanics below are stable.
-> **Companion:** this is *how* a string gets translated at render time. *Where* translations
-> live and how they flow to production (the authoritative `openlibrary-i18n` store, the AI
-> pipeline, the `olbase` bake, the rules about fuzzy entries) is [i18n-pipeline](i18n-pipeline.md) — read that
-> before editing a `.po`.
-> **Note:** a11y (accessibility) is a separate domain — see [a11y](../frontend/a11y.md).
-> **Sources:** `raw/openlibrary-docs-ai/i18n.md` · **Last reviewed:** 2026-10-06
+> **Status:** reference.
+> **How to write translatable strings:** [i18n.md](i18n.md) (Jinja, Templetor, browser JS, Vue, extraction rules).
+> **Where translations come from:** [i18n-pipeline](i18n-pipeline.md). Read it before editing a `.po` file.
+> **Accessibility:** a separate domain, see [a11y](../frontend/a11y.md).
+> **Last reviewed:** 2026-11-28
 
-Internationalization (i18n) covers translation of UI strings across two template engines (Templetor and Jinja) and a bridge pattern for JavaScript/Lit components. This page is the render-time half; the pipeline that *produces* the translations these mechanics consume is [i18n-pipeline](i18n-pipeline.md).
+This page explains how the server gets translations into Jinja and Templetor at render time, what `make i18n` produces, and what breaks silently.
 
 ---
 
-## How It Works
+## How it works
 
-### Two translation systems
+### Translation sources
 
 | Context | Mechanism |
 |---------|-----------|
-| Templetor `.html` templates | `$_("string")` |
-| Jinja `.jinja` templates | `{{ _('string') }}`, `{% trans %}...{% endtrans %}` |
-| JavaScript / Lit / Vue components | `_()` / `ngettext()` from `i18n.js` (see [i18n.md](i18n.md)) |
+| Templetor `.html` templates | `$_("string")`, `$ungettext(s1, s2, n, key=val)` |
+| Jinja `.jinja` templates | `{{ _('string') }}`, `{{ ngettext(s1, s2, n) }}`, `{% trans %}...{% endtrans %}` |
+| Browser JavaScript, Lit, Vue | `_()` / `ngettext()` from `i18n.js` (see [i18n.md](i18n.md)) |
 
-All paths use the same `.po`/`.mo` locale files under `openlibrary/i18n/<lang>/`. Those files are
-populated at image-build time from the authoritative `openlibrary-i18n` store and compiled to `.mo`
-by the `olbase` bake — see [i18n-pipeline](i18n-pipeline.md). At render time the engines only ever read the compiled
-`.mo`; this page is about that read side.
+All of these read the `.po` files under `openlibrary/i18n/<lang>/`. Those files are populated at image-build time from the `openlibrary-i18n` repo (see [i18n-pipeline](i18n-pipeline.md)).
+
+### Compiled outputs
+
+The language directories under `openlibrary/i18n/` hold `messages.po`. `make i18n` (which runs `python ./scripts/i18n-messages compile`) produces two outputs per language:
+
+| Output | Reader |
+|--------|--------|
+| `openlibrary/i18n/<lang>/messages.mo` | The server. Templetor and Jinja read it per request. |
+| `static/build/i18n/<lang>.js` | The browser. The page head loads it as `window.OL_I18N`. |
+
+The browser file's strings come from the `_()` / `ngettext()` calls in the JS sources, not from `messages.pot`. Plural forms use the same `Plural-Forms` rule as the server, exposed as `window.OL_I18N_PLURAL`. See [i18n.md](i18n.md) for the details.
 
 ### Jinja environment
 
 Configured in `openlibrary/core/jinja.py` via `get_jinja_env()`:
-- `jinja2.ext.i18n` extension enabled
-- `install_gettext_callables(gettext, ngettext, newstyle=True)` wires per-request `.mo` translations into Jinja
-- `ext.i18n.trimmed = True` strips leading/trailing whitespace from `{% trans %}` blocks at render time
-- Auto-registers `_`, `gettext`, `ngettext` as globals — no manual wiring needed
 
-**New templates should use Jinja (`.jinja`).** Templetor is maintained for backward compatibility only.
+- `jinja2.ext.i18n` is enabled.
+- `install_gettext_callables(gettext, ngettext, newstyle=True)` wires the per-request `.mo` translations (`load_translations(lang).ugettext`) into Jinja.
+- `ext.i18n.trimmed = True` strips leading and trailing whitespace from `{% trans %}` blocks at render time.
+- `install_gettext_callables` registers `_`, `gettext` and `ngettext` as globals. In Jinja `_` is the registered gettext callable, not a special construct as `$_()` is in Templetor.
 
-### JavaScript
-
-Browser code calls `_()` / `ngettext()` from `i18n.js`. `make i18n` writes each language's
-translations of those msgids to `static/build/i18n/<lang>.js`, which the page head loads as
-`window.OL_I18N`. See [i18n.md](i18n.md).
+Templetor's `$_()` and `$ungettext()` read the same per-request `.mo` translations. Extraction uses `openlibrary.i18n:extract_templetor` for Templetor and `jinja2.ext:babel_extract` for Jinja.
 
 ---
 
-## How It Is Used
-
-### Adding a translatable string (Jinja)
-
-```jinja
-{# Short string #}
-{{ _('Recently added') }}
-
-{# String with placeholder — named only, no positional %s #}
-{{ _('Look for %(title)s at %(store)s', title=book.title, store=store.name) }}
-
-{# Plural #}
-{{ ngettext('%(count)d book', '%(count)d books', books|length) }}
-
-{# Inline link — embed HTML directly, use |safe #}
-{{ _('Learn more <a href="/help">here</a>.') | safe }}
-```
-
-### Regenerating the POT file
-
-```bash
-docker compose run --rm home python ./scripts/i18n-messages extract
-```
-
-Then verify `openlibrary/i18n/messages.pot` has no leading `\n` in new entries.
-
-### `{% trans %}` block — when to use
-
-Only for: multi-line strings with HTML via `|safe` variables, or strings needing pluralization with `ngettext`. For short strings with a single inline `<a>` tag, use `{{ _('...') | safe }}` — it's simpler and matches the 97+ existing translated strings with `<a>` tags.
-
-```jinja
-{# GOOD — short string with inline link #}
-{{ _('Learn more <a href="/help">here</a>.') | safe }}
-
-{# ONLY use {% trans %} for complex multi-line strings #}
-{% trans -%}
-This is a long paragraph that really needs the block form
-for readability, with multiple HTML elements.
-{%- endtrans %}
-```
-
-**Critical**: use `-%}` on opening and `{%-` on closing. `ext.i18n.trimmed` strips whitespace at render time but **Babel's extraction does not** — the extracted `.pot` entry must match what Jinja looks up at runtime or translations will never be found.
-
----
-
-## Jinja vs Templetor Comparison
-
-| Aspect | Templetor (`.html`) | Jinja (`.jinja`) |
-|--------|---------------------|------------------|
-| Translation syntax | `$_("string")` | `{{ _('string') }}`, `{% trans %}` |
-| Placeholders | Python `%` inside `$_()` | Named only: `%(name)s` |
-| Plural | `$ungettext(s1, s2, n)` | `{{ ngettext(s1, s2, n) }}` |
-| HTML in strings | `$_("...<a>...</a>") \| safe` | `{{ _('...') \| safe }}` |
-| Extraction | `openlibrary.i18n:extract_templetor` | `jinja2.ext:babel_extract` |
-| Status | Legacy | **Preferred for new work** |
-
----
-
-## Key Files
+## Key files
 
 | File | Purpose |
 |------|---------|
 | `openlibrary/core/jinja.py` | Jinja environment setup; `install_gettext_callables` |
-| `openlibrary/i18n/` | `messages.pot` + per-locale `<lang>/` directories |
-| `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using all i18n patterns |
-| `openlibrary/tests/core/test_jinja.py` | `test_translations_via_gettext_callables` — all four paths |
-
----
-
-## Configuration
-
-No runtime env vars. Translation files under `openlibrary/i18n/<lang>/` are compiled `.mo` files loaded per request.
-
-**Strings flow (current, post-migration):** OL source → `messages.pot` → the `openlibrary-i18n`
-store, where translations are AI-generated on each `.pot` change (humans correct via Weblate) →
-`olbase` pulls `openlibrary-i18n` at image build and compiles to `.mo` → served per-request. The
-authoritative source is `openlibrary-i18n`, not the `.po` files committed in `openlibrary`. See
-[i18n-pipeline](i18n-pipeline.md) for the full flow. *(This replaced the older POEditor-based management flow.)*
+| `openlibrary/i18n/` | `messages.pot` plus per-language `<lang>/` directories |
+| `openlibrary/i18n/__init__.py` | Compile step, `_javascript_msgids()`, `plural_rule()` |
+| `openlibrary/core/shell/head.py` | `_javascript_catalog_url()` for the browser catalog |
+| `openlibrary/macros/AffiliateLinks.html.jinja` | Reference Jinja template using the i18n patterns |
+| `openlibrary/tests/core/test_jinja.py` | `test_translations_via_gettext_callables` |
 
 ---
 
 ## Testing
 
 ```bash
-# Jinja translation paths
+# Jinja translation forms
 docker compose run --rm home python -m pytest openlibrary/tests/core/test_jinja.py -xvs
 
 # JS gettext helpers (_, ngettext, lookup)
 npm test tests/unit/js/i18n.test.js
 
-# Regenerate POT and verify no mangled entries
-docker compose run --rm home python ./scripts/i18n-messages extract
-grep -A3 'msgid "Recently added"' openlibrary/i18n/messages.pot
+# Validate the translation files
+make test-i18n
 ```
 
----
-
-## What's Broken / Fragile
-
-- **jsdef's `_()` / `ungettext()` are pass-throughs** — strings in jsdef templates ship in English regardless of the user's language setting.
-- **A string that extraction misses ships in English.** `generate-pot` only sees literal `_()` / `ngettext()` calls; see the Lit and Vue rules in [i18n.md](i18n.md).
-- **Whitespace sensitivity in `{% trans %}` blocks** — forgetting `-%}` / `{%-` produces `.pot` entries with leading whitespace that never match the runtime lookup. Silent failure: translations exist but never apply.
-- **Untranslated strings** show their English, in the browser as on the server.
+To regenerate `messages.pot` and check an entry, see [i18n.md](i18n.md).
 
 ---
 
-## Common Confusion
+## Fragile spots
 
-- **Newstyle gettext only supports named placeholders** — `%s` (positional) won't work in Jinja. Use `%(name)s` always.
-- **`{{ _() }}` is not a special Jinja override** — unlike Templetor where `$_()` is a special construct, in Jinja `_` is just the registered gettext callable. All four forms (`_()`, `gettext()`, `ngettext()`, `{% trans %}`) call the same function.
-- **Jinja `{% trans %}` whitespace** — `ext.i18n.trimmed = True` handles render-time whitespace but Babel extraction doesn't trim. The mismatch causes silent translation misses.
+- **jsdef `_()` / `ungettext()` are pass-throughs.** Strings in jsdef templates show English in every language.
+- **A string that extraction misses shows English.** Extraction only sees literal `_()` / `ngettext()` calls; see the extraction rules in [i18n.md](i18n.md).
+- **Whitespace in `{% trans %}` blocks.** Babel's extraction doesn't apply `ext.i18n.trimmed`. A block written without `-%}` / `{%-` produces a `.pot` entry that never matches the runtime lookup, so translations exist but never apply.
+- **Untranslated strings show English**, in the browser as on the server.
+- **Newstyle gettext takes named placeholders only.** A positional `%s` doesn't work in Jinja; use `%(name)s`.
+- **Missing browser catalog.** Before `make i18n` has written `static/build/i18n/<lang>.js`, the page head emits no catalog URL and the browser shows English.
 
 ---
 
 ## Dependencies
 
 **Depends on:**
-- [[core-operations]] — Jinja environment wired into the web.py/Infogami request lifecycle; `openlibrary/core/jinja.py` is the setup point
-- [frontend](../frontend/README.md) — Lit components call `_()` from `i18n.js`
-- [a11y](../frontend/a11y.md) — accessibility patterns are a separate domain
+- `openlibrary/core/jinja.py`, wired into the web.py request lifecycle.
+- [frontend](../frontend/README.md): Lit components call `_()` from `i18n.js`.
 
 **Depended on by:**
-- All user-facing pages (via `$_()` and `{{ _() }}`)
-- All Lit components with user-visible text
-
----
-
-*Sources: `raw/openlibrary-docs-ai/i18n.md` · a11y is a separate domain → [a11y](../frontend/a11y.md) · See [README](../README.md) · [[METHODOLOGY]]*
+- All user-facing pages (via `$_()` and `{{ _() }}`).
+- All Lit components with user-visible text.

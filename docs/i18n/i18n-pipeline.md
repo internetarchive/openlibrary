@@ -1,8 +1,9 @@
 # i18n Translation Pipeline — which repo is authoritative
 
 > How Open Library's UI translations are stored, generated, and shipped to production. Companion:
-> [i18n-rendering](i18n-rendering.md) covers *how* a translated string reaches the page (Templetor, Jinja,
-> `_()` in browser JS); this page is *where translations live* and how they flow.
+> [i18n](i18n.md) covers how to write translatable strings and [i18n-rendering](i18n-rendering.md) the server-side internals; this page is *where translations live* and how they flow.
+
+**Don't edit `.po` files in openlibrary PRs.** New strings are translated in `openlibrary-i18n` after the PR merges.
 
 **Before editing a `.po` file, know which repo owns it.** Two repositories hold Open Library's
 translations, and which one you touch depends on what you are doing.
@@ -24,7 +25,8 @@ there silently fails.
 ## The live pipeline, end to end
 
 Four stages: **source strings change → the translation repo is notified → an AI job fills the gaps
-and self-merges → the result is baked into the deploy image.** Each is a real, linkable artifact.
+and self-merges → the result is baked into the deploy image.** Each is a real, linkable artifact. Item 4
+below is the instructions file the AI job in item 3 follows.
 
 1. **Strings are extracted to a template.** Open Library's source strings live in
    `openlibrary/i18n/messages.pot`. A pre-commit/CI hook (`generate-pot`) regenerates it, so after
@@ -151,6 +153,8 @@ translations. A `make i18n-sync` or equivalent has to exist first.
 
 ## Plural entries — gotchas
 
+The browser uses the same `Plural-Forms` rule as the server, exposed as `window.OL_I18N_PLURAL`; see "Plurals" in [i18n](i18n.md).
+
 - **An empty plural form renders English, silently.** Babel's `write_mo` substitutes the English
   msgid for an empty form, so a partly-filled plural shows English at the n values whose form is
   empty. The AI run does not fill them: `_untranslated_from_catalog` uses `any(msg.string)`, so a
@@ -227,5 +231,6 @@ msgids in openlibrary's `messages.pot`. Exit codes: 0 clean, 1 gating findings, 
 
 ## See also
 
-- [i18n-rendering](i18n-rendering.md) — how strings get translated in templates and JS
+- [i18n](i18n.md) — how to write translatable strings (server and browser)
+- [i18n-rendering](i18n-rendering.md) — server-side internals
 - [README](../README.md) — index

@@ -124,7 +124,7 @@ The *Type* column is `type.text` copied verbatim out of the JSDoc, so `@prop {St
 Where the line falls:
 
 - **Closed set of string literals** → union (`variant`, `size`, `mode`, `placement`, `appearance`, `type`). One legal value is still a union: `@prop {"floating"} elevation`, `@prop {"button"} variant` — omitting the attribute is the other state.
-- **Open-ended string** → `{String}` (`label`, `href`, `name`, every `label*` i18n override, a CSS length like `maxHeight`).
+- **Open-ended string** → `{String}` (`label`, `href`, `name`, `label*` properties, a CSS length like `maxHeight`).
 - **Composed grammar rather than a fixed list** → `{String}`, with the grammar spelled out in the description. `ol-popover` / `ol-tooltip` `placement` is `"{side}"` or `"{side}-{align}"`; enumerating all 16 combinations would be noise in the table. Prefer the union whenever the list is short enough to read at a glance (roughly six or fewer).
 - **State the default in the description** (`Default: "medium"`), never in the type — the manifest reads the *Default* column from the field's initializer, and repeating it in the type just makes the type wrong.
 - **Don't restate the values in the description** once they're in the type. That duplication is exactly what drifts.
@@ -168,7 +168,7 @@ npm run watch:lit-manifest          # regenerate on change during dev
 - Use `aria-live` regions for dynamic announcements.
 - Use `aria-busy` during loading states.
 - Use `aria-expanded`, `aria-selected`, `aria-current`, etc. to reflect interactive state.
-- Translate every user-visible string, ARIA labels included, with `_()` from `i18n.js` (see [i18n](../i18n/i18n.md), including its rule for `_()` inside `${…}`): `this.labelClose = _('Close')`. Add a `label-*` attribute only when a caller needs different text.
+- Translate every user-visible string, ARIA labels included, with `_()` from `i18n.js` (see [i18n](../i18n/i18n.md), including its rule for `_()` inside `${…}`): the component calls `_()` for its own defaults, e.g. `this.labelClose = _('Close')`. Don't add `label-*` properties for translation; add one only for a caller that needs different text than the default (see `labelClose` in `olConfirm`).
 
 ```js
 // aria-live for dynamic content

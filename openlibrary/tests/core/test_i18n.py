@@ -1,4 +1,6 @@
 import functools
+import re
+from gettext import c2py
 from io import BytesIO
 from pathlib import Path
 
@@ -425,9 +427,9 @@ def test_every_javascript_translation_call_passes_literal_strings():
 @pytest.mark.parametrize(
     ("lang", "advanced", "list_forms", "expected_list"),
     [
-        ("es", "Avanzado", ("%(count)s lista", "%(count)s listas"), {"one": "%(count)s lista", "other": "%(count)s listas"}),
-        # Japanese has only the "other" plural category.
-        ("ja", "詳細", ("%(count)s 件のリスト",), {"other": "%(count)s 件のリスト"}),
+        ("es", "Avanzado", ("%(count)s lista", "%(count)s listas"), ["%(count)s lista", "%(count)s listas"]),
+        # Japanese has a single plural form.
+        ("ja", "詳細", ("%(count)s 件のリスト",), ["%(count)s 件のリスト"]),
     ],
 )
 def test_javascript_catalog_has_the_translated_javascript_strings(monkeypatch, lang, advanced, list_forms, expected_list):
@@ -460,4 +462,61 @@ def test_compile_translations_writes_the_javascript_catalog(tmp_path, monkeypatc
 
     i18n.compile_translations(["es"])
 
-    assert (tmp_path / "static" / "build" / "i18n" / "es.js").read_text() == 'window.OL_I18N = {"Advanced": "Avanzado"};\n'
+    assert (tmp_path / "static" / "build" / "i18n" / "es.js").read_text() == (
+        'window.OL_I18N = {"Advanced": "Avanzado"};\nwindow.OL_I18N_PLURAL = function (n) { return Number((n != 1)); };\n'
+    )
+
+
+def _translations(plural_forms):
+    """Translations whose .mo has this Plural-Forms header, or no header when it's None."""
+    if plural_forms is None:
+        return Translations()
+    nplurals, expr = re.fullmatch(r"nplurals=(\d+); plural=(.*);", plural_forms).groups()
+    catalog = Catalog(locale="en")
+    catalog._num_plurals, catalog._plural_expr = int(nplurals), expr
+    mo = BytesIO()
+    write_mo(mo, catalog)
+    mo.seek(0)
+    return Translations(mo)
+
+
+@pytest.mark.parametrize(
+    ("plural_forms", "expected"),
+    [
+        ("nplurals=2; plural=(n != 1);", "(n != 1)"),
+        (
+            "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);",
+            "(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)",
+        ),
+        ("nplurals=1; plural=0;", "0"),
+        # No header: gettext, and so the server, falls back to n != 1.
+        (None, "n != 1"),
+    ],
+)
+def test_plural_rule_is_the_headers_expression(plural_forms, expected):
+    assert i18n.plural_rule(_translations(plural_forms)) == expected
+
+
+def test_plural_rule_refuses_anything_but_a_plural_expression():
+    # gettext already rejects such a header when it reads a .mo; this is the guard
+    # for the expression being written into a script.
+    class Header:
+        def info(self):
+            return {"plural-forms": "nplurals=2; plural=alert(1);"}
+
+    with pytest.raises(ValueError, match="Unexpected characters"):
+        i18n.plural_rule(Header())
+
+
+@pytest.mark.parametrize("locale", sorted(p.parent.name for p in Path(i18n.root).glob("*/messages.po")))
+def test_plural_rule_picks_the_servers_form(locale):
+    # The browser evaluates the same expression as JavaScript; C and JavaScript agree on it for whole numbers.
+    with open(Path(i18n.root) / locale / "messages.po", "rb") as f:
+        catalog = read_po(f, locale=locale)
+    mo = BytesIO()
+    write_mo(mo, catalog)
+    mo.seek(0)
+    translations = Translations(mo)
+    browser = c2py(i18n.plural_rule(translations))
+
+    assert [browser(n) for n in range(200)] == [translations.plural(n) for n in range(200)]

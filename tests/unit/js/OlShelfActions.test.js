@@ -5,7 +5,7 @@
  * at `fetch`.
  */
 import { STRINGS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
-import { fmt, lookup, plural } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
+import { fmt, lookup } from '../../../openlibrary/plugins/openlibrary/js/i18n.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
 import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';
@@ -107,34 +107,10 @@ describe('fmt', () => {
     });
 });
 
-describe('plural forms', () => {
-    const FORMS = { one: '%(count)s item', other: '%(count)s items' };
-
-    afterEach(() => {
-        document.documentElement.removeAttribute('lang');
-    });
-
-    test('picks the form for the count', () => {
-        expect(plural(FORMS, 1)).toBe('%(count)s item');
-        expect(plural(FORMS, 0)).toBe('%(count)s items');
-        expect(plural(FORMS, 12)).toBe('%(count)s items');
-    });
-
-    test('lookup calls a count function and interpolates it', () => {
+describe('lookup', () => {
+    test('calls a count function and interpolates it', () => {
         expect(lookup(STRINGS, 'onLists', { count: 1 })).toBe('On 1 list');
         expect(lookup(STRINGS, 'onLists', { count: 3 })).toBe('On 3 lists');
-    });
-
-    test("uses the page language's rules, and falls back to other", () => {
-        // Russian: 1 → one, 3 → few, 5 → many, 21 → one.
-        document.documentElement.lang = 'ru';
-        const ru = { one: 'один', few: 'несколько', many: 'много', other: 'other' };
-        expect(plural(ru, 1)).toBe('один');
-        expect(plural(ru, 3)).toBe('несколько');
-        expect(plural(ru, 5)).toBe('много');
-        expect(plural(ru, 21)).toBe('один');
-        // A translation that only supplies the forms it has still resolves.
-        expect(plural({ other: 'x' }, 3)).toBe('x');
     });
 });
 
