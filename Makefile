@@ -7,6 +7,8 @@ BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
+# Open Syllabus Project counts are opt-in (set OSP_DUMP=1); they only fill the osp_count search field.
+OSP_ARGS=$(if $(OSP_DUMP),--osp-dump $(OSP_DUMP_LOCATION))
 
 
 .PHONY: all clean distclean git css js components lit-components icons i18n lint frontend test test-py test-py-uv test-py-integration test-i18n
@@ -58,11 +60,13 @@ distclean:
 
 
 reindex-solr:
+ifdef OSP_DUMP
     # Keep link in sync with ol-solr-updater-start and Jenkinsfile
 	curl -C - -L "https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db" -o $(OSP_DUMP_LOCATION)
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+endif
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ $(OSP_ARGS) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ $(OSP_ARGS) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ $(OSP_ARGS) --ol-config conf/openlibrary.yml --solr-next
 	parallel -j4 python ./scripts/solr_builder/solr_builder/index_subjects.py ::: subject person place time
 
 lint:

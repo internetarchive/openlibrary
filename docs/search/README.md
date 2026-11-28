@@ -209,7 +209,7 @@ curl "http://localhost:8983/solr/openlibrary/select?q=frankenstein&rows=3&wt=jso
 
 `scripts/solr_updater/solr_updater.py` — long-running daemon. Reads changelog offset from state file, polls Infobase `/log/{offset}`, calls `update_keys()`, persists new offset. The `docker/ol-solr-updater-start.sh` entrypoint starts both this daemon and `trending_updater.py` in parallel.
 
-**OSP data**: `osp_totals.db` (Open Syllabus Project citation counts) is downloaded from IA on startup and stored at `/solr-updater-data/osp_totals.db`. Used by `WorkSolrBuilder` to populate `osp_count`.
+**OSP data**: `osp_totals.db` (Open Syllabus Project citation counts) is used by `WorkSolrBuilder` to populate `osp_count`. It is opt-in: when `OSP_DUMP=1` is set (production does), the solr-updater and `make reindex-solr` download it from IA to `/solr-updater-data/osp_totals.db`. Local dev leaves it unset, so `osp_count` stays empty and startup skips the download. To work on OSP sorting or notable authors locally, run `docker compose run --rm -e OSP_DUMP=1 home make reindex-solr`.
 
 ### SearchScheme pattern
 

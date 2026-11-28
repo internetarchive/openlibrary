@@ -302,6 +302,7 @@ services:
       - OL_URL=https://openlibrary.org/
       - OL_SOLR_BASE_URL=http://ol-solr0:8983/solr/openlibrary
       - OL_SOLR_NEXT=false
+      - OSP_DUMP=1
     volumes:
       - ../olsystem:/olsystem
       # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
@@ -327,6 +328,7 @@ services:
       - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
+      - OSP_DUMP=1
       - OL_SENTRY_ENVIRONMENT=testing
     volumes:
       - solr-updater-data:/solr-updater-data
