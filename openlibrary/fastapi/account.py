@@ -58,6 +58,27 @@ pages = APIRouter(route_class=SitePageRoute)
 
 SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
+
+def _run_with_web_ctx_ip(client_ip: str, cookie_header: str, func, *args, **kwargs):
+    """Run legacy code with the request IP and cookies set on web.ctx."""
+    original_env = web.ctx.get("env")
+    original_cookies = web.ctx.pop("_parsed_cookies", None)
+    env = dict(original_env or {})
+    env["HTTP_COOKIE"] = cookie_header
+    web.ctx.env = env
+    with web_ctx_ip(client_ip):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            web.ctx.pop("_parsed_cookies", None)
+            if original_cookies is not None:
+                web.ctx._parsed_cookies = original_cookies
+            if original_env is None:
+                del web.ctx.env
+            else:
+                web.ctx.env = original_env
+
+
 # Allow overriding ia_sync_secret via env var (for dev/test environments).
 # Legacy production config sets this value outside the repo.
 _ia_sync_secret = os.getenv("IA_SYNC_SECRET")
@@ -378,6 +399,8 @@ async def _login_json(request: Request, client_ip: str) -> Response:
 
     # Try S3 authentication first, fallback to infogami user/pass
     if access and secret:
+        # audit_accounts can create or activate the OL account, which writes an
+        # Infobase transaction stamped with web.ctx.ip; FastAPI never sets it.
         audit = await _audit_accounts(
             request,
             client_ip,
@@ -394,14 +417,14 @@ async def _login_json(request: Request, client_ip: str) -> Response:
             return _json_login_error("undefined_error")
         email = audit.get("ia_email") or audit.get("ol_email")
         response = Response(status_code=status.HTTP_200_OK)
-        _set_login_cookies_on_response(response, audit, ol_username, email=email or "")
+        await run_in_threadpool(_set_login_cookies_on_response, response, audit, ol_username, email=email or "")
         return response
 
     # Fallback to infogami user/pass (same as legacy)
     username = body.get("username", "")
     password = body.get("password", "")
     try:
-        site.get().login(username, password)
+        await run_in_threadpool(_run_with_web_ctx_ip, client_ip, request.headers.get("cookie", ""), site.get().login, username, password)
     except Exception as e:  # noqa: BLE001 - mirror web.py, which 400s on any login failure
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     response = Response(status_code=status.HTTP_200_OK)
@@ -426,7 +449,7 @@ async def _perform_post_login_action(response: Response, action: str, ol_account
     op, _, args = action.partition(":")
     if op != "follow" or not args or not ol_account:
         return
-    if publisher_account := OpenLibraryAccount.get_by_username(args):
+    if publisher_account := await run_in_threadpool(OpenLibraryAccount.get_by_username, args):
         await PubSub.subscribe(subscriber=ol_account.username, publisher=args)
         publisher_name = publisher_account["data"]["displayname"]
         set_flash_cookie(response, "note", f"You are now following {publisher_name}!")
@@ -486,6 +509,8 @@ async def login(
     test = form_data.test or q.get("test", "").lower() in ("yes", "true", "on", "1")
 
     # Call the EXACT same audit function that web.py uses
+    # audit_accounts can create or activate the OL account, which writes an
+    # Infobase transaction stamped with web.ctx.ip; FastAPI never sets it.
     audit = await _audit_accounts(
         request,
         client_ip,
@@ -527,7 +552,7 @@ async def login(
 
     email = ("" if (access and secret) else username) or audit.get("ia_email") or audit.get("ol_email")
 
-    ol_account = _set_login_cookies_on_response(response, audit, ol_username, email=email, remember=remember)
+    ol_account = await run_in_threadpool(_set_login_cookies_on_response, response, audit, ol_username, email=email, remember=remember)
 
     if ol_account and request.cookies.get("pda"):
         set_flash_cookie(
@@ -624,11 +649,11 @@ async def anonymize_account(
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Malformed Authorization Header")
 
-    xauthn_response = InternetArchiveAccount.s3auth(s3_access, s3_secret)
+    xauthn_response = await run_in_threadpool(InternetArchiveAccount.s3auth, s3_access, s3_secret)
     if "error" in xauthn_response:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
-    ol_account = OpenLibraryAccount.get_by_link(xauthn_response.get("itemname", ""))
+    ol_account = await run_in_threadpool(OpenLibraryAccount.get_by_link, xauthn_response.get("itemname", ""))
     if not ol_account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 

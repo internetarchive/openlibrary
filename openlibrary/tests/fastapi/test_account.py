@@ -11,7 +11,7 @@ import web
 
 from infogami import config
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
-from openlibrary.fastapi.account import _audit_accounts_sync
+from openlibrary.fastapi.account import _audit_accounts_sync, _run_with_web_ctx_ip
 from openlibrary.fastapi.shared.dependencies import get_client_ip
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
@@ -572,6 +572,93 @@ def _record_ctx_ip(result):
         return result
 
     return fake_audit, seen
+
+
+def test_run_with_web_ctx_ip_forwards_cookie_and_restores_ctx():
+    original_env = web.ctx.get("env")
+    original_ip = web.ctx.get("ip")
+    web.ctx.env = {"HTTP_HOST": "openlibrary.org"}
+    web.ctx.ip = "198.51.100.1"
+    web.ctx.pop("_parsed_cookies", None)
+    seen = {}
+
+    def read_ctx():
+        seen["cookie"] = web.ctx.env.get("HTTP_COOKIE")
+        seen["pda"] = web.cookies().get("pda")
+        seen["ip"] = web.ctx.ip
+        return "ok"
+
+    def fail():
+        assert web.ctx.ip == _CLIENT_IP
+        assert web.ctx.env["HTTP_COOKIE"] == "pda=session"
+        raise RuntimeError("boom")
+
+    try:
+        assert _run_with_web_ctx_ip(_CLIENT_IP, "pda=session; sfw=yes", read_ctx) == "ok"
+        assert seen == {"cookie": "pda=session; sfw=yes", "pda": "session", "ip": _CLIENT_IP}
+        assert web.ctx.env == {"HTTP_HOST": "openlibrary.org"}
+        assert web.ctx.ip == "198.51.100.1"
+
+        with pytest.raises(RuntimeError, match="boom"):
+            _run_with_web_ctx_ip(_CLIENT_IP, "pda=session", fail)
+        assert web.ctx.env == {"HTTP_HOST": "openlibrary.org"}
+        assert web.ctx.ip == "198.51.100.1"
+    finally:
+        web.ctx.pop("_parsed_cookies", None)
+        if original_env is None:
+            del web.ctx.env
+        else:
+            web.ctx.env = original_env
+        web.ctx.ip = original_ip
+
+
+def test_run_with_web_ctx_ip_ignores_stale_cookie_cache():
+    original_env = web.ctx.get("env")
+    original_ip = web.ctx.get("ip")
+    original_cookies = web.ctx.get("_parsed_cookies")
+    try:
+        web.ctx.env = {"HTTP_COOKIE": "pda=stale-session"}
+        web.ctx.ip = "198.51.100.1"
+        assert web.cookies().get("pda") == "stale-session"
+
+        result = _run_with_web_ctx_ip(_CLIENT_IP, "pda=current-session", lambda: web.cookies().get("pda"))
+        assert result == "current-session"
+        assert web.ctx.get("_parsed_cookies") == {"pda": "stale-session"}
+    finally:
+        web.ctx.pop("_parsed_cookies", None)
+        if original_cookies is not None:
+            web.ctx._parsed_cookies = original_cookies
+        if original_env is None:
+            del web.ctx.env
+        else:
+            web.ctx.env = original_env
+        web.ctx.ip = original_ip
+
+
+def test_run_with_web_ctx_ip_does_not_leak_cookie_cache():
+    original_env = web.ctx.get("env")
+    original_ip = web.ctx.get("ip")
+    original_cookies = web.ctx.get("_parsed_cookies")
+    try:
+        web.ctx.env = {"HTTP_HOST": "openlibrary.org"}
+        web.ctx.ip = "198.51.100.1"
+        web.ctx.pop("_parsed_cookies", None)
+
+        def read_ctx():
+            return web.cookies().get("pda")
+
+        assert _run_with_web_ctx_ip(_CLIENT_IP, "pda=login-session", read_ctx) == "login-session"
+        assert "_parsed_cookies" not in web.ctx
+        assert web.cookies().get("pda") is None
+    finally:
+        web.ctx.pop("_parsed_cookies", None)
+        if original_cookies is not None:
+            web.ctx._parsed_cookies = original_cookies
+        if original_env is None:
+            del web.ctx.env
+        else:
+            web.ctx.env = original_env
+        web.ctx.ip = original_ip
 
 
 def test_login_sets_client_ip_for_infobase_writes(fastapi_client):
