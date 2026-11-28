@@ -87,7 +87,7 @@ $def with (books=None, books_wo_isbns=None)
         <h3 class="data-transfer-card-title">$_("LibraryThing")</h3>
         <p>$_("Import your books and catalogs from LibraryThing.")</p>
         <div class="data-transfer-card__action">
-          <button class="cta-btn cta-btn--available cta-btn--small express-interest-btn" data-service="LibraryThing" data-ol-link-track="ImportInterest|LibraryThing" onclick="alert('Interest recorded, thank you!')">
+          <button class="cta-btn cta-btn--available cta-btn--small express-interest-btn" data-service="LibraryThing" data-ol-link-track="ImportInterest|LibraryThing" data-interest-recorded-text="$_('Interest recorded')">
             $_("Express interest in this")
           </button>
         </div>
@@ -97,7 +97,7 @@ $def with (books=None, books_wo_isbns=None)
         <h3 class="data-transfer-card-title">$_("StoryGraph")</h3>
         <p>$_("Import your reading logs and challenges from StoryGraph.")</p>
         <div class="data-transfer-card__action">
-          <button class="cta-btn cta-btn--available cta-btn--small express-interest-btn" data-service="StoryGraph" data-ol-link-track="ImportInterest|StoryGraph" onclick="alert('Interest recorded, thank you!')">
+          <button class="cta-btn cta-btn--available cta-btn--small express-interest-btn" data-service="StoryGraph" data-ol-link-track="ImportInterest|StoryGraph" data-interest-recorded-text="$_('Interest recorded')">
             $_("Express interest in this")
           </button>
         </div>
