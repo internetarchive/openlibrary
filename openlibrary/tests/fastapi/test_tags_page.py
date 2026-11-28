@@ -121,7 +121,7 @@ def test_concurrent_add_tag_requests_each_get_only_their_own_page(site_page_app,
     """The prefilled name comes from this request: never another request's, or web.py's leftovers."""
     monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: True))
     n = 12
-    responses = fetch_concurrently(site_page_app(pages), [(f"/tag/add?name=name-{i}", {}) for i in range(n)])
+    responses = fetch_concurrently(site_page_app(pages), [(f"/tag/add?name=name-{i}", {"x-user": "curator"}) for i in range(n)])
     for i, response in enumerate(responses):
         html = response.text
         assert response.status_code == 200
@@ -130,7 +130,9 @@ def test_concurrent_add_tag_requests_each_get_only_their_own_page(site_page_app,
         assert not any(f'value="name-{j}"' in html for j in range(n) if j != i)
 
 
-def test_add_tag_sends_a_visitor_to_login(client):
+def test_add_tag_sends_a_visitor_to_login(client, monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", MagicMock(side_effect=AssertionError("no account lookup for a visitor")))
+
     response = client.get("/tag/add", follow_redirects=False)
 
     assert response.status_code == 303
@@ -140,7 +142,7 @@ def test_add_tag_sends_a_visitor_to_login(client):
 def test_add_tag_page_requires_a_curator(client, monkeypatch):
     monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: False))
 
-    response = client.get("/tag/add")
+    response = client.get("/tag/add", headers={"x-user": "patron"})
 
     assert response.status_code == 401
 
@@ -148,7 +150,7 @@ def test_add_tag_page_requires_a_curator(client, monkeypatch):
 def test_add_tag_page_prefills_the_name(client, monkeypatch):
     monkeypatch.setattr("openlibrary.fastapi.tags.get_current_user", lambda: SimpleNamespace(is_admin=lambda: False, is_curator=lambda: True))
 
-    response = client.get("/tag/add?name=Cooking")
+    response = client.get("/tag/add?name=Cooking", headers={"x-user": "curator"})
 
     assert response.status_code == 200
     html = response.text

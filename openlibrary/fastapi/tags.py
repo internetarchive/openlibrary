@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 from openlibrary.accounts import get_current_user
 from openlibrary.core.helpers import safeint
 from openlibrary.core.shell.request import PageMeta
-from openlibrary.fastapi.shared.site_page import SitePage, SitePageRoute
+from openlibrary.fastapi.shared.site_page import CurrentUserDep, SitePage, SitePageRoute
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import addtag
 from openlibrary.plugins.upstream.addtag import TAG_TYPES
@@ -46,13 +46,14 @@ def tags_index(
 
 
 @pages.get("/tag/add")
-def add_tag(name: str = "") -> Response:
+def add_tag(user: CurrentUserDep, name: str = "") -> Response:
     # TODO: Retire the web.py `addtag.GET` handler (it still serves /tag/add in
     # production) once production routes it here. The POST stays on web.py.
-    if not (patron := get_current_user()):
+    if not user:
         return RedirectResponse("/account/login?redirect=/tag/add", status_code=status.HTTP_303_SEE_OTHER)
 
-    if not addtag.can_create_tag(patron):
+    # The shell's user has no curator flag, so only logged-in visitors pay for this second lookup.
+    if not addtag.can_create_tag(get_current_user()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Permission denied to add tags")
 
     return SitePage(
