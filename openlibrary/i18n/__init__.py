@@ -326,10 +326,36 @@ def _browser_only(message: Message) -> bool:
     return bool(message.locations) and all(filename.endswith((".js", ".vue")) for filename, _lineno in message.locations)
 
 
+# The placeholders JavaScript fills in: `{name}` (the Lit components' label
+# templates) and `%(name)s` / `%(name)d` (`fmt()` in i18n.js).
+_BROWSER_PLACEHOLDER_RE = re.compile(r"\{(\w+)\}|%\((\w+)\)[sd]")
+
+
+def _browser_placeholders(s: str) -> set[str]:
+    return {brace or named for brace, named in _BROWSER_PLACEHOLDER_RE.findall(s)}
+
+
+def _browser_render_errors(message: Message) -> list[str]:
+    """Placeholders in a browser string's translation that the code will not fill in.
+
+    JavaScript replaces a name it has no value for with an empty string, so a
+    translation that says ``{nombre}`` where the English says ``{name}`` shows
+    users a label with the name missing.
+    """
+    ids = message.id if isinstance(message.id, (list, tuple)) else [message.id]
+    expected = set().union(*(_browser_placeholders(str(msgid)) for msgid in ids))
+    strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
+    errors = []
+    for msgstr in strings:
+        if unknown := _browser_placeholders(msgstr) - expected:
+            errors.append(f"line {message.lineno}: {msgstr!r}: placeholder(s) {', '.join(sorted(unknown))} not in the English")
+    return errors
+
+
 def _render_errors(message: Message) -> list[str]:
     """Errors that formatting this translation would raise at render time."""
     if _browser_only(message):
-        return []
+        return _browser_render_errors(message)
     args = _format_args(message)
     strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
     errors = []

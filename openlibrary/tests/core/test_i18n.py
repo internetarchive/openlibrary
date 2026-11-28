@@ -264,6 +264,37 @@ class Test_install_translations:
         assert i18n.install_translations(str(src), str(dest)) == {"hr": []}
 
     @pytest.mark.parametrize(
+        "body",
+        [
+            pytest.param('msgid "{name}: {percentage}%. Click to expand."\nmsgstr "{nombre}: {percentage}%. Kliknite."\n', id="renamed-brace"),
+            pytest.param('msgid "%(start)s-%(end)s of %(total)s"\nmsgstr "%(start)s-%(end)s od %(ukupno)s"\n', id="renamed-named"),
+            pytest.param('msgid "one book"\nmsgid_plural "{count} books"\nmsgstr[0] "jedna knjiga"\nmsgstr[1] "{broj} knjiga"\n', id="plural-form"),
+        ],
+    )
+    def test_browser_only_strings_keep_a_placeholder_check(self, tmp_path, body):
+        # JavaScript fills a name it has no value for with '', so the label loses it.
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(src, "hr", "#: lit/OlScorecard.js\n" + body)
+        committed = _write_locale(dest, "hr", self.GOOD)
+        before = committed.read_bytes()
+
+        assert i18n.install_translations(str(src), str(dest))["hr"]
+        assert committed.read_bytes() == before
+
+    def test_browser_only_strings_may_reorder_or_drop_placeholders(self, tmp_path):
+        # Word order differs between languages, and a singular form may drop the count.
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(
+            src,
+            "hr",
+            '#: lit/OlCarousel.js\nmsgid "Go to page {page} of {total}"\nmsgstr "{total} stranica, idi na {page}"\n'
+            '#: lit/OlShelfActions.js\nmsgid "%(count)s item"\nmsgid_plural "%(count)s items"\nmsgstr[0] "jedna stavka"\nmsgstr[1] "%(count)s stavki"\n',
+        )
+        dest.mkdir()
+
+        assert i18n.install_translations(str(src), str(dest)) == {"hr": []}
+
+    @pytest.mark.parametrize(
         "locations",
         [
             pytest.param("#: account.html\n", id="template"),
