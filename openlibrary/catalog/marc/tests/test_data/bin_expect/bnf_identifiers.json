@@ -1,0 +1,42 @@
+{
+  "publish_date": "2019",
+  "publish_country": "fr",
+  "languages": [
+    "fre"
+  ],
+  "title": "Sensation",
+  "by_statement": "Anne-Laure Charmy",
+  "physical_format": "Texte imprimé",
+  "identifiers": {
+    "bnf": [
+      "cb45867491q"
+    ]
+  },
+  "authors": [
+    {
+      "name": "Charmy, Anne-Laure",
+      "entity_type": "person",
+      "role": "Author",
+      "remote_ids": {
+        "isni": "0000000493389288"
+      }
+    }
+  ],
+  "series": [
+    "Regard -- tome 1"
+  ],
+  "publishers": [
+    "Anne-Laure Charmy"
+  ],
+  "publish_places": [
+    "[s.l.]"
+  ],
+  "isbn_10": [
+    "978235898392"
+  ],
+  "isbn_13": [
+    "9782358978392"
+  ],
+  "pagination": "1 vol. (314 p.)",
+  "number_of_pages": 314
+}

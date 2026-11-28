@@ -40,6 +40,7 @@ xml_samples = [
 
 bin_samples = [
     "bijouorannualofl1828cole_meta.mrc",
+    "bnf_identifiers.mrc",
     "onquietcomedyint00brid_meta.mrc",  # LCCN with leading characters
     "merchantsfromcat00ben_meta.mrc",
     "memoirsofjosephf00fouc_meta.mrc",  # MARC8 encoded with e-acute
