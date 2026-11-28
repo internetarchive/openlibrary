@@ -50,7 +50,6 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languageLabel: _('Language'),
     languagePlaceholder: _('Search languages…'),
     languageHeading: _('Languages'),
-    languagesLoading: _('Loading…'),
     // Loading labels, one per scope tab so the wait names what's being searched.
     searchingBooks: _('Searching books and authors…'),
     searchingInside: _('Searching inside books…'),
