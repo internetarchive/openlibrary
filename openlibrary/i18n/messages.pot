@@ -242,7 +242,7 @@ msgstr ""
 msgid "Import Time"
 msgstr ""
 
-#: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html goodreads_import.js librarian_dashboard/data_quality_table.html
+#: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html goodreads_import.js librarian-dashboard/index.js
 msgid "Error"
 msgstr ""
 
@@ -326,11 +326,6 @@ msgstr ""
 
 #: edit_yaml.html
 msgid "YAML Representation:"
-msgstr ""
-
-#: history.html
-#, python-format
-msgid "Compare revisions %(a)s and %(b)s"
 msgstr ""
 
 #: history.html
@@ -618,7 +613,7 @@ msgstr ""
 msgid "Added new book."
 msgstr ""
 
-#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html confirm-template.js lit/OlBanner.js lit/OlToast.js modals/index.js native_dialog.html.jinja shell/edit_saved.html.jinja
+#: LibraryExplorer/components/LibraryToolbar.vue ObservationsModal.html confirm-template.js lit/OlBanner.js lit/OlToast.js modals/index.js native_dialog.html.jinja
 msgid "Close"
 msgstr ""
 
@@ -955,10 +950,6 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
-#: lit/OlSelectPopover.js search-modal/constants.js search/inside.html.jinja work_search.html
-msgid "Loading…"
-msgstr ""
-
 #: search/inside.html.jinja work_search.html
 msgid "Filter by language"
 msgstr ""
@@ -1082,7 +1073,7 @@ msgstr ""
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
 msgstr ""
 
-#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html search/work_search_facets.html.jinja signup.js
+#: BulkSearch/components/BulkSearchControls.vue LibraryExplorer/components/OLCarousel.vue MergeUI.vue RelatedSubjects.html.jinja account/create.html librarian-dashboard/index.js librarian_dashboard/data_quality_table.html search/work_search_facets.html.jinja signup.js
 msgid "Loading..."
 msgstr ""
 
@@ -2045,10 +2036,6 @@ msgid "Items"
 msgstr ""
 
 #: admin/index.html
-msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
-msgstr ""
-
-#: admin/index.html
 msgid "Stats"
 msgstr ""
 
@@ -2056,7 +2043,7 @@ msgstr ""
 msgid "Related stats pages"
 msgstr ""
 
-#: admin/index.html contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py openlibrary/views/loanstats.py
+#: admin/index.html contribute/admin/index.html.jinja contribute/dashboard.html.jinja contribute/faq.html.jinja openlibrary/plugins/openlibrary/contribute.py tasks_stats.js
 msgid "Tasks"
 msgstr ""
 
@@ -3374,28 +3361,6 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-msgid "Previous page"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-msgid "Next page"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-msgid "Carousel pages"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-#, python-brace-format
-msgid "Go to page {page} of {total}"
-msgstr ""
-
-#: books/custom_carousel.html.jinja home/welcome.html lit/OlCarousel.js
-#, python-brace-format
-msgid "Page {page} of {total}"
-msgstr ""
-
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -3736,21 +3701,6 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "This Edition"
-msgstr ""
-
-#: books/edit/edition.html lit/OlScorecard.js
-#, python-brace-format
-msgid "Failing Checks ({count})"
-msgstr ""
-
-#: books/edit/edition.html lit/OlScorecard.js
-#, python-brace-format
-msgid "Passing Checks ({count})"
-msgstr ""
-
-#: books/edit/edition.html lit/OlScorecard.js
-#, python-brace-format
-msgid "{score} points"
 msgstr ""
 
 #: books/edit/edition.html
@@ -5027,16 +4977,12 @@ msgstr ""
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
-#: follow/follow.html lists/list_follow.html.jinja
+#: follow/follow.html following.js lists/list_follow.html.jinja
 msgid "Follow"
 msgstr ""
 
-#: follow/follow.html
+#: follow/follow.html following.js
 msgid "Unfollow"
-msgstr ""
-
-#: follow/follow.html
-msgid "Failed to update followers. Please try again in a few moments."
 msgstr ""
 
 #: history/sources.html
@@ -5099,10 +5045,6 @@ msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
-msgstr ""
-
-#: home/index.html
-msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
 #: home/library_row.html.jinja
@@ -5354,14 +5296,6 @@ msgstr ""
 
 #: lib/not_logged.html
 msgid "<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged in</a>.</strong> Open Library will record your IP address and include it in this page's publicly accessible edit history. If you <a href=\"/account/create\" title=\"Create an Open Library account\">create an account</a>, your IP address is concealed and you can more easily keep track of all your edits and additions."
-msgstr ""
-
-#: librarian_dashboard/data_quality_table.html
-msgid "Reload"
-msgstr ""
-
-#: librarian_dashboard/data_quality_table.html
-msgid "failing"
 msgstr ""
 
 #: librarian_dashboard/data_quality_table.html
@@ -5728,14 +5662,6 @@ msgstr ""
 
 #: merge_request_table/merge_request_stats.html.jinja merge_request_table/merge_request_table.html
 msgid "No entries here!"
-msgstr ""
-
-#: merge_request_table/merge_request_table.html
-msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
-
-#: merge_request_table/merge_request_table.html
-msgid "(Optional) Why are you closing this request?"
 msgstr ""
 
 #: merge_request_table/merge_request_table.html
@@ -6686,7 +6612,7 @@ msgstr ""
 msgid "Metrics. Choose one to chart it."
 msgstr ""
 
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+#: stats/tasks.html.jinja tasks_stats.js
 #, python-format
 msgid "%(returning)s returning · %(first_time)s first-time"
 msgstr ""
@@ -6707,7 +6633,7 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+#: stats/tasks.html.jinja tasks_stats.js
 msgid "Per day"
 msgstr ""
 
@@ -6759,11 +6685,11 @@ msgstr ""
 msgid "Tasks saves as a share of all edits, and Tasks editors as a share of all editors, by day."
 msgstr ""
 
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+#: stats/tasks.html.jinja tasks_stats.js
 msgid "Of edits"
 msgstr ""
 
-#: openlibrary/views/loanstats.py stats/tasks.html.jinja
+#: stats/tasks.html.jinja tasks_stats.js
 msgid "Of editors"
 msgstr ""
 
@@ -7076,14 +7002,6 @@ msgstr ""
 msgid "Edition published by %(publishers)s"
 msgstr ""
 
-#: lit/OLReadMore.js type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: lit/OLReadMore.js type/edition/view.html type/work/view.html
-msgid "Read Less"
-msgstr ""
-
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
@@ -7155,7 +7073,7 @@ msgstr ""
 msgid "External Links"
 msgstr ""
 
-#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/edition/view.html type/work/editions_datatable.html type/work/view.html
+#: lit/OlPagination.js type/edition/view.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
@@ -7694,24 +7612,6 @@ msgstr ""
 
 #: search-modal/constants.js type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
-
-#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/work/editions_datatable.html
-msgid "Go to previous page"
-msgstr ""
-
-#: OlPagination.html.jinja OlPaginationArrows.html lit/OlPagination.js type/work/editions_datatable.html
-msgid "Go to next page"
-msgstr ""
-
-#: OlPagination.html.jinja lit/OlPagination.js type/work/editions_datatable.html
-#, python-brace-format
-msgid "Go to page {page}"
-msgstr ""
-
-#: OlPagination.html.jinja lit/OlPagination.js type/work/editions_datatable.html
-#, python-brace-format
-msgid "Page {page}, current page"
 msgstr ""
 
 #: type/work/editions_datatable.html
@@ -9324,8 +9224,38 @@ msgstr ""
 msgid "View formatted"
 msgstr ""
 
+#: lit/OLReadMore.js
+msgid "Read More"
+msgstr ""
+
+#: lit/OLReadMore.js
+msgid "Read Less"
+msgstr ""
+
 #: lit/OlCarousel.js
 msgid "Carousel"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Previous page"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Next page"
+msgstr ""
+
+#: lit/OlCarousel.js
+msgid "Carousel pages"
+msgstr ""
+
+#: lit/OlCarousel.js
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: lit/OlCarousel.js
+#, python-brace-format
+msgid "Page {page} of {total}"
 msgstr ""
 
 #: lit/OlDialog.js
@@ -9338,6 +9268,39 @@ msgstr ""
 
 #: lit/OlOptionsPopover.js lit/OlSelectPopover.js
 msgid "No matches"
+msgstr ""
+
+#: lit/OlPagination.js
+msgid "Go to previous page"
+msgstr ""
+
+#: lit/OlPagination.js
+msgid "Go to next page"
+msgstr ""
+
+#: lit/OlPagination.js
+#, python-brace-format
+msgid "Go to page {page}"
+msgstr ""
+
+#: lit/OlPagination.js
+#, python-brace-format
+msgid "Page {page}, current page"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "Failing Checks ({count})"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "Passing Checks ({count})"
+msgstr ""
+
+#: lit/OlScorecard.js
+#, python-brace-format
+msgid "{score} points"
 msgstr ""
 
 #: lit/OlScorecard.js
@@ -9363,6 +9326,10 @@ msgstr ""
 
 #: lit/OlSelectPopover.js
 msgid "Clear selections"
+msgstr ""
+
+#: lit/OlSelectPopover.js
+msgid "Loading…"
 msgstr ""
 
 #: lit/OlShelfActions.js
@@ -9595,6 +9562,10 @@ msgstr ""
 msgid "Moved to %(shelf)s"
 msgstr ""
 
+#: browse-stacks.js
+msgid "Couldn't load this shelf. Try again?"
+msgstr ""
+
 #: contribute.js
 msgid "Stop this project now?"
 msgstr ""
@@ -9664,6 +9635,10 @@ msgstr ""
 msgid "Please enter a valid URL."
 msgstr ""
 
+#: following.js
+msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+
 #: fulltext-search-suggestion.js
 msgid "Failed to fetch fulltext search suggestions."
 msgstr ""
@@ -9701,6 +9676,11 @@ msgstr ""
 
 #: goodreads_import.js
 msgid "Book not in collection"
+msgstr ""
+
+#: history.js
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
 msgstr ""
 
 #: merge.js
@@ -9753,6 +9733,92 @@ msgstr ""
 
 #: signup.js
 msgid "A qualifying program must be selected"
+msgstr ""
+
+#: tasks_stats.js
+msgid "The charts couldn't load. Reload the page to try again."
+msgstr ""
+
+#: tasks_stats.js
+msgid "Returning"
+msgstr ""
+
+#: tasks_stats.js
+msgid "First edit ever"
+msgstr ""
+
+#: tasks_stats.js
+msgid "Outside Tasks"
+msgstr ""
+
+#: tasks_stats.js
+msgid "Today so far, updated hourly"
+msgstr ""
+
+#: tasks_stats.js
+msgid "Still in progress"
+msgstr ""
+
+#: tasks_stats.js
+msgid "No counts for this range yet."
+msgstr ""
+
+#: tasks_stats.js
+#, python-format
+msgid "Total: %(count)s"
+msgstr ""
+
+#: tasks_stats.js
+#, python-format
+msgid "%(count)s details still open"
+msgstr ""
+
+#: tasks_stats.js
+#, python-format
+msgid "Tasks: %(share)s undone, %(undone)s of %(total)s saves"
+msgstr ""
+
+#: tasks_stats.js
+#, python-format
+msgid "Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"
+msgstr ""
+
+#: tasks_stats.js
+msgid "Per week"
+msgstr ""
+
+#: tasks_stats.js
+msgid "Per 4 weeks"
+msgstr ""
+
+#: openlibrary/views/loanstats.py tasks_stats.js
+#, python-format
+msgid "≈ %(count)s per editor"
+msgstr ""
+
+#: openlibrary/views/loanstats.py tasks_stats.js
+#, python-format
+msgid "%(share)s of editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py tasks_stats.js
+#, python-format
+msgid "of edits · %(share)s of editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py tasks_stats.js
+#, python-format
+msgid "%(share)s of all edits"
+msgstr ""
+
+#: openlibrary/views/loanstats.py tasks_stats.js
+#, python-format
+msgid "%(share)s of all editors"
+msgstr ""
+
+#: openlibrary/views/loanstats.py tasks_stats.js
+#, python-format
+msgid "vs ≈ %(count)s edits per editor overall"
 msgstr ""
 
 #: team.js
@@ -9905,6 +9971,14 @@ msgstr ""
 msgid "Merge Authors..."
 msgstr ""
 
+#: librarian-dashboard/index.js
+msgid "failing"
+msgstr ""
+
+#: librarian-dashboard/index.js
+msgid "Reload"
+msgstr ""
+
 #: lists/ListViewBody.js
 msgid "Remove from this list?"
 msgstr ""
@@ -9915,6 +9989,14 @@ msgstr ""
 
 #: lists/ListViewBody.js
 msgid "Delete list"
+msgstr ""
+
+#: merge-request-table/MergeRequestTable/TableRow.js
+msgid "(Optional) Why are you closing this request?"
+msgstr ""
+
+#: merge-request-table/MergeRequestTable/TableRow.js
+msgid "Failed to submit comment. Please try again in a few moments."
 msgstr ""
 
 #: modals/index.js
@@ -10120,6 +10202,10 @@ msgstr ""
 #: search-modal/constants.js
 #, python-format
 msgid "%s matches found inside books"
+msgstr ""
+
+#: stats/index.js
+msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
 msgstr ""
 
 #: openlibrary/contribute/feed.py
@@ -12318,11 +12404,6 @@ msgid "Changes people, not bots, saved to editions and works, from the Tasks pag
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-#, python-format
-msgid "≈ %(count)s per editor"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "Editors"
 msgstr ""
 
@@ -12339,17 +12420,7 @@ msgid "People whose first change ever to an edition or work falls in the period,
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(share)s of editors"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "The share of edits saved from the Tasks page."
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "of edits · %(share)s of editors"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -12361,11 +12432,6 @@ msgid "Edits saved from the Tasks page."
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(share)s of all edits"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "Tasks editors"
 msgstr ""
 
@@ -12374,21 +12440,11 @@ msgid "People who saved an edit from the Tasks page. In week and month views, so
 msgstr ""
 
 #: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(share)s of all editors"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
 msgid "Saves per Tasks editor"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
 msgid "Tasks saves for each person who saved one."
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "vs ≈ %(count)s edits per editor overall"
 msgstr ""
 
 #: openlibrary/views/loanstats.py
@@ -12401,60 +12457,4 @@ msgid "<b>%(count)s</b> person has helped"
 msgid_plural "<b>%(count)s</b> people have helped"
 msgstr[0] ""
 msgstr[1] ""
-
-#: openlibrary/views/loanstats.py
-msgid "Per week"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Per 4 weeks"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Today so far, updated hourly"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Still in progress"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "%(count)s details still open"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "Tasks: %(share)s undone, %(undone)s of %(total)s saves"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "No counts for this range yet."
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Returning"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "First edit ever"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "Outside Tasks"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-#, python-format
-msgid "Total: %(count)s"
-msgstr ""
-
-#: openlibrary/views/loanstats.py
-msgid "The charts couldn't load. Reload the page to try again."
-msgstr ""
 

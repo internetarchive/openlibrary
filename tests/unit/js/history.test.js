@@ -1,12 +1,10 @@
 import { initHistory } from '../../../openlibrary/plugins/openlibrary/js/history';
 
-const I18N = JSON.stringify({ compare_label: 'Compare revisions %(a)s and %(b)s' });
-
-/** @param {{tableAttributes?: string, withBar?: boolean}} options */
-function mount({ tableAttributes = `data-i18n='${I18N}'`, withBar = true } = {}) {
+/** @param {{withBar?: boolean}} options */
+function mount({ withBar = true } = {}) {
     document.body.innerHTML = `
         ${withBar ? '<div id="pageHistoryCompare" hidden><a data-compare-link></a><button data-compare-clear></button></div>' : ''}
-        <table id="pageHistory" ${tableAttributes}><tbody></tbody></table>`;
+        <table id="pageHistory"><tbody></tbody></table>`;
     return document.querySelector('#pageHistory');
 }
 
@@ -16,11 +14,6 @@ afterEach(() => {
 });
 
 describe('initHistory', () => {
-    test('does not throw for a #pageHistory element without data-i18n', () => {
-        const footerHistory = mount({ tableAttributes: '', withBar: false });
-        expect(() => initHistory(footerHistory)).not.toThrow();
-    });
-
     test('does not throw when the comparison bar is absent', () => {
         const table = mount({ withBar: false });
         expect(() => initHistory(table)).not.toThrow();

@@ -4,11 +4,6 @@ $# total : dict : {"open": int, "closed": int}; The total number of merge reques
 $# librarians : dict : {"submitters": list[str], "reviewers": list[str]}
 $# merge_requests : list : Merge requests to be displayed in the table
 
-$ i18n_strings = {
-  $ 'comment_submission_failure_message': _('Failed to submit comment. Please try again in a few moments.'),
-  $ 'close_request_comment_prompt': _('(Optional) Why are you closing this request?')
-  $ }
-
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ can_merge = ctx.user and (ctx.user.is_super_librarian())
 
@@ -32,7 +27,7 @@ $else:
     <p class="description"><a href="/stats/merges">$_('View reviewer and submitter statistics')</a></p>
 
   $ page = int(input(page=1).page)
-  <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
+  <div class="librarian-queue-wrapper" data-username="$username">
     $:render_template('merge_request_table/table_header', total, librarians, mode, username, submitter, reviewer, status)
     <table class="mr-table">
       <tbody>

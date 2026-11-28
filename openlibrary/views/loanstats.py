@@ -440,36 +440,6 @@ def build_saves_by_field(docs: list[dict]) -> list[dict]:
     ]
 
 
-def build_tasks_stats_i18n() -> dict[str, str]:
-    "Strings the page's script draws on its charts. Keys and English text match DEFAULT_STRINGS in tasks_stats.js."
-    return {
-        "perDay": _("Per day"),
-        "perWeek": _("Per week"),
-        "perMonth": _("Per 4 weeks"),
-        "split": _("%(returning)s returning · %(first_time)s first-time"),
-        "perEditor": _("≈ %(count)s per editor"),
-        "ofEditorsDetail": _("%(share)s of editors"),
-        "tasksShareDetail": _("of edits · %(share)s of editors"),
-        "shareOfEdits": _("%(share)s of all edits"),
-        "shareOfEditors": _("%(share)s of all editors"),
-        "perEditorOverall": _("vs ≈ %(count)s edits per editor overall"),
-        "todaySoFar": _("Today so far, updated hourly"),
-        "periodSoFar": _("Still in progress"),
-        "openDetails": _("%(count)s details still open"),
-        "tasksUndone": _("Tasks: %(share)s undone, %(undone)s of %(total)s saves"),
-        "otherUndone": _("Outside Tasks: %(share)s undone, %(undone)s of %(total)s fills"),
-        "noData": _("No counts for this range yet."),
-        "returning": _("Returning"),
-        "firstTime": _("First edit ever"),
-        "otherEdits": _("Outside Tasks"),
-        "tasks": _("Tasks"),
-        "total": _("Total: %(count)s"),
-        "ofEdits": _("Of edits"),
-        "ofEditors": _("Of editors"),
-        "loadFailed": _("The charts couldn't load. Reload the page to try again."),
-    }
-
-
 SCOPES = ("all", "tasks")
 
 
@@ -497,7 +467,6 @@ def build_tasks_stats_page(scope: str = "all") -> dict:
         "guardrail": build_guardrail(counts),
         "initiatives": build_initiatives(docs),
         "saves_by_field": build_saves_by_field([d for d in docs if d["_key"] >= since]),
-        "i18n": build_tasks_stats_i18n(),
     }
 
 

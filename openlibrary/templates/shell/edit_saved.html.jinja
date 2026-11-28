@@ -6,7 +6,7 @@
 -#}
 {% if layout.edit_saved %}
     {% set saved = layout.edit_saved %}
-    <ol-banner class="edit-saved" variant="success" dismissible label-close="{{ _('Close') }}" {% if saved.project %} dismiss-id="{{ saved.dismiss_cookie }}" data-cookie-duration-days="{{ saved.dismiss_days }}" data-dismiss-on-link{% endif %}>
+    <ol-banner class="edit-saved" variant="success" dismissible {% if saved.project %} dismiss-id="{{ saved.dismiss_cookie }}" data-cookie-duration-days="{{ saved.dismiss_days }}" data-dismiss-on-link{% endif %}>
         <div class="edit-saved__body">
             <p class="edit-saved__thanks">
                 {{ icon("circle-check") }}
