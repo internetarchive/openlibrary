@@ -72,23 +72,20 @@ def get_from_archive_bulk(locator):
     locator = locator.removeprefix("marc:")
     filename, offset, length = locator.split(":")
     offset = int(offset)
-    length = int(length)
+    length = min(int(length), MAX_MARC_LENGTH)
 
     r0, r1 = offset, offset + length - 1
     # get the next record's length in this request
     r1 += 5
     url = IA_DOWNLOAD_URL + filename
 
-    assert 0 < length < MAX_MARC_LENGTH
-
-    response = urlopen_keep_trying(url, headers={"Range": "bytes=%d-%d" % (r0, r1)})
+    response = urlopen_keep_trying(url, headers={"Range": f"bytes={r0}-{r1}"})
     data = None
     if response:
-        # this truncates the data to MAX_MARC_LENGTH, but is probably not necessary here?
-        data = response.content[:MAX_MARC_LENGTH]
+        data = response.content
         len_in_rec = int(data[:5])
         if len_in_rec != length:
-            data, next_offset, next_length = get_from_archive_bulk("%s:%d:%d" % (filename, offset, len_in_rec))
+            data, next_offset, next_length = get_from_archive_bulk(f"{filename}:{offset}:{len_in_rec}")
         else:
             next_length = data[length:]
             data = data[:length]
