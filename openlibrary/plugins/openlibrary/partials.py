@@ -52,6 +52,7 @@ from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
     get_solr_works,
     run_solr_query_async,
+    with_no_language_bucket,
     work_search_async,
 )
 from openlibrary.plugins.worksearch.facets import (
@@ -621,7 +622,7 @@ class SearchFacetsPartial:
             sort=sort,
             spellcheck_count=3,
             fields=compute_work_search_html_fields(sort, sfw),
-            facet=True,
+            facet=with_no_language_bucket(WorkSearchScheme.facet_fields),
             highlight=False,
             request_label="BOOK_SEARCH_FACETS",
         )

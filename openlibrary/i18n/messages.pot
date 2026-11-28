@@ -11205,6 +11205,10 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
+#: openlibrary/fastapi/search.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py
+msgid "No language"
+msgstr ""
+
 #: openlibrary/fastapi/search.py
 #, python-format
 msgid "%(query)s - List search"

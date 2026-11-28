@@ -32,7 +32,7 @@ import {
     ssSet
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
-import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
+import { exclusiveNoLanguage, fetchFacetCounts, mergeFacetCounts, NO_LANGUAGE, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
 import { allWordsQuery, dedupeFulltextHits, isAutoPhrasedQuery, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
@@ -1387,7 +1387,7 @@ export class SearchModal extends LitElement {
         // No counts (request failed, or the query matched nothing) degrades to
         // the uncounted catalogue — filtering must never break. Only a real
         // response is cached; a null key lets the next open retry.
-        this._languageItems = counts?.length ? mergeFacetCounts(catalogue, counts, this._languages) : catalogue;
+        this._languageItems = counts?.length ? mergeFacetCounts(catalogue, counts, this._languages, [NO_LANGUAGE]) : catalogue;
         this._facetKey = counts ? key : null;
         this._langsLoading = false;
     }
@@ -2487,7 +2487,7 @@ export class SearchModal extends LitElement {
     }
 
     _onLanguagesChange(e) {
-        this._languages = [...e.detail.selected];
+        this._languages = exclusiveNoLanguage([...e.detail.selected], e.detail.added);
         ssSet(SS_LANGUAGES_KEY, JSON.stringify(this._languages));
         this._refetchIfActive();
     }
@@ -2731,7 +2731,8 @@ export class SearchModal extends LitElement {
     _fulltextFilters() {
         return {
             readable: this._availability !== DEFAULT_AVAILABILITY,
-            languages: this._languages,
+            // The FTS backend has no "no language" filter, and would return nothing for it.
+            languages: this._languages.filter(code => code !== NO_LANGUAGE),
             allWords: this._ftAllWordsQuery !== null && this._ftAllWordsQuery === this._query.trim()
         };
     }

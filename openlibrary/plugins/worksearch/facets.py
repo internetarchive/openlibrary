@@ -9,6 +9,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import changequery
 from openlibrary.plugins.upstream.utils import get_language_name, json_encode
 from openlibrary.plugins.worksearch.code import (
+    NO_LANGUAGE,
     SearchResponse,
     get_active_availability,
     get_availability_label,
@@ -262,7 +263,7 @@ def render_selected_search_facets(
         if active_availability != "all":
             title_parts.append(get_availability_label(active_availability))
         for lang_code in selected_languages:
-            title_parts.append(get_language_name("/languages/" + lang_code, user_lang))
+            title_parts.append(_("No language") if lang_code == NO_LANGUAGE else get_language_name("/languages/" + lang_code, user_lang))
         title_parts.extend(chip.label for chip in other_chips)
         title = _("%(title)s - search", title=", ".join(title_parts))
 

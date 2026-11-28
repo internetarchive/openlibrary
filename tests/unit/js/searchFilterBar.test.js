@@ -24,6 +24,32 @@ describe('selectionFor', () => {
     test('a single selection passes through unchanged', () => {
         expect(selectionFor(SINGLE, ['fre'], 'fre')).toEqual(['fre']);
     });
+
+    describe('no language', () => {
+        test('picking it on a multi-select surface clears the real languages', () => {
+            expect(selectionFor(MULTI, ['fre', 'none'], 'none')).toEqual(['none']);
+        });
+
+        test('picking a real language on a multi-select surface clears it', () => {
+            expect(selectionFor(MULTI, ['none', 'fre'], 'fre')).toEqual(['fre']);
+        });
+
+        test('deselecting a language leaves a lone no-language alone', () => {
+            expect(selectionFor(MULTI, ['none'], null)).toEqual(['none']);
+        });
+
+        test('is never applied on a single-select (full-text) surface', () => {
+            expect(selectionFor(SINGLE, ['none'], 'none')).toEqual([]);
+        });
+
+        test('a seeded no-language selection is dropped on a single-select surface', () => {
+            expect(selectionFor(SINGLE, ['none', 'fre'])).toEqual(['fre']);
+        });
+
+        test('a real language picked while no-language was stored wins on a single-select surface', () => {
+            expect(selectionFor(SINGLE, ['none', 'fre'], 'fre')).toEqual(['fre']);
+        });
+    });
 });
 
 describe('sticky filter round-trip', () => {

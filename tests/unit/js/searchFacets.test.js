@@ -5,9 +5,11 @@
  */
 
 import {
+    exclusiveNoLanguage,
     FACET_OPEN_BUDGET_MS,
     fetchFacetCounts,
     mergeFacetCounts,
+    NO_LANGUAGE,
     openWhenCountsReady
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js';
 
@@ -213,6 +215,69 @@ describe('mergeFacetCounts', () => {
         const retained = result.filter(it => it.count === 0).map(it => it.value);
         expect(retained).toContain('fre');
         expect(retained).toContain('dut');
+    });
+
+    describe('extra values (no language)', () => {
+        const NONE_COUNT = { value: 'none', label: 'No language', count: 8 };
+
+        test('lists the extra value with the API label and its count', () => {
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, NONE_COUNT], [], [NO_LANGUAGE]);
+            expect(result.find(it => it.value === 'none')).toEqual({ value: 'none', label: 'No language', count: 8 });
+        });
+
+        test('sorts the extra value by count among the languages', () => {
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, NONE_COUNT], [], [NO_LANGUAGE]);
+            expect(result.map(it => it.value)).toEqual(['eng', 'ger', 'spa', 'none']);
+        });
+
+        test('ignores an extra value the caller did not allow', () => {
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, NONE_COUNT], []);
+            expect(result.map(it => it.value)).not.toContain('none');
+        });
+
+        test('does not add the extra value when counts have none', () => {
+            const result = mergeFacetCounts(ITEMS, COUNTS, [], [NO_LANGUAGE]);
+            expect(result.map(it => it.value)).not.toContain('none');
+        });
+
+        test('keeps a selected extra value with no matches so it can be unticked', () => {
+            // The API lists "No language" at 0 so it keeps a translated label.
+            const zero = { value: 'none', label: 'Sin idioma', count: 0 };
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, zero], ['none'], [NO_LANGUAGE]);
+            const none = result.find(it => it.value === 'none');
+            expect(none.count).toBe(0);
+            expect(none.label).toBe('Sin idioma');
+        });
+
+        test('hides a zero-count extra value when it is not selected', () => {
+            const zero = { value: 'none', label: 'No language', count: 0 };
+            const result = mergeFacetCounts(ITEMS, [...COUNTS, zero], [], [NO_LANGUAGE]);
+            expect(result.map(it => it.value)).not.toContain('none');
+        });
+
+        test('does not duplicate a value already in the catalogue', () => {
+            const items = [...ITEMS, { value: 'none', label: 'None' }];
+            const result = mergeFacetCounts(items, [...COUNTS, NONE_COUNT], [], [NO_LANGUAGE]);
+            expect(result.filter(it => it.value === 'none')).toHaveLength(1);
+        });
+    });
+});
+
+describe('exclusiveNoLanguage', () => {
+    test('leaves a selection without no-language untouched', () => {
+        expect(exclusiveNoLanguage(['eng', 'fre'], 'fre')).toEqual(['eng', 'fre']);
+    });
+
+    test('picking no-language clears the real languages', () => {
+        expect(exclusiveNoLanguage(['eng', 'none'], 'none')).toEqual(['none']);
+    });
+
+    test('picking a real language clears no-language', () => {
+        expect(exclusiveNoLanguage(['none', 'eng'], 'eng')).toEqual(['eng']);
+    });
+
+    test('deselecting leaves no-language alone', () => {
+        expect(exclusiveNoLanguage(['none'], null)).toEqual(['none']);
     });
 });
 

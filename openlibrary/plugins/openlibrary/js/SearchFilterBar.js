@@ -39,7 +39,7 @@ import {
     readStoredLanguages
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
-import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './search-modal/searchFacets.js';
+import { exclusiveNoLanguage, fetchFacetCounts, mergeFacetCounts, NO_LANGUAGE, openWhenCountsReady } from './search-modal/searchFacets.js';
 import { trackEvent } from './ol.analytics.js';
 
 // Every query param the availability filter owns, across all of its values.
@@ -99,9 +99,11 @@ function writeStoredLanguages(values) {
  * @returns {string[]} the codes to write to the URL and storage
  */
 export function selectionFor(surface, selected, added) {
-    if (!surface.singleLanguage) return selected;
-    if (added) return [added];
-    return selected.slice(0, 1);
+    if (!surface.singleLanguage) return exclusiveNoLanguage(selected, added);
+    // The FTS backend has no "no language" filter.
+    const applicable = selected.filter(code => code !== NO_LANGUAGE);
+    if (added && added !== NO_LANGUAGE) return [added];
+    return applicable.slice(0, 1);
 }
 
 function urlHasAnyFilterParam(surface, params) {
@@ -277,7 +279,7 @@ export function initSearchFilterBar(container) {
                     hasQuery && field && surface.facetCounts ? fetchFacetCounts(field, currentParams) : Promise.resolve([])
                 ]);
 
-                languageEl.items = hasQuery && counts.length > 0 ? mergeFacetCounts(options, counts, languageEl.selected || []) : options;
+                languageEl.items = hasQuery && counts.length > 0 ? mergeFacetCounts(options, counts, languageEl.selected || [], [NO_LANGUAGE]) : options;
             } catch (err) {
                 // Graceful degradation: keep DEFAULT_LANGUAGE_OPTIONS seeded at
                 // init. Filtering must never break (spec requirement).

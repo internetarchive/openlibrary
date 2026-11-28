@@ -64,6 +64,19 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 OLID_URLS = {"A": "authors", "M": "books", "W": "works"}
 
+# `language=none` selects works with no language set. Not a MARC code, so it can't clash with a real language.
+NO_LANGUAGE = "none"
+NO_LANGUAGE_FQ = "-language:[* TO *]"
+
+
+def with_no_language_bucket(fields: Iterable[str]) -> list[str | dict[str, str]]:
+    """Facet fields for the filter UIs, where `language` also counts works with no language.
+
+    Kept opt-in because other callers (e.g. subject pages) read the `language` facet and expect real languages only.
+    """
+    return [{"name": f, "missing": "true"} if f == "language" else f for f in fields]
+
+
 re_isbn_field = re.compile(r"^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$", re.IGNORECASE)
 re_olid = re.compile(r"^OL\d+([AMW])$")
 
@@ -303,6 +316,11 @@ def process_facet(field: str, facets: Iterable[tuple[str, int]]) -> tuple[str, s
         for val, count in facets:
             if count == 0:
                 continue
+            if val is None:
+                # Solr's facet.missing bucket: works with no value for this field.
+                if field == "language":
+                    yield (NO_LANGUAGE, _("No language"), count)
+                continue
             if field == "author_key":
                 key, name = read_author_facet(val)
                 yield (key, name, count)
@@ -415,6 +433,8 @@ def _prepare_solr_query_params(  # noqa: PLR0912
                     params.append((f"f.{facet['name']}.facet.sort", facet["sort"]))
                 if "limit" in facet:
                     params.append((f"f.{facet['name']}.facet.limit", facet["limit"]))
+                if "missing" in facet:
+                    params.append((f"f.{facet['name']}.facet.missing", facet["missing"]))
             else:
                 # Should never get here
                 raise ValueError(f"Invalid facet type: {facet}")
@@ -433,7 +453,10 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         if isinstance(values, str):
             values = [values]
         non_empty = [val for val in values if val]
-        if field == "language" and len(non_empty) > 1:
+        if field == "language" and NO_LANGUAGE in non_empty:
+            # Exclusive: "no language" can't be combined with real languages.
+            params.append(("fq", NO_LANGUAGE_FQ))
+        elif field == "language" and len(non_empty) > 1:
             # Multiple languages are additive: a work in any of the selected
             # languages should match. Emitting one fq per value would make Solr
             # AND them, requiring a work to be in every selected language at
