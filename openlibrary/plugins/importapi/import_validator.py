@@ -131,6 +131,13 @@ class import_validator:
         except ValidationError as e:
             errors.append(e)
 
+        # A record naming its edition updates that edition rather than creating
+        # one, so it needn't be complete enough to stand on its own. Checked only
+        # after CompleteBook, whose "before" validators strip suspect dates and
+        # authors from `data` in place.
+        if data.get("openlibrary"):
+            return True
+
         try:
             StrongIdentifierBook.model_validate(data)
             return True
