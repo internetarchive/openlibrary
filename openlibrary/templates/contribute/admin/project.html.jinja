@@ -72,18 +72,14 @@
             </div>
         </div>
     </header>
-    {#- Confirmation text for contribute.js; see confirm-template.js. -#}
-    <template id="contrib-admin-stop"
-              data-i18n="{{ {'title': _('Stop this project now?') , 'confirm': _('Stop project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+    {#- Confirmation messages for contribute.js; see confirm-template.js. -#}
+    <template id="contrib-admin-stop">
         {{ _("It will hand out no more tasks. It stays on the Tasks page as finished, with its final numbers. To run it again, change its end date.") }}
     </template>
-    <template id="contrib-admin-delete"
-              data-i18n="{{ {'title': _('Delete this project?') , 'confirm': _('Delete project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+    <template id="contrib-admin-delete">
         {{ _("The project and its book list are removed. This can't be undone.") }}
     </template>
-    <template id="contrib-admin-headline"
-              data-destructive="false"
-              data-i18n="{{ {'title': _('Feature this project?') , 'confirm': _('Feature project'), 'cancel': _('Cancel'), 'close': _('Close')} | tojson | forceescape }}">
+    <template id="contrib-admin-headline" data-destructive="false">
         {{ _("Links to the Tasks page that don't name a project will open this one from now on, in place of the current featured project.") }}
     </template>
     <dl class="contrib-admin__facts">

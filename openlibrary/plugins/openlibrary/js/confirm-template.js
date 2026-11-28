@@ -1,47 +1,42 @@
 /**
- * olConfirm() / olAlert() driven by a <template> in the page, so the strings
- * are written where $_() extraction sees them and the message may carry markup:
+ * olConfirm() / olAlert() whose message is the content of a <template> in the page,
+ * so the message may carry markup and is written where $_() extraction sees it:
  *
- *     <template id="delete-list-dialog"
- *               data-i18n="$json_encode({'title': _('Delete this list?'), 'confirm': _('Delete list'), 'cancel': _('Cancel'), 'close': _('Close')})">
- *         $_('This cannot be undone.')
- *     </template>
+ *     <template id="delete-list-dialog">$_('This cannot be undone.')</template>
  *
- * Alerts take `ok` instead of `confirm` and `cancel`.
+ * The caller passes the title and button labels with _().
  */
+import { _ } from './i18n.js';
 import { olAlert, olConfirm } from '../../../components/lit/alert-dialog.js';
 
 /**
  * @param {HTMLTemplateElement} template
- * @param {Object} [options]
- * @param {Object} [options.i18n] - The template's data-i18n, if the caller has already parsed it.
+ * @param {Object} options
+ * @param {String} options.title
+ * @param {String} options.confirmLabel
  * @param {Node} [options.message] - Replaces the template's own content, e.g. a clone with a name filled in.
- * @param {String} [options.title] - Replaces the template's title, e.g. one with a count filled in.
- * @param {String} [options.confirmLabel] - Replaces the template's confirm label.
  * @param {Boolean} [options.destructive]
  * @returns {Promise<Boolean>}
  */
-export function confirmFromTemplate(template, { i18n = JSON.parse(template.dataset.i18n), message = template, destructive = true, title, confirmLabel } = {}) {
+export function confirmFromTemplate(template, { title, confirmLabel, message = template, destructive = true }) {
     return olConfirm({
-        title: title ?? i18n.title,
+        title,
         message,
-        confirmLabel: confirmLabel ?? i18n.confirm,
-        cancelLabel: i18n.cancel,
-        labelClose: i18n.close,
+        confirmLabel,
+        labelClose: _('Close'),
         destructive
     });
 }
 
 /**
  * @param {HTMLTemplateElement} template
+ * @param {String} title
  * @returns {Promise<void>}
  */
-export function alertFromTemplate(template) {
-    const i18n = JSON.parse(template.dataset.i18n);
+export function alertFromTemplate(template, title) {
     return olAlert({
-        title: i18n.title,
+        title,
         message: template,
-        okLabel: i18n.ok,
-        labelClose: i18n.close
+        labelClose: _('Close')
     });
 }

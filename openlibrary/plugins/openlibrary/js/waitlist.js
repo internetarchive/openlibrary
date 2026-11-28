@@ -1,4 +1,5 @@
 import { confirmFromTemplate } from './confirm-template';
+import { _ } from './i18n.js';
 
 /**
  * Initialize the leave waitlist link
@@ -12,7 +13,7 @@ export function initLeaveWaitlist(leaveWaitlistLinks) {
             event.preventDefault();
             const message = template.content.cloneNode(true);
             message.querySelector('strong').textContent = link.closest('tr').querySelector('.book').textContent.trim();
-            if (await confirmFromTemplate(template, { message })) {
+            if (await confirmFromTemplate(template, { message, title: _('Leave the waiting list?'), confirmLabel: _('Leave waiting list') })) {
                 link.closest('form').requestSubmit();
             }
         });

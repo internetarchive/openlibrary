@@ -24,9 +24,8 @@ $if "type" in doc and doc.type.key == "/type/user":
         <span class="listDelete sansserif smaller listDelete--myLists hidden">
             <a href="javascript:;"><span></span>$_('Delete this list')</a>
         </span>
-        $# Confirmation strings for ListViewBody.js; see confirm-template.js
-        <template id="delete-list-dialog"
-                  data-i18n="$json_encode({'title': _('Delete this list?'), 'confirm': _('Delete list'), 'cancel': _('Cancel'), 'close': _('Close')})">
+        $# Confirmation message for ListViewBody.js; see confirm-template.js
+        <template id="delete-list-dialog">
             $_('This cannot be undone.')
         </template>
 $else:
@@ -35,9 +34,8 @@ $else:
     <span class="listDelete sansserif smaller seedDelete--myLists hidden">
         <a href="javascript:;"><span></span>$_('Remove this seed?')</a>
     </span>
-    $# Confirmation strings for ListViewBody.js; see confirm-template.js
-    <template id="remove-seed-dialog"
-              data-i18n="$json_encode({'title': _('Remove from this list?'), 'confirm': _('Remove'), 'cancel': _('Cancel'), 'close': _('Close')})">
+    $# Confirmation message for ListViewBody.js; see confirm-template.js
+    <template id="remove-seed-dialog">
         $:_('<strong>%(title)s</strong> will be removed from this list.', title=header.title)
     </template>
 

@@ -138,9 +138,7 @@
         </fieldset>
         {#- What the project will be, restated by contribute.js as the form changes; it also keeps Create off until there are
             details and books. Without the script the summary stays hidden and the server checks the form. -#}
-        <div class="contrib-admin__submit"
-             data-create-summary
-             data-i18n="{{ page.create_strings | tojson | forceescape }}">
+        <div class="contrib-admin__submit" data-create-summary>
             <dl class="contrib-admin__summary" hidden>
                 <div>
                     <dt>{{ _("Books") }}</dt>

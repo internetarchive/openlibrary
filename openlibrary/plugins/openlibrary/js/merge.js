@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { fmt, plural } from './i18n.js';
+import { _, fmt, ngettext } from './i18n.js';
 import { alertFromTemplate, confirmFromTemplate } from './confirm-template';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
@@ -30,15 +30,14 @@ function authorRows() {
  *
  * @param {Object} primary
  * @param {Array<Object>} duplicates
- * @param {Object} i18n - Parsed from the template's data-i18n.
  * @returns {HTMLElement}
  */
-function mergeSummary(primary, duplicates, i18n) {
+function mergeSummary(primary, duplicates) {
     const wrap = document.createElement('div');
     wrap.className = 'merge-summary';
     for (const [label, entries] of [
-        [i18n.keep, [primary]],
-        [i18n.redirect, duplicates]
+        [_('Keep'), [primary]],
+        [_('Merge in and redirect'), duplicates]
     ]) {
         if (!entries.length) continue;
         const heading = document.createElement('h3');
@@ -70,7 +69,7 @@ export function initAuthorMergePage() {
         // Only rendered for librarians who can merge directly; others submit a request.
         const confirmTemplate = document.getElementById('confirmMerge');
         if (!master) {
-            await alertFromTemplate(document.getElementById('noMaster'));
+            await alertFromTemplate(document.getElementById('noMaster'), _('No primary record'));
             return;
         }
         if (!confirmTemplate) {
@@ -82,21 +81,19 @@ export function initAuthorMergePage() {
             .map(box => box.value)
             .filter(key => key !== master.value);
         if (!duplicateKeys.length) {
-            await alertFromTemplate(document.getElementById('noDuplicates'));
+            await alertFromTemplate(document.getElementById('noDuplicates'), _('No authors selected.'));
             return;
         }
         const rows = authorRows();
         const primary = rows.get(master.value);
         // Without a matching row there is nothing to summarize; merge without the dialog.
         if (primary) {
-            const i18n = JSON.parse(confirmTemplate.dataset.i18n);
             const duplicates = duplicateKeys.map(key => rows.get(key)).filter(Boolean);
             const vars = { count: duplicates.length, name: primary.name };
             const confirmed = await confirmFromTemplate(confirmTemplate, {
-                i18n,
-                message: mergeSummary(primary, duplicates, i18n),
-                title: fmt(plural(i18n.titleForCount, vars.count), vars),
-                confirmLabel: fmt(plural(i18n.confirmForCount, vars.count), vars),
+                message: mergeSummary(primary, duplicates),
+                title: fmt(ngettext('Merge %(count)s author into %(name)s?', 'Merge %(count)s authors into %(name)s?', vars.count), vars),
+                confirmLabel: fmt(ngettext('Merge %(count)s author', 'Merge %(count)s authors', vars.count), vars),
                 destructive: false
             });
             if (!confirmed) return;
