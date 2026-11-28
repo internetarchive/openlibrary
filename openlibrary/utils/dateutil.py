@@ -179,20 +179,18 @@ def parse_user_entered_date(date_str: str | None) -> str | None:
             month = months.pop()
             if (days := re.findall(r"(?<!\d)(\d{1,2})(?:st|nd|rd|th)?(?!\d)", rest)) and len(days) == 1:
                 day = int(days[0])
-    elif m := re.fullmatch(
-        # A bare 1-2 digit year with qualifiers/punctuation, e.g. "ca. 67?" or "(58)"
-        r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died)\b|[\s?.,;:()\[\]])*"
-        r"(\d{1,2})"
-        r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
-        text.strip(),
-        re.IGNORECASE,
+    elif (is_bc or is_ad) and (
+        m := re.fullmatch(
+            # A 1-2 digit year with an era and qualifiers/punctuation, e.g. "ca. 67? B.C.".
+            # Without an era it's too often a truncated year ("95", "ca 18") or a day.
+            r"(?:\b(?:ca|c|circa|approx|approximately|fl|floruit|active|b|d|born|died)\b|[\s?.,;:()\[\]])*"
+            r"(\d{1,2})"
+            r"(?:\s*\[from old catalog\]|[\s?.,;:()\[\]])*",
+            text.strip(),
+            re.IGNORECASE,
+        )
     ):
         year = int(m.group(1))
-        # Without an era, a bare 1-2 digit number is more likely a truncated
-        # year ("95") or a day than an ancient year, unless it's marked as
-        # such; and 10-20 is usually a truncated century ("ca 18")
-        if not (is_bc or is_ad) and (10 <= year <= 20 or not re.search(r"[a-z]", text, re.IGNORECASE)):
-            return None
     else:
         return None
 
