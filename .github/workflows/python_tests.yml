@@ -6,8 +6,7 @@ on:
   # and a workflow skipped by a trigger filter never reports, leaving the PR unmergeable.
   # That includes a stacked PR, which targets the branch of the PR below it.
   pull_request:
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   python_tests:
@@ -16,6 +15,8 @@ jobs:
     # pyproject.toml and docker/Dockerfile.olbase move to 3.14.6 or later.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -77,6 +78,8 @@ jobs:
   i18n_upstream:
     runs-on: ubuntu-24.04 # Pinned for Python 3.14.5; see python_tests above.
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

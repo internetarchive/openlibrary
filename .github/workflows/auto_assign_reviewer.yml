@@ -13,9 +13,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- safe: no checkout, no fork code exe
   pull_request_target:
     types: [opened, ready_for_review]
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: auto-assign-review-${{ github.event.pull_request.number }}
@@ -24,6 +22,9 @@ concurrency:
 jobs:
   assign:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     # Requests the TEAM `openlibrary-agentic-code-reviewer` (member: openlibrary-bot), NOT the bot as
     # an individual. That is the single trigger for code_review_action.yml, which runs the model on a
     # `review_requested` whose requested_team.slug is this team. Requesting a team is NOT blocked by

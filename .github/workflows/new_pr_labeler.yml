@@ -12,6 +12,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout has no `ref:` (base 
       - opened
       - ready_for_review
       - reopened
+permissions: {}
 env:
   NODE_VERSION: '24'
 jobs:

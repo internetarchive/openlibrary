@@ -24,10 +24,7 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+permissions: {}
 
 env:
   HOURS: 24
@@ -40,6 +37,10 @@ jobs:
     # Continue only if this executed on the main repo
     if: ${{ github.repository == 'internetarchive/openlibrary' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     outputs:
       exit_code: ${{ steps.run_bot.outputs.exit_code }}
     steps:

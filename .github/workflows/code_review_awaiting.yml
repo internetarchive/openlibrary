@@ -12,6 +12,8 @@ on:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
     types: [opened, reopened, ready_for_review, synchronize]
 
+permissions: {}
+
 # A new push cancels the previous run, including one still waiting to request a review.
 concurrency:
   group: code-review-awaiting-${{ github.event.pull_request.number }}

@@ -15,6 +15,7 @@ on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout has no `ref:` (base 
       - synchronize
     branches:
       - master
+permissions: {}
 jobs:
   labeler:
     if: github.repository == 'internetarchive/openlibrary'

@@ -10,10 +10,7 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
-  issues: write
-  id-token: write
+permissions: {}
 
 concurrency:
   group: issue-enrichment-${{ github.event.issue.number }}
@@ -22,6 +19,12 @@ concurrency:
 jobs:
   enrich:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      # claude-code-action's OIDC token exchange needs this, and GitHub accepts only `write` or
+      # `none`. It grants no repository write access.
+      id-token: write
     # openlibrary-bot's account type is "User", not "Bot" (confirmed via the
     # GitHub API), so `user.type != 'Bot'` alone does NOT exclude it -- it
     # only catches genuine GitHub Apps (dependabot[bot], renovate[bot], etc).
